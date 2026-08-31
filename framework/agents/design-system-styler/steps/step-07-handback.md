@@ -2,7 +2,7 @@
 name: step-07-handback
 description: 'Present the artefact summary in the Unicorn voice, run the accept/revise/restart loop, clean up the workspace, and hand back to the orchestrator.'
 # Variables referenced (inherited from agent):
-# workspace_path: 'design-system/.workspace'
+# workspace_path: 'generated-docs/design-system/.workspace'
 ---
 
 # Step 7: Hand Back
@@ -15,12 +15,12 @@ Lead with the hue-source file (the grounded one), then the derived file if there
 
 **Single-file template:**
 
-> "Wrote `design-system/design-system-{{mode}}.html` — `{{n_colors_extracted}}/11` colour tokens extracted, `{{n_typo_extracted}}/15` typography tokens extracted, `{{n_effects_extracted}}/7` effects tokens extracted; the rest filled from `{{domain}}` defaults. Contrast: `{{cv_pass_count_<mode>}}/4` pairs pass at WCAG AA (`{{cv_adjustment_count_<mode>}}` adjustments). Opened in your browser (if not, open it via `file://`). Ready, or want changes?"
+> "Wrote `generated-docs/design-system/design-system-{{mode}}.html` — `{{n_colors_extracted}}/11` colour tokens extracted, `{{n_typo_extracted}}/15` typography tokens extracted, `{{n_effects_extracted}}/7` effects tokens extracted; the rest filled from `{{domain}}` defaults. Contrast: `{{cv_pass_count_<mode>}}/4` pairs pass at WCAG AA (`{{cv_adjustment_count_<mode>}}` adjustments). Opened in your browser (if not, open it via `file://`). Ready, or want changes?"
 
 **Two-file template:**
 
-> "Wrote two files. `design-system/design-system-{{hue_source_mode}}.html` — **primary**, the extracted palette: `{{n_colors_extracted}}/11` colour tokens extracted, `{{n_typo_extracted}}/15` typography, `{{n_effects_extracted}}/7` effects; the rest filled from `{{domain}}` defaults. Contrast `{{cv_pass_count_<hue>}}/4` (`{{cv_adjustment_count_<hue>}}` adjustments).
-> `design-system/design-system-{{derived_mode}}.html` — derived from the same brand hues, not separately extracted; 11 colours + 3 shadows re-lit, typography and motion shared verbatim. Contrast `{{cv_pass_count_<derived>}}/4` (`{{cv_adjustment_count_<derived>}}` adjustments).
+> "Wrote two files. `generated-docs/design-system/design-system-{{hue_source_mode}}.html` — **primary**, the extracted palette: `{{n_colors_extracted}}/11` colour tokens extracted, `{{n_typo_extracted}}/15` typography, `{{n_effects_extracted}}/7` effects; the rest filled from `{{domain}}` defaults. Contrast `{{cv_pass_count_<hue>}}/4` (`{{cv_adjustment_count_<hue>}}` adjustments).
+> `generated-docs/design-system/design-system-{{derived_mode}}.html` — derived from the same brand hues, not separately extracted; 11 colours + 3 shadows re-lit, typography and motion shared verbatim. Contrast `{{cv_pass_count_<derived>}}/4` (`{{cv_adjustment_count_<derived>}}` adjustments).
 > Opened in your browser, hue-source first (if they didn't open, open them via `file://`). On a revise, only the re-rendered file(s) re-open.
 > Ready, or want changes?"
 
@@ -74,7 +74,7 @@ The accept/revise/restart loop continues until the consultant chooses Accept.
 
 After acceptance:
 
-1. Delete `design-system/.workspace/` and its contents: `Bash rm -rf design-system/.workspace`.
+1. Delete `generated-docs/design-system/.workspace/` and its contents: `Bash rm -rf generated-docs/design-system/.workspace`.
 2. If deletion fails, log a warning but do not halt — workspace cleanup is best-effort.
 
 ## D. Hand Back to Orchestrator
@@ -85,7 +85,7 @@ Output the final handback line:
 
 The orchestrator's handback gate is satisfied when:
 
-- **Every** mode in `{{files_to_write}}` has its `design-system/design-system-<mode>.html` on disk, each verified by `verify-artifact-write` with a `pass`. This always includes `{{hue_source_mode}}`.
+- **Every** mode in `{{files_to_write}}` has its `generated-docs/design-system/design-system-<mode>.html` on disk, each verified by `verify-artifact-write` with a `pass`. This always includes `{{hue_source_mode}}`.
 - Exactly one written file carries `meta.primary: true`, and it is the `{{hue_source_mode}}` file.
 - The consultant has chosen Accept.
 - The workspace folder has been removed.

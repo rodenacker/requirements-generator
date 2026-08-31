@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **u
 
 ## Purpose
 
-Produce `analyse-requirements/USE-CASES/use-cases-map.html` — a self-contained HTML use-case card grid — by applying the Cockburn fully-dressed Use Cases process (`framework/assets/analyses/use-cases-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every UC on the map is named by an active-verb goal phrase drawn verbatim from `§User stories` / `§Task flows` / `§Goals` where anchors exist, derived from another section where they do not, and carries an actor-provenance marker, a goal-source marker, and a flow-source marker either way. Every quality gate in the reference is a hard gate.
+Produce `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` — a self-contained HTML use-case card grid — by applying the Cockburn fully-dressed Use Cases process (`framework/assets/analyses/use-cases-reference.md`) literally and exhaustively to the merged requirements document `generated-docs/requirements/requirements.md`. Every UC on the map is named by an active-verb goal phrase drawn verbatim from `§User stories` / `§Task flows` / `§Goals` where anchors exist, derived from another section where they do not, and carries an actor-provenance marker, a goal-source marker, and a flow-source marker either way. Every quality gate in the reference is a hard gate.
 
 ## Output section order
 
@@ -24,16 +24,16 @@ Section order lives in `framework/assets/analyses/template-use-cases.html`, not 
 
 ## Stand-alone-ish constraint
 
-This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, or any other agent's working state. The merged requirements document is the contract; everything else is pipeline-internal from the Use Cases lens's perspective.
+This agent reads `generated-docs/requirements/requirements.md` and **nothing else under `generated-docs/requirements/`**. It does not read `generated-docs/requirements/source-manifest.json`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims.ndjson`, `generated-docs/requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, or any other agent's working state. The merged requirements document is the contract; everything else is pipeline-internal from the Use Cases lens's perspective.
 
 The agent's only inputs are:
 
-- `requirements/requirements.md` (the merged document — read once).
+- `generated-docs/requirements/requirements.md` (the merged document — read once).
 - `framework/assets/characters/use-cases-analysis.md` (the character — loaded at activation).
 - `framework/assets/analyses/use-cases-reference.md` (the methodology — read at activation).
 - `framework/assets/analyses/template-use-cases.html` (the HTML scaffold — read once at render time).
 
-The agent's only outputs are `analyse-requirements/USE-CASES/use-cases-map.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted.
 
@@ -46,14 +46,14 @@ Eleven primary steps plus two UML sub-steps (Step 8.5 — Round 7 UML diagram de
 - Read `framework/assets/characters/use-cases-analysis.md` once.
 - Read `framework/assets/analyses/use-cases-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
 - Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (the lead and the handback line), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead + glosses (the cards, index table, UML diagrams, and diagnostics keep their concrete, telegraphic discipline).
-- State readiness in one short line: *"Use Cases analyser ready. Starting from `requirements/requirements.md`."*
-- Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
+- State readiness in one short line: *"Use Cases analyser ready. Starting from `generated-docs/requirements/requirements.md`."*
+- Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `generated-docs/requirements/requirements.md` only — no other pipeline state is consulted."*
 
 ### Step 2 — Read input
 
-- `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
+- `Read generated-docs/requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it analysed.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`generated-docs/requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
 - Locate the canonical sections (`§Personas`, `§Task flows`, `§User stories`, `§Goals`, `§1 Domain`, `§Pains`, `§Acceptance criteria`, `§Constraints`, `§Success metrics`, `§Existing solutions` / `§Current process`, `§Risks`). Record which sections are present, which are absent. If `§Personas` is absent, note this in-memory so Step 3 flags every primary actor with `derived-actor` explicitly. If `§Task flows` is absent or sparse, note this in-memory so Step 7 flags every UC with `flow-derived` explicitly.
 
 ### Step 3 — Round 1: Actors & Scope
@@ -174,7 +174,7 @@ Run all seven gates from `use-cases-reference.md > Quality gates` in order. Each
 
 - Do **not** write the artefact.
 - Surface a structured error to the consultant listing every gate that fired and every flagged UC (by `uc_id` + offending text). Use `AskUserQuestion` with three options:
-    1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`.
+    1. `Revise requirements — exit so the consultant can edit generated-docs/requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`.
     2. `Override — proceed and write a known-incomplete map (the diagnostics block on the artefact will record every violation)`.
     3. `Restart — re-run from Step 3 with a fresh extraction`.
 - On **Revise**: hand back to the orchestrator with a `failed-handback` state. The orchestrator does not declare done; the consultant runs `/requirements` or edits manually and re-invokes `/analyse-requirement`.
@@ -260,11 +260,11 @@ Items rendered with a `derived-*` marker (preconditions, success guarantees, min
 
 ### Step 10 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p analyse-requirements/USE-CASES`.
-- `Write analyse-requirements/USE-CASES/use-cases-map.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/USE-CASES/use-cases-map.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with a non-empty diagnostics block is comfortably above 1 KB).
+- Ensure the output directory exists: `Bash mkdir -p generated-docs/analyse-requirements/USE-CASES`.
+- `Write generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/analyse-requirements/USE-CASES/use-cases-map.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with a non-empty diagnostics block is comfortably above 1 KB).
 - On `pass`: advance to Step 11.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/USE-CASES/use-cases-map.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -272,7 +272,7 @@ Items rendered with a `derived-*` marker (preconditions, success guarantees, min
 
 Output one short, concrete line listing the per-round counts and the quality-gate result. No marketing language. Template:
 
-> *"Wrote `analyse-requirements/USE-CASES/use-cases-map.html` — `{{UC_COUNT}}` use cases across `{{ACTOR_COUNT}}` primary actors (`{{LEVEL_SUMMARY_COUNT}}` summary, `{{LEVEL_USER_GOAL_COUNT}}` user-goal, `{{LEVEL_SUBFUNCTION_COUNT}}` subfunction), `{{EXTENSION_COUNT}}` extensions. Quality gates: `{{n_gates_passed}}/7` pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` — `{{UC_COUNT}}` use cases across `{{ACTOR_COUNT}}` primary actors (`{{LEVEL_SUMMARY_COUNT}}` summary, `{{LEVEL_USER_GOAL_COUNT}}` user-goal, `{{LEVEL_SUBFUNCTION_COUNT}}` subfunction), `{{EXTENSION_COUNT}}` extensions. Quality gates: `{{n_gates_passed}}/7` pass. Ready, or want changes?"*
 
 Variants:
 
@@ -301,7 +301,7 @@ Use `AskUserQuestion`:
     - For a step edit (text / subject / order): update Round 5 row, re-run gates 4 / 5, re-render, re-Write, re-verify, loop back to A.
     - For an extension edit: update Round 6 row, re-render, re-Write, re-verify, loop back to A.
     - For a diagram-selection edit (consultant wants different per-actor focus diagrams, or wants the per-actor selection skipped on a single-actor doc): re-run Step 8.6's `AskUserQuestion` prompt only — Rounds 1–7 derivation is not redone since the UML inventory is deterministic from gated card data. Then re-render Step 9, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3. The previously-written `analyse-requirements/USE-CASES/use-cases-map.html` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 3. The previously-written `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10).
 
@@ -313,28 +313,28 @@ Output the final handback line:
 
 ## Inputs
 
-- `requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
+- `generated-docs/requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
 - `framework/assets/characters/use-cases-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses/use-cases-reference.md` — the Use Cases methodology reference. Read once in Step 1.
 - `framework/assets/analyses/template-use-cases.html` — the HTML scaffold. Read once in Step 9.
 
 ## Output
 
-- `analyse-requirements/USE-CASES/use-cases-map.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyse-requirements/USE-CASES/use-cases-map.html`.
+- `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyse-requirements/USE-CASES` (Step 10 setup). No other Bash usage.
+- `Bash` — `mkdir -p generated-docs/analyse-requirements/USE-CASES` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-gate failure prompt (Revise / Override / Restart) when any gate fires; surface the Step 11 Accept / Revise / Restart prompt.
 
 ## Self-validation (run before declaring done)
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyse-requirements/USE-CASES/use-cases-map.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - Exactly one `<section id="plain-terms">` exists as the first content section (before `#overview`), carrying the "In plain terms" lead with a non-empty `<p>`. The lead introduces no use case, count, or `[SRC]` not present below, and glosses no client domain terms.
 - Every `<article class="uc-card">` has its level class set to exactly one of `level-summary`, `level-user-goal`, or `level-subfunction`. No unclassified cards.
@@ -352,20 +352,20 @@ Before handing back, verify all of the following against the written artefact an
 - The number of `<figure class="uml-diagram uml-per-actor">` blocks in the artefact equals `len(chosen.actors)`. Each per-actor SVG contains exactly one `<g class="uml-actor">` and at least one `<ellipse class="uml-uc">`; any UCs outside the actor's set are absent. (Skipped — equals zero — when Step 8.6 was skipped on a single-actor doc.)
 - The Mermaid source block `<details class="uml-mermaid-source">` contains exactly `1 + len(chosen.actors)` `<pre>` elements, each preceded by a `<div class="mermaid-caption">`. The overview caption begins with `System overview — Mermaid does not have first-class UML use case diagrams`. Every `<pre>` opens with `flowchart LR`.
 - The diagnostics block's UML summary line is present and reports `1 overview`, `K per-actor` matching `len(chosen.actors)`, the association-edge count matching the assoc-line count in the overview SVG, the include-edge count matching the `«include»` arrow count, and the `«extend»: 0` / `«generalize»: 0` disclosure lines.
-- No file under `requirements/` other than `requirements/requirements.md` was read during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md` was read during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
 - No file under `framework/state/` or `framework/shared/` was read during this run.
 - The consultant has chosen Accept in Step 11 (or the Step 8 Override path was taken, in which case Accept is still required in Step 11 to declare done).
 
 ## Definition of Done
 
-- `analyse-requirements/USE-CASES/use-cases-map.html` exists, has been verified, and contains a complete use-case map.
+- `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` exists, has been verified, and contains a complete use-case map.
 - Either all seven quality gates passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.
 
 ## Anti-Patterns
 
-- Do not read any path under `requirements/` other than `requirements/requirements.md`. The stand-alone-ish constraint is the agent's most load-bearing invariant.
+- Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md`. The stand-alone-ish constraint is the agent's most load-bearing invariant.
 - Do not read `framework/state/` or `framework/shared/` for any purpose. Pipeline state and shared rules are not Use Cases inputs.
 - Do not invent a third actor-provenance marker, a fifth goal-source marker, or a third flow-source marker. The reference defines the full set; widening it breaks the audit chain.
 - Do not invent UCs not present in the requirements. If a `(primary_actor, user-goal)` pair is not in `§Personas` / `§Task flows` / `§User stories` / `§Goals` / `§1 Domain` / running prose, do not add it. Flag the gap and surface the missing concept to the consultant via the Step 8 Revise path.

@@ -2,9 +2,9 @@
 
 # map-data-model-to-ui.md
 
-**Purpose:** Translate a Logical Data Model (`analyse-requirements/DATA-MODEL/data-model.html`) into UI inventory entries: entities → screen-taxonomy elements (list + detail pairs for `persistent` entities); attributes → form fields and column lists; relationships → cross-screen navigation links; cardinalities → list-vs-detail decisions; business rules → constraints and validation messages; normalisation notes → global decisions (e.g. first-class entity surfaces vs inline summaries).
+**Purpose:** Translate a Logical Data Model (`generated-docs/analyse-requirements/DATA-MODEL/data-model.html`) into UI inventory entries: entities → screen-taxonomy elements (list + detail pairs for `persistent` entities); attributes → form fields and column lists; relationships → cross-screen navigation links; cardinalities → list-vs-detail decisions; business rules → constraints and validation messages; normalisation notes → global decisions (e.g. first-class entity surfaces vs inline summaries).
 
-**Inputs:** `analyse-requirements/DATA-MODEL/data-model.html`, `assets/taxonomy-screens.md`.
+**Inputs:** `generated-docs/analyse-requirements/DATA-MODEL/data-model.html`, `assets/taxonomy-screens.md`.
 
 **Outputs:** UI inventory rows for the design spec.
 

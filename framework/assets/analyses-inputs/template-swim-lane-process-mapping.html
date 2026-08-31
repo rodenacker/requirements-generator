@@ -97,7 +97,7 @@
     {{TITLE}}                  — short title (e.g. "Swim-Lane Process Mapping — Project X").
     {{DOMAIN}}                 — domain string (from manifest meta if declared, else "(not declared)").
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
-    {{MANIFEST_SHA256}}        — sha256 of requirements/source-manifest.json at read time.
+    {{MANIFEST_SHA256}}        — sha256 of generated-docs/requirements/source-manifest.json at read time.
     {{RUN_COUNT}}              — integer ≥ 1, increments per run.
     {{TARGET}}                 — "prototype" | "application" | "(not declared in manifest)".
     {{PROCESS_COUNT}}          — number of discrete processes rendered.
@@ -129,7 +129,7 @@
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered <section class="diagnostics"> per DIAGNOSTICS
                                  SCHEMA below.
 
-  Output: analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html.
+  Output: generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html.
 
   PROCESS BLOCK SCHEMA — each block the analyser emits has the shape:
 

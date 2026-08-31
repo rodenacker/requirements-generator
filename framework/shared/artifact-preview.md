@@ -23,11 +23,11 @@ A preview that does not fire has exactly **two** causes, and they are distinguis
 Repo-relative, forward-slashed. **Allowlist-only** — anything unmatched is skipped, so there is no deny list to keep in sync.
 
 ```
-^analyse-requirements/[^/]+/[^/]+\.html$
-^analyse-inputs/[^/]+/[^/]+\.html$
-^review-requirements/[^/]+/[^/]+\.html$
-^review-inputs/[^/]+/[^/]+\.html$
-^design-system/design-system-(light|dark)\.html$
+^generated-docs/analyse-requirements/[^/]+/[^/]+\.html$
+^generated-docs/analyse-inputs/[^/]+/[^/]+\.html$
+^generated-docs/review-requirements/[^/]+/[^/]+\.html$
+^generated-docs/review-inputs/[^/]+/[^/]+\.html$
+^generated-docs/design-system/design-system-(light|dark)\.html$
 ^wireframes/[^/]+/index\.html$
 ```
 
@@ -43,8 +43,8 @@ Repo-relative, forward-slashed. **Allowlist-only** — anything unmatched is ski
 **Deliberate exclusions** — each is a decision, not an oversight:
 
 - **`wireframes/<slug>/<variant>/screen-NN-*.html`** — three path segments, so the `wireframes/` pattern cannot match. `index.html` is the comparator's intended entry point (§1 scope details, §2 side-by-side screen-link columns, §3 variant cards, §4 trade-off matrix), and each screen link opens the real wireframe in a new tab on click. Opening the screens up front would be 10–25 tabs per run and would bypass the navigation the comparator exists to provide.
-- **`design-system/.workspace/**`** — an extra segment; the transient styler workspace never matches.
-- **`design-system/design-system.html`** — legacy unsuffixed artefact, no longer authored (existence-checked and deleted only). Left out rather than resurrected.
+- **`generated-docs/design-system/.workspace/**`** — an extra segment; the transient styler workspace never matches.
+- **`generated-docs/design-system/design-system.html`** — legacy unsuffixed artefact, no longer authored (existence-checked and deleted only). Left out rather than resurrected.
 - **`prototypes/**`** — `/prototype` produces a Next.js app served by `npm run dev`, not a `file://` artefact. Previewing it needs a dev-server-and-navigate affordance, which is out of scope here.
 - **`framework/**`, `template/**`, `documentation/**`** — templates and inputs are not run outputs.
 - **Non-`.html` artefacts** (`*.sidecar.json`, `_drift.json`, `manifest.json`, `variant-position.json`, `scope.json`) and the markdown-artefact pipelines (`/requirements`, `/generate-prd`, `/export-application`, `/resolve-review`) — nothing to open in a browser.
@@ -70,7 +70,7 @@ The helper records `{ "<relpath>": "<sha256>" }` in `<os-tmpdir>/reqgen-open-<se
 
 State lives in the OS temp dir, **not** `framework/state/` — that tree is orchestrator/agent-owned with per-file ownership declared in orchestrator `Tools` sections, and a hook writing there would breach that ownership and pollute a tracked directory.
 
-That temp write is **not** a pipeline write: it is made by the harness, not by an agent, and it lands outside the repo. It therefore does not touch any pipeline's stand-alone constraint (e.g. the styler's *"no write to any path outside `design-system/`"*) and needs no entry in the write-isolation exception list in `docs/maintenance.md`.
+That temp write is **not** a pipeline write: it is made by the harness, not by an agent, and it lands outside the repo. It therefore does not touch any pipeline's stand-alone constraint (e.g. the styler's *"no write to any path outside `generated-docs/design-system/`"*) and needs no entry in the write-isolation exception list in `docs/maintenance.md`.
 
 ## Failure semantics — non-fatal, and no `RF-NN`
 

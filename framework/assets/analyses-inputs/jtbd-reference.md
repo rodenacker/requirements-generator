@@ -1,16 +1,16 @@
-<!-- ROLE: asset (analysis reference). Methodology definition for the JTBD input-analyser. Modelled on framework/assets/analyses/jtbd-reference.md (the requirements-doc-lensing sibling). Industry framing: hybrid Christensen-Moesta (canonical statement form + four forces of progress) + Ulwick (importance × satisfaction = opportunity scoring), adapted for raw consultant inputs enumerated via `requirements/source-manifest.json`. -->
+<!-- ROLE: asset (analysis reference). Methodology definition for the JTBD input-analyser. Modelled on framework/assets/analyses/jtbd-reference.md (the requirements-doc-lensing sibling). Industry framing: hybrid Christensen-Moesta (canonical statement form + four forces of progress) + Ulwick (importance × satisfaction = opportunity scoring), adapted for raw consultant inputs enumerated via `generated-docs/requirements/source-manifest.json`. -->
 
 # JTBD reference (input-analysis variant)
 
-> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`; extract actor + situation candidates from input prose, slide-deck text, and the frozen visual descriptions (Round 1); write canonical *"When `<situation>`, I want to `<motivation>`, so I can `<outcome>`."* statements (Round 2); classify Functional / Emotional / Social (Round 3); refine outcomes against measurable signals in the inputs (Round 4); score Importance × Satisfaction (Round 5); group into clusters and capture the four forces of progress where the inputs name them (Round 6). Every job carries `[SRC: <filename>]` citations. Outcomes without anchorable measures carry `(no-metric-in-inputs)`. Scores without anchorable signals carry `consultant-assigned-no-signal`. Forces with no input mention render as `not-named-in-inputs`. Across re-runs the artefact is **additive**: prior job cards, cluster headings, and force lines are preserved; new manifest content extends them.
+> **Method:** Walk every consumable source enumerated in `generated-docs/requirements/source-manifest.json`; extract actor + situation candidates from input prose, slide-deck text, and the frozen visual descriptions (Round 1); write canonical *"When `<situation>`, I want to `<motivation>`, so I can `<outcome>`."* statements (Round 2); classify Functional / Emotional / Social (Round 3); refine outcomes against measurable signals in the inputs (Round 4); score Importance × Satisfaction (Round 5); group into clusters and capture the four forces of progress where the inputs name them (Round 6). Every job carries `[SRC: <filename>]` citations. Outcomes without anchorable measures carry `(no-metric-in-inputs)`. Scores without anchorable signals carry `consultant-assigned-no-signal`. Forces with no input mention render as `not-named-in-inputs`. Across re-runs the artefact is **additive**: prior job cards, cluster headings, and force lines are preserved; new manifest content extends them.
 
-**Output file:** `analyse-inputs/JTBD/jtbd-job-map.html` — a self-contained HTML job-card grid + opportunity matrix using `framework/assets/analyses-inputs/template-jtbd.html` as scaffold.
+**Output file:** `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` — a self-contained HTML job-card grid + opportunity matrix using `framework/assets/analyses-inputs/template-jtbd.html` as scaffold.
 
 **Analyser agent:** `framework/agents/analyses-inputs/jtbd-analyser.md`
 
 **Character:** `framework/assets/characters/jtbd-inputs-analysis.md`
 
-**Sibling under `/analyse-requirement`:** `framework/assets/analyses/jtbd-reference.md` is the parallel methodology canon for lensing the synthesised `requirements/requirements.md`. The two references share the same hybrid framing (Christensen-Moesta + Ulwick), the same six rounds, the same opportunity formula, and the same seven quality gates. They differ **only** in the per-round source-extraction guidance (this reference reads raw inputs via the manifest; the sibling reads section anchors `§Personas` / `§Task flows` / `§Acceptance criteria` in `requirements/requirements.md`) and in the textual provenance markers (`[SRC: <filename>]` here vs the sibling's `provenance-from-personas` / `src-from-task-flows`-class markers; `(no-metric-in-inputs)` here vs the sibling's `(no-metric-in-requirements)`; `not-named-in-inputs` here vs the sibling's `not-named-in-requirements`; `consultant-assigned-no-signal` is identical in both).
+**Sibling under `/analyse-requirement`:** `framework/assets/analyses/jtbd-reference.md` is the parallel methodology canon for lensing the synthesised `generated-docs/requirements/requirements.md`. The two references share the same hybrid framing (Christensen-Moesta + Ulwick), the same six rounds, the same opportunity formula, and the same seven quality gates. They differ **only** in the per-round source-extraction guidance (this reference reads raw inputs via the manifest; the sibling reads section anchors `§Personas` / `§Task flows` / `§Acceptance criteria` in `generated-docs/requirements/requirements.md`) and in the textual provenance markers (`[SRC: <filename>]` here vs the sibling's `provenance-from-personas` / `src-from-task-flows`-class markers; `(no-metric-in-inputs)` here vs the sibling's `(no-metric-in-requirements)`; `not-named-in-inputs` here vs the sibling's `not-named-in-requirements`; `consultant-assigned-no-signal` is identical in both).
 
 ---
 
@@ -35,7 +35,7 @@ This analyser sits firmly in the **extraction** camp. The subject of every job i
 
 JTBD on raw inputs is the **right complement** to the existing `/analyse-requirement` JTBD because:
 
-1. The sibling lenses the synthesised `requirements/requirements.md`, which has already normalised consultant phrasing into *"the system shall …"* clauses — JTBD on that document surfaces jobs the **normaliser** preserved, not the jobs the **inputs** named.
+1. The sibling lenses the synthesised `generated-docs/requirements/requirements.md`, which has already normalised consultant phrasing into *"the system shall …"* clauses — JTBD on that document surfaces jobs the **normaliser** preserved, not the jobs the **inputs** named.
 2. Push / Pull / Anxiety / Habit signals live in primary source material (interviews, complaints, "we've always done it this way" prose). Synthesised requirements strip those signals out. Surfacing them **before** synthesis preserves the rich motivation data JTBD depends on.
 3. The output can be **fed back** to `/requirements` as an additional source (manual copy into `documentation/`) — letting the consultant anchor the next requirements draft in extracted user motivation rather than feature wishlist.
 
@@ -300,10 +300,10 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 
 The analyser **never** reads:
 
-- Any path under `requirements/` other than `requirements/source-manifest.json`. In particular: not `requirements/requirements.md` (the requirements-doc-lensing sibling JTBD analyser is a separate run); not `requirements/requirements-draft.md`; not `requirements/consultant-answers.md`; not `requirements/draft-claims*.ndjson`.
+- Any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json`. In particular: not `generated-docs/requirements/requirements.md` (the requirements-doc-lensing sibling JTBD analyser is a separate run); not `generated-docs/requirements/requirements-draft.md`; not `generated-docs/requirements/consultant-answers.md`; not `generated-docs/requirements/draft-claims*.ndjson`.
 - Any path under `framework/state/`.
 - Any path under `framework/shared/` (textual references to `RF-NN` / `GR-NN` in this file and in the analyser are links for the reader, not file loads).
-- Other analyses' artefacts (`analyse-requirements/<OTHER-METHOD>/...`, `analyse-inputs/<OTHER-METHOD>/...`).
+- Other analyses' artefacts (`generated-docs/analyse-requirements/<OTHER-METHOD>/...`, `generated-docs/analyse-inputs/<OTHER-METHOD>/...`).
 - Any pattern-catalogue or design-system file.
 
 ---
@@ -318,7 +318,7 @@ The analyser **never** reads:
 - **Editorialising.** The analyser is a literal lens onto the consultant's raw inputs. It does not propose new product features; it surfaces jobs the inputs already document (verbatim where named, near-verbatim where lightly rephrased from prose).
 - **Inventing forces.** If the consumed inputs do not name a force, mark `not-named-in-inputs`. Most raw input sets name Push and Pull but rarely Anxiety and Habit; surfacing the absence is the point — it tells the consultant which switch-interview questions are still missing.
 - **Inventing scoring confidence.** If the inputs do not anchor Importance or Satisfaction, default the score to 3 and mark `consultant-assigned-no-signal`. The consultant fills the gap at the handback or in a subsequent run with enriched inputs.
-- **Reading `requirements/requirements.md`.** The merged requirements document is the *sibling* JTBD analyser's input. This analyser's source contract is `requirements/source-manifest.json` + the per-tier manifest rows. Crossing into `requirements.md` collapses the two analysers into one and erases the input-vs-derived distinction that makes the parallel pair valuable.
+- **Reading `generated-docs/requirements/requirements.md`.** The merged requirements document is the *sibling* JTBD analyser's input. This analyser's source contract is `generated-docs/requirements/source-manifest.json` + the per-tier manifest rows. Crossing into `requirements.md` collapses the two analysers into one and erases the input-vs-derived distinction that makes the parallel pair valuable.
 - **Re-invoking `markitdown-mcp`.** Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract. Re-converting would produce drift between the analyser's reads and the manifest's recorded `sha256` field.
 - **Bundling external JS / CSS.** The artefact is self-contained HTML (template-driven). No `<script>` tags, no external links, no font URLs — the template's inlined `<style>` block is the only styling source.
 
@@ -338,9 +338,9 @@ The analyser **never** reads:
 
 The JTBD-inputs artefact is **re-ingestible by `/requirements`** as a fresh source. The contract:
 
-1. Consultant copies `analyse-inputs/JTBD/jtbd-job-map.html` into `documentation/` (file copy; the orchestrator does not automate this).
+1. Consultant copies `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` into `documentation/` (file copy; the orchestrator does not automate this).
 2. Consultant re-invokes `/requirements` (or any of `/analyse-inputs`, `/review-inputs`, `/generate-prd`).
-3. The shared `framework/agents/input-handler.md` agent detects the new file on its drift check; surfaces the manifest-refresh prompt; classifies the file via `framework/skills/classify-input-tier.md` as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff); adds it to `requirements/source-manifest.json` as a new row.
+3. The shared `framework/agents/input-handler.md` agent detects the new file on its drift check; surfaces the manifest-refresh prompt; classifies the file via `framework/skills/classify-input-tier.md` as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff); adds it to `generated-docs/requirements/source-manifest.json` as a new row.
 4. The `/requirements` drafter reads the new row's `original_path` (no markitdown conversion needed — `Native-text` is read directly) and extracts candidate-requirement seeds from the job-card content. The `[SRC: <filename>]` markers inside the JTBD artefact reference the original briefs / interview notes; the drafter's own `[SRC: C-NNN]` claim IDs cite the JTBD artefact; the audit trail is preserved end-to-end through the dual-citation chain.
 
 This pathway is **consultant-driven**, not automated. The orchestrator does not move files across pipelines; the analyser's Step 12 handback message tells the consultant about the round-trip and they decide whether to use the JTBD map as `/requirements` input or as a stand-alone discovery artefact.
@@ -355,7 +355,7 @@ The analysis is complete when:
 
 - `final_jobs` is non-empty (or the consultant Override'd a zero-job run with a recorded reason in Run-history).
 - All 7 hard gates pass, or the consultant chose Override and the failures are recorded in Diagnostics.
-- `analyse-inputs/JTBD/jtbd-job-map.html` has been written and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the Step 12 handback loop.
 
 ---

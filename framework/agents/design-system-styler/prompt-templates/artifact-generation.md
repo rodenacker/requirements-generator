@@ -10,8 +10,8 @@
 
 Each written mode gets its **own complete, single-mode file**:
 
-- `design-system/design-system-light.html` — `mode = light`
-- `design-system/design-system-dark.html` — `mode = dark`
+- `generated-docs/design-system/design-system-light.html` — `mode = light`
+- `generated-docs/design-system/design-system-dark.html` — `mode = dark`
 
 There is no in-document mode switcher, and no combined file. Which files are written is decided in step-05b: **every mode the consultant asked for, plus the hue-source mode always** (`{{files_to_write}}`). The plain `design-system.html` filename is retired.
 
@@ -279,8 +279,8 @@ The colour constants among them are authored **black-based**, which only reads o
 
 ## 7. Write Discipline
 
-- Output paths: `design-system/design-system-light.html` and/or `design-system/design-system-dark.html`, one per mode in `{{files_to_write}}`. The plain `design-system.html` path is retired.
-- Create the `design-system/` directory first if it does not exist.
+- Output paths: `generated-docs/design-system/design-system-light.html` and/or `generated-docs/design-system/design-system-dark.html`, one per mode in `{{files_to_write}}`. The plain `design-system.html` path is retired.
+- Create the `generated-docs/design-system/` directory first if it does not exist.
 - **Write and verify one mode at a time, hue-source mode first.** Compute a **per-file** `sha256` of that file's rendered byte string (template + substituted standards) before writing it — each hash is passed to `framework/skills/verify-artifact-write.md` after that file's Write call with `expected_min_bytes = 14000`. Never reuse one mode's hash for the other file.
 - Do not begin the derived render until the hue-source file has been written **and** its verify returned `pass`. A derived palette is meaningless without the grounded one on disk, and a half-written pair is worse than a single file.
 - Never write an artefact incrementally. Each render is built fully in memory, then written in one atomic Write call.

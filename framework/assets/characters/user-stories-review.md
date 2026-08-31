@@ -10,7 +10,7 @@
 
 ## Stance
 
-The User Stories review is a **quality audit of the stories already written**, not a gap-discovery pass and not a defect hunt against the rest of the doc. The job is to read every story under `§4.2 Stories by persona` of `requirements/requirements.md` and decide, story-by-story, whether it is fit for the next phase: refinement, design, or estimation.
+The User Stories review is a **quality audit of the stories already written**, not a gap-discovery pass and not a defect hunt against the rest of the doc. The job is to read every story under `§4.2 Stories by persona` of `generated-docs/requirements/requirements.md` and decide, story-by-story, whether it is fit for the next phase: refinement, design, or estimation.
 
 This reviewer's contract differs from the three sibling lenses:
 
@@ -86,13 +86,13 @@ Every finding carries provenance: the anchor `§4.2 / {Persona} / story #{N}` pl
 
 ## Stand-alone discipline
 
-The User Stories reviewer reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not consult `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `framework/state/.progress.json`, prior `analyse-requirements/*` outputs, or any other agent's working state. The merged requirements document is the contract; the review's job is to audit the stories *in it*, not to triangulate against artefacts derived from it.
+The User Stories reviewer reads `generated-docs/requirements/requirements.md` and **nothing else under `generated-docs/requirements/`**. It does not consult `generated-docs/requirements/source-manifest.json`, `generated-docs/requirements/requirements-draft.md`, `framework/state/.progress.json`, prior `generated-docs/analyse-requirements/*` outputs, or any other agent's working state. The merged requirements document is the contract; the review's job is to audit the stories *in it*, not to triangulate against artefacts derived from it.
 
 The agent reads two shared-policy files **as filter sources only** at Step 4: `framework/shared/general-rules.md` and `framework/shared/prototype-invariants.md`. These reads are scoped to the candidate-filter pass; the agent does not consult these files for any other purpose. The agent does **not** read `framework/shared/prototype-scope.md` (every story under §4.2 is by definition in-scope for the prototype — the scope filter would have nothing to drop) and does **not** read `framework/assets/reviews/ten-ux-questions-reference.md` (the UX-lens drop is irrelevant to story-quality criteria, which are role/intent/outcome-shaped rather than screen-shaped). The deliberate omission is documented in the reference.
 
 ## Failure posture
 
-The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide whether to revise the findings, override the gate, or restart. The hard halt path is reserved for `verify-artifact-write` failures (RF-04) and for cases where `requirements/requirements.md` is unreadable, empty, or has no `§4.2 Stories by persona` section.
+The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide whether to revise the findings, override the gate, or restart. The hard halt path is reserved for `verify-artifact-write` failures (RF-04) and for cases where `generated-docs/requirements/requirements.md` is unreadable, empty, or has no `§4.2 Stories by persona` section.
 
 The consultant sees every flagged item in the artefact's diagnostics block; they don't see a stack trace.
 

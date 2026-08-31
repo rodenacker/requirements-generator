@@ -2,11 +2,11 @@
 
 # CRUD / Entity-Lifecycle Coverage analysis reference
 
-> **Method:** Build a **per-entity coverage matrix** crossing every data entity in `requirements/requirements.md` against the four lifecycle operations (`C` create, `R` read, `U` update, `D` delete/archive). Each cell is given a **coverage verdict** — *delivered* (a function/flow/UI delivers it), *granted-not-delivered* (§6.5 RBAC grants the right but no function delivers it), *forgotten* (an expected operation with no delivery and no grant), or *intentional* (a deliberately-narrow lifecycle). The matrix doubles as a screen-and-action checklist against the blueprint; the holes become resolver questions before wireframing.
+> **Method:** Build a **per-entity coverage matrix** crossing every data entity in `generated-docs/requirements/requirements.md` against the four lifecycle operations (`C` create, `R` read, `U` update, `D` delete/archive). Each cell is given a **coverage verdict** — *delivered* (a function/flow/UI delivers it), *granted-not-delivered* (§6.5 RBAC grants the right but no function delivers it), *forgotten* (an expected operation with no delivery and no grant), or *intentional* (a deliberately-narrow lifecycle). The matrix doubles as a screen-and-action checklist against the blueprint; the holes become resolver questions before wireframing.
 
-**Output file:** `analyse-requirements/CRUD-COVERAGE/crud-matrix.html` — a self-contained HTML artefact (no external CSS/JS; opens via `file://`). **Diagrams-first** section order: Overview → TOC → Diagrams (coverage heatmap + optional role view) → Tables (traceability matrix + lifecycle-hole register + plain matrix) → Diagnostics.
+**Output file:** `generated-docs/analyse-requirements/CRUD-COVERAGE/crud-matrix.html` — a self-contained HTML artefact (no external CSS/JS; opens via `file://`). **Diagrams-first** section order: Overview → TOC → Diagrams (coverage heatmap + optional role view) → Tables (traceability matrix + lifecycle-hole register + plain matrix) → Diagnostics.
 
-**Sidecar:** `analyse-requirements/CRUD-COVERAGE/crud-coverage.sidecar.json` — per `framework/assets/analyses/sidecar-schema.md`. Exposes the `screen-inventory-entity-bijection` and `per-screen-cta-set` roles.
+**Sidecar:** `generated-docs/analyse-requirements/CRUD-COVERAGE/crud-coverage.sidecar.json` — per `framework/assets/analyses/sidecar-schema.md`. Exposes the `screen-inventory-entity-bijection` and `per-screen-cta-set` roles.
 
 **Analyser agent:** `framework/agents/analyses/crud-coverage-analyser.md`
 
@@ -59,9 +59,9 @@ When an entity does not fit any class, the coverage rule applies in full and any
 
 ## Source-of-truth hierarchy
 
-The analyser walks `requirements/requirements.md` in this order:
+The analyser walks `generated-docs/requirements/requirements.md` in this order:
 
-1. **Entities (matrix rows).** `§2.1 Concepts` + `§2.3 Aggregates & lifecycles` (aggregate roots + member concepts) + `§7 Data shapes`. Persistence kind (`persistent` / `derived`) from `§2.1`. Prior `analyse-requirements/{OOUX,DATA-MODEL}/*` outputs, **if present on disk**, seed and corroborate the entity list (they are an optional convenience, not a prerequisite — read them only if they exist).
+1. **Entities (matrix rows).** `§2.1 Concepts` + `§2.3 Aggregates & lifecycles` (aggregate roots + member concepts) + `§7 Data shapes`. Persistence kind (`persistent` / `derived`) from `§2.1`. Prior `generated-docs/analyse-requirements/{OOUX,DATA-MODEL}/*` outputs, **if present on disk**, seed and corroborate the entity list (they are an optional convenience, not a prerequisite — read them only if they exist).
 2. **Granted operations.** `§6.5 Access control (RBAC)` — the authoritative *intent* declaration of which operations each role may perform on each entity, in `C/R/U/D/X/—` vocabulary. When present, this is the spine the matrix cross-checks delivery against. The orphaned-right gap (granted but never delivered) lives here.
 3. **Delivered operations.** `§6.1 Functional` (F-NN), `§5 Task flows`, `§6.4 UI feature needs` (UI-NN), `§4 stories`. A function/flow/UI that creates, reads, updates, or deletes an entity fills that cell as *delivered* and cites the source ID.
 4. **Narrowness signals.** `§2.2 Relationships` (aggregate membership), `§2.3` (member concepts, key invariants, lifecycle states), `§7.X Derivations`, `§9 Key terminology` — feed the intentional-narrowness rubric.
@@ -140,7 +140,7 @@ Each round produces a distinct in-memory output. The analyser does not write unt
 
 ## Sidecar projection (downstream context-cost optimisation)
 
-Per `framework/assets/analyses/sidecar-schema.md`, the analyser writes `analyse-requirements/CRUD-COVERAGE/crud-coverage.sidecar.json` exposing exactly two closed-enum roles (per `framework/skills/select-supporting-analyses.md > Static method → architect_roles mapping`):
+Per `framework/assets/analyses/sidecar-schema.md`, the analyser writes `generated-docs/analyse-requirements/CRUD-COVERAGE/crud-coverage.sidecar.json` exposing exactly two closed-enum roles (per `framework/skills/select-supporting-analyses.md > Static method → architect_roles mapping`):
 
 - **`screen-inventory-entity-bijection`** — one entry per entity: `expected_screens` derived from its **delivered** (and granted-not-delivered) operations — `C → create-form`, `R → list` + `detail`, `U → edit-form`, `D → destructive-flow`. `source_anchor = "crud-coverage:<entity>"`; `rationale` ≤ 120 chars noting any holes. Forgotten-only entities still list their expected screens with the rationale flagging the gap (the architect cross-checks, never widens the feature set).
 - **`per-screen-cta-set`** — one entry per delivered `C`/`U`/`D` cell: `screen_hint` = the owning entity's surface, `label` = a verb-phrase CTA (`C → "Add <Entity>"`, `U → "Edit"`, `D → "Discard"`/`"Delete"`), `source_anchor = "crud-coverage:<entity>.<op>"`.

@@ -1,6 +1,6 @@
 # select-supporting-analyses.md
 
-**Purpose:** Read the `framework/assets/analyses/registry.md` methodology registry, filter the methodologies whose `status` is `mvp` **and** whose `output_path` currently resolves on disk (i.e. the consultant has actually completed that analysis), present the completed-on-disk subset to the consultant as a printed numbered list, parse a comma-separated multi-select reply, capture confirmation via `AskUserQuestion`, and write the consultant's selections to `<output_dir>/<scope_slug>/analyses-inputs.json`. The selected analyses are then read by the `blueprint-architect` agent alongside `requirements/requirements.md` to augment and refine the wireframe brief.
+**Purpose:** Read the `framework/assets/analyses/registry.md` methodology registry, filter the methodologies whose `status` is `mvp` **and** whose `output_path` currently resolves on disk (i.e. the consultant has actually completed that analysis), present the completed-on-disk subset to the consultant as a printed numbered list, parse a comma-separated multi-select reply, capture confirmation via `AskUserQuestion`, and write the consultant's selections to `<output_dir>/<scope_slug>/analyses-inputs.json`. The selected analyses are then read by the `blueprint-architect` agent alongside `generated-docs/requirements/requirements.md` to augment and refine the wireframe brief.
 
 The skill is wireframe-private (today's only caller is `framework/orchestrators/wireframe-orch.md` at step 0c-bis). The wireframe-private placement is deliberate: a future `/prototype` pipeline will consume analyses differently (FK constraints, validation rules, default values vs. the wireframe's screen-shape consumption) and should author its own selector with its own per-method-to-role mapping.
 
@@ -96,7 +96,7 @@ Role semantics (closed enum, consumed by `blueprint-architect.md`):
 6. **Surface the prompt and parse the reply.** Print the assembled block to the consultant as plain text:
 
     ```
-    Available supporting analyses (completed under analyse-requirements/):
+    Available supporting analyses (completed under generated-docs/analyse-requirements/):
 
     1. <name>
     <description>
@@ -133,7 +133,7 @@ Role semantics (closed enum, consumed by `blueprint-architect.md`):
     7. **Retry budget** — keep an in-memory counter of invalid replies. The budget is **2 re-prompts**; on the third invalid reply (counter would become 3), print one final line *"Too many invalid selections. Cancelling."*, and return `cancelled`. Do not persist the counter.
 
 7. **Confirmation gate.** Surface a single `AskUserQuestion`:
-    - Question: *"Confirm selecting these N supporting analyses for wireframe scope `{{scope_slug}}`? They will be read by the blueprint-architect alongside `requirements/requirements.md` to augment and refine the wireframe brief."*
+    - Question: *"Confirm selecting these N supporting analyses for wireframe scope `{{scope_slug}}`? They will be read by the blueprint-architect alongside `generated-docs/requirements/requirements.md` to augment and refine the wireframe brief."*
     - Header: `Confirm analyses`
     - `multiSelect: false`
     - Options:
@@ -149,9 +149,9 @@ Role semantics (closed enum, consumed by `blueprint-architect.md`):
 
 8. **Compute sidecar paths.** For each selection, derive the structured-sidecar path via the canonical convention defined in `framework/assets/analyses/sidecar-schema.md > Section 1 (Naming convention)`:
 
-    - Take the directory of `output_path` (e.g. `analyse-requirements/DATA-MODEL/`).
+    - Take the directory of `output_path` (e.g. `generated-docs/analyse-requirements/DATA-MODEL/`).
     - Append `<method-lowercase>.sidecar.json` using the registry `name` slug (e.g. `data-model.sidecar.json`).
-    - Result: `analyse-requirements/<METHOD>/<name>.sidecar.json` (e.g. `analyse-requirements/DATA-MODEL/data-model.sidecar.json`).
+    - Result: `generated-docs/analyse-requirements/<METHOD>/<name>.sidecar.json` (e.g. `generated-docs/analyse-requirements/DATA-MODEL/data-model.sidecar.json`).
 
     `Glob` the derived path. Set `sidecar_present = true` iff the file exists on disk, `false` otherwise. The skill does **not** read the sidecar's contents — the architect reads it at step-02 block 2.6 (with drift detection per `RF-08`). When `sidecar_present == false`, the architect falls back to a bounded prose Read per `framework/shared/refusal-registry.md > RF-09` (60 KB cap; consultant prompted on overflow).
 

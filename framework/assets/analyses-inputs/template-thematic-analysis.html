@@ -84,7 +84,7 @@
     {{DOMAIN}}                 — domain string (from manifest meta if declared, else
                                  "(not declared in manifest)").
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
-    {{MANIFEST_SHA256}}        — sha256 of requirements/source-manifest.json at read time.
+    {{MANIFEST_SHA256}}        — sha256 of generated-docs/requirements/source-manifest.json at read time.
     {{RUN_COUNT}}              — integer >= 1, increments per run.
     {{OBSERVATION_COUNT}}      — total Phase-1 observations.
     {{CODE_COUNT}}             — total Phase-2 codes (after dedup).
@@ -113,7 +113,7 @@
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered <section class="diagnostics"> (source
                                  roster, manifest fingerprint, gate results, run history).
 
-  Output: analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html.
+  Output: generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html.
 
   THEME-MAP SVG SCHEMA — {{THEME_MAP_SVG}} substitutes a single
   <figure class="theme-map"> containing ONE inline <svg>, computed by

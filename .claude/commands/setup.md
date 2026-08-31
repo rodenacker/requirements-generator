@@ -39,6 +39,6 @@ The canonical, component-addressable installer is `framework/tools/setup-environ
 ## Constraints
 
 - Run the script; never paraphrase or re-implement its install commands — it is the single source of truth for what gets installed and how.
-- Install user-scoped tools only. Never modify pipeline artefacts (`requirements/`, `prd/`, `framework/state/`, etc.) from `/setup`.
+- Install user-scoped tools only. Never modify pipeline artefacts (`generated-docs/requirements/`, `generated-docs/prd/`, `framework/state/`, etc.) from `/setup`.
 - Be honest about the restart constraint — a freshly installed PATH/MCP tool is not usable in the current session until Claude Code restarts. Never report a ⚠️ row as done.
 - Report `failed` rows verbatim with the `detail` (it names the setup-instruction doc to consult) — do not hide a failure behind a green table.

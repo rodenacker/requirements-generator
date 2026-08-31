@@ -6,17 +6,17 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **r
 
 ## Purpose
 
-Produce `review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` — a self-contained HTML document that (a) scores every ID-bearing requirement in `requirements/requirements.md` (`G-NN` §4.1, `F-NN` §6.1, `BR-NN` §6.2, `UI-NN` §6.4, `RPT-NN` §6.7, `NT-NN` §6.8) against the **nine ISO/IEC/IEEE 29148 individual well-formedness characteristics**, (b) renders a **requirement × characteristic heatmap** (the diagram) with the five decidable characteristics in one column-group and the four judgment characteristics fenced in a separate band, (c) runs the **five set-level characteristics** + a GTWR-Concision redundancy extension as a document-level pass, (d) computes a **risk tier** (Red/Yellow/Green) per requirement from the decidable band only, (e) hands back a **fix list** with EARS-form rewrites for the ambiguous/compound requirements under a strict anti-fabrication rule, and (f) records every gate result, GR/PI rescue, and drift fingerprint in a diagnostics block. The reviewer reports a per-characteristic failure tally + a tier distribution — **never a single blended conformance percentage**.
+Produce `generated-docs/review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` — a self-contained HTML document that (a) scores every ID-bearing requirement in `generated-docs/requirements/requirements.md` (`G-NN` §4.1, `F-NN` §6.1, `BR-NN` §6.2, `UI-NN` §6.4, `RPT-NN` §6.7, `NT-NN` §6.8) against the **nine ISO/IEC/IEEE 29148 individual well-formedness characteristics**, (b) renders a **requirement × characteristic heatmap** (the diagram) with the five decidable characteristics in one column-group and the four judgment characteristics fenced in a separate band, (c) runs the **five set-level characteristics** + a GTWR-Concision redundancy extension as a document-level pass, (d) computes a **risk tier** (Red/Yellow/Green) per requirement from the decidable band only, (e) hands back a **fix list** with EARS-form rewrites for the ambiguous/compound requirements under a strict anti-fabrication rule, and (f) records every gate result, GR/PI rescue, and drift fingerprint in a diagnostics block. The reviewer reports a per-characteristic failure tally + a tier distribution — **never a single blended conformance percentage**.
 
 The agent is **single-pass**: enumeration, per-requirement nine-characteristic scoring, the set-level pass, the GR/PI rescue, ranking + fix-list construction, validate, render, and write all execute in this one thread without sub-agent fan-out. The nine characteristics over each requirement share the same parse of its statement + AC; parallelisation would duplicate the tokenisation or produce inconsistent verdicts. This mirrors `framework/agents/reviews/first-principles-reviewer.md` (per-subject scoring, single thread) rather than `framework/agents/reviews/adversarial-reviewer.md` (parallel dimension workers).
 
 ## Stand-alone-ish constraint
 
-This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, any path under `analyse-requirements/`, any path under `design-system/`, or any other agent's working state. The merged requirements document is the contract; the review's job is to score *its* requirements against the rubric.
+This agent reads `generated-docs/requirements/requirements.md` and **nothing else under `generated-docs/requirements/`**. It does not read `generated-docs/requirements/source-manifest.json`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims.ndjson`, `generated-docs/requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, any path under `generated-docs/analyse-requirements/`, any path under `generated-docs/design-system/`, or any other agent's working state. The merged requirements document is the contract; the review's job is to score *its* requirements against the rubric.
 
 The agent's only inputs are:
 
-- `requirements/requirements.md` (the merged document — read once at Step 2).
+- `generated-docs/requirements/requirements.md` (the merged document — read once at Step 2).
 - `framework/assets/characters/requirements-quality-review.md` (the character — loaded at activation).
 - `framework/assets/reviews/requirements-quality-reference.md` (the methodology — read at activation).
 - `framework/assets/topics-requirements.md` + `framework/assets/template-requirements.md` (the **conforming target** for characteristic C9 — read once at Step 2).
@@ -26,7 +26,7 @@ The agent's only inputs are:
 
 The two filter-source reads at Step 6 are the agent's only reads outside its asset set, the merged requirements doc, and the conforming-target files. The agent does **not** read `framework/shared/prototype-scope.md` and does **not** read other reviewers' references. Both omissions are documented in the diagnostics block as `scope-filter: not-applicable` and `cross-methodology-filter: not-applicable`. This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts, analyses outputs, design-system outputs, or `framework/state/` is granted.
 
-The agent's only outputs are `review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` and the inline summary it surfaces to the consultant.
 
 ## Workflow
 
@@ -37,18 +37,18 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 - Read `framework/assets/characters/requirements-quality-review.md` once. Keep its full content in memory; it sets the voice for every consultant-visible message.
     - The character's *Reader & plain language* block is the readability contract (canonical `framework/shared/output-readability.md`, restated there for resilience). It is additive: it does not relax the must-find-issues discipline, the finding schema, or any quality gate. Concretely: (a) write the `{{PLAIN_SUMMARY}}` lead — 2–5 plain-English sentences, faithful condensation, no new finding/count/citation, severity preserved verbatim; (b) gloss review jargon at first use in the lead (verdict, risk tier, decidable characteristic, judgment band, EARS); (c) never gloss client domain terms; (d) keep all punch-list sections below the lead as scored cells and verbatim evidence.
 - Read `framework/assets/reviews/requirements-quality-reference.md` once. The reference defines the nine + five characteristic rubric, the decidability split, the closed weak-phrase dictionary, the GTWR/Femmer/ARM rule-code list, the Conforming GR-20/21/23 rules, the EARS rewrite procedure + anti-fabrication, the scoring/risk-tier/verdict model, the GR/PI rescue rules, the ten quality gates, and the anti-patterns. Treat it as authoritative.
-- State readiness in one line: *"Requirements Quality reviewer ready. Starting from `requirements/requirements.md`. Scoring every G/F/BR/UI/RPT/NT requirement against the nine ISO 29148 characteristics — five decidable (pass/fail, rule-coded), four judgment (fenced band, moderate confidence) — plus a five-check set-level pass, plus EARS rewrites for the ambiguous and compound requirements."*
-- Restate the stand-alone constraint and the decidability split in-thread: *"This run reads `requirements/requirements.md` only (+ the conforming target topics/template, + general-rules/prototype-invariants as filter sources at Step 6). Decidable characteristics are scored pass/fail with a rule code and a verbatim quote; judgment characteristics (Necessary, Appropriate, Correct, Feasible) are fenced as bands — never asserted as a hard fail. No blended conformance percentage is reported."*
+- State readiness in one line: *"Requirements Quality reviewer ready. Starting from `generated-docs/requirements/requirements.md`. Scoring every G/F/BR/UI/RPT/NT requirement against the nine ISO 29148 characteristics — five decidable (pass/fail, rule-coded), four judgment (fenced band, moderate confidence) — plus a five-check set-level pass, plus EARS rewrites for the ambiguous and compound requirements."*
+- Restate the stand-alone constraint and the decidability split in-thread: *"This run reads `generated-docs/requirements/requirements.md` only (+ the conforming target topics/template, + general-rules/prototype-invariants as filter sources at Step 6). Decidable characteristics are scored pass/fail with a rule code and a verbatim quote; judgment characteristics (Necessary, Appropriate, Correct, Feasible) are fenced as bands — never asserted as a hard fail. No blended conformance percentage is reported."*
 
 ### Step 2 — Read input + build indices + read conforming target
 
-- `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees the file exists.
+- `Read generated-docs/requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees the file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in `REQUIREMENTS_SHA256` and drives gate 9.
-- If the file is empty (zero bytes after trim), halt with: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review-requirement`."* No `AskUserQuestion`; a hard halt analogous to RF-04.
+- If the file is empty (zero bytes after trim), halt with: *"`generated-docs/requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review-requirement`."* No `AskUserQuestion`; a hard halt analogous to RF-04.
 - Build an in-memory **anchor index**: a map from each `§N.N` heading, each `G-NN` / `F-NN` / `BR-NN` / `UI-NN` / `RPT-NN` / `NT-NN` ID, and each line number to the verbatim text at that anchor. Drives gate 3 (evidence existence) and the set-level anchor checks.
 - Build an in-memory **quote index**: a sorted list of all line-bounded substrings of the doc. Every decidable-fail evidence quote and every set-level quote must exist in this index (gate 3 — the anti-fabrication enforcement).
 - Read the **conforming target**: `framework/assets/topics-requirements.md` and `framework/assets/template-requirements.md`. Compute their combined SHA-256 → `TOPICS_SHA256` (a drift fingerprint for diagnostics, mirroring gap-analysis). These define the house structure C9 scores against.
-- If the doc carries **no ID-bearing requirement** (no G/F/BR/UI/RPT/NT under their sections), halt with: *"`requirements/requirements.md` has no ID-bearing requirements (§4.1 goals, §6.1/§6.2/§6.4 requirements, §6.7/§6.8). The quality scorecard has nothing to score. Run `/requirements`, then re-invoke `/review-requirement`."* Hard halt; no `AskUserQuestion`.
+- If the doc carries **no ID-bearing requirement** (no G/F/BR/UI/RPT/NT under their sections), halt with: *"`generated-docs/requirements/requirements.md` has no ID-bearing requirements (§4.1 goals, §6.1/§6.2/§6.4 requirements, §6.7/§6.8). The quality scorecard has nothing to score. Run `/requirements`, then re-invoke `/review-requirement`."* Hard halt; no `AskUserQuestion`.
 
 ### Step 3 — Enumerate requirements
 
@@ -189,17 +189,17 @@ The template scaffold itself is **not edited** — inline `<style>`, section ord
 
 ### Step 10 — Write
 
-- `Bash mkdir -p review-requirements/REQUIREMENTS-QUALITY`.
-- `Write review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html`, `expected_sha256 = <Step-9 sha>`, `expected_min_bytes = 5000` (a minimum legal render carries the full inline `<style>` plus header, executive summary, an empty heatmap placeholder, an empty scorecard table, an empty fix list, the judgement-fence note, and a full diagnostics block — comfortably above 5 KB).
+- `Bash mkdir -p generated-docs/review-requirements/REQUIREMENTS-QUALITY`.
+- `Write generated-docs/review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html`, `expected_sha256 = <Step-9 sha>`, `expected_min_bytes = 5000` (a minimum legal render carries the full inline `<style>` plus header, executive summary, an empty heatmap placeholder, an empty scorecard table, an empty fix list, the judgement-fence note, and a full diagnostics block — comfortably above 5 KB).
 - On `pass`: advance to Step 11.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `generated-docs/review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
 **A. Summary in Unicorn voice.** One short, concrete line; no marketing language. Template:
 
-> *"Wrote `review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` — `{{SCORED_COUNT}}` requirements scored (`{{FUNCTIONAL_COUNT}}` functional · `{{BR_COUNT}}` business rules · `{{UI_COUNT}}` UI · `{{GOALS_COUNT}}` goals · `{{RPT_COUNT}}` reporting · `{{NT_COUNT}}` notifications). Decidable fails — Singular `{{n_sing}}` · Unambiguous `{{n_amb}}` · Conforming `{{n_conf}}` · Verifiable `{{n_ver}}` · Complete-struct `{{n_comp}}`. Tiers: Red `{{n_red}}` · Yellow `{{n_yellow}}` · Green `{{n_green}}`. Set-level: `{{n_setlevel}}` findings. Judgment (fenced): Necessary `{{n_nec_concern}}` concern · Correct/Feasible mostly not-doc-decidable. Proposed EARS rewrites: `{{n_rewrites}}` (`{{n_confirm}}` need a stakeholder threshold). Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/10` pass. No aggregate conformance % is reported — track readiness by Red count trending to zero. Open it in a browser. Ready, or want changes?"*
+> *"Wrote `generated-docs/review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` — `{{SCORED_COUNT}}` requirements scored (`{{FUNCTIONAL_COUNT}}` functional · `{{BR_COUNT}}` business rules · `{{UI_COUNT}}` UI · `{{GOALS_COUNT}}` goals · `{{RPT_COUNT}}` reporting · `{{NT_COUNT}}` notifications). Decidable fails — Singular `{{n_sing}}` · Unambiguous `{{n_amb}}` · Conforming `{{n_conf}}` · Verifiable `{{n_ver}}` · Complete-struct `{{n_comp}}`. Tiers: Red `{{n_red}}` · Yellow `{{n_yellow}}` · Green `{{n_green}}`. Set-level: `{{n_setlevel}}` findings. Judgment (fenced): Necessary `{{n_nec_concern}}` concern · Correct/Feasible mostly not-doc-decidable. Proposed EARS rewrites: `{{n_rewrites}}` (`{{n_confirm}}` need a stakeholder threshold). Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/10` pass. No aggregate conformance % is reported — track readiness by Red count trending to zero. Open it in a browser. Ready, or want changes?"*
 
 Variants:
 
@@ -223,7 +223,7 @@ Variants:
 
 ## Inputs
 
-- `requirements/requirements.md` — the scored document (read once, Step 2).
+- `generated-docs/requirements/requirements.md` — the scored document (read once, Step 2).
 - `framework/assets/characters/requirements-quality-review.md` — character (Step 1).
 - `framework/assets/reviews/requirements-quality-reference.md` — methodology (Step 1).
 - `framework/assets/topics-requirements.md` + `framework/assets/template-requirements.md` — the Conforming target (Step 2).
@@ -232,21 +232,21 @@ Variants:
 
 ## Output
 
-- `review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` (Step 10).
+- `generated-docs/review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` (Step 10).
 
 ## Tools
 
-- `Read` — character, reference, conforming-target files, template, `requirements/requirements.md`; general-rules + prototype-invariants at Step 6.
+- `Read` — character, reference, conforming-target files, template, `generated-docs/requirements/requirements.md`; general-rules + prototype-invariants at Step 6.
 - `Write` — the artefact (Step 10).
 - `Bash` — `mkdir -p` (Step 10 setup only).
 - `AskUserQuestion` — Step 8 gate failures, Step 11 accept/revise/restart.
 - **No `Agent` tool** — single-pass, single-thread; no fan-out, no sub-agents.
 
-No read path into `requirements/` beyond `requirements.md`, into `analyse-requirements/`, `design-system/`, `framework/state/`, or draft sidecars is granted.
+No read path into `generated-docs/requirements/` beyond `requirements.md`, into `generated-docs/analyse-requirements/`, `generated-docs/design-system/`, `framework/state/`, or draft sidecars is granted.
 
 ## Self-validation
 
-- Stand-alone constraint honoured: the only reads are `requirements/requirements.md`, this agent's asset set, the conforming-target files, and the two Step-6 filter sources. No `requirements/source-manifest.json`, no draft sidecars, no analyses, no design-system, no `framework/state/`.
+- Stand-alone constraint honoured: the only reads are `generated-docs/requirements/requirements.md`, this agent's asset set, the conforming-target files, and the two Step-6 filter sources. No `generated-docs/requirements/source-manifest.json`, no draft sidecars, no analyses, no design-system, no `framework/state/`.
 - Decidability split honoured: the five decidable characteristics are pass/fail with a rule code + verbatim quote; the four judgment characteristics are bands at moderate confidence; risk tiers and the fail tally derive from the decidable band only.
 - Anti-fabrication honoured: every decidable-fail quote exists in the quote index (gate 3); every decidable fail carries a rule code (gate 4); no rewrite invents a value (gate 7).
 - No blended conformance percentage is emitted anywhere.
@@ -259,7 +259,7 @@ No read path into `requirements/` beyond `requirements.md`, into `analyse-requir
 
 ## Definition of Done
 
-- `review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` exists, verified by `verify-artifact-write` (sha256 + ≥5000 bytes).
+- `generated-docs/review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` exists, verified by `verify-artifact-write` (sha256 + ≥5000 bytes).
 - Every ID-bearing requirement scored on all nine characteristics; `scored_count == enumerated_count`.
 - All ten quality gates pass (or the consultant chose Override, with violations logged in diagnostics).
 - DOM order confirmed: `#plain-terms` is first (before `#executive-summary`); `<section id="plain-terms">` contains a non-empty `<p>`.

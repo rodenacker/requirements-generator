@@ -2,9 +2,9 @@
 
 # Glossary analysis reference
 
-> **Method:** Walk `requirements/requirements.md` extracting domain terms at a consultant-chosen **scope tier** (1 = nouns + roles + statuses → 2 += acronyms → 3 += action verbs → 4 += field names; each tier strictly extends the prior). For every surfaced term, locate every occurrence in the document, record the section references, and look for an **explicit definition** at one of those sites. If a definition is found, lift it verbatim into the artefact and cite the section ref. If no explicit definition is found, surface the term in a separate **"Used without explicit definition"** section with use-site citations only — the analyser never authors a gloss from world knowledge. Across re-runs the artefact is **additive**: prior entries are preserved; widening the scope tier appends new entries.
+> **Method:** Walk `generated-docs/requirements/requirements.md` extracting domain terms at a consultant-chosen **scope tier** (1 = nouns + roles + statuses → 2 += acronyms → 3 += action verbs → 4 += field names; each tier strictly extends the prior). For every surfaced term, locate every occurrence in the document, record the section references, and look for an **explicit definition** at one of those sites. If a definition is found, lift it verbatim into the artefact and cite the section ref. If no explicit definition is found, surface the term in a separate **"Used without explicit definition"** section with use-site citations only — the analyser never authors a gloss from world knowledge. Across re-runs the artefact is **additive**: prior entries are preserved; widening the scope tier appends new entries.
 
-**Output file:** `analyse-requirements/GLOSSARY/glossary.html` — a self-contained HTML document (`<!doctype html>` + ONE inline `<style>`; no external CSS/JS, no CDN, no `<script>`, no Mermaid runtime). It carries alphabetical term cards (category + 0–4 maturity badge + cited definition or use-site gap), a tier-scoped Acronyms / Action terms / Field names layout, an embedded **`language-json` `glossary-body`** machine-readable term model (so the blueprint-architect's copy-vocabulary role can extract the vocabulary even from the HTML, under the RF-09 prose fallback), a Run-history block, and a trailing `<!-- glossary-meta: ... -->` cursor comment. **Template scaffold:** `framework/assets/analyses/template-glossary.html` — the analyser substitutes its `{{PLACEHOLDER}}` slots.
+**Output file:** `generated-docs/analyse-requirements/GLOSSARY/glossary.html` — a self-contained HTML document (`<!doctype html>` + ONE inline `<style>`; no external CSS/JS, no CDN, no `<script>`, no Mermaid runtime). It carries alphabetical term cards (category + 0–4 maturity badge + cited definition or use-site gap), a tier-scoped Acronyms / Action terms / Field names layout, an embedded **`language-json` `glossary-body`** machine-readable term model (so the blueprint-architect's copy-vocabulary role can extract the vocabulary even from the HTML, under the RF-09 prose fallback), a Run-history block, and a trailing `<!-- glossary-meta: ... -->` cursor comment. **Template scaffold:** `framework/assets/analyses/template-glossary.html` — the analyser substitutes its `{{PLACEHOLDER}}` slots.
 
 **Analyser agent:** `framework/agents/analyses/glossary-analyser.md`
 
@@ -20,11 +20,11 @@ A glossary is a venerable artefact of requirements work:
 - **ISO/IEC/IEEE 24765 (Systems and software engineering — Vocabulary).** Domain-specific vocabularies are built from authoritative sources and cite those sources; un-cited definitions are unsuitable for normative use.
 - **Common failure modes.** Authoring definitions from analyst world-knowledge that diverge from the project's actual usage; conflating different terms behind the same gloss; padding the glossary with generic English; silently inventing entries for terms the document never uses.
 
-This analyser sits firmly in the extraction camp. The subject of every entry is a term that **appears in `requirements/requirements.md`**; the definition is either **lifted verbatim from the document** or marked as a **gap** (the term is used but never defined). No glossary entry is authored from world-knowledge.
+This analyser sits firmly in the extraction camp. The subject of every entry is a term that **appears in `generated-docs/requirements/requirements.md`**; the definition is either **lifted verbatim from the document** or marked as a **gap** (the term is used but never defined). No glossary entry is authored from world-knowledge.
 
 ### Why apply a glossary analyser in this workspace?
 
-Consultants reading a freshly merged `requirements/requirements.md` repeatedly need a single page that lists the domain terms in scope and what each one means *as used in this document*. They currently have to skim the whole spec to build that picture in their head — slow, error-prone, and unaudited. The Glossary analyser delivers that page deterministically and traceably.
+Consultants reading a freshly merged `generated-docs/requirements/requirements.md` repeatedly need a single page that lists the domain terms in scope and what each one means *as used in this document*. They currently have to skim the whole spec to build that picture in their head — slow, error-prone, and unaudited. The Glossary analyser delivers that page deterministically and traceably.
 
 | Lens | Methodology | Question answered |
 |---|---|---|
@@ -38,7 +38,7 @@ Consultants reading a freshly merged `requirements/requirements.md` repeatedly n
 
 ### Why this analyser emits HTML (with an embedded machine-readable model)
 
-Glossary is alphabetical, definitional text — there is no diagram. But it ships as HTML for two reasons: it reads as a polished lookup reference (alphabetical term cards with category + maturity badges, consistent with the other analysis HTML reports' shared `:root` token + chrome lineage, printable to PDF), and crucially it carries an embedded **`language-json` `glossary-body`** block so the vocabulary stays machine-extractable. The blueprint-architect's copy-vocabulary role reads that JSON (sidecar-first, with an RF-09 bounded prose-read fallback), and the fenced JSON survives a markitdown HTML→MD round-trip. The artefact stays self-contained (no external CSS/JS, no CDN, no `<script>`, no Mermaid runtime) and retains the SHA-256 + min-bytes verify discipline every analyser shares. (The sibling `analyse-inputs/GLOSSARY` method is the same HTML shape on the input-analysis side.)
+Glossary is alphabetical, definitional text — there is no diagram. But it ships as HTML for two reasons: it reads as a polished lookup reference (alphabetical term cards with category + maturity badges, consistent with the other analysis HTML reports' shared `:root` token + chrome lineage, printable to PDF), and crucially it carries an embedded **`language-json` `glossary-body`** block so the vocabulary stays machine-extractable. The blueprint-architect's copy-vocabulary role reads that JSON (sidecar-first, with an RF-09 bounded prose-read fallback), and the fenced JSON survives a markitdown HTML→MD round-trip. The artefact stays self-contained (no external CSS/JS, no CDN, no `<script>`, no Mermaid runtime) and retains the SHA-256 + min-bytes verify discipline every analyser shares. (The sibling `generated-docs/analyse-inputs/GLOSSARY` method is the same HTML shape on the input-analysis side.)
 
 ---
 
@@ -90,7 +90,7 @@ The default at first run is tier 1 (the narrowest, most disciplined scope). At e
 
 ## Source-of-truth hierarchy
 
-The analyser reads exactly one document — `requirements/requirements.md` — and reads it once. The whole document is in scope:
+The analyser reads exactly one document — `generated-docs/requirements/requirements.md` — and reads it once. The whole document is in scope:
 
 - `§1 Application context` — domain framing, business drivers, often the source of named statuses and roles.
 - `§2 Domain model` — the canonical source of entity / domain-noun definitions.
@@ -101,13 +101,13 @@ The analyser reads exactly one document — `requirements/requirements.md` — a
 - `§7 Data entities` — the canonical source of field names and the entities they belong to.
 - `§8 Prototype invariants` (`PI-NN`) and `§9 General rules` (`GR-NN`) if present — terms used in policy-level statements.
 
-The analyser **never** reads any other file: not `framework/assets/glossary.md` (that is the cross-agent vocabulary reference, a different artefact), not `framework/state/`, not other analyses outputs, not pipeline-internal artefacts under `requirements/`.
+The analyser **never** reads any other file: not `framework/assets/glossary.md` (that is the cross-agent vocabulary reference, a different artefact), not `framework/state/`, not other analyses outputs, not pipeline-internal artefacts under `generated-docs/requirements/`.
 
 ---
 
 ## Round 1 — Candidate-term extraction (tokenisation pass)
 
-Walk `requirements/requirements.md` collecting candidate term tokens at the active scope tier.
+Walk `generated-docs/requirements/requirements.md` collecting candidate term tokens at the active scope tier.
 
 ### Tier 1 candidate sources
 
@@ -173,7 +173,7 @@ A term with `explicit_definition == null` after this round is classified **"used
 
 ## Round 3 — Prior-run merge (additive)
 
-If a prior `analyse-requirements/GLOSSARY/glossary.html` exists, the analyser:
+If a prior `generated-docs/analyse-requirements/GLOSSARY/glossary.html` exists, the analyser:
 
 1. Parses the `<!-- glossary-meta: ... -->` header to read `last_scope_tier`, `last_input_sha256`, `run_count`.
 2. Parses each entry's heading and citation list to recover the set of already-surfaced terms.
@@ -189,7 +189,7 @@ The merge is a **set union with prior-wins resolution**. The artefact is therefo
 
 ## Round 4 — Drift handling
 
-The analyser computes the SHA-256 of `requirements/requirements.md` at run time and compares it to `last_input_sha256` from the prior run's meta header. Three cases:
+The analyser computes the SHA-256 of `generated-docs/requirements/requirements.md` at run time and compares it to `last_input_sha256` from the prior run's meta header. Three cases:
 
 - **No prior run** — first run. No drift check; treat all surfaced terms as new entries.
 - **Hash equal** — `requirements.md` is unchanged. Pure additive widening; no drift prompt.
@@ -202,7 +202,7 @@ The analyser computes the SHA-256 of `requirements/requirements.md` at run time 
 
 ## Round 5 — Render and verify
 
-Substitute the `framework/assets/analyses/template-glossary.html` `{{PLACEHOLDER}}` slots in memory section by section per §"Output structure", HTML-escaping every requirements-derived string (and HTML-escaping `&`/`<`/`>` in the `glossary-body` JSON so it is inert inside `<pre><code>`). Compute the SHA-256 of the composed HTML string. `Write` to `analyse-requirements/GLOSSARY/glossary.html`. Invoke `framework/skills/verify-artifact-write.md` with the path, the SHA-256, and an `expected_min_bytes` of 3000 (the self-contained template chrome clears 3 KB before any content; a first-run tier-1 render clears it comfortably).
+Substitute the `framework/assets/analyses/template-glossary.html` `{{PLACEHOLDER}}` slots in memory section by section per §"Output structure", HTML-escaping every requirements-derived string (and HTML-escaping `&`/`<`/`>` in the `glossary-body` JSON so it is inert inside `<pre><code>`). Compute the SHA-256 of the composed HTML string. `Write` to `generated-docs/analyse-requirements/GLOSSARY/glossary.html`. Invoke `framework/skills/verify-artifact-write.md` with the path, the SHA-256, and an `expected_min_bytes` of 3000 (the self-contained template chrome clears 3 KB before any content; a first-run tier-1 render clears it comfortably).
 
 On verify-pass: advance to handback. On verify-fail-twice: halt per RF-04 (write-unverified).
 
@@ -245,7 +245,7 @@ Run after Round 3 (merge) and before Round 5 (render). Each check operates on th
 
 On any hard-check failure: do **not** write the artefact. Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`
+1. `Revise — exit so the consultant can edit generated-docs/requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`
 2. `Override — proceed and write a known-incomplete artefact (the diagnostics block will record every violation)`
 3. `Restart — re-run from Round 1 with a fresh extraction`
 
@@ -261,7 +261,7 @@ The analysis is complete when:
 
 - Every surfaced term has either a defined entry (with citation) or a "used without explicit definition" entry (with use-site citations).
 - All 7 hard quality checks pass, or the consultant chose Override.
-- `analyse-requirements/GLOSSARY/glossary.html` has been written and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-requirements/GLOSSARY/glossary.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 
 ---

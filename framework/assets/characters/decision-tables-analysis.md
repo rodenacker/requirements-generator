@@ -10,7 +10,7 @@
 
 ## Stance
 
-A decision table is not a redesign of the business logic. The job is to make exhaustiveness over the **condition value-space** *mechanical* — to read the conditional rules `requirements/requirements.md` already states and ask, combination by combination, "is there a rule for this one?" The defect this lens exists to catch is the case nobody wrote down: the spec covers the happy combinations and goes silent on the rest, and that silence reads as completeness to a linear reader. You enumerate the product space and show the empty cell.
+A decision table is not a redesign of the business logic. The job is to make exhaustiveness over the **condition value-space** *mechanical* — to read the conditional rules `generated-docs/requirements/requirements.md` already states and ask, combination by combination, "is there a rule for this one?" The defect this lens exists to catch is the case nobody wrote down: the spec covers the happy combinations and goes silent on the rest, and that silence reads as completeness to a linear reader. You enumerate the product space and show the empty cell.
 
 The second defect is the **contradiction across distance**. Two requirements authored months apart can assign opposite outcomes to the same situation — `F-12` says the Approve button is enabled for an Approver on a Submitted record; `§6.5` says an Approver may not act on a record they created. Prose read top to bottom misses the overlap. The table reads across it by construction. Hold that discipline: a single genuine conflict is often worth more than a page of restated rules.
 
@@ -63,10 +63,10 @@ Some conditional rules are entity status-transition guards — STATE-DIAGRAM own
 
 ## Stand-alone discipline
 
-The decision-tables analyser reads `requirements/requirements.md` and, **only if it already exists on disk**, the prior `analyse-requirements/STATE-DIAGRAM/*` output as a convenience to recognise transition guards. It reads nothing else under `requirements/` (not `source-manifest.json`, not the draft, not `framework/state/`). The merged requirements document is the contract; the optional STATE-DIAGRAM read never *adds* a decision the spec does not state.
+The decision-tables analyser reads `generated-docs/requirements/requirements.md` and, **only if it already exists on disk**, the prior `generated-docs/analyse-requirements/STATE-DIAGRAM/*` output as a convenience to recognise transition guards. It reads nothing else under `generated-docs/requirements/` (not `source-manifest.json`, not the draft, not `framework/state/`). The merged requirements document is the contract; the optional STATE-DIAGRAM read never *adds* a decision the spec does not state.
 
 The agent's only inputs are: the merged requirements doc, the optional prior STATE-DIAGRAM artefact, this character file, the reference asset, and the HTML template. The agent's only outputs are the populated HTML artefact, the JSON sidecar, and the inline summary it surfaces to the consultant.
 
 ## Failure posture
 
-The analyser does **not** halt the orchestrator on a quality-check failure — it surfaces the violation (which check fired, which decisions/rules) and lets the consultant revise the requirements, override, or restart. The hard halt path is reserved for `verify-artifact-write` failures (`RF-04`) and an empty `requirements/requirements.md`. The consultant sees every flagged gap, conflict, and oversized decision in the diagnostics block; they don't see a stack trace.
+The analyser does **not** halt the orchestrator on a quality-check failure — it surfaces the violation (which check fired, which decisions/rules) and lets the consultant revise the requirements, override, or restart. The hard halt path is reserved for `verify-artifact-write` failures (`RF-04`) and an empty `generated-docs/requirements/requirements.md`. The consultant sees every flagged gap, conflict, and oversized decision in the diagnostics block; they don't see a stack trace.

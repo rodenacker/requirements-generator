@@ -1,10 +1,10 @@
 # map-crud-coverage-to-ui.md
 
-**Purpose:** Translate a `crud-coverage` analysis artefact into UI-inventory entries (candidate surfaces, actions, role-switcher seeds) for downstream design consumption. **Stub at MVP** — like the other analyses' map-skills, this is registry metadata read by a future design-spec-drafter, **not** invoked by `/analyse-requirement`. The canonical structured projection the architect actually consumes is the sidecar (`analyse-requirements/CRUD-COVERAGE/crud-coverage.sidecar.json`, roles `screen-inventory-entity-bijection` + `per-screen-cta-set`); this file documents the wider mapping for human design authors.
+**Purpose:** Translate a `crud-coverage` analysis artefact into UI-inventory entries (candidate surfaces, actions, role-switcher seeds) for downstream design consumption. **Stub at MVP** — like the other analyses' map-skills, this is registry metadata read by a future design-spec-drafter, **not** invoked by `/analyse-requirement`. The canonical structured projection the architect actually consumes is the sidecar (`generated-docs/analyse-requirements/CRUD-COVERAGE/crud-coverage.sidecar.json`, roles `screen-inventory-entity-bijection` + `per-screen-cta-set`); this file documents the wider mapping for human design authors.
 
 ## Inputs
 
-- `analyse-requirements/CRUD-COVERAGE/crud-matrix.html` — the coverage matrix artefact (or its sidecar for the structured subset).
+- `generated-docs/analyse-requirements/CRUD-COVERAGE/crud-matrix.html` — the coverage matrix artefact (or its sidecar for the structured subset).
 
 ## Mapping
 

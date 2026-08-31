@@ -47,7 +47,7 @@ The generator is the **canonical owner** of the `stage:"generator"` substep voca
 
 - `prototypes/.specs/<name_slug>/design-spec.md` — the finalised build instruction (read).
 - `blueprints/<scope_slug>/blueprint.md` — logical surfaces + Property closed sets (the anti-fabrication source).
-- `requirements/requirements.md` — **§6.5 Access control (RBAC)** + **§3 personas**, the only authoritative source of role→operation grants, read at step-02 rule 1b. Neither the design spec nor the blueprint carries per-surface role visibility (the spec has no §6.5 and the blueprint's surface-inventory table has no Roles column), so this read replaces what was previously a citation resolving to nothing — every agent that needed roles improvised its own grant table instead. **Read-only, and a consumer of the transient `## Amendments (pending re-merge)` section** (see step-02 rule 1b).
+- `generated-docs/requirements/requirements.md` — **§6.5 Access control (RBAC)** + **§3 personas**, the only authoritative source of role→operation grants, read at step-02 rule 1b. Neither the design spec nor the blueprint carries per-surface role visibility (the spec has no §6.5 and the blueprint's surface-inventory table has no Roles column), so this read replaces what was previously a citation resolving to nothing — every agent that needed roles improvised its own grant table instead. **Read-only, and a consumer of the transient `## Amendments (pending re-merge)` section** (see step-02 rule 1b).
 - `framework/assets/prototypes/{shared-component-conventions.md, ux-baseline-checklist.md, visual-craft-standard.md}` — placement/collision/anti-fabrication contract, the usability floor, and the **visual + tactile floor and responsive contract**. The three are complements: the conventions say *where code goes*, the baseline says *whether the surface works*, the craft standard says *whether it looks and feels designed*. A surface can satisfy the first two and still render as an unstyled default — which is what this pipeline shipped before the craft standard existed.
 - The existing `prototypes/src/components/**` shared library (read, for reuse).
 - `prototype_identity` (name_slug, scope_slug, posture, dimension_positions, primary_persona, **device_targets**) — from the orchestrator.
@@ -64,7 +64,7 @@ The generator is the **canonical owner** of the `stage:"generator"` substep voca
 
 ## Tools
 
-- Read — the spec, blueprint, `requirements/requirements.md` (§6.5 + §3 + the transient amendments section), conventions, baseline checklist, visual-craft standard, existing library.
+- Read — the spec, blueprint, `generated-docs/requirements/requirements.md` (§6.5 + §3 + the transient amendments section), conventions, baseline checklist, visual-craft standard, existing library.
 - Write/Edit — driver-owned files (data layer + coupled routes + per-prototype `layout.tsx` + scaffolded smoke via the verify skill); sub-agents (separate invocations) write their assigned components + their own standalone route page.
 - Bash — npm scripts via the verify skill; JSON-parse check on fixtures; timing appends.
 - Agent — dispatch all surfaces-with-`owned_files` (single wave, ceiling 8) in one message (step-04).

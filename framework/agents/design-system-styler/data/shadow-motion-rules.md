@@ -8,7 +8,7 @@
 
 ## 0. Highest-signal source: `computed-tokens.json`
 
-If `design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`.
+If `generated-docs/design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`.
 
 **Shadows:**
 - Prefer `customProperties` keys matching `shadow-sm` / `shadow-md` / `shadow-lg` / `elevation-1` / `elevation-2` / `elevation-3` for direct mapping.

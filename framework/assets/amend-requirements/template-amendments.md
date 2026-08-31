@@ -4,7 +4,7 @@ kind: template
 
 Populate-top-to-bottom skeleton for the /amend-requirements amendments document,
 written by framework/agents/amend-requirements-drafter.md (staged at
-amend-requirements/amendments-draft.md, finalised as a NEW dated file under documentation/).
+generated-docs/amend-requirements/amendments-draft.md, finalised as a NEW dated file under documentation/).
 
 This file is the CANONICAL DEFINITION of:
   - the AM-NN amendment-entry IDs (document-local, always starting at AM-01)
@@ -77,7 +77,7 @@ Impact flag vocabulary (canonical here — closed set, computed by the drafter, 
 |---|---|
 | Source | consultant (in-thread, `/amend-requirements`) |
 | Amendment date | {{YYYY-MM-DD}} |
-| Requirements document | `requirements/requirements.md` |
+| Requirements document | `generated-docs/requirements/requirements.md` |
 | Requirements sha256 at amendment time | `{{DOC_SHA256}}` |
 | Requirements `Status` at amendment time | {{final | draft | (unparseable)}} |
 | Requirements `Last finalised at` | {{ISO-8601 | not stamped}} |
@@ -116,7 +116,7 @@ Grounding line.
 
 **Impact:** {{closed-set-change: {{adds | removes | renames}} {{Shape.Field | F-NN:ParamName}} | scope-change: {{one line}} | amends-amendment: AMD-{{NN}} | (none)}}
 
-**Supersedes:** {{This supersedes the statement in `requirements/requirements.md` regarding {{X}}. | This supersedes the statement in `<filename>` regarding {{X}}. | (supersedes nothing — net-new information)}}
+**Supersedes:** {{This supersedes the statement in `generated-docs/requirements/requirements.md` regarding {{X}}. | This supersedes the statement in `<filename>` regarding {{X}}. | (supersedes nothing — net-new information)}}
 
 ---
 

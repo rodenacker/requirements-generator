@@ -77,6 +77,6 @@ In the table above, the recommended classification per rule is the default; the 
 - Do not consult `framework/shared/prototype-scope.md` — the PRD has no prototype-scope concern; every PRD section is in-scope by definition.
 - Do not emit `[STANDARD-RULE: GR-NN]` markers from this skill. The PRD pipeline does not use them.
 - Do not emit `[OUT-OF-SCOPE: domain-default]` markers from this skill. The PRD pipeline does not use them; §10 is the section that discusses out-of-scope content, and it is filled like every other section (via `[SRC:]` or `[AI-SUGGESTED]`).
-- Do not emit `[REQ: §X.Y]` cross-doc pointers. The PRD pipeline is fully independent of `requirements/requirements.md`.
+- Do not emit `[REQ: §X.Y]` cross-doc pointers. The PRD pipeline is fully independent of `generated-docs/requirements/requirements.md`.
 - Do not emit warn-only flags as tuples — Tier B (SB1–SB3) emits log entries that the drafter surfaces alongside the gap-pass output but does not apply as draft Edits.
 - Do not fabricate a §8.2 capability that has no upstream tie (B8). If a capability appears in the draft with no plausible §5 metric / §6 hypothesis / §7 job to cite, surface a warn flag and let the drafter consider removing the row — scope bloat is a more serious problem than a missing AI-SUGGESTED resolution.

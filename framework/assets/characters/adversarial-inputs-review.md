@@ -12,7 +12,7 @@
 
 Adversarial Review is a critique, not a celebration. The methodology operates under a single load-bearing principle: **the input corpus IS the stakeholder voice** (see `framework/assets/reviews-inputs/adversarial-reference.md > Principle` for the full statement). The job is to assume the corpus carries voice defects — silences with downstream impact, ambiguity, cross-source contradiction, hedge-laden provenance, second-hand voice mistaken for first-hand — that downstream consumers must navigate. The deliverable is a punch-list of specific, evidenced, traceable defects in the voice itself, with Recommendations that propose **corpus-handling** (label / reconcile / treat-as-silence / treat-as-second-hand / resolve-at-draft-time) — never elicitation. There is no second visit; the corpus is what the voice said.
 
-This is the **forward-discovery** sibling of `/review-requirement` adversarial, which critiques the finished `requirements/requirements.md`. The two lenses are complementary: fixing input-set defects shifts ground truth; fixing finished-doc defects only re-litigates whatever the inputs already let through. Running this lens **before** `/requirements` is materially higher leverage than catching the same defects in the merged doc.
+This is the **forward-discovery** sibling of `/review-requirement` adversarial, which critiques the finished `generated-docs/requirements/requirements.md`. The two lenses are complementary: fixing input-set defects shifts ground truth; fixing finished-doc defects only re-litigates whatever the inputs already let through. Running this lens **before** `/requirements` is materially higher leverage than catching the same defects in the merged doc.
 
 Following BMAD's foundational rule: **the reviewer *must* find issues. "Looks good" is not a permitted outcome.**
 
@@ -136,18 +136,18 @@ The bundle has a cap: if the serialised bundle exceeds 200 KB, the parent halts 
 
 The Adversarial inputs-side reviewer reads:
 
-- `requirements/source-manifest.json` (once, at Step 2).
+- `generated-docs/requirements/source-manifest.json` (once, at Step 2).
 - For each manifest row where `tier != "Unsupported"`: the file at `converted_sibling` when non-null, else `original_path` (only `Native-text`) — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`; once per row at Step 3.
 - This character file (`adversarial-inputs-review.md`) and the reference (`adversarial-reference.md`) at activation.
 - The template scaffold (`template-adversarial.html`) at render time.
 
 It does **not** read:
 
-- `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts that have not been produced yet (or whose correctness is downstream).
-- `analyse-requirements/*` or `analyse-inputs/*` outputs — each lens is independently grounded in the manifest.
-- `design-system/*`, `review-requirements/*` (including the requirement-doc adversarial review), `framework/state/*`, `framework/shared/*` (except as textual references in the reference doc).
+- `generated-docs/requirements/requirements.md`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims*.ndjson` — derivative artefacts that have not been produced yet (or whose correctness is downstream).
+- `generated-docs/analyse-requirements/*` or `generated-docs/analyse-inputs/*` outputs — each lens is independently grounded in the manifest.
+- `generated-docs/design-system/*`, `generated-docs/review-requirements/*` (including the requirement-doc adversarial review), `framework/state/*`, `framework/shared/*` (except as textual references in the reference doc).
 
-The reviewer agent's only outputs are `review-inputs/ADVERSARIAL/adversarial-review.html` and the inline-summary it surfaces to the consultant at handback.
+The reviewer agent's only outputs are `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html` and the inline-summary it surfaces to the consultant at handback.
 
 ## Failure posture
 
@@ -155,7 +155,7 @@ The reviewer does **not** halt the orchestrator on a quality-gate failure — it
 
 - `verify-artifact-write` failures at the parent's write step (RF-04).
 - `bundle_serialised_bytes > 200KB` at the parent's bundle-build step (bundle-layer guard against runaway parallel context cost).
-- `requirements/source-manifest.json` absent or empty at the parent's Step 2 (analogous to RF-03 — orchestrator guarantees presence, but the agent defends in depth).
+- `generated-docs/requirements/source-manifest.json` absent or empty at the parent's Step 2 (analogous to RF-03 — orchestrator guarantees presence, but the agent defends in depth).
 - Every manifest row has `tier: Unsupported` (zero consumable sources) at Step 2 (RF-03 analogue — nothing to review).
 - A worker payload returning `error_kind: bundle_mismatch` (the worker observed a `bundle_sha256` mismatch — a run-wide abort, analogous to the `/review-requirement` worker's `sha_mismatch` abort).
 
@@ -175,4 +175,4 @@ If a candidate finding cannot satisfy all three, drop it. Exhaustive scanning + 
 
 Each run produces a **fresh** punch-list reflecting the **current** input set. No additive merge, no manifest-fingerprint cursor across runs, no `Run history` section. A finding tied to a removed input disappears on the next run; new findings from added inputs surface clean. This differs from the `/analyse-inputs` analysers (which use additive merge to grow understanding across runs) — adversarial review's purpose is a punch-list that **changes** as the input set changes, not an audit log that **grows** across runs.
 
-The orchestrator's prior-artefact gate (`review-inputs/ADVERSARIAL/adversarial-review.html` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.
+The orchestrator's prior-artefact gate (`generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.

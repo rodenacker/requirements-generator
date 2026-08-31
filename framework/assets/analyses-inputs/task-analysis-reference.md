@@ -1,10 +1,10 @@
-<!-- ROLE: asset (analysis reference). Methodology definition for the task-analysis input-analyser. Modelled on framework/assets/analyses-inputs/thematic-analysis-reference.md (sibling input-side MVP) and framework/assets/analyses/task-flows-reference.md (requirements-side HTA cousin). Industry framing: Hierarchical Task Analysis (Annett & Duncan 1967; Stanton 2006) plus a Sub-Goal Template-derived information layer (Ormerod & Shepherd 2004 in Diaper & Stanton, eds.) — single-actor, decomposition-first, document-only extraction. Distinct from the analyse-requirements/task-flows methodology: this analyser operates on RAW inputs (manifest + per-tier files), produces pure HTA + per-terminal information requirements, and emits a self-contained HTML artefact whose embedded YAML structured block is the downstream re-ingestion contract for /requirements. -->
+<!-- ROLE: asset (analysis reference). Methodology definition for the task-analysis input-analyser. Modelled on framework/assets/analyses-inputs/thematic-analysis-reference.md (sibling input-side MVP) and framework/assets/analyses/task-flows-reference.md (requirements-side HTA cousin). Industry framing: Hierarchical Task Analysis (Annett & Duncan 1967; Stanton 2006) plus a Sub-Goal Template-derived information layer (Ormerod & Shepherd 2004 in Diaper & Stanton, eds.) — single-actor, decomposition-first, document-only extraction. Distinct from the generated-docs/analyse-requirements/task-flows methodology: this analyser operates on RAW inputs (manifest + per-tier files), produces pure HTA + per-terminal information requirements, and emits a self-contained HTML artefact whose embedded YAML structured block is the downstream re-ingestion contract for /requirements. -->
 
 # Task Analysis reference
 
-> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json` and produce a Hierarchical Task Analysis (HTA — Annett & Duncan 1967; reformalised by Stanton 2006) of the user goal(s) the inputs describe. Decompose each top-level goal into a numbered hierarchy of sub-goals and terminal operations, attach a Plan (sequence / selection / iteration / concurrent / discretionary) to every non-terminal node, annotate every terminal operation with the data nouns the actor reads or writes (Sub-Goal Template layer, Ormerod & Shepherd 2004), and cite a manifest source on every node via `[SRC: <filename>]`. Inferred sub-goals and inferred Plans are permitted but must be marked `inferred: true` and surfaced as resolver-style consultant prompts; **inferred terminal operations are forbidden** (Diaper & Stanton 2004 anti-confabulation rule). Coverage gaps surface as `[GAP-INFERRED]` and `[GAP-PLAN-SILENT]` markers in a diagnostics section — never as invented operations.
+> **Method:** Walk every consumable source enumerated in `generated-docs/requirements/source-manifest.json` and produce a Hierarchical Task Analysis (HTA — Annett & Duncan 1967; reformalised by Stanton 2006) of the user goal(s) the inputs describe. Decompose each top-level goal into a numbered hierarchy of sub-goals and terminal operations, attach a Plan (sequence / selection / iteration / concurrent / discretionary) to every non-terminal node, annotate every terminal operation with the data nouns the actor reads or writes (Sub-Goal Template layer, Ormerod & Shepherd 2004), and cite a manifest source on every node via `[SRC: <filename>]`. Inferred sub-goals and inferred Plans are permitted but must be marked `inferred: true` and surfaced as resolver-style consultant prompts; **inferred terminal operations are forbidden** (Diaper & Stanton 2004 anti-confabulation rule). Coverage gaps surface as `[GAP-INFERRED]` and `[GAP-PLAN-SILENT]` markers in a diagnostics section — never as invented operations.
 
-**Output file:** `analyse-inputs/TASK-ANALYSIS/task-analysis.html` — a self-contained HTML5 artefact with inline CSS, an inline YAML structured tree inside a `<pre><code class="language-yaml">` block (the LLM-readable copy that survives markitdown HTML→MD conversion when the file is re-ingested via `documentation/`), a visual nested `<ol>` / `<details>` tree, two tables (Plans, Information requirements), and a collapsed diagnostics section. Browsable directly via `file://`.
+**Output file:** `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` — a self-contained HTML5 artefact with inline CSS, an inline YAML structured tree inside a `<pre><code class="language-yaml">` block (the LLM-readable copy that survives markitdown HTML→MD conversion when the file is re-ingested via `documentation/`), a visual nested `<ol>` / `<details>` tree, two tables (Plans, Information requirements), and a collapsed diagnostics section. Browsable directly via `file://`.
 
 **Analyser agent:** `framework/agents/analyses-inputs/task-analysis-analyser.md`
 
@@ -34,7 +34,7 @@
 ### B. Sub-Goal Template (SGT) information layer
 
 - **Origin.** Ormerod, T. C., & Shepherd, A. (2004). *Using task analysis for information requirements specification: The Sub-Goal Template method*. In Diaper, D., & Stanton, N. A. (eds.), *The Handbook of Task Analysis for Human-Computer Interaction*. Lawrence Erlbaum.
-- **Why this analyser includes it.** Pure HTA gives a downstream requirements drafter the *structure* of the user's goals but not the *data* each terminal operation touches. SGT annotates each terminal operation with the information the actor reads or writes — *"3.2 Submit claim: reads {amount, currency, date, receipt}, writes {claim_status}"*. Those data nouns are direct precursors to `§7 Data entities` in the downstream `requirements/requirements.md`.
+- **Why this analyser includes it.** Pure HTA gives a downstream requirements drafter the *structure* of the user's goals but not the *data* each terminal operation touches. SGT annotates each terminal operation with the information the actor reads or writes — *"3.2 Submit claim: reads {amount, currency, date, receipt}, writes {claim_status}"*. Those data nouns are direct precursors to `§7 Data entities` in the downstream `generated-docs/requirements/requirements.md`.
 - **Why this analyser does NOT use full SGT.** The full SGT method imposes a heavy taxonomy of sub-goal templates and information categories (act / exchange / monitor / etc.). For document-only extraction, the full taxonomy is high cost to consultant validation. The MVP includes only the per-terminal `information_required` array (an array of `{noun, direction: read | write, sources}` objects). The full template can be added as a v2 lens if needed.
 
 ### C. Variants considered and rejected
@@ -60,9 +60,9 @@ Task analysis is **complementary** to `journey-mapping`: a journey map is linear
 
 ### E. Distinction from `/analyse-requirements/task-flows`
 
-The `/analyse-requirements/` pipeline ships a sibling methodology called `task-flows` (HTA + Task-Flow Diagram combo). It reads the synthesised `requirements/requirements.md` and is purpose-built for a `§5 Task flows`-shaped source. **This analyser is distinct** for four reasons:
+The `/analyse-requirements/` pipeline ships a sibling methodology called `task-flows` (HTA + Task-Flow Diagram combo). It reads the synthesised `generated-docs/requirements/requirements.md` and is purpose-built for a `§5 Task flows`-shaped source. **This analyser is distinct** for four reasons:
 
-1. **Different input source.** `task-flows` reads `requirements/requirements.md`; this analyser reads `requirements/source-manifest.json` + the raw `documentation/*` files it enumerates.
+1. **Different input source.** `task-flows` reads `generated-docs/requirements/requirements.md`; this analyser reads `generated-docs/requirements/source-manifest.json` + the raw `documentation/*` files it enumerates.
 2. **Different citation grammar.** `task-flows` uses `[SRC: C-NNN]` (claim IDs from the requirements pipeline's sidecar); this analyser uses `[SRC: <filename>]` (manifest row `filename` field).
 3. **Different methodological emphasis.** `task-flows` pairs HTA with a Task-Flow Diagram for visual narrative; this analyser pairs HTA with an SGT-derived information layer for downstream requirements drafting.
 4. **Different downstream contract.** `task-flows` is read by consultants and downstream design-spec authors; this analyser's primary downstream consumer is the `/requirements` drafter (after the consultant copies the HTML output into `documentation/` and re-runs `/requirements`).
@@ -72,7 +72,7 @@ The two are complementary; consultants commonly run this one before `/requiremen
 ### F. Why this analyser uses HTML + embedded YAML
 
 - **Visual hierarchy.** HTA trees beyond three levels degrade quickly in raw indented markdown; HTML's nested `<ol>` + `<details>` + Plan-type badges + colour cues are markedly easier to scan. Sibling `journey-mapping` is the input-side HTML precedent.
-- **Re-ingestible structure.** The artefact's primary downstream use is as a re-fed input to `/requirements`. The consultant copies `analyse-inputs/TASK-ANALYSIS/task-analysis.html` into `documentation/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts it to `documentation/task-analysis.html.converted.md`, and the drafter reads the converted markdown via the manifest. **`<pre><code class="language-yaml">` blocks survive markitdown's HTML→MD conversion as fenced code** — so the structured tree is rendered into a `<pre><code>` block (not a `<script type="application/json">` block, which markitdown strips). The visual tree is rendered separately as nested `<ol>` / `<details>`. The double render is deliberate.
+- **Re-ingestible structure.** The artefact's primary downstream use is as a re-fed input to `/requirements`. The consultant copies `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` into `documentation/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts it to `documentation/task-analysis.html.converted.md`, and the drafter reads the converted markdown via the manifest. **`<pre><code class="language-yaml">` blocks survive markitdown's HTML→MD conversion as fenced code** — so the structured tree is rendered into a `<pre><code>` block (not a `<script type="application/json">` block, which markitdown strips). The visual tree is rendered separately as nested `<ol>` / `<details>`. The double render is deliberate.
 - **Self-contained.** Inline `<style>`, no external CSS / JS / fonts / CDN. Network-isolated; browsable via `file://`; shareable as a single attachment.
 
 ---
@@ -251,7 +251,7 @@ On any failure → §Failure handling.
 - Build the substitution map (placeholders documented in the template's header comment + §Output structure above).
 - HTML-escape every consultant-supplied string before injection (`<`, `>`, `&`, `"`, `'`). YAML inside `<pre><code>` is escaped as plain text within the block — do not double-escape inside YAML.
 - Compute the SHA-256 of the in-memory composed HTML.
-- `Write analyse-inputs/TASK-ANALYSIS/task-analysis.html`. Invoke `framework/skills/verify-artifact-write.md` with `expected_sha256` and `expected_min_bytes = 4096`. On `RF-04 trigger` → halt and fail handback.
+- `Write generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html`. Invoke `framework/skills/verify-artifact-write.md` with `expected_sha256` and `expected_min_bytes = 4096`. On `RF-04 trigger` → halt and fail handback.
 - Hand back to the orchestrator with the Accept / Revise / Restart loop.
 
 ---
@@ -281,10 +281,10 @@ The analyser walks the manifest in this order:
 
 The analyser **never** reads:
 
-- Any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files.
+- Any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files.
 - Any path under `framework/state/`.
 - Any path under `framework/shared/` (textual `RF-NN` / `GR-NN` references are links for the reader, not file loads).
-- Other analyses' artefacts (`analyse-requirements/<OTHER-METHOD>/...`, `analyse-inputs/<OTHER-METHOD>/...`). Optionally re-reads the prior `analyse-inputs/TASK-ANALYSIS/task-analysis.html` for the additive merge.
+- Other analyses' artefacts (`generated-docs/analyse-requirements/<OTHER-METHOD>/...`, `generated-docs/analyse-inputs/<OTHER-METHOD>/...`). Optionally re-reads the prior `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` for the additive merge.
 
 ---
 
@@ -330,7 +330,7 @@ All four are documented in the literature; each maps to a hard gate above.
 Two additional anti-patterns are framework-wide and apply here:
 
 5. **Do not bundle external CDN / fonts / JS.** The artefact is self-contained — inline CSS, no `<script>` beyond the metadata block, no fonts, no external resources. (Frame-wide invariant; mirrors `journey-mapping`.)
-6. **Do not auto-copy the artefact to `documentation/`.** The agent's write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids `/analyse-inputs` from writing outside `analyse-inputs/<METHOD>/*`. The trailing **Next steps** banner in the artefact instructs the consultant to copy manually; the analyser does not.
+6. **Do not auto-copy the artefact to `documentation/`.** The agent's write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids `/analyse-inputs` from writing outside `generated-docs/analyse-inputs/<METHOD>/*`. The trailing **Next steps** banner in the artefact instructs the consultant to copy manually; the analyser does not.
 
 ---
 
@@ -340,7 +340,7 @@ The analysis is complete when:
 
 - Every goal frame has a populated tree with depth ≤ 5, every non-terminal has a Plan with provenance, every terminal has a source citation and `information_required` array.
 - All 8 hard gates pass, or the consultant chose Override and the failures are recorded in the Run-history bullet.
-- `analyse-inputs/TASK-ANALYSIS/task-analysis.html` has been written and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 
 ---
@@ -359,7 +359,7 @@ The analysis is complete when:
 
 The analyser's primary downstream consumer is the **`/requirements` drafter**, not a design-spec author. The mapping is:
 
-- **YAML structured tree** → bijection target for `framework/skills/completeness-gap-pass.md`. Every terminal operation should map to ≥ 1 requirement in the merged `requirements/requirements.md`; every requirement should map to ≥ 1 terminal operation (or be flagged unattributed). The drafter consumes the tree as candidate-requirement scaffolding.
+- **YAML structured tree** → bijection target for `framework/skills/completeness-gap-pass.md`. Every terminal operation should map to ≥ 1 requirement in the merged `generated-docs/requirements/requirements.md`; every requirement should map to ≥ 1 terminal operation (or be flagged unattributed). The drafter consumes the tree as candidate-requirement scaffolding.
 - **Plans (selection / iteration / concurrent)** → acceptance-criteria fodder. Selection Plans become *"Given X, When Y, Then Z"* branches in `§6` requirements. Iteration Plans become *"the user may repeat …"* rules with the termination condition as the loop invariant. Concurrent Plans surface as session / state-locking requirements in NFR or `§6` integration constraints.
 - **`information_required` arrays** → `§7 Data entities` hints. The read/write nouns per terminal are precursors to data-model nodes; nouns appearing across ≥ 2 terminals are first-class entity candidates.
 - **`[AI-SUGGESTED: AI-NNN | blocking]` markers** → resolver questions. The resolver pipeline ingests these uniformly via the existing `framework/shared/general-rules.md` grammar — no schema changes needed.

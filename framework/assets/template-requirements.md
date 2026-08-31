@@ -2,7 +2,7 @@
 
 # Requirements: {{application_name}}
 
-**Domain:** {{domain}} <!-- inferred from inputs; flag [AI-SUGGESTED] if not stated explicitly --> **Target:** prototype | application <!-- from `requirements/source-manifest.json > target`; `prototype` on every pipeline run (auto-set at the orchestrator's Step 1b; `application` appears only on legacy manifests). Controls the §6.10 sub-block and PI-append; §1.7/§6.6.1/§6.6.2 are always emitted as scope-noted application-build guidance (§0.1) --> **Created:** {{date}} **Status:** draft <!-- emit the literal `draft` at draft time; `requirements-merger` stamps `final` on consultant accept of the merged document --> **Last finalised at:** not stamped <!-- emit the literal `not stamped` at draft time; the merger overwrites it with the ISO-8601 UTC accept instant -->
+**Domain:** {{domain}} <!-- inferred from inputs; flag [AI-SUGGESTED] if not stated explicitly --> **Target:** prototype | application <!-- from `generated-docs/requirements/source-manifest.json > target`; `prototype` on every pipeline run (auto-set at the orchestrator's Step 1b; `application` appears only on legacy manifests). Controls the §6.10 sub-block and PI-append; §1.7/§6.6.1/§6.6.2 are always emitted as scope-noted application-build guidance (§0.1) --> **Created:** {{date}} **Status:** draft <!-- emit the literal `draft` at draft time; `requirements-merger` stamps `final` on consultant accept of the merged document --> **Last finalised at:** not stamped <!-- emit the literal `not stamped` at draft time; the merger overwrites it with the ISO-8601 UTC accept instant -->
 
 > **Authoring guardrails.** Cells across §1–§10 must obey:
 > - **`GR-20` No stack specifics.** No framework, library, vendor, product, version, or brand name in any cell. Speak in capability categories ("client-side state management", "binary blob storage tier"). Stack picks happen at code-generation time, not here.
@@ -13,7 +13,7 @@
 > - `[STANDARD-RULE: GR-NN]` — deterministic answer from `framework/shared/general-rules.md`; resolver skips.
 > - `[OUT-OF-SCOPE: domain-default]` — required by template but outside prototype scope per `framework/shared/prototype-scope.md`; emitted under `target = prototype` only; resolver skips, consultant can scan-review.
 >
-> Citation: input-grounded cells carry a trailing `[SRC: C-NNN]` tag in the draft, backed by `requirements/draft-claims.ndjson`. The merger **retains** `[SRC:]` tags in the final doc and strips the three resolution markers above. A `[SRC:]` tag is a traceability marker, not a reading pointer — every sentence must still read correctly if the tag were deleted.
+> Citation: input-grounded cells carry a trailing `[SRC: C-NNN]` tag in the draft, backed by `generated-docs/requirements/draft-claims.ndjson`. The merger **retains** `[SRC:]` tags in the final doc and strips the three resolution markers above. A `[SRC:]` tag is a traceability marker, not a reading pointer — every sentence must still read correctly if the tag were deleted.
 >
 > **Pointer format (`framework/shared/output-readability.md` rule 4).** Every cross-reference a human reads carries a quotation of what it points at: `→ §4.1 G-03 "Reach a decision on every uploaded record"` — **at most 8 words, verbatim** from the referent's own title or first clause, in quotation marks. Never a fresh restatement; a quotation is not a paraphrase. Exempt: a pointer that already names its referent (`→ §2.1 Order`, `→ §5 Flow: Approve shipment`), the referent's own definition row, and repeats inside one table cell. Inside a table cell, truncate a quotation before any `|`.
 >
@@ -26,7 +26,7 @@
 ## In plain terms
 
 <!-- format: two labelled bullet groups; 2–5 sentences TOTAL across both groups -->
-<!-- emit: MERGER-AUTHORED. The drafter does NOT emit this section — `requirements/requirements-draft.md` has no `## In plain terms`. `framework/agents/requirements-merger.md` inserts it immediately after the header line once every resolution has been applied, because only then is there a settled document to condense. -->
+<!-- emit: MERGER-AUTHORED. The drafter does NOT emit this section — `generated-docs/requirements/requirements-draft.md` has no `## In plain terms`. `framework/agents/requirements-merger.md` inserts it immediately after the header line once every resolution has been applied, because only then is there a settled document to condense. -->
 <!-- Faithful condensation of cited body content: introduces no new fact, and is NOT itself a citation source (no `[SRC:]` tag is minted here). Phrasing per `framework/shared/output-readability.md` rule 1. -->
 
 **What we found**
@@ -43,7 +43,7 @@
 ## Contents
 
 <!-- format: nested markdown list of anchor links, one entry per heading; no prose, no counts, no annotations -->
-<!-- emit: MERGER-AUTHORED. The drafter does NOT emit this section — `requirements/requirements-draft.md` has no `## Contents`. `framework/agents/requirements-merger.md` derives it from the shipped document's own heading set and inserts it immediately after `## In plain terms`, so the summary stays the first `## ` heading in the file. -->
+<!-- emit: MERGER-AUTHORED. The drafter does NOT emit this section — `generated-docs/requirements/requirements-draft.md` has no `## Contents`. `framework/agents/requirements-merger.md` derives it from the shipped document's own heading set and inserts it immediately after `## In plain terms`, so the summary stays the first `## ` heading in the file. -->
 <!-- Depth: every `##`, `###` and `####` heading, instance-generated ones included (`### {{persona_name}}`, `#### {{aggregate_root}}`, the §5 flow headings, `### Shape: {{shape_name}}`, the §6.10 `Under target = …` sub-block heading). `##### Story:` headings are excluded — too many, too long, and §4.2's persona heading already lands the reader on them. -->
 <!-- Two sections carry a flat top-level entry and NO children: `## For downstream use` (so §0.1 and the reading note stay out of the reading path) and `## Prototype invariants` (the reader needs to know it exists, not to navigate 8 `### PI-NN` subsections). -->
 <!-- The transient `## Amendments (pending re-merge)` section gets no entry: it is transient by design, `## In plain terms` already names `/amend-requirements`, and `framework/skills/apply-amendments-section.md` is bounded to touching that one section and nothing else. -->
@@ -532,9 +532,9 @@ classDiagram
 ## 9. Key terminology
 
 <!-- format: table[3-col: term, definition_or_§2.1_ref, inconsistency_flag]; domain or non-domain terms -->
-<!-- emit: content-conditional — emit a row ONLY for a term that carries an inconsistency flag or an alternate-term usage worth recording; omit the whole section when none apply. The full domain glossary is produced by the GLOSSARY analysis (`analyse-requirements/GLOSSARY/`), not duplicated here. -->
+<!-- emit: content-conditional — emit a row ONLY for a term that carries an inconsistency flag or an alternate-term usage worth recording; omit the whole section when none apply. The full domain glossary is produced by the GLOSSARY analysis (`generated-docs/analyse-requirements/GLOSSARY/`), not duplicated here. -->
 
-> **Inconsistency register, not a glossary.** Record only terms where the consultant uses an alternate label or the inputs disagree — the canonical, complete domain glossary is produced separately by the GLOSSARY methodology (`analyse-requirements/GLOSSARY/`). Omitted entirely when no inconsistency applies (§0.1 content-conditional).
+> **Inconsistency register, not a glossary.** Record only terms where the consultant uses an alternate label or the inputs disagree — the canonical, complete domain glossary is produced separately by the GLOSSARY methodology (`generated-docs/analyse-requirements/GLOSSARY/`). Omitted entirely when no inconsistency applies (§0.1 content-conditional).
 
 | Term     | Definition                                 | Inconsistency flag                              |
 | -------- | ------------------------------------------ | ----------------------------------------------- |

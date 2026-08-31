@@ -2,9 +2,9 @@
 
 # map-business-context-definition-from-inputs-to-ui.md
 
-**Purpose:** Translate an inputs-side Business Context Definition report (`analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html`) into design-spec signals for downstream consumption: Business Goals / Objectives → product-scope and success-metric anchors; the problem→need→goal causal chain → requirement-rationale traceability seeds; opportunity-driven needs → roadmap/phasing hints; the human-centered Problem Statement → primary design-challenge framing; surfaced tensions → trade-off-aware design decisions.
+**Purpose:** Translate an inputs-side Business Context Definition report (`generated-docs/analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html`) into design-spec signals for downstream consumption: Business Goals / Objectives → product-scope and success-metric anchors; the problem→need→goal causal chain → requirement-rationale traceability seeds; opportunity-driven needs → roadmap/phasing hints; the human-centered Problem Statement → primary design-challenge framing; surfaced tensions → trade-off-aware design decisions.
 
-**Inputs:** `analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` (specifically the embedded `<pre><code class="language-json" id="bcd-body">` block — survives markitdown round-trip and is the load-bearing machine-readable contract carrying every `business_problems`, `business_needs`, `business_goals`, `business_objectives`, `problem_statements`, `causal_links`, `tensions`, provenance, and `inference` field).
+**Inputs:** `generated-docs/analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` (specifically the embedded `<pre><code class="language-json" id="bcd-body">` block — survives markitdown round-trip and is the load-bearing machine-readable contract carrying every `business_problems`, `business_needs`, `business_goals`, `business_objectives`, `problem_statements`, `causal_links`, `tensions`, provenance, and `inference` field).
 
 **Outputs:** design-scope anchors + success-metric seeds + requirement-rationale traceability rows for the design spec.
 

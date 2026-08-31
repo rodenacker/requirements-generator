@@ -6,26 +6,26 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **a
 
 ## Purpose
 
-Produce `review-requirements/ADVERSARIAL/adversarial-review.html` — a self-contained HTML punch-list of cited, severity-graded, dispositioned findings — by applying the eight-dimension adversarial methodology (`framework/assets/reviews/adversarial-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every finding carries a verbatim evidence quote, a specific location anchor, and a concrete recommendation. The strict-BMAD halt rule fires on any zero-findings dimension. Every quality gate in the reference is a hard gate.
+Produce `generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html` — a self-contained HTML punch-list of cited, severity-graded, dispositioned findings — by applying the eight-dimension adversarial methodology (`framework/assets/reviews/adversarial-reference.md`) literally and exhaustively to the merged requirements document `generated-docs/requirements/requirements.md`. Every finding carries a verbatim evidence quote, a specific location anchor, and a concrete recommendation. The strict-BMAD halt rule fires on any zero-findings dimension. Every quality gate in the reference is a hard gate.
 
 The eight dimensions are dispatched in parallel as foreground sub-agents at Step 3 (per `framework/agents/reviews/adversarial-dimension-worker.md`) and merged deterministically at Step 3b. The parallelisation is an execution detail: per-dimension auditability, the strict-BMAD rule, every schema gate, every quality gate, the verdict mapping, consultant interactivity, and the rendered artefact's structure are identical to a sequential sweep. The change exists to reduce wall-clock latency from O(8) to O(1) passes; the methodology's contract is unchanged.
 
 ## Stand-alone-ish constraint
 
-This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, any path under `analyse-requirements/`, any path under `design-system/`, or any other agent's working state. The merged requirements document is the contract; the review's job is to critique *it*, not to triangulate against artefacts that derived from it or against pipeline-internal state.
+This agent reads `generated-docs/requirements/requirements.md` and **nothing else under `generated-docs/requirements/`**. It does not read `generated-docs/requirements/source-manifest.json`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims.ndjson`, `generated-docs/requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, any path under `generated-docs/analyse-requirements/`, any path under `generated-docs/design-system/`, or any other agent's working state. The merged requirements document is the contract; the review's job is to critique *it*, not to triangulate against artefacts that derived from it or against pipeline-internal state.
 
 The agent's only inputs are:
 
-- `requirements/requirements.md` (the merged document — read once).
+- `generated-docs/requirements/requirements.md` (the merged document — read once).
 - `framework/assets/characters/adversarial-review.md` (the character — loaded at activation).
 - `framework/assets/reviews/adversarial-reference.md` (the methodology — read at activation).
 - `framework/assets/reviews/template-adversarial.html` (the self-contained HTML scaffold — read once at render time).
 - `framework/skills/recalibrate-scope-severity.md` (the purpose-aware scope-recalibration procedure — read once at Step 3s; embeds the finding-scope-class glosses so no `framework/shared/` read is needed).
 - `framework/agents/reviews/adversarial-dimension-worker.md` (the dimension-worker contract — referenced, not read at runtime; its operational interface is the Step-3 worker prompt template, which inlines every input the worker needs).
 
-The agent's only outputs are `review-requirements/ADVERSARIAL/adversarial-review.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html` and the inline summary it surfaces to the consultant.
 
-The eight Step-3 dimension workers inherit the same stand-alone-ish constraint by tighter tool-list scope: each worker may `Read` only `requirements/requirements.md` and has no other tools. Workers do not read the character file, the reference, or the template — those are inlined into the worker's spawning prompt verbatim. Workers do not write, do not edit, do not bash, do not call `AskUserQuestion`, and do not dispatch further sub-agents. The parent reviewer is the sole consultant-interactive surface and the sole writer.
+The eight Step-3 dimension workers inherit the same stand-alone-ish constraint by tighter tool-list scope: each worker may `Read` only `generated-docs/requirements/requirements.md` and has no other tools. Workers do not read the character file, the reference, or the template — those are inlined into the worker's spawning prompt verbatim. Workers do not write, do not edit, do not bash, do not call `AskUserQuestion`, and do not dispatch further sub-agents. The parent reviewer is the sole consultant-interactive surface and the sole writer.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts, analyses outputs, design-system outputs, or shared/state directories is granted.
 
@@ -37,22 +37,22 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 
 - Read `framework/assets/characters/adversarial-review.md` once. Keep its full content in memory — it is injected verbatim into each Step-3 worker prompt as `{{CHARACTER_CONTENT}}`.
 - Read `framework/assets/reviews/adversarial-reference.md` once. The reference defines the eight dimensions, the finding schema, the disposition rubric, the strict-BMAD halt rule, and the eleven quality gates; treat it as authoritative. Keep its full content in memory; the eight per-dimension sections, the *Finding schema* section, the *Disposition rubric* section, and *The strict-BMAD halt rule* section are sliced and injected into Step-3 worker prompts as `{{DIMENSION_SECTION}}` (per worker, dimension-specific) and `{{SCHEMA_AND_RUBRIC_AND_BMAD_RULE}}` (identical for every worker).
-- State readiness in one short line: *"Adversarial reviewer ready. Starting from `requirements/requirements.md`."*
-- Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no analyses, no design-system, no pipeline state is consulted. Eight dimension workers will be dispatched in parallel at Step 3; each worker inherits the same read scope."*
+- State readiness in one short line: *"Adversarial reviewer ready. Starting from `generated-docs/requirements/requirements.md`."*
+- Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `generated-docs/requirements/requirements.md` only — no analyses, no design-system, no pipeline state is consulted. Eight dimension workers will be dispatched in parallel at Step 3; each worker inherits the same read scope."*
 - Restate the strict-BMAD rule in one line so the consultant sees it: *"Zero findings on any dimension triggers a re-run + Justification block. No silent clean dimensions."*
 - Apply the human-readability standard from the character's *Reader & plain language* block (canonical: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** and relaxes no gate, no severity, and no strict-BMAD rule: at Step 11 write the "In plain terms" lead (preserving severity verbatim — never soften a Blocker / `BLOCKED`), gloss review jargon at first use in human-readable prose, never gloss client domain terms, and keep the punch-list discipline everywhere below the lead.
 
 ### Step 2 — Read input
 
-- `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
+- `Read generated-docs/requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it reviewed, **and** is passed as `{{SHA}}` to every Step-3 worker so each worker can re-verify the file has not changed between Step 2 and the worker's own read.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`generated-docs/requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
 - Build an in-memory **anchor index** of the doc: a map from each `§N.N` heading, each `BR-NN` / `G-NN` / `FR-NN` ID, and each line number to the verbatim text at that anchor. The index drives Location-field validation in Step 10 (quality gate 6) — any finding whose Location anchor is not in the index is invalid. The index is also serialised to JSON and inlined into every Step-3 worker prompt as `{{ANCHOR_INDEX_JSON}}` so workers can validate Location fields locally before returning (defence-in-depth — Step 10 re-validates at merge).
 - Build an in-memory **quote index**: a sorted list of all line-bounded substrings of the doc. This drives quality gate 5 (every Evidence field is verbatim). The index is also serialised to JSON and inlined into every Step-3 worker prompt as `{{QUOTE_INDEX_JSON}}` so workers can validate Evidence fields locally before returning.
 
 ### Step 3 — Parallel Dimension Sweep
 
-All eight dimensions execute in parallel as foreground sub-agents dispatched from this thread. The dimensions have no data dependency on each other — each scans the same `requirements/requirements.md` with a different lens, against the same anchor and quote indices, applying the schema and disposition rubric from `adversarial-reference.md`. The methodology's per-dimension auditability requirement is about *output presentation* (each dimension has its own section in the artefact, its own diagnostics row, its own strict-BMAD log entry), not temporal execution; running passes in parallel and merging deterministically preserves every methodology guarantee while eliminating the O(8) wall-clock cost of sequential dispatch.
+All eight dimensions execute in parallel as foreground sub-agents dispatched from this thread. The dimensions have no data dependency on each other — each scans the same `generated-docs/requirements/requirements.md` with a different lens, against the same anchor and quote indices, applying the schema and disposition rubric from `adversarial-reference.md`. The methodology's per-dimension auditability requirement is about *output presentation* (each dimension has its own section in the artefact, its own diagnostics row, its own strict-BMAD log entry), not temporal execution; running passes in parallel and merging deterministically preserves every methodology guarantee while eliminating the O(8) wall-clock cost of sequential dispatch.
 
 **3a — Fan-out.** Emit one short status line in Unicorn voice: *"Dispatching 8 dimension workers in parallel."* Then send a single message containing exactly eight `Agent` tool calls, one per dimension, using the worker prompt template below. Each call has `subagent_type: general-purpose` and is self-contained — every input the worker needs is inlined in its prompt.
 
@@ -64,7 +64,7 @@ framework/agents/reviews/adversarial-dimension-worker.md. Run exactly Dimension 
 adversarial methodology — nothing else.
 
 Inputs (all inline, do not read these from disk):
-- Expected SHA-256 of requirements/requirements.md: {{SHA}}
+- Expected SHA-256 of generated-docs/requirements/requirements.md: {{SHA}}
 - Anchor index (JSON): {{ANCHOR_INDEX_JSON}}
 - Quote index (JSON): {{QUOTE_INDEX_JSON}}
 - Character file (verbatim contents of framework/assets/characters/adversarial-review.md):
@@ -77,7 +77,7 @@ Inputs (all inline, do not read these from disk):
   {{SCHEMA_AND_RUBRIC_AND_BMAD_RULE}}
 
 Workflow:
-1. Read requirements/requirements.md (the only file you may read). Compute SHA-256 of its
+1. Read generated-docs/requirements/requirements.md (the only file you may read). Compute SHA-256 of its
    bytes. Verify it equals {{SHA}}; if not, return the error payload with
    error_kind: sha_mismatch.
 2. Apply Dimension {{N}}'s checks. Emit findings using the schema (omit the ID field — the
@@ -89,7 +89,7 @@ Workflow:
    further sub-agents.
 
 Constraints:
-- Read scope: requirements/requirements.md only.
+- Read scope: generated-docs/requirements/requirements.md only.
 - No tools other than Read.
 - Voice and stance: as defined in the inline character content.
 
@@ -121,7 +121,7 @@ The placeholders are substituted at dispatch time:
     - On **Abort**: exit cleanly without writing; the orchestrator's handback gate fails (artefact not produced).
     - On **Manual Justification**: accept the consultant's inline Justification block in their next message; validate it is ≥3 sentences and cites specific evidence; substitute it as the Dimension `N` payload with `status: justification`, `strict_bmad_rerun: true`, and a single-entry `anti_confirmation_prompts: ["consultant-supplied"]` log entry.
 
-    Any `status: error` with `error_kind: sha_mismatch` is a run-wide abort regardless of consultant choice — the requirements doc changed mid-run and no partial finding set is trustworthy. Surface: *"requirements/requirements.md changed mid-run (SHA mismatch reported by Dimension `{{N}}` worker). Aborting; no artefact written. Re-invoke `/review-requirement` for a fresh run."* and exit.
+    Any `status: error` with `error_kind: sha_mismatch` is a run-wide abort regardless of consultant choice — the requirements doc changed mid-run and no partial finding set is trustworthy. Surface: *"generated-docs/requirements/requirements.md changed mid-run (SHA mismatch reported by Dimension `{{N}}` worker). Aborting; no artefact written. Re-invoke `/review-requirement` for a fresh run."* and exit.
 
 2. **Deterministic ID assignment.** With all eight payloads accepted (originally returned or consultant-substituted), assign sequential `ADV-NN` IDs across the merged finding set:
 
@@ -145,7 +145,7 @@ After Step 3b completes, the in-memory state is identical in shape to what the s
 
 After Step 3b assigns IDs and **before** Step 3c clusters, the reviewer recalibrates finding ratings against the system's frontend purpose, per `framework/skills/recalibrate-scope-severity.md`. This framework produces **frontend** requirements; backend / infra / operational concerns are **raised, not dropped**, but their rating is capped so a backend gap cannot block a frontend deliverable. See `framework/assets/reviews/adversarial-reference.md > Purpose-aware scope recalibration` for the methodology rationale and the three finding-scope classes.
 
-1. **Detect the build target from the document** — stand-alone-preserving; **no `source-manifest.json` read**. Scan the Step-2 `requirements/requirements.md` content for the appended prototype-invariants block (`PI-01`..`PI-08`). Present → `target = "prototype"`; absent → `target = "application"`. Record the detected target and the signal (PI-block present/absent) for the Step-11 diagnostics log.
+1. **Detect the build target from the document** — stand-alone-preserving; **no `source-manifest.json` read**. Scan the Step-2 `generated-docs/requirements/requirements.md` content for the appended prototype-invariants block (`PI-01`..`PI-08`). Present → `target = "prototype"`; absent → `target = "application"`. Record the detected target and the signal (PI-block present/absent) for the Step-11 diagnostics log.
 
 2. **Invoke the skill.** Pass `finding_list` = the Step-3b merged findings; `target` = the detected target; `severity_vocab = ["Blocker","Major","Minor"]`; `disposition_vocab = { values: ["Patch","Defer","Reject"], blocking: "Reject", safe_non_blocking: "Defer" }`. The skill classifies each finding (`fe-relevant | fe-facing-contract | backend-only`), caps `backend-only` severity (`Minor` under prototype, `Major` under application; never `Blocker`), demotes any `backend-only` `Reject` — and any non-FE-blocking `fe-facing-contract` `Reject` — to `Defer`, and returns the annotated finding list plus a `recalibration_log`.
 
@@ -213,7 +213,7 @@ Run all eleven gates from `adversarial-reference.md > Quality gates` in order. E
 2. Every finding's Dimension is exactly one integer 1–8.
 3. Every finding's Severity is exactly one of `Blocker | Major | Minor`.
 4. Every finding's Disposition is exactly one of `Patch | Defer | Reject`.
-5. Every finding's Evidence is verbatim from `requirements/requirements.md` and ≤5 lines. Validate against the Step-2 quote index.
+5. Every finding's Evidence is verbatim from `generated-docs/requirements/requirements.md` and ≤5 lines. Validate against the Step-2 quote index.
 6. Every finding's Location anchor exists in the Step-2 anchor index.
 7. Every dimension has ≥1 finding or a non-empty Justification block.
 8. Every Justification block is ≥3 sentences and cites specific evidence.
@@ -260,11 +260,11 @@ The template scaffold itself is **not edited** — section ordering, IDs, the `<
 
 ### Step 12 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p review-requirements/ADVERSARIAL`.
-- `Write review-requirements/ADVERSARIAL/adversarial-review.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-requirements/ADVERSARIAL/adversarial-review.html`, `expected_sha256 = <step-11 sha>`, `expected_min_bytes = 5000` (a minimum legal render carries the full inline `<style>` block plus eight dimension sections and a diagnostics block, comfortably above 5 KB).
+- Ensure the output directory exists: `Bash mkdir -p generated-docs/review-requirements/ADVERSARIAL`.
+- `Write generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html`, `expected_sha256 = <step-11 sha>`, `expected_min_bytes = 5000` (a minimum legal render carries the full inline `<style>` block plus eight dimension sections and a diagnostics block, comfortably above 5 KB).
 - On `pass`: advance to Step 13.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-requirements/ADVERSARIAL/adversarial-review.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 13 — Handback
 
@@ -272,7 +272,7 @@ The template scaffold itself is **not edited** — section ordering, IDs, the `<
 
 Output one short, concrete line listing the per-dimension counts, the verdict, and the gate result. No marketing language. Template:
 
-> *"Wrote `review-requirements/ADVERSARIAL/adversarial-review.html` — `{{TOTAL_FINDINGS}}` findings across 8 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`), grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to fix first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
+> *"Wrote `generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html` — `{{TOTAL_FINDINGS}}` findings across 8 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`), grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to fix first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variant:
 
@@ -302,7 +302,7 @@ Use `AskUserQuestion`:
     - **Edit Recommendation text:** update the finding's Recommendation field, re-render, re-Write, re-verify, loop back to A. (Step 3c is **not** re-run — cluster keys do not depend on Recommendation prose.)
     - **Expand a Justification block:** update the block, re-run gate 8, re-render, re-Write, re-verify, loop back to A. (Step 3c is **not** re-run — Justification blocks are not findings and do not participate in clustering.)
     - **Strike all findings on a dimension:** treat as zero-finding outcome on that dimension; require the consultant to confirm whether they want the strict-BMAD re-run or a manually-supplied Justification block; either re-dispatch one dimension worker via `Agent` using the Step-3 worker prompt template (single call, dimension `N` only) and substitute its payload for that dimension, or substitute a consultant-supplied Justification block (≥3 sentences, citing specific evidence) directly into the in-memory state for that dimension; **run Step 3s over the newly-returned dimension findings** to classify and cap them (existing findings untouched); re-tally; re-derive verdict; **re-run Step 3c** (clusters and triage); re-run gate 7 (and gate 8 if a Justification was substituted; gates 3, 4, 9 over the new findings); re-render; re-Write; re-verify; loop back to A.
-- **Restart** — re-enter Step 3 from a clean state. Reset the ID sequence; re-run all eight dimensions. The previously-written `review-requirements/ADVERSARIAL/adversarial-review.html` is left in place; the next Step 12 will overwrite it.
+- **Restart** — re-enter Step 3 from a clean state. Reset the ID sequence; re-run all eight dimensions. The previously-written `generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html` is left in place; the next Step 12 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 12).
 
@@ -314,7 +314,7 @@ Output the final handback line:
 
 ## Inputs
 
-- `requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
+- `generated-docs/requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
 - `framework/assets/characters/adversarial-review.md` — the reviewer's stance. Loaded once in Step 1; full content held in memory and inlined into every Step-3 worker prompt as `{{CHARACTER_CONTENT}}`.
 - `framework/assets/reviews/adversarial-reference.md` — the eight-dimension methodology reference. Read once in Step 1; per-dimension sections sliced and inlined into Step-3 worker prompts as `{{DIMENSION_SECTION}}`; the schema, rubric, and strict-BMAD rule sections inlined as `{{SCHEMA_AND_RUBRIC_AND_BMAD_RULE}}`.
 - `framework/assets/reviews/template-adversarial.html` — the self-contained HTML scaffold. Read once in Step 11.
@@ -323,14 +323,14 @@ Output the final handback line:
 
 ## Output
 
-- `review-requirements/ADVERSARIAL/adversarial-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked). Section order: (0) In plain terms, (1) Executive Summary, (2) Triage, (3) Clusters, (4) Findings Table, (5–12) Dimensions 1–8, (13) Diagnostics.
+- `generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked). Section order: (0) In plain terms, (1) Executive Summary, (2) Triage, (3) Clusters, (4) Findings Table, (5–12) Dimensions 1–8, (13) Diagnostics.
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the scope-recalibration skill (`framework/skills/recalibrate-scope-severity.md`, read once at Step 3s), and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `analyse-requirements/`, against any path under `design-system/`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope; the recalibration skill embeds the finding-scope-class glosses (citing `framework/shared/prototype-scope.md` as canonical), so the reviewer never needs to read `framework/shared/` at runtime.
-- `Write` — write `review-requirements/ADVERSARIAL/adversarial-review.html`.
+- `Read` — read the character file, the reference asset, the template scaffold, the scope-recalibration skill (`framework/skills/recalibrate-scope-severity.md`, read once at Step 3s), and the merged requirements document. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md`, against any path under `generated-docs/analyse-requirements/`, against any path under `generated-docs/design-system/`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope; the recalibration skill embeds the finding-scope-class glosses (citing `framework/shared/prototype-scope.md` as canonical), so the reviewer never needs to read `framework/shared/` at runtime.
+- `Write` — write `generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p review-requirements/ADVERSARIAL` (Step 12 setup). No other Bash usage.
+- `Bash` — `mkdir -p generated-docs/review-requirements/ADVERSARIAL` (Step 12 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 10 quality-gate failure prompt (Revise / Override / Restart) when any gate fires; surface the Step 3b worker-failure prompt (Retry / Abort / Manual Justification) when any of the eight dimension workers returns a malformed payload or an error; surface the Step 13 Accept / Revise / Restart prompt.
 - `Agent` — **scoped to Step 3 fan-out and Step 3b retry only.** Dispatches the eight dimension workers in parallel at Step 3 (one `Agent` call per dimension, all eight in a single message, `subagent_type: general-purpose`, prompts built from the worker prompt template). Also used at Step 3b's `Retry` branch to re-dispatch a single dimension's worker on a malformed payload. Also used at Step 13's *"Strike all findings on a dimension"* Revise branch to re-dispatch one dimension's worker for a fresh pass. **No other Step uses `Agent`.** Workers dispatched via this tool must be non-interactive (no `AskUserQuestion`), read-only (no `Write`/`Edit`/`Bash`), and own no handback.
 
@@ -338,7 +338,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `review-requirements/ADVERSARIAL/adversarial-review.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact is self-contained HTML: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>` tag, no external stylesheet `<link>`, and no CDN/`http(s)://` asset reference.
 - The `<section id="plain-terms">` block is the FIRST content section (immediately after `<nav class="toc">`), before the Executive Summary. It contains a non-empty `<p>` (the `{{PLAIN_SUMMARY}}` substitution). The TOC's first `<li>` links to `#plain-terms`. The `#plain-terms` CSS rule is present in the `<style>` block.
@@ -355,7 +355,7 @@ Before handing back, verify all of the following against the written artefact an
 - Every recalibrated (or consultant-overridden) finding has a matching entry in the Scope recalibration log; the log is rendered in the diagnostics block.
 - The Executive Summary verdict reflects the **post-recalibration** severity/disposition tally — no `backend-only` finding contributes a `Blocker`/`Reject` to the verdict.
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2.
-- Every finding's Evidence quote matches a substring of `requirements/requirements.md` per the Step-2 quote index.
+- Every finding's Evidence quote matches a substring of `generated-docs/requirements/requirements.md` per the Step-2 quote index.
 - Every finding's Location anchor matches an entry in the Step-2 anchor index.
 - Exactly eight dimension payloads were merged at Step 3b, one per dimension (1..8). No dimension was silently dropped or duplicated. Any payload sourced from a consultant-supplied Manual Justification at Step 3b is flagged in the diagnostics block's override log.
 - The `ADV-NN` ID sequence is contiguous from `ADV-01` through `ADV-{{TOTAL_FINDINGS}}` (or, when total ≥ 100, zero-padded to three digits), with IDs assigned in `dimension-order × within-dimension-emission-order` as documented in Step 3b. No ID gaps; no duplicate IDs; no IDs outside that range.
@@ -364,13 +364,13 @@ Before handing back, verify all of the following against the written artefact an
 - The Triage callout contains at most 10 entries, includes every Reject and every Blocker, and never lists a Minor finding. If the requirements doc had zero findings run-wide, the Triage callout renders the documented "no findings" line instead.
 - The Clusters block lists every `CL-NN` that Step 3c assigned; every listed cluster has ≥2 members; every `member_ids` list is in ADV-NN ascending order; every `max_severity` matches the highest severity among its members.
 - The `Agent` tool was used only at Step 3 (fan-out), Step 3b (single-dimension Retry on malformed payload), and — if invoked — Step 13's *"Strike all findings on a dimension"* Revise branch. It was not used at any other step.
-- No file under `requirements/` other than `requirements/requirements.md` was read during this run, by the parent or by any worker. Worker compliance is enforced by the worker's tool-list scope (`Read` restricted to `requirements/requirements.md` only).
-- No file under `analyse-requirements/`, `design-system/`, `framework/state/`, or `framework/shared/` was read during this run.
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md` was read during this run, by the parent or by any worker. Worker compliance is enforced by the worker's tool-list scope (`Read` restricted to `generated-docs/requirements/requirements.md` only).
+- No file under `generated-docs/analyse-requirements/`, `generated-docs/design-system/`, `framework/state/`, or `framework/shared/` was read during this run.
 - The consultant has chosen Accept in Step 13 (or the Step 10 Override path was taken, in which case Accept is still required in Step 13 to declare done).
 
 ## Definition of Done
 
-- `review-requirements/ADVERSARIAL/adversarial-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains a complete eight-dimension review.
+- `generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains a complete eight-dimension review.
 - The rendered HTML section order is: `#plain-terms` (In plain terms) first, then `#executive-summary`, `#triage`, `#clusters`, `#findings-table`, `#dim-1` … `#dim-8`, `#diagnostics`. The TOC's first item links to `#plain-terms`.
 - All eight Step-3 dimension workers returned a parsed payload (originally emitted or Manual-Justification-substituted at Step 3b). Step 3b merged exactly one payload per dimension into the in-memory state.
 - The `ADV-NN` ID sequence is contiguous, assigned by dimension order then within-dimension order.
@@ -382,15 +382,15 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Anti-Patterns
 
-- Do not read any path under `requirements/` other than `requirements/requirements.md`. The stand-alone-ish constraint is the agent's most load-bearing invariant.
-- Do not read `analyse-requirements/`, `design-system/`, `framework/state/`, or `framework/shared/` for any purpose. Pipeline state, shared rules, and derivative artefacts are not adversarial-review inputs.
+- Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md`. The stand-alone-ish constraint is the agent's most load-bearing invariant.
+- Do not read `generated-docs/analyse-requirements/`, `generated-docs/design-system/`, `framework/state/`, or `framework/shared/` for any purpose. Pipeline state, shared rules, and derivative artefacts are not adversarial-review inputs.
 - Do not return "looks good". BMAD's central rule forbids it. Run the strict-BMAD re-run; write a Justification block; never silently pass a dimension.
 - Do not fabricate evidence. Every Evidence field must be a verbatim quote from the requirements doc (Step-10 gate 5 enforces this). If you cannot find a quote, you do not have a finding — drop it.
 - Do not write generic findings ("§6 could be clearer"). Cite the specific sentence; state the specific defect; propose the specific fix.
 - Do not inflate severity. Reserve Blocker for findings that genuinely prevent downstream consumption.
 - Do not collapse dispositions. Patch / Defer / Reject is orthogonal to severity. A Minor finding can be a Reject (small but blocking POPIA gap); a Major finding can be a Defer (significant feature gap that is genuinely post-MVP).
 - Do not collapse dimensions into a single combined analytical pass. Each dimension runs in its own worker with its own dimension section, its own strict-BMAD check, its own emitted finding list (or Justification block), and its own diagnostics row. Parallel dispatch is not the same as collapse: Step 3 dispatches eight isolated workers in one message, but each worker sees only one dimension's section and emits findings for only one dimension. A worker that emits cross-dimension findings violates gate 2.
-- Do not consult `analyse-requirements/*` outputs to triangulate findings. The review's contract is to critique `requirements/requirements.md` as the source of truth.
+- Do not consult `generated-docs/analyse-requirements/*` outputs to triangulate findings. The review's contract is to critique `generated-docs/requirements/requirements.md` as the source of truth.
 - Do not use `[SRC: ...]` markers in findings. Per project convention (`feedback_no_inline_provenance`), the merged requirements doc is clean of provenance markers; the review artefact is also clean. Findings cite by section/ID, not by `[SRC: ...]`.
 - Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override. A defective review written silently is the worst failure mode.
 - Do not write the artefact incrementally. Render in memory; compute sha256; Write once; verify.
@@ -406,6 +406,6 @@ Before handing back, verify all of the following against the written artefact an
 - Do not modify a worker's emitted findings or Justification block beyond (i) the deterministic ID assignment in Step 3b, (ii) the Step-3s scope recalibration (which may cap a `backend-only` finding's severity and demote its `Reject` disposition per `framework/skills/recalibrate-scope-severity.md`, and annotates `scope_class` — but **never** rewrites a worker's Problem / Recommendation / Evidence text), and (iii) consultant-driven Revise edits in Step 13. Outside these three, the parent is not authorised to re-grade severity, rewrite a Problem statement, or paraphrase a Recommendation.
 - Do not drop a `backend-only` finding at Step 3s. Scope recalibration *raises and re-rates*; it never deletes. A backend / infra / operational gap is capped (never `Blocker`/`Reject`) and logged, not removed.
 - Do not class a finding `backend-only` when its corrective action is UI-actionable. A validation message, an error/empty/loading state, a role-gated screen is `fe-relevant` and keeps its severity. When undecided between `fe-facing-contract` and `backend-only`, choose `fe-facing-contract`.
-- Do not read `requirements/source-manifest.json` (or any other `requirements/` file) to determine the build target. The target is detected from the in-document PI-block only; reading the manifest would break the stand-alone-ish constraint.
+- Do not read `generated-docs/requirements/source-manifest.json` (or any other `generated-docs/requirements/` file) to determine the build target. The target is detected from the in-document PI-block only; reading the manifest would break the stand-alone-ish constraint.
 - Do not blanket-re-run Step 3s over existing findings on a Revise edit. A consultant severity/disposition change is an explicit override that sticks (logged `consultant-overridden`); Step 3s re-runs only over newly-introduced findings or on a full Restart.
 - Do not re-derive the strict-BMAD re-run log from the in-memory finding set. The log is reconstructed from each worker payload's `strict_bmad_rerun` flag and `anti_confirmation_prompts` list — only the workers know whether they hit the re-run path, and inferring it from "Dimension N has zero findings" is incorrect (a zero-findings dimension that was Manual-Justification-substituted at Step 3b never triggered the worker's re-run path).

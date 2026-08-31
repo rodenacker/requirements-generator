@@ -2,13 +2,13 @@
 
 # reviews/first-principles-reference.md
 
-**Purpose:** Methodology reference for the **First Principles** review of every numbered item in `requirements/requirements.md > §4 User goals & stories`, `§6 Requirements`, and `§7 Data entities`. The reviewer follows this document literally and exhaustively.
+**Purpose:** Methodology reference for the **First Principles** review of every numbered item in `generated-docs/requirements/requirements.md > §4 User goals & stories`, `§6 Requirements`, and `§7 Data entities`. The reviewer follows this document literally and exhaustively.
 
 **Used by:**
 
 - `framework/agents/reviews/first-principles-reviewer.md` — drives the agent's enumeration, per-subject Q1–Q6 evaluation, Q7 coverage pass, filter, ranking, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` — a self-contained HTML document that (a) rates every subject in §4.1, §4.2, §6, and §7 against six per-subject defensibility questions, (b) surfaces the ten least defensible subjects in a deep-dive callout, (c) walks the doc once more to find orphan goals / personas / stories / requirements / entities (Q7), and (d) records every gate result + score histogram + filter drops in a diagnostics block. The cross-subject coherence findings (CS1–CS5) render as an HTML table.
+**Output produced by the reviewer:** `generated-docs/review-requirements/FIRST-PRINCIPLES/first-principles-review.html` — a self-contained HTML document that (a) rates every subject in §4.1, §4.2, §6, and §7 against six per-subject defensibility questions, (b) surfaces the ten least defensible subjects in a deep-dive callout, (c) walks the doc once more to find orphan goals / personas / stories / requirements / entities (Q7), and (d) records every gate result + score histogram + filter drops in a diagnostics block. The cross-subject coherence findings (CS1–CS5) render as an HTML table.
 
 The scaffold for the artefact is `framework/assets/reviews/template-first-principles.html`.
 
@@ -58,7 +58,7 @@ A requirements document can be adversarially clean (every sentence is unambiguou
 The 7-question backbone and the defensibility-grading rubric synthesise:
 
 - **First-principles reasoning (Aristotle, *Posterior Analytics* §I.2; later: Descartes; modern application: Elon Musk, *"reason from first principles, not by analogy"*, multiple interviews).** Canonical prior art for the discipline of decomposing a claim back to its irreducible justification. The reviewer's Q1 (*"Why does this exist?"*) is the entry point of that decomposition; Q6 (*"What happens if we remove it?"*) is its dual — if removal has no observable consequence, the first-principles chain is empty.
-- **Toyota Production System — Five Whys** (Sakichi Toyoda, 1930s; codified by Taiichi Ohno). The framework's existing `analyse-requirements/FIVE-WHYS/` lens uses this technique to interrogate goal chains in §4.1; this review uses the same chain-walking discipline but applied to every numbered item in §4–§7 and graded on whether the chain *reaches* a stated business reality, not on the chain's depth. Five Whys asks *"why?"* recursively; First Principles asks *"is the chain present, and does it terminate at a stated business reality?"*.
+- **Toyota Production System — Five Whys** (Sakichi Toyoda, 1930s; codified by Taiichi Ohno). The framework's existing `generated-docs/analyse-requirements/FIVE-WHYS/` lens uses this technique to interrogate goal chains in §4.1; this review uses the same chain-walking discipline but applied to every numbered item in §4–§7 and graded on whether the chain *reaches* a stated business reality, not on the chain's depth. Five Whys asks *"why?"* recursively; First Principles asks *"is the chain present, and does it terminate at a stated business reality?"*.
 - **Karl Wiegers — *Software Requirements*** (Microsoft Press, 3rd ed. 2013). The requirements-quality dimensions (*correctness, completeness, traceability, feasibility, modifiability, prioritisation*) underpin Q3 (problem solved) and Q4 (operational outcome). A requirement that cannot be traced upstream to a stated user or business need is, in Wiegers's terms, *untraceable* — which here is a Q1 / Q2 failure.
 - **INVEST — Bill Wake, 2003** (the *Valuable* attribute in particular). A user story is *Valuable* iff its `so that …` clause names an outcome that someone in the business actually wants. Q2 (which goal it supports) and Q4 (which operational outcome it improves) are direct applications of *Valuable* expanded from stories to all artefacts.
 - **BABOK® Guide v3** (IIBA, 2015). *Requirements Analysis and Design Definition* validates upstream-justification auditing as a core BA competency distinct from elicitation. The stance is gap-aware but evidence-based: a subject is defensible or not by its observable trace through the document, not by the reviewer's preference for what should be there.
@@ -100,7 +100,7 @@ The reviewer also notes `subject_type ∈ {goal, story, requirement, entity}` on
 
 ### Q1 — Why does this exist?
 
-**Probe:** is there a traceable reason in `requirements/requirements.md` for this subject's presence?
+**Probe:** is there a traceable reason in `generated-docs/requirements/requirements.md` for this subject's presence?
 
 **Per-subject-type application:**
 
@@ -336,7 +336,7 @@ consequence:          one sentence — the stated outcome the doc as written can
 
 **Bounds (gate-enforced):**
 
-- Each quote ≤3 lines and a verbatim substring of `requirements/requirements.md` (validated against the Step-2 quote index — same discipline as Q1–Q6 evidence).
+- Each quote ≤3 lines and a verbatim substring of `generated-docs/requirements/requirements.md` (validated against the Step-2 quote index — same discipline as Q1–Q6 evidence).
 - ≤5 quotes per finding (the cross-subject pair-or-set need not be exhaustive — cite the smallest set that shows the relation).
 - `relation` and `consequence` are reviewer prose: each non-empty ≥1 sentence; combined ≤2 sentences.
 - `consequence` must use **observational verbs** (`leaves`, `cannot`, `does not constrain`, `assumes`, `implies`, `precludes`, `omits`). It must **NOT** use **prescriptive verbs** (`add`, `include`, `specify`, `define`, `require`, `mandate`, `must`, `should`). Lexically gate-enforced at gate 13. The methodology never authors replacement subjects; it observes what the doc as written cannot deliver.
@@ -378,7 +378,7 @@ Every rescue is recorded in diagnostics: `{lens, anchors, rescue_source: GR-NN |
 
 For each subject, Q1–Q6 yield one of:
 
-- `yes-with-evidence` — the answer is anchored by a verbatim quote (≤5 lines) from `requirements/requirements.md`. Quote captured.
+- `yes-with-evidence` — the answer is anchored by a verbatim quote (≤5 lines) from `generated-docs/requirements/requirements.md`. Quote captured.
 - `partial` — the chain exists but lands somewhere weak (e.g., on another subject whose own Q1/Q2 returns `no`), or the evidence is inferable from adjacent context but not verbatim-quotable. Reasoning line captured (1–2 sentences).
 - `no` — not answerable from the doc. Reasoning line captured (1 sentence stating what is missing).
 
@@ -455,7 +455,7 @@ Fourteen hard gates. Every gate is a `pass | fail` decision; gate 8 has a `warn`
 
 1. **Every §4.1, §4.2, §6, §7 numbered item was rated.** `evaluated_count == enumerated_count`.
 2. **Every rating has all six Q1–Q6 answers populated.** No subject is missing an answer field.
-3. **Every `yes-with-evidence` answer carries a verbatim evidence quote** that exists as a substring of `requirements/requirements.md` (validate against the Step-2 quote index).
+3. **Every `yes-with-evidence` answer carries a verbatim evidence quote** that exists as a substring of `generated-docs/requirements/requirements.md` (validate against the Step-2 quote index).
 4. **Every `partial` and `no` answer carries a reasoning line** ≥1 sentence, non-empty. Stub reasoning (*"unclear"*, *"vague"*) fails.
 5. **Every score ∈ integer {0, 1, 2, 3, 4, 5, 6}**.
 6. **Every weakest-question marker ∈ {Q1, Q2, Q3, Q4, Q5, Q6}**.
@@ -464,7 +464,7 @@ Fourteen hard gates. Every gate is a `pass | fail` decision; gate 8 has a `warn`
 9. **Every orphan finding has severity `blocking`** and cites both the orphan's anchor and the expected-counterpart's absence.
 10. **Verdict line is consistent with the score distribution, orphan counts, AND blocking CS findings** per the verdict-mapping table above. (Three-axis truth table: the reviewer should not display `ACCEPTED-WITH-CONCERNS` when the Top-10 minimum is `2/6`, OR when an orphan-goal exists, OR when a blocking CS finding exists.)
 11. **`REQUIREMENTS_SHA256` field equals the Step-2 SHA-256** captured at read time.
-12. **Every CS finding's `anchors` list resolves** — every anchor exists in the Step-2 anchor index. Cross-subject findings cannot cite imaginary subjects. Every `evidence_per_anchor.quote` is a verbatim substring of `requirements/requirements.md` (validated against the Step-2 quote index, same discipline as gate 3).
+12. **Every CS finding's `anchors` list resolves** — every anchor exists in the Step-2 anchor index. Cross-subject findings cannot cite imaginary subjects. Every `evidence_per_anchor.quote` is a verbatim substring of `generated-docs/requirements/requirements.md` (validated against the Step-2 quote index, same discipline as gate 3).
 13. **Every CS finding's `consequence` line uses observational verbs only.** Prescriptive verbs (`add`, `include`, `specify`, `define`, `require`, `mandate`, `must`, `should`) fail. The methodology never authors replacement subjects — this gate enforces the anti-author invariant lexically.
 14. **Every CS lens was evaluated.** CS1, CS2, CS3, CS4, CS5 each ran and produced a result (0..N findings; zero findings + an explicit "no findings" diagnostic is acceptable). A silently-skipped lens fails. Each lens's filter rescue (CS2, CS4, CS5 against GR-NN/PI-NN) is recorded in diagnostics.
 
@@ -486,7 +486,7 @@ Fourteen hard gates. Every gate is a `pass | fail` decision; gate 8 has a `warn`
 - **Do not skip the coverage pass.** Q7 is structurally different; folding it into Q1–Q6 produces the wrong shape (one Q7 answer repeated per subject) and misses orphans.
 - **Do not collapse the Top-10 deep-dive into the ratings table.** The Top-10 carries every Q1–Q6 quote / reasoning line; the ratings table carries only score + weakest-question + recommended-action. Two views, same evidence chain.
 - **Do not write `[SRC: …]` or `[AI-SUGGESTED: AI-NN]` markers in the artefact.** Per `feedback_no_inline_provenance`, the review artefact is clean of inline source markers. Q1–Q6 quotes carry their own block-quote formatting; provenance is the anchor (`§4.1 / G-04`, `§6 / FR-12`), not a marker.
-- **Do not read draft sidecars.** The stand-alone-ish constraint is the agent's most load-bearing invariant. If a subject's "why" lives only in `requirements/requirements-draft.md` or `requirements/draft-claims.ndjson`, *that is the finding* — Q1 returns `no` and the consultant lifts the rationale into the merged doc on the next `/requirements` pass.
+- **Do not read draft sidecars.** The stand-alone-ish constraint is the agent's most load-bearing invariant. If a subject's "why" lives only in `generated-docs/requirements/requirements-draft.md` or `generated-docs/requirements/draft-claims.ndjson`, *that is the finding* — Q1 returns `no` and the consultant lifts the rationale into the merged doc on the next `/requirements` pass.
 - **Do not double-rate a subject.** A §4.2 story is rated against Q1–Q6 once, as a story. The §6 requirements it produces are rated separately, on their own merits. The Q7 coverage pass connects them.
 - **Do not silently pass a subject whose chain is incomplete.** First-principles rigour forbids it. If Q1 returns `no`, the score is `0/6` regardless of how Q2–Q6 read (because Q2–Q6 chains land on a Q1-missing node anyway — the per-subject scoring rubric is binary per question, but consultants reading the deep-dive should see *why* a `1/6` or `2/6` happened even when later questions appear individually answerable).
 - **Do not author replacement subjects.** Recommended actions are concise hints (one of `re-anchor | re-scope | remove | merge | clarify` + a sentence). Re-anchoring is not the reviewer's job; surfacing the missing anchor is.

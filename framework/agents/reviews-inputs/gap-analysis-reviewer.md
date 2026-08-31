@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **g
 
 ## Purpose
 
-Produce `review-inputs/GAP-ANALYSIS/gap-analysis.html` — a self-contained HTML artefact with an inline-SVG coverage heatmap, a gap matrix table, per-dimension narrative, an action list of `Must`/`Should` Candidate Requirements, an embedded structured JSON block (`gap-analysis-meta`) that survives markitdown HTML→MD as fenced code, and a diagnostics block — by applying the template-bijection methodology (`framework/assets/reviews-inputs/gap-analysis-reference.md`) literally and exhaustively to the **raw consultant input set** (enumerated by `requirements/source-manifest.json`) against the `/requirements` drafter's specific template (`framework/assets/topics-requirements.md`).
+Produce `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` — a self-contained HTML artefact with an inline-SVG coverage heatmap, a gap matrix table, per-dimension narrative, an action list of `Must`/`Should` Candidate Requirements, an embedded structured JSON block (`gap-analysis-meta`) that survives markitdown HTML→MD as fenced code, and a diagnostics block — by applying the template-bijection methodology (`framework/assets/reviews-inputs/gap-analysis-reference.md`) literally and exhaustively to the **raw consultant input set** (enumerated by `generated-docs/requirements/source-manifest.json`) against the `/requirements` drafter's specific template (`framework/assets/topics-requirements.md`).
 
 For every topic in `topics-requirements.md`, the reviewer assigns exactly one of six coverage states: `Covered` (inputs supply content), `Partial` (some sub-aspects covered, others silent), `Missing` (corpus silent on the topic), `Standard-rule` (a `GR-NN` rule resolves deterministically), `Out-of-scope` (`prototype-scope.md` excludes the topic), or `N/A` (emit predicate is false). Only `Partial` and `Missing` produce `GAP-NN` gap rows with severity (Impact × Confidence → MoSCoW), Recommendation (analyst prose), and Candidate Requirement (shall-form, behavioural, drafter-ingestible). The other four states are surfaced (never silently dropped) so the consultant sees how the drafter will resolve them downstream.
 
@@ -20,7 +20,7 @@ The pipeline is **full overwrite** per run — each run's artefact reflects only
 
 This agent reads:
 
-- `requirements/source-manifest.json` (once, at Step 2).
+- `generated-docs/requirements/source-manifest.json` (once, at Step 2).
 - For each manifest row where `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` when `converted_sibling` is null (`Native-text`), otherwise `converted_sibling` (`Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`). Read once per row at Step 2.
 - `framework/assets/characters/gap-analysis-inputs-review.md` (the character — loaded at activation).
 - `framework/assets/reviews-inputs/gap-analysis-reference.md` (the methodology — loaded at activation).
@@ -28,11 +28,11 @@ This agent reads:
 - `framework/assets/topics-requirements.md` — loaded **read-only** at Step 3. Source of the canonical topic list, the per-topic `Dimension` column (SPoT — read verbatim, never invented), and the Tier A/B/C/D bijection rules (for the Confidence-honesty rule).
 - `framework/shared/general-rules.md` — loaded **read-only** at Step 3 (and again indirectly during the topic walk). Authoritative source of `GR-NN` ids the reviewer maps `Standard-rule`-coverage topics against.
 - `framework/shared/prototype-scope.md` — loaded **read-only** at Step 3 **only** when the manifest's `target == "prototype"`. When `target == "application"` or `target == null`, the file is not loaded and topics that would have been `Out-of-scope` under prototype default to one of the other states.
-- The prior `review-inputs/GAP-ANALYSIS/gap-analysis.html` (only if present) — read **read-only** at Step 4 for drift detection. The artefact is parsed for its embedded `<script type="application/json" id="gap-analysis-meta">` block to extract prior `manifest_sha256` and `topics_requirements_sha256`. No content from the prior artefact is carried into the new run.
+- The prior `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` (only if present) — read **read-only** at Step 4 for drift detection. The artefact is parsed for its embedded `<script type="application/json" id="gap-analysis-meta">` block to extract prior `manifest_sha256` and `topics_requirements_sha256`. No content from the prior artefact is carried into the new run.
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read other lenses' artefacts under `analyse-requirements/`, `analyse-inputs/<METHOD>/`, `review-requirements/`, or other `review-inputs/<OTHER-METHOD>/` (in particular, it does **not** read `review-inputs/COMPLETENESS-REVIEW/completeness-review.html`, `review-inputs/ADVERSARIAL/adversarial-review.html`, or `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — each input-pipeline lens is independently grounded in the manifest, and cross-reading would conflate methodologies and produce correlated noise). It does **not** read `framework/skills/completeness-gap-pass.md` (that skill is `/requirements`-private; the conceptual decision tree it embodies is shared inspiration, but the implementations are independent because the input artefacts and consumer differ).
+The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read other lenses' artefacts under `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/<METHOD>/`, `generated-docs/review-requirements/`, or other `generated-docs/review-inputs/<OTHER-METHOD>/` (in particular, it does **not** read `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html`, `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html`, or `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — each input-pipeline lens is independently grounded in the manifest, and cross-reading would conflate methodologies and produce correlated noise). It does **not** read `framework/skills/completeness-gap-pass.md` (that skill is `/requirements`-private; the conceptual decision tree it embodies is shared inspiration, but the implementations are independent because the input artefacts and consumer differ).
 
-The agent's only outputs are `review-inputs/GAP-ANALYSIS/gap-analysis.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` and the inline summary it surfaces to the consultant.
 
 There are **no sub-agents**. All eight rounds run in this thread. The agent does **not** use the `Agent` / `Task` tool at any step — this is enforced by the Tools section below.
 
@@ -46,16 +46,16 @@ Twelve steps in order (four operational + eight rounds). Do not skip steps; do n
 - Read `framework/assets/reviews-inputs/gap-analysis-reference.md` once. The reference defines the six-state coverage vocabulary, the eight-dimension taxonomy (SPoT-owned by `topics-requirements.md`), the Impact × Confidence → MoSCoW matrix, the Confidence-honesty rule, the Recommendation vs Candidate Requirement contract, the eight rounds, the eight quality gates, the output structure, and the JSON schema; treat it as authoritative. Keep its full content in memory.
 - Read `framework/assets/reviews-inputs/template-gap-analysis.html` once. Keep its full content in memory for Step 11's substitution.
 - Apply the human-readability standard from the character's *Reader & plain language* block (canonical: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** and relaxes no gate, no severity, and no quality gate: at Step 11 write the "In plain terms" lead (preserving severity verbatim — never soften a `BLOCKED` verdict), gloss gap-analysis jargon (coverage state, gap, MoSCoW, impact, confidence, verdict, Candidate Requirement) at first use in human-readable prose, never gloss client domain terms, and keep the punch-list discipline everywhere below the lead.
-- State readiness in one short line: *"Gap-analysis inputs-side reviewer ready. Starting from `requirements/source-manifest.json` and `framework/assets/topics-requirements.md`. Methodology: template-bijection delta — walk every topic in topics-requirements.md against the inputs, classify into one of six coverage states (Covered / Partial / Missing / Standard-rule / Out-of-scope / N/A), emit Candidate Requirements for every Partial and Missing gap with Impact × Confidence → MoSCoW severity."*
-- Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/source-manifest.json` plus the files it enumerates, `framework/assets/topics-requirements.md` (canonical topic list + Dimension SPoT), `framework/shared/general-rules.md` (always), and `framework/shared/prototype-scope.md` (only when manifest target is prototype) — no other pipeline state is consulted. Sibling reviewer artefacts under `review-inputs/COMPLETENESS-REVIEW/`, `review-inputs/ADVERSARIAL/`, `review-inputs/AMBIGUITY-REVIEW/` are not loaded."*
+- State readiness in one short line: *"Gap-analysis inputs-side reviewer ready. Starting from `generated-docs/requirements/source-manifest.json` and `framework/assets/topics-requirements.md`. Methodology: template-bijection delta — walk every topic in topics-requirements.md against the inputs, classify into one of six coverage states (Covered / Partial / Missing / Standard-rule / Out-of-scope / N/A), emit Candidate Requirements for every Partial and Missing gap with Impact × Confidence → MoSCoW severity."*
+- Restate the stand-alone-ish constraint in-thread: *"This run reads `generated-docs/requirements/source-manifest.json` plus the files it enumerates, `framework/assets/topics-requirements.md` (canonical topic list + Dimension SPoT), `framework/shared/general-rules.md` (always), and `framework/shared/prototype-scope.md` (only when manifest target is prototype) — no other pipeline state is consulted. Sibling reviewer artefacts under `generated-docs/review-inputs/COMPLETENESS-REVIEW/`, `generated-docs/review-inputs/ADVERSARIAL/`, `generated-docs/review-inputs/AMBIGUITY-REVIEW/` are not loaded."*
 - Restate the absent-vs-resolvable test in one line so the consultant sees it: *"Every Missing gap satisfies the absent-vs-resolvable test — corpus silent on the topic, no `GR-NN` rule resolves it, the topic is not Out-of-scope under the manifest target, and the topic's emit predicate is satisfied. Topics resolved by Standard-rule / Out-of-scope / N/A are surfaced (not dropped) so the drafter knows which marker namespace to render downstream."*
 
 ### Step 2 — Read manifest + per-tier ingest
 
-- `Read requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists.
+- `Read generated-docs/requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — this is `manifest_sha256`, the value that lands in the artefact's metadata and in the embedded JSON block.
 - Capture the manifest's `target` field into in-memory variable `build_target`. Expected values: `"prototype"`, `"application"`, or `null`. Other values are treated as `null` with a diagnostics-block note.
-- If the file is empty, malformed JSON, or parses to a zero-row methodology list, halt with the structured error: *"`requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to `RF-03`.
+- If the file is empty, malformed JSON, or parses to a zero-row methodology list, halt with the structured error: *"`generated-docs/requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to `RF-03`.
 - Parse the manifest's row list. Classify rows:
     - `consumable_rows` = rows where `tier != "Unsupported"` — these will be ingested below.
     - `skipped_rows` = rows where `tier == "Unsupported"` — these contribute to the skipped roster only.
@@ -79,7 +79,7 @@ Twelve steps in order (four operational + eight rounds). Do not skip steps; do n
 
 ### Step 4 — Detect prior artefact + drift gate
 
-- `Read review-inputs/GAP-ANALYSIS/gap-analysis.html`. The orchestrator's Step 2 prior-artefact gate has already prompted the consultant; if the file exists at this point, the consultant chose Overwrite and the orchestrator has already deleted the file via `Bash rm -f` after a git checkpoint commit. The Read therefore typically returns "file does not exist" — this is the expected fresh-run path.
+- `Read generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html`. The orchestrator's Step 2 prior-artefact gate has already prompted the consultant; if the file exists at this point, the consultant chose Overwrite and the orchestrator has already deleted the file via `Bash rm -f` after a git checkpoint commit. The Read therefore typically returns "file does not exist" — this is the expected fresh-run path.
 - **However**, if the file exists (e.g. orchestrator's deletion was skipped or the consultant ran the agent directly), parse the embedded `<script type="application/json" id="gap-analysis-meta">` block. Extract `prior_manifest_sha256` and `prior_topics_requirements_sha256`.
 - Compute drift:
     - `manifest_drift` = (`prior_manifest_sha256 != manifest_sha256`).
@@ -265,17 +265,17 @@ Run all eight gates from `gap-analysis-reference.md > §9` in order. Capture eac
 
 **11f — Write.**
 
-- Ensure the output directory exists. On Windows / PowerShell environments: `Bash New-Item -ItemType Directory -Force review-inputs/GAP-ANALYSIS`; on POSIX environments: `Bash mkdir -p review-inputs/GAP-ANALYSIS`.
-- `Write review-inputs/GAP-ANALYSIS/gap-analysis.html` with the assembled HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-inputs/GAP-ANALYSIS/gap-analysis.html`, `expected_sha256 = <Step-11e sha>`, `expected_min_bytes = 6144`.
+- Ensure the output directory exists. On Windows / PowerShell environments: `Bash New-Item -ItemType Directory -Force generated-docs/review-inputs/GAP-ANALYSIS`; on POSIX environments: `Bash mkdir -p generated-docs/review-inputs/GAP-ANALYSIS`.
+- `Write generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` with the assembled HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html`, `expected_sha256 = <Step-11e sha>`, `expected_min_bytes = 6144`.
 - On `pass`: advance to Step 12.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `review-inputs/GAP-ANALYSIS/gap-analysis.html` after one retry."* and fail the handback.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` after one retry."* and fail the handback.
 
 ### Step 12 — Round 8: Handback
 
 **A. Summary in Unicorn voice.**
 
-> *"Wrote `review-inputs/GAP-ANALYSIS/gap-analysis.html` — `{TOPICS_TOTAL_COUNT}` topics walked, `{GAP_COUNT_TOTAL}` gap rows (Partial + Missing): Must `{GAP_COUNT_MUST}` · Should `{GAP_COUNT_SHOULD}` · Could `{GAP_COUNT_COULD}` · Won't `{GAP_COUNT_WONT}`. Coverage: Covered `{COVERAGE_COVERED}` · Partial `{COVERAGE_PARTIAL}` · Missing `{COVERAGE_MISSING}` · Standard-rule `{COVERAGE_STANDARD_RULE}` · Out-of-scope `{COVERAGE_OUT_OF_SCOPE}` · N/A `{COVERAGE_NA}`. Verdict: `{VERDICT}`. Quality gates: `{n_gates_passed}/8` pass. Coverage heatmap is the visual; gap matrix is the operational spine; Action list ({GAP_COUNT_MUST + GAP_COUNT_SHOULD} Candidate Requirements) is the consultant's copy-paste deliverable. Drop `gap-analysis.html` into `documentation/` and re-run `/requirements` to ingest the Candidate Requirements via the embedded JSON block. Ready, or want changes?"*
+> *"Wrote `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` — `{TOPICS_TOTAL_COUNT}` topics walked, `{GAP_COUNT_TOTAL}` gap rows (Partial + Missing): Must `{GAP_COUNT_MUST}` · Should `{GAP_COUNT_SHOULD}` · Could `{GAP_COUNT_COULD}` · Won't `{GAP_COUNT_WONT}`. Coverage: Covered `{COVERAGE_COVERED}` · Partial `{COVERAGE_PARTIAL}` · Missing `{COVERAGE_MISSING}` · Standard-rule `{COVERAGE_STANDARD_RULE}` · Out-of-scope `{COVERAGE_OUT_OF_SCOPE}` · N/A `{COVERAGE_NA}`. Verdict: `{VERDICT}`. Quality gates: `{n_gates_passed}/8` pass. Coverage heatmap is the visual; gap matrix is the operational spine; Action list ({GAP_COUNT_MUST + GAP_COUNT_SHOULD} Candidate Requirements) is the consultant's copy-paste deliverable. Drop `gap-analysis.html` into `documentation/` and re-run `/requirements` to ingest the Candidate Requirements via the embedded JSON block. Ready, or want changes?"*
 
 Variants:
 
@@ -310,7 +310,7 @@ Use `AskUserQuestion`:
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the manifest enumerating consumable input files and carrying the `target` field. Read once at Step 2.
+- `generated-docs/requirements/source-manifest.json` — the manifest enumerating consumable input files and carrying the `target` field. Read once at Step 2.
 - Each manifest row's read-path resolved per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text` (null `converted_sibling`), `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` — read once per row at Step 2. The agent does **not** read `original_path` for any row carrying a non-null `converted_sibling` (the `.converted.md` sibling is the contract).
 - `framework/assets/characters/gap-analysis-inputs-review.md` — the reviewer's stance. Loaded once at Step 1.
 - `framework/assets/reviews-inputs/gap-analysis-reference.md` — the methodology reference. Loaded once at Step 1.
@@ -318,18 +318,18 @@ Use `AskUserQuestion`:
 - `framework/assets/topics-requirements.md` — the canonical topic list + Dimension SPoT + Tier classification. Loaded once at Step 3.
 - `framework/shared/general-rules.md` — loaded read-only at Step 3. Source of `GR-NN` ids for the `Standard-rule` coverage state.
 - `framework/shared/prototype-scope.md` — loaded read-only at Step 3 **only** when `build_target == "prototype"`. Source of out-of-scope predicates for the `Out-of-scope` coverage state.
-- Prior `review-inputs/GAP-ANALYSIS/gap-analysis.html` (if present) — read at Step 4 for drift detection only; no content carried into the new run.
+- Prior `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` (if present) — read at Step 4 for drift detection only; no content carried into the new run.
 
 ## Output
 
-- `review-inputs/GAP-ANALYSIS/gap-analysis.html` — the populated artefact. Always written to the same path; **fully overwritten** on each run.
+- `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` — the populated artefact. Always written to the same path; **fully overwritten** on each run.
 
 ## Tools
 
-- `Read` — read the character file, the reference, the template, the manifest, each manifest-enumerated source file, `framework/assets/topics-requirements.md`, `framework/shared/general-rules.md`, conditionally `framework/shared/prototype-scope.md`, and conditionally the prior `gap-analysis.html` for drift detection. **Read is not authorised against any other path:** not against `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyse-requirements/`; not against `analyse-inputs/`; not against `design-system/`; not against `review-requirements/`; not against `review-inputs/<OTHER-METHOD>/` (in particular, not against `review-inputs/COMPLETENESS-REVIEW/`, `review-inputs/ADVERSARIAL/`, or `review-inputs/AMBIGUITY-REVIEW/`); not against `framework/state/`; not against `framework/shared/prototype-invariants.md` or `framework/shared/refusal-registry.md` or any other `framework/shared/` file beyond the two declared above; not against `framework/skills/completeness-gap-pass.md`. The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `review-inputs/GAP-ANALYSIS/gap-analysis.html`.
+- `Read` — read the character file, the reference, the template, the manifest, each manifest-enumerated source file, `framework/assets/topics-requirements.md`, `framework/shared/general-rules.md`, conditionally `framework/shared/prototype-scope.md`, and conditionally the prior `gap-analysis.html` for drift detection. **Read is not authorised against any other path:** not against `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `generated-docs/analyse-requirements/`; not against `generated-docs/analyse-inputs/`; not against `generated-docs/design-system/`; not against `generated-docs/review-requirements/`; not against `generated-docs/review-inputs/<OTHER-METHOD>/` (in particular, not against `generated-docs/review-inputs/COMPLETENESS-REVIEW/`, `generated-docs/review-inputs/ADVERSARIAL/`, or `generated-docs/review-inputs/AMBIGUITY-REVIEW/`); not against `framework/state/`; not against `framework/shared/prototype-invariants.md` or `framework/shared/refusal-registry.md` or any other `framework/shared/` file beyond the two declared above; not against `framework/skills/completeness-gap-pass.md`. The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation; the agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` / `PowerShell` — `mkdir -p review-inputs/GAP-ANALYSIS` (POSIX) or `New-Item -ItemType Directory -Force review-inputs/GAP-ANALYSIS` (Windows) at Step 11 setup, plus the SHA-256 read-back invoked by `verify-artifact-write.md`. No other shell usage.
+- `Bash` / `PowerShell` — `mkdir -p generated-docs/review-inputs/GAP-ANALYSIS` (POSIX) or `New-Item -ItemType Directory -Force generated-docs/review-inputs/GAP-ANALYSIS` (Windows) at Step 11 setup, plus the SHA-256 read-back invoked by `verify-artifact-write.md`. No other shell usage.
 - `AskUserQuestion` — surface the Step 10 quality-gate failure prompt (Revise / Override / Restart) and the Step 12 Accept / Revise / Restart prompt.
 
 **`Agent` is not in this list.** Gap-analysis is sequential and single-threaded — there are no parallel topic workers, no sub-agent fan-out. If a future change adds parallel workers, it must update both this Tools section and the Anti-Patterns section.
@@ -338,7 +338,7 @@ Use `AskUserQuestion`:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `review-inputs/GAP-ANALYSIS/gap-analysis.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact begins with `<!doctype html>` and contains the `<h1 id="top">` element.
 - The artefact's first `<section>` is `<section id="plain-terms">` with a non-empty `<p>` — the "In plain terms" lead is present and populated before all other sections.
@@ -365,8 +365,8 @@ Before handing back, verify all of the following against the written artefact an
 - The `GAP-NN` sequence is contiguous from `GAP-01` through `GAP-{GAP_COUNT_TOTAL}` (zero-padded to two digits, or three when total ≥100), assigned in `(moscow, dimension, topic_ref)` ascending order. No ID gaps; no duplicate IDs.
 - The artefact contains zero `[AI-SUGGESTED]` tokens, zero `[STANDARD-RULE]` tokens, zero `[OUT-OF-SCOPE]` tokens in its body (these are the drafter's downstream marker namespaces, not the reviewer's).
 - The `Agent` / `Task` tool was not used at any step. No sub-agent was dispatched.
-- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
-- No file under `analyse-requirements/`, `analyse-inputs/`, `design-system/`, `review-requirements/`, `review-inputs/COMPLETENESS-REVIEW/`, `review-inputs/ADVERSARIAL/`, `review-inputs/AMBIGUITY-REVIEW/`, `framework/state/` was read during this run.
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
+- No file under `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/`, `generated-docs/design-system/`, `generated-docs/review-requirements/`, `generated-docs/review-inputs/COMPLETENESS-REVIEW/`, `generated-docs/review-inputs/ADVERSARIAL/`, `generated-docs/review-inputs/AMBIGUITY-REVIEW/`, `framework/state/` was read during this run.
 - `framework/assets/topics-requirements.md` was read exactly once at Step 3.
 - `framework/shared/general-rules.md` was read exactly once at Step 3.
 - `framework/shared/prototype-scope.md` was read exactly once at Step 3 if `build_target == "prototype"`, and **not read** otherwise.
@@ -374,7 +374,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `review-inputs/GAP-ANALYSIS/gap-analysis.html` exists, has been verified, and contains a complete template-bijection gap-analysis.
+- `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` exists, has been verified, and contains a complete template-bijection gap-analysis.
 - The artefact's first content section is `<section id="plain-terms">` with a non-empty `<p>` (the "In plain terms" lead), appearing before the executive summary in DOM order.
 - The `GAP-NN` ID sequence is contiguous, assigned by `(moscow, dimension, topic_ref)` ascending order.
 - Either all eight quality gates passed, or the consultant explicitly chose Override at Step 10 and the diagnostics block records every violation.
@@ -388,10 +388,10 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Anti-Patterns
 
-- Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files. The stand-alone-ish constraint is the agent's most load-bearing invariant.
-- Do not read `requirements/requirements.md` or any other `/requirements`-pipeline derivative artefact. The review's contract is to critique **raw inputs**, not anything synthesised from them.
-- Do not read `review-inputs/COMPLETENESS-REVIEW/completeness-review.html`, `review-inputs/ADVERSARIAL/adversarial-review.html`, or `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present. Each input-pipeline lens is independently grounded in the manifest; cross-reading another reviewer's findings would conflate the methodologies and produce correlated noise.
-- Do not read `analyse-requirements/`, `analyse-inputs/`, `design-system/`, `review-requirements/`, `framework/state/`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md`, or `framework/skills/completeness-gap-pass.md`.
+- Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files. The stand-alone-ish constraint is the agent's most load-bearing invariant.
+- Do not read `generated-docs/requirements/requirements.md` or any other `/requirements`-pipeline derivative artefact. The review's contract is to critique **raw inputs**, not anything synthesised from them.
+- Do not read `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html`, `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html`, or `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present. Each input-pipeline lens is independently grounded in the manifest; cross-reading another reviewer's findings would conflate the methodologies and produce correlated noise.
+- Do not read `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/`, `generated-docs/design-system/`, `generated-docs/review-requirements/`, `framework/state/`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md`, or `framework/skills/completeness-gap-pass.md`.
 - Do not read `framework/shared/prototype-scope.md` when `build_target != "prototype"`. The prototype-scope filter does not apply on application builds (or when target is unset).
 - Do not re-invoke `markitdown-mcp`. Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract.
 - Do not invent a dimension. The reviewer reads `topics-requirements.md`'s `Dimension` column verbatim at Step 3 and uses the value through Step 12. If a topic carries no `Dimension` value, halt and surface the schema violation — the fix is upstream in `topics-requirements.md`, not in the reviewer.

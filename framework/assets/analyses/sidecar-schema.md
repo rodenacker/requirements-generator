@@ -21,7 +21,7 @@ Every sidecar conforms to this top-level shape regardless of methodology:
 {
   "schema_version": "1",
   "method": "<registry slug, e.g. data-model>",
-  "source_path": "analyse-requirements/<METHOD>/<artefact>.{html,md}",
+  "source_path": "generated-docs/analyse-requirements/<METHOD>/<artefact>.{html,md}",
   "source_sha256": "<sha256 of the prose artefact at write time>",
   "generated_at": "<ISO-8601 UTC timestamp>",
   "architect_projection": {
@@ -46,7 +46,7 @@ Every sidecar conforms to this top-level shape regardless of methodology:
 
 **Drift detection.** The architect's step-02 reads `source_path` from disk after reading the sidecar, computes its sha256, and compares against `source_sha256`. Mismatch fires `RF-08 stale_analysis_sidecar` and the architect halts cleanly (the consultant re-runs the analyser to regenerate the sidecar).
 
-**Naming convention.** The sidecar lives next to its prose artefact: `analyse-requirements/<METHOD>/<METHOD-lowercase>.sidecar.json`. Example: `analyse-requirements/DATA-MODEL/data-model.sidecar.json`. The convention is fixed; `registry.md` does not need a per-row `sidecar_path` field as long as the convention holds.
+**Naming convention.** The sidecar lives next to its prose artefact: `generated-docs/analyse-requirements/<METHOD>/<METHOD-lowercase>.sidecar.json`. Example: `generated-docs/analyse-requirements/DATA-MODEL/data-model.sidecar.json`. The convention is fixed; `registry.md` does not need a per-row `sidecar_path` field as long as the convention holds.
 
 ---
 
@@ -225,7 +225,7 @@ Pain-points / jobs / journey-phase emphasis that feeds variant `design_philosoph
 
 ### 2.10 `variant-dimension-applicability`
 
-Per-goal × dimension scoring (replaces the legacy full Read of `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` at step 2.7). Used at step 5.2.
+Per-goal × dimension scoring (replaces the legacy full Read of `generated-docs/analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` at step 2.7). Used at step 5.2.
 
 ```json
 {
@@ -295,7 +295,7 @@ Analysers exposing `upstream-only` may set `architect_projection: { "upstream-on
 
 ### 3.1 Architect read path (step-02 block 2.6)
 
-1. Read `selections[i].sidecar_path` (or derive it from the convention `analyse-requirements/<METHOD>/<method-lowercase>.sidecar.json` when the field is absent).
+1. Read `selections[i].sidecar_path` (or derive it from the convention `generated-docs/analyse-requirements/<METHOD>/<method-lowercase>.sidecar.json` when the field is absent).
 2. JSON-parse the envelope. Verify `schema_version == "1"` and `method == selections[i].name`; mismatch is a structural error (halt plain-text).
 3. Compute sha256 of `source_path` on disk; compare against `source_sha256`. Mismatch fires `RF-08 stale_analysis_sidecar`.
 4. For each role in `selections[i].architect_roles`, read `architect_projection[<role>]` into `cached_projections[<role>][<selections[i].name>]`. Skip the role if absent in `architect_projection` (the method does not expose it — silent skip, no warning).

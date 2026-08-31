@@ -46,7 +46,7 @@ This section is the **canonical owner** of the `[PROTO-ONLY]` marker per `docs/m
 
 ### Why the marker exists
 
-`requirements/requirements.md` is written for a prototype target but must be re-projectable to an application audience by `/export-application`, whose whole value is being a *mechanical* transform. Without a marker, the export has to identify prototype-specific content **by reading prose** — the only consumer in this framework asked to classify content rather than match a token. That heuristic is measurably fragile: the drafter has produced six different wordings of the §6.10 scope-note across six runs. The marker replaces classification-by-reading with deletion-by-structure.
+`generated-docs/requirements/requirements.md` is written for a prototype target but must be re-projectable to an application audience by `/export-application`, whose whole value is being a *mechanical* transform. Without a marker, the export has to identify prototype-specific content **by reading prose** — the only consumer in this framework asked to classify content rather than match a token. That heuristic is measurably fragile: the drafter has produced six different wordings of the §6.10 scope-note across six runs. The marker replaces classification-by-reading with deletion-by-structure.
 
 ### Syntax — a paired span
 

@@ -2,14 +2,14 @@
 
 # analyses-inputs/ooux-reference.md
 
-**Purpose:** Methodology reference for Object-Oriented UX analysis (Sophia Prater's ORCA process) applied to **raw consultant inputs** enumerated via `requirements/source-manifest.json`. The analyser follows this document literally and exhaustively.
+**Purpose:** Methodology reference for Object-Oriented UX analysis (Sophia Prater's ORCA process) applied to **raw consultant inputs** enumerated via `generated-docs/requirements/source-manifest.json`. The analyser follows this document literally and exhaustively.
 
 **Used by:**
 
 - `framework/agents/analyses-inputs/ooux-analyser.md` — drives the agent's six-round process plus the eight-check quality sweep.
 - `framework/skills/map-ooux-from-inputs-to-ui.md` — uses the object-map structure (specifically the embedded JSON body block) to derive UI inventory entries (downstream consumer; stub).
 
-**Output produced by the analyser:** `analyse-inputs/OOUX/ooux-object-map.html` — self-contained HTML object-map artefact carrying:
+**Output produced by the analyser:** `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` — self-contained HTML object-map artefact carrying:
 - A colour-key legend bar directly under the TOC, above the column-board.
 - The canonical OOUX sticky-note column-board (one column per object), under an `<h2>` heading — the object map, the rendered "MUST contain a diagram" deliverable.
 - A relationship matrix (tabular fallback).
@@ -24,7 +24,7 @@
 
 ## Upstream input contract
 
-OOUX on the inputs side is **an extraction lens onto raw consultant material**, not a refinement of an already-synthesised domain model. The analyser starts from `requirements/source-manifest.json` and reads every row whose `tier != "Unsupported"`:
+OOUX on the inputs side is **an extraction lens onto raw consultant material**, not a refinement of an already-synthesised domain model. The analyser starts from `generated-docs/requirements/source-manifest.json` and reads every row whose `tier != "Unsupported"`:
 
 - `Native-text` → read `row.original_path` as text.
 - `Native-multimodal` / `Vector-renderable` → read `row.converted_sibling` — a frozen textual description of the visual prepared by the input-handler; it already enumerates the object labels, ERD entity names, attributes, and relationships (and screen artefact names that imply backing objects). Treat it as the canonical text source; do **not** re-interpret pixels.
@@ -35,7 +35,7 @@ Per the Read-path resolution rule in `framework/skills/build-source-manifest.md`
 
 There is no §2.1 anchor to fall back to. Object names are chosen from raw inputs through Round 1 (Discovery) and Round 2 (Objects + synonym merge). Every chosen name is verbatim from one or more sources; no name is normalised or invented.
 
-If `requirements/source-manifest.json` is absent, the orchestrator's Step 1 input-handler invocation guarantees it is created before the analyser runs. If the manifest enumerates zero consumable rows, the analyser halts with an RF-03 analogue rather than producing an empty map.
+If `generated-docs/requirements/source-manifest.json` is absent, the orchestrator's Step 1 input-handler invocation guarantees it is created before the analyser runs. If the manifest enumerates zero consumable rows, the analyser halts with an RF-03 analogue rather than producing an empty map.
 
 ---
 

@@ -101,7 +101,7 @@
     {{DOMAIN}}                      — domain string (from manifest meta if declared, else
                                       "(not declared in manifest)").
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered.
-    {{MANIFEST_SHA256}}             — sha256 of requirements/source-manifest.json at read time.
+    {{MANIFEST_SHA256}}             — sha256 of generated-docs/requirements/source-manifest.json at read time.
     {{RUN_COUNT}}                   — integer >= 1, increments per run.
     {{OUTCOME_CLASS}}               — "business-outcome" | "product-outcome" | "traction-metric".
     {{CANDIDATE_OUTCOME_COUNT}}     — non-primary outcome candidates preserved.
@@ -142,7 +142,7 @@
     {{DIAGNOSTICS_BLOCK}}           — pre-rendered <section class="diagnostics"> (source
                                       roster, manifest fingerprint, gate results, run history).
 
-  Output: analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html.
+  Output: generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html.
 
   TREE SVG SCHEMA — the analyser emits ONE inline <svg class="tree-svg"> inside
   the <section class="tree-wrap">. Nodes and edges live in the SAME viewBox

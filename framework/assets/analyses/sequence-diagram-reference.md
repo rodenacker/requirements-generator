@@ -2,9 +2,9 @@
 
 # Sequence Diagram analysis reference
 
-> **Method:** Extract a **per-scenario sequence-diagram catalogue** (scenarios, participants, messages, combined fragments, cross-scenario participant matrix) from `requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered scenarios to add as inline-SVG `<figure>` blocks. Same data, the visuals are views onto the scenarios already listed in the catalogue.
+> **Method:** Extract a **per-scenario sequence-diagram catalogue** (scenarios, participants, messages, combined fragments, cross-scenario participant matrix) from `generated-docs/requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered scenarios to add as inline-SVG `<figure>` blocks. Same data, the visuals are views onto the scenarios already listed in the catalogue.
 
-**Output file:** `analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html` — a self-contained HTML artefact containing the per-scenario tabular catalogue (always) plus zero or more inline-SVG sequence-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `generated-docs/analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html` — a self-contained HTML artefact containing the per-scenario tabular catalogue (always) plus zero or more inline-SVG sequence-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/sequence-diagram-analyser.md`
 
@@ -84,7 +84,7 @@ Each SVG carries:
 
 ## Source-of-truth hierarchy
 
-The analyser walks `requirements/requirements.md` in this order:
+The analyser walks `generated-docs/requirements/requirements.md` in this order:
 
 1. **`§5 Task flows`** — primary. Each top-level task flow becomes a candidate scenario. Each step in the flow becomes a candidate message. The first noun in each step is a candidate participant.
 2. **`§4 User goals & stories`** — supplementary scenarios. A story without a matching task flow surfaces as an `ai-suggested` scenario (the user clearly wants the goal; no task-flow walks through it).
@@ -289,7 +289,7 @@ Richer inputs → richer catalogue. Methodology degrades gracefully: with thin `
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html`. The analyser populates `framework/assets/analyses/template-sequence-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `generated-docs/analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html`. The analyser populates `framework/assets/analyses/template-sequence-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 
@@ -298,7 +298,7 @@ The artefact is a single self-contained HTML file at `analyse-requirements/SEQUE
 | `{{TITLE}}` | *"Sequence Diagrams — `<domain>`"* if `§1` declares a domain, else *"Sequence Diagrams"*. |
 | `{{DOMAIN}}` | Verbatim from `§1 Application context > Domain`, else *"(not declared in requirements.md)"*. |
 | `{{GENERATED_AT}}` | ISO-8601 UTC, captured at render time. |
-| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `requirements/requirements.md` captured at Step 2. |
+| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `generated-docs/requirements/requirements.md` captured at Step 2. |
 | `{{SCENARIO_COUNT}}` | Number of rows in the Scenarios table. |
 | `{{PARTICIPANT_COUNT}}` | Number of rows in the global Participants table. |
 | `{{MESSAGE_COUNT}}` | Number of rows in the Messages table (across all scenarios). |

@@ -21,7 +21,7 @@ Token work is concrete, not aesthetic. The job is to land 11 colour tokens, a ty
 
 ## Provenance discipline
 
-Every token in `design-system/design-system-light.html` / `design-system-dark.html` (both the JSON block and the visual sections) carries one of two markers:
+Every token in `generated-docs/design-system/design-system-light.html` / `design-system-dark.html` (both the JSON block and the visual sections) carries one of two markers:
 
 | Marker | Meaning |
 | --- | --- |
@@ -32,9 +32,9 @@ No third marker exists in v1. **No token is unmarked.** If you cannot tag a valu
 
 ## Skin-over-structure invariant
 
-The design-system doc is a **parallel artefact**. It does not reference, edit, or reconcile against `requirements/requirements.md`, `framework/state/.progress.json`, or any other agent's output. The styler is stand-alone:
+The design-system doc is a **parallel artefact**. It does not reference, edit, or reconcile against `generated-docs/requirements/requirements.md`, `framework/state/.progress.json`, or any other agent's output. The styler is stand-alone:
 
-- The agent does **not** read `requirements/`. Even if the file exists. Even if the consultant mentions it.
+- The agent does **not** read `generated-docs/requirements/`. Even if the file exists. Even if the consultant mentions it.
 - The agent does **not** load `framework/shared/general-rules.md`, `prototype-scope.md`, or `prototype-invariants.md`. Those govern the requirements pipeline; the styler operates in a separate, isolated lane.
 - The agent's only inputs are: the consultant's typed answers (the optional reference URL asked first in step-02; the domain set in step-04b — suggested from the fetched page or typed when no URL/signals), the fetched CSS and business signals (if a URL was given), and the per-run domain inference applied in step-05b (driven by the `domain-inference.md` prompt-template).
 - Brand changes do not ripple. The doc is overwritten on each run, not merged. There is no concept of "spec-aware" or "consistent with prior pipelines" in this stance.

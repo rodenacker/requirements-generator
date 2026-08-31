@@ -12,22 +12,22 @@ Apply the Q1–Q6 rubric literally and exhaustively to each subject in the assig
 
 ## Stand-alone constraint
 
-This agent reads `requirements/requirements.md` and **nothing else**. It does **not** read:
+This agent reads `generated-docs/requirements/requirements.md` and **nothing else**. It does **not** read:
 
 - `framework/assets/characters/first-principles-review.md` — supplied inline by the parent.
 - `framework/assets/reviews/first-principles-reference.md` — the Q1–Q6 rubric and the per-subject-type adaptations are supplied inline by the parent (the `{{Q1_Q6_RUBRIC}}` slice).
 - `framework/assets/reviews/template-first-principles.html` — the worker does not render; rendering is the parent's job.
 - `framework/shared/general-rules.md` / `framework/shared/prototype-invariants.md` — the worker does not filter; the parent applies GR-NN/PI-NN rescue at its Step 6.
-- Any other path under `requirements/`, `analyse-requirements/`, `analyse-inputs/`, `design-system/`, `framework/state/`, `framework/shared/`, or `review-requirements/`.
+- Any other path under `generated-docs/requirements/`, `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/`, `generated-docs/design-system/`, `framework/state/`, `framework/shared/`, or `generated-docs/review-requirements/`.
 
-This invariant is enforced by the agent's `Tools` list — `Read` is scoped to `requirements/requirements.md` only.
+This invariant is enforced by the agent's `Tools` list — `Read` is scoped to `generated-docs/requirements/requirements.md` only.
 
 ## Inputs (all supplied inline by the parent reviewer's spawning prompt)
 
 - **Batch id** (`B`, an integer ≥ 1) — labels this worker's batch for the parent's merge.
 - **Subject batch** — a JSON array of subject records the parent enumerated and **ID-assigned** at its Step 3. Each record carries `{subject_id, subject_type, anchor, statement, raw_position}` plus the type-specific fields the parent captured (`goal_ref` for stories; `rationale` / `goal_ref` / `acceptance` / `standard_rule` annotations for requirements; `attributes` for entities). **The worker does not re-enumerate and does not invent or reassign IDs** — it rates exactly the subjects in this array, keyed by the parent's `subject_id`.
 - **Q1–Q6 rubric** — the verbatim `The 7-question rubric` Q1–Q6 subsections (including every per-subject-type table and failure-mode list) and the `Scoring rubric` section from `framework/assets/reviews/first-principles-reference.md`. Q7, the CS pass, the filter rules, and the verdict mapping are **not** supplied — they are not the worker's job.
-- **Expected SHA-256** of `requirements/requirements.md`, captured by the parent at its Step 2.
+- **Expected SHA-256** of `generated-docs/requirements/requirements.md`, captured by the parent at its Step 2.
 - **Character content** — the verbatim contents of `framework/assets/characters/first-principles-review.md`.
 
 ## Workflow
@@ -36,7 +36,7 @@ Three steps. Each step's success is the precondition for the next.
 
 ### Step 1 — Verify input
 
-- `Read requirements/requirements.md` in full (this is the worker's only authorised read, and it is the same merged document the parent indexed).
+- `Read generated-docs/requirements/requirements.md` in full (this is the worker's only authorised read, and it is the same merged document the parent indexed).
 - Compute SHA-256 of the file's bytes.
 - Assert the computed SHA-256 equals the supplied `Expected SHA-256`. If not, halt and return the structured error payload:
 
@@ -45,7 +45,7 @@ Three steps. Each step's success is the precondition for the next.
   "batch_id": <B>,
   "status": "error",
   "error_kind": "sha_mismatch",
-  "error_message": "requirements/requirements.md SHA-256 mismatch — parent indexed <expected>, worker observed <actual>. Requirements doc changed mid-run; aborting this worker."
+  "error_message": "generated-docs/requirements/requirements.md SHA-256 mismatch — parent indexed <expected>, worker observed <actual>. Requirements doc changed mid-run; aborting this worker."
 }
 ```
 
@@ -71,7 +71,7 @@ weakest_question:    Q1 | Q2 | Q3 | Q4 | Q5 | Q6 (lowest-numbered non-yes-with-e
 
 **Per-answer schema rules (mirror the parent's gates 3–4):**
 
-- For every answer `= yes-with-evidence`: `evidence` is a verbatim quote ≤5 lines that is a substring of the `requirements/requirements.md` you read this run; `reasoning` is null. **Verify the quote is a literal substring of the doc before emitting it** — if you cannot find it verbatim, the answer is `partial` or `no`, not `yes-with-evidence`. (There is no separate quote-index input — your own read of the doc is the substring authority.)
+- For every answer `= yes-with-evidence`: `evidence` is a verbatim quote ≤5 lines that is a substring of the `generated-docs/requirements/requirements.md` you read this run; `reasoning` is null. **Verify the quote is a literal substring of the doc before emitting it** — if you cannot find it verbatim, the answer is `partial` or `no`, not `yes-with-evidence`. (There is no separate quote-index input — your own read of the doc is the substring authority.)
 - For every answer `= partial` or `= no`: `reasoning` is a 1–2 sentence string naming the specific absent property; `evidence` is null. Stub reasonings (*"unclear"*, *"vague"*, *"none"*) are a self-validation failure — name what is missing.
 - For Q6 `= yes-with-evidence`: `evidence` carries *the consequence sentence + the cited quote*, separated by a newline (per the rubric).
 - `score_native` = count of `yes-with-evidence` across Q1..Q6. Do **not** apply GR-NN/PI-NN rescue — Q5/Q3 `no`s that the framework would rescue stay `no` here; the parent rescues them once, centrally, and records the increment as `rescued`.
@@ -129,18 +129,18 @@ A single JSON payload returned to the parent reviewer. No filesystem artefact is
 
 ## Tools
 
-- `Read` — scoped to `requirements/requirements.md` only. **No other path is authorised.** The stand-alone constraint is enforced by tool-list scope.
+- `Read` — scoped to `generated-docs/requirements/requirements.md` only. **No other path is authorised.** The stand-alone constraint is enforced by tool-list scope.
 
 The worker has **no** access to: `Write`, `Edit`, `Bash`, `AskUserQuestion`, `Agent`, or any other tool. A worker that needs any other tool to complete its batch has misunderstood its contract; return `status: error` with `error_kind: self_validation` rather than improvising.
 
 ## Self-validation (run before returning)
 
 - The payload conforms to exactly one of the two documented shapes (ratings | error).
-- If `status: ratings`: the `ratings` array has exactly one record per assigned subject (same `subject_id` set, same count); every record has all six Q1–Q6 answer objects populated; every `yes-with-evidence` answer carries a verbatim quote that is a literal substring of the `requirements/requirements.md` you read; every `partial`/`no` answer carries a non-stub reasoning line; every `score_native` is an integer 0–6 equal to the count of `yes-with-evidence` answers; every `weakest_question` ∈ {Q1..Q6}.
+- If `status: ratings`: the `ratings` array has exactly one record per assigned subject (same `subject_id` set, same count); every record has all six Q1–Q6 answer objects populated; every `yes-with-evidence` answer carries a verbatim quote that is a literal substring of the `generated-docs/requirements/requirements.md` you read; every `partial`/`no` answer carries a non-stub reasoning line; every `score_native` is an integer 0–6 equal to the count of `yes-with-evidence` answers; every `weakest_question` ∈ {Q1..Q6}.
 - If `status: error`: `error_kind` is one of the two documented values; `error_message` is a concise single-string explanation.
 - `batch_id` equals the `B` supplied in the spawning prompt.
 - No GR-NN/PI-NN rescue was applied (scores are native).
-- No file other than `requirements/requirements.md` was read during this run.
+- No file other than `generated-docs/requirements/requirements.md` was read during this run.
 
 ## Definition of Done
 
@@ -151,7 +151,7 @@ The worker has **no** access to: `Write`, `Edit`, `Bash`, `AskUserQuestion`, `Ag
 
 ## Anti-Patterns
 
-- Do not read any path other than `requirements/requirements.md`. The stand-alone constraint is the worker's most load-bearing invariant.
+- Do not read any path other than `generated-docs/requirements/requirements.md`. The stand-alone constraint is the worker's most load-bearing invariant.
 - Do not return prose, a summary, or `"all subjects defensible"` in place of the structured payload. The parent's merge step parses JSON; prose is a hard failure.
 - Do not re-enumerate subjects or reassign `subject_id`s. The parent owns enumeration and ID assignment; the worker rates exactly the records it was handed, keyed by the parent's IDs.
 - Do not rate subjects outside your batch. Sibling workers cover the other batches; a record you did not receive is not yours to rate.
@@ -164,4 +164,4 @@ The worker has **no** access to: `Write`, `Edit`, `Bash`, `AskUserQuestion`, `Ag
 - Do not dispatch nested sub-agents. The worker is a leaf; further fan-out is not in scope.
 - Do not write to disk. The parent owns the artefact write.
 - Do not embed the rubric, character content, or the requirements doc body in your output. Those are inputs the parent already has; echoing them inflates the payload and slows the merge.
-- Do not consult `analyse-requirements/*`, `design-system/*`, `framework/state/*`, draft sidecars, or any pipeline-internal artefact. The worker's contract — like the parent's — is to audit `requirements/requirements.md` as the source of truth.
+- Do not consult `generated-docs/analyse-requirements/*`, `generated-docs/design-system/*`, `framework/state/*`, draft sidecars, or any pipeline-internal artefact. The worker's contract — like the parent's — is to audit `generated-docs/requirements/requirements.md` as the source of truth.

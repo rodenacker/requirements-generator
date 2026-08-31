@@ -47,7 +47,7 @@
     {{TITLE}}                  — short title (e.g. "Sequence Diagrams — Project X").
     {{DOMAIN}}                 — domain string (from requirements §1 if present).
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
-    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{REQUIREMENTS_SHA256}}    — sha256 of generated-docs/requirements/requirements.md at read time.
     {{SCENARIO_COUNT}}         — number of rows in the Scenarios table.
     {{PARTICIPANT_COUNT}}      — number of rows in the Participants table.
     {{MESSAGE_COUNT}}          — number of rows in the Messages table.
@@ -70,7 +70,7 @@
                                  `sequenceDiagram` source per selected
                                  scenario). Empty if none selected.
 
-  Output: analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html.
+  Output: generated-docs/analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html.
 
   CATALOGUE SCHEMA — the analyser's {{CATALOGUE_BLOCK}} substitutes a
   single <section class="catalogue">. The inner section contains, in

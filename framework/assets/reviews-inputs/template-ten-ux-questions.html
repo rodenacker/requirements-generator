@@ -40,7 +40,7 @@
     {{TITLE}}                    — short title (e.g. "10 UX Questions (inputs-side) — Project X")
     {{DOMAIN}}                   — domain string (from a bundle source if recognisable, else "(not declared in inputs)")
     {{GENERATED_AT}}             — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}     — sha256 of requirements/source-manifest.json at read time (Step 2)
+    {{MANIFEST_FINGERPRINT}}     — sha256 of generated-docs/requirements/source-manifest.json at read time (Step 2)
     {{REVIEWER_IDENTITY}}        — fixed string "10 UX Questions Review (inputs-side, experienced UX designer lens)"
     {{SOURCE_COUNT}}             — number of consumable source files ingested at Step 3
     {{TOTAL_QUESTIONS}}          — always 10 (gate-enforced; placeholder retained for visibility)
@@ -62,7 +62,7 @@
     {{QUESTION_10_BLOCK}}
     {{DIAGNOSTICS_BLOCK}}        — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html.
+  Output: generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html.
 
   TRIAGE BLOCK SCHEMA — {{TRIAGE_BLOCK}} is the <tbody> rows (the <thead> is in the
   scaffold) listing every selected question in rank order (UXQ-01 first, UXQ-10 last):
@@ -593,7 +593,7 @@
     <strong>minor</strong> — answer affects refinement only; a reasonable default produces an acceptable design.
   </p>
   <p class="legend">
-    Source: the raw input set (<code>documentation/</code>, enumerated by <code>requirements/source-manifest.json</code>). Each question cites <code>[SRC: &lt;filename&gt;]</code> or <code>absent-from-corpus</code>. Categories: C1 Users &amp; segmentation · C2 Context of use · C3 Goals &amp; success signals · C4 Tasks, flows, decision points · C5 Data &amp; content for decisions · C6 Errors, edge cases, recovery · C7 Collaboration &amp; concurrency · C8 Trust, transparency, audit.
+    Source: the raw input set (<code>documentation/</code>, enumerated by <code>generated-docs/requirements/source-manifest.json</code>). Each question cites <code>[SRC: &lt;filename&gt;]</code> or <code>absent-from-corpus</code>. Categories: C1 Users &amp; segmentation · C2 Context of use · C3 Goals &amp; success signals · C4 Tasks, flows, decision points · C5 Data &amp; content for decisions · C6 Errors, edge cases, recovery · C7 Collaboration &amp; concurrency · C8 Trust, transparency, audit.
   </p>
 </section>
 

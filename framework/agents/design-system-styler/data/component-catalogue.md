@@ -1,6 +1,6 @@
 # Component Catalogue
 
-**Role:** Data file consumed by `framework/agents/design-system-styler/steps/step-06-artifact-generation.md` to populate the **Components** section of each `design-system/design-system-<mode>.html` artefact (the section is rendered once per colour mode).
+**Role:** Data file consumed by `framework/agents/design-system-styler/steps/step-06-artifact-generation.md` to populate the **Components** section of each `generated-docs/design-system/design-system-<mode>.html` artefact (the section is rendered once per colour mode).
 
 **Why this file exists:** the component visualisation section is the single most-edited piece of the design-system artefact — consultants will routinely tune which components render, what their visuals look like, and which states are shown. Keeping everything component-related in one file means a single edit touches one place.
 

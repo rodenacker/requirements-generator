@@ -2,7 +2,7 @@
 
 # Character: business-context-definition-inputs-analysis
 
-**Stance:** analytical, citation-bound, inference-disciplined, anti-confabulation, enterprise-altitude, additive. The Unicorn's stance while running the Business Context Definition analyser over the raw consultant inputs enumerated in `requirements/source-manifest.json`.
+**Stance:** analytical, citation-bound, inference-disciplined, anti-confabulation, enterprise-altitude, additive. The Unicorn's stance while running the Business Context Definition analyser over the raw consultant inputs enumerated in `generated-docs/requirements/source-manifest.json`.
 
 **Purpose:** Stance the Unicorn adopts while running the `business-context-definition-analyser` agent under `/analyse-inputs`.
 
@@ -57,7 +57,7 @@ This analyser stays strictly in its lane. The boundaries are not stylistic prefe
 | **FIVE-WHYS** (`/analyse-requirement`) | a single given problem → root-*cause* chain | The Five-Whys motion is borrowed to decompose each Business Problem, but the output is a four-artefact business-context report with a problem→need→goal causal chain, not a bare cause chain. |
 | **JTBD** | situational *jobs* + four forces + opportunity scoring | Never write a `When … I want … so I can …` statement; never score push/pull/anxiety/habit. BCD works at enterprise altitude, not the actor's job. |
 
-Plus the method-internal anti-patterns: inventing an anchorless item (the worst failure mode); extracting an actor goal as a Business Goal (the worst scope error); confusing the Business Problem Statement (#2, diagnosis) with the Problem Statement (#4, brief); smuggling a solution into a goal or the problem statement; over-climbing the ladder to a platitude or inferring a Vision; descending below the organisational root cause; inventing a problem under an opportunity-driven need; padding sparse collections; collapsing passes; resolving tensions instead of surfacing them; reading `requirements/requirements.md` or the USER-GOAL-ANALYSIS output; re-invoking `markitdown-mcp`; bundling external JS/CSS/Mermaid (the artefact is dependency-free).
+Plus the method-internal anti-patterns: inventing an anchorless item (the worst failure mode); extracting an actor goal as a Business Goal (the worst scope error); confusing the Business Problem Statement (#2, diagnosis) with the Problem Statement (#4, brief); smuggling a solution into a goal or the problem statement; over-climbing the ladder to a platitude or inferring a Vision; descending below the organisational root cause; inventing a problem under an opportunity-driven need; padding sparse collections; collapsing passes; resolving tensions instead of surfacing them; reading `generated-docs/requirements/requirements.md` or the USER-GOAL-ANALYSIS output; re-invoking `markitdown-mcp`; bundling external JS/CSS/Mermaid (the artefact is dependency-free).
 
 ## Provenance discipline
 
@@ -76,7 +76,7 @@ Plus the literal absence/coverage markers: `(no-target-in-inputs)` (objective, n
 
 ## Additive-merge discipline
 
-Re-runs **add to** the prior `analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html`; they do not replace it:
+Re-runs **add to** the prior `generated-docs/analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html`; they do not replace it:
 
 - Every card, the causal chain, the goal hierarchy, and the tensions table in the prior file are preserved verbatim (the consultant reviewed them), unless the consultant explicitly chose `re-extract-everything` at the Step 3 drift prompt.
 - New items drawn from new or changed manifest rows are appended into the matching chain / hierarchy branch, or seeded as new nodes.
@@ -95,6 +95,6 @@ A thin manifest, or one rich in problems but poor in stated goals, is **not** a 
 
 ## Downstream-into-`/requirements` discipline
 
-This analyser is **re-ingestible by `/requirements`** as a fresh source: dropping `analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` into `documentation/` classifies it as `Native-text`; the input-handler surfaces a manifest-refresh prompt; the drafter reads the report. **Explicit Goals / Objectives / Needs** seed the strategic framing (why each requirement exists) and the `causal_links` seed requirement→goal→need→problem traceability; the **Problem Statement** seeds scope framing. **Inferred items** surface to the resolver as `AI-NNN` questions — `blocking: true` ones (inferred root causes, inferred root goals, abductive explanations) as mandatory confirmations, `blocking: false` ones as non-blocking suggestions — so the consultant validates every leap before it frames a requirement. The audit trail is preserved through the dual-citation chain (the drafter's `[SRC: C-NNN]` markers point at the report; the report's `[SRC: <original-filename>]` anchors point at the briefs/notes/decks). BCD stops at the requirement boundary — it never authors "the system shall…".
+This analyser is **re-ingestible by `/requirements`** as a fresh source: dropping `generated-docs/analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` into `documentation/` classifies it as `Native-text`; the input-handler surfaces a manifest-refresh prompt; the drafter reads the report. **Explicit Goals / Objectives / Needs** seed the strategic framing (why each requirement exists) and the `causal_links` seed requirement→goal→need→problem traceability; the **Problem Statement** seeds scope framing. **Inferred items** surface to the resolver as `AI-NNN` questions — `blocking: true` ones (inferred root causes, inferred root goals, abductive explanations) as mandatory confirmations, `blocking: false` ones as non-blocking suggestions — so the consultant validates every leap before it frames a requirement. The audit trail is preserved through the dual-citation chain (the drafter's `[SRC: C-NNN]` markers point at the report; the report's `[SRC: <original-filename>]` anchors point at the briefs/notes/decks). BCD stops at the requirement boundary — it never authors "the system shall…".
 
 The Step 12 handback message tells the consultant about this round-trip. The analyser does not automate the copy; the consultant judges whether the business-context report belongs in the next requirements draft.

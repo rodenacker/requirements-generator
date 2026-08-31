@@ -4,7 +4,7 @@
 
 **Purpose.** Canonical definitions of the **system's own terminology** — the language the framework uses to describe *itself*, its pipelines, roles, artefacts, and outputs (e.g. *orchestrator*, *blueprint*, *scope-slug*, *UX posture*, *trade-off dimension*, *handback gate*). This is shared vocabulary between the consultant and the LLM so that plans to extend, change, or describe the system reuse one precise set of terms.
 
-**This is NOT a client-application glossary.** The terminology of the *products* a consultant documents with the system (their domain nouns, entities, statuses) is produced by the two **GLOSSARY methodologies** and lives under `analyse-requirements/GLOSSARY/` (extraction) and `analyse-inputs/GLOSSARY/` (convergence). Those methods are forbidden from loading this file; keep the two worlds separate — system terms here, application terms there.
+**This is NOT a client-application glossary.** The terminology of the *products* a consultant documents with the system (their domain nouns, entities, statuses) is produced by the two **GLOSSARY methodologies** and lives under `generated-docs/analyse-requirements/GLOSSARY/` (extraction) and `generated-docs/analyse-inputs/GLOSSARY/` (convergence). Those methods are forbidden from loading this file; keep the two worlds separate — system terms here, application terms there.
 
 **Out of scope (for now).** Pure domain-modelling / output-description vocabulary the system *uses inside artefacts* — Domain Model, Concept, Aggregate, Ubiquitous Language, object map, ORCA, CCP, and the atomic-UI element ladder (Atom / Molecule / Organism) — is **not** defined here. It belongs to a later output-vocabulary effort; the methodology references (`framework/assets/analyses/*-reference.md`, the OOUX object map) remain its canonical sources until then.
 
@@ -62,7 +62,7 @@ Canonical source: `framework/assets/{analyses,analyses-inputs,reviews,reviews-in
 Not to be confused with: **lens** (informal synonym used in consultant-facing copy, "through a chosen lens"); **analysis/review** (the *output* of applying a methodology).
 
 ### Analysis
-The artefact produced by applying a methodology to a structured input — `requirements.md` (`/analyse-requirement`, output under `analyse-requirements/<METHOD>/`) or raw `documentation/` material (`/analyse-inputs`, output under `analyse-inputs/<METHOD>/`).
+The artefact produced by applying a methodology to a structured input — `requirements.md` (`/analyse-requirement`, output under `generated-docs/analyse-requirements/<METHOD>/`) or raw `documentation/` material (`/analyse-inputs`, output under `generated-docs/analyse-inputs/<METHOD>/`).
 Not to be confused with: **review** (a *critique* methodology, not a transform — outputs under `review-*`).
 
 ### Review
@@ -70,7 +70,7 @@ The artefact produced by a *critique* methodology (ADVERSARIAL, COMPLETENESS-REV
 Not to be confused with: **analysis** (a lens-transform that converges on a restructured view).
 
 ### Amendment (AMD-NN)
-An entry in the transient `## Amendments (pending re-merge)` section of `requirements/requirements.md` that **supersedes** the base text it names, everywhere in the document, until the next `/requirements` run regenerates the document and folds its source into the body with `[SRC: C-NNN]` citations. Written only by `framework/skills/apply-amendments-section.md`, called by `/resolve-review` (Step 9b, consultant opt-in) or `/amend-requirements` (Step 9, unconditional). Numbering is per-section and continuous across runs; entries carry an origin marker and, where candidate-derived, a grounding tag. Downstream consumers apply them as supersessions without re-litigating them — `blueprint-architect` extends or shrinks the **Properties closed set** on their authority, and `/export-application` retains them byte-identical. Canonical shape: `framework/assets/resolve-review/template-addendum.md`.
+An entry in the transient `## Amendments (pending re-merge)` section of `generated-docs/requirements/requirements.md` that **supersedes** the base text it names, everywhere in the document, until the next `/requirements` run regenerates the document and folds its source into the body with `[SRC: C-NNN]` citations. Written only by `framework/skills/apply-amendments-section.md`, called by `/resolve-review` (Step 9b, consultant opt-in) or `/amend-requirements` (Step 9, unconditional). Numbering is per-section and continuous across runs; entries carry an origin marker and, where candidate-derived, a grounding tag. Downstream consumers apply them as supersessions without re-litigating them — `blueprint-architect` extends or shrinks the **Properties closed set** on their authority, and `/export-application` retains them byte-identical. Canonical shape: `framework/assets/resolve-review/template-addendum.md`.
 Not to be confused with: an **amendments document** (the durable `documentation/` record the section caches — see below). The section is a cache; deleting it loses nothing, because the record survives in `documentation/`. An amendment that exists *only* in the section is destroyed by the next re-merge.
 
 ### Amendments document
@@ -78,8 +78,13 @@ The consultant-approved input document `/amend-requirements` writes as a NEW dat
 Not to be confused with: the **review resolutions document** (same durable-record role, but sourced from a review artefact's findings rather than the consultant's own statements), or the **amendment** entries in the host document (its transient cache).
 
 ### Review resolutions document
-The consultant-approved input document `/resolve-review` writes as a NEW dated file into `documentation/` (`<stem>-<date>.md`, never overwriting), turning selected findings of one existing `review-inputs/` artefact into first-class corpus material the next `/requirements` run ingests. Each resolution anchors on the finding's **verbatim quote** (finding IDs are per-run labels that reset when the review re-runs), carries exactly one origin marker — `[CONSULTANT-STATED]` or `[AI-INFERRED, CONSULTANT-CONFIRMED]` (every AI-inferred resolution is confirmed by an explicit consultant affirmative — per finding, or via an explicit accept-all-remaining choice — never silently or by default) — and exactly one Supersedes line naming the corpus statement it replaces (or the explicit net-new sentinel). Canonical skeleton + marker definitions: `framework/assets/resolve-review/template-resolutions.md`; per-methodology semantics: `framework/assets/resolve-review/methodology-map.md`.
-Not to be confused with: the **review** itself (the critique artefact under `review-inputs/<METHOD>/`, which stays untouched).
+The consultant-approved input document `/resolve-review` writes as a NEW dated file into `documentation/` (`<stem>-<date>.md`, never overwriting), turning selected findings of one existing `generated-docs/review-inputs/` artefact into first-class corpus material the next `/requirements` run ingests. Each resolution anchors on the finding's **verbatim quote** (finding IDs are per-run labels that reset when the review re-runs), carries exactly one origin marker — `[CONSULTANT-STATED]` or `[AI-INFERRED, CONSULTANT-CONFIRMED]` (every AI-inferred resolution is confirmed by an explicit consultant affirmative — per finding, or via an explicit accept-all-remaining choice — never silently or by default) — and exactly one Supersedes line naming the corpus statement it replaces (or the explicit net-new sentinel). Canonical skeleton + marker definitions: `framework/assets/resolve-review/template-resolutions.md`; per-methodology semantics: `framework/assets/resolve-review/methodology-map.md`.
+Not to be confused with: the **review** itself (the critique artefact under `generated-docs/review-inputs/<METHOD>/`, which stays untouched).
+
+### generated-docs
+The single repo-root directory holding every consultant-facing **document** output, one subdirectory per pipeline (`generated-docs/requirements/`, `generated-docs/prd/`, `generated-docs/design-system/`, `generated-docs/analyse-inputs/`, `generated-docs/analyse-requirements/`, `generated-docs/review-inputs/`, `generated-docs/review-requirements/`, `generated-docs/export-application/`, plus the `generated-docs/amend-requirements/` and `generated-docs/resolve-review/` staging dirs). The generated **visual / runnable** outputs are deliberately *not* nested here — `wireframes/`, `prototypes/` and the shared `blueprints/` IR keep their own repo-root directories.
+Canonical source: `docs/architecture.md > Top-level dirs`.
+Not to be confused with: `documentation/` (the consultant's **input** drop zone) or `docs/` (the system's own documentation, not a pipeline output).
 
 ---
 
@@ -106,7 +111,7 @@ An early orchestrator check before any agent runs — prerequisite presence, pri
 ## 3 · Cross-pipeline IR & scoping
 
 ### Scope
-The subset of `requirements/requirements.md` (a set of requirement IDs) a wireframe or prototype run addresses. Captured in `scope.json`.
+The subset of `generated-docs/requirements/requirements.md` (a set of requirement IDs) a wireframe or prototype run addresses. Captured in `scope.json`.
 Canonical source: `framework/skills/scope-selector.md` (+ `blueprints/<scope-slug>/scope.json`).
 
 ### Scope-slug
@@ -153,7 +158,7 @@ One hi-fi, clickable, **client-side-only** React/Next.js realization of a scope,
 Canonical source: `framework/orchestrators/prototype-orch.md` + `framework/shared/prototype-invariants.md`.
 
 ### Build target
-The manifest's output-mode field, auto-set to **prototype** (client-stub simulated server, fixture data) by the `/requirements` orchestrator's Step 1b — the consultant choice is retired. **application** remains a legal legacy value, honoured by dormant branches. The application-audience document is produced by `/export-application` from the finished `requirements.md`. Durable in `requirements/source-manifest.json > target`.
+The manifest's output-mode field, auto-set to **prototype** (client-stub simulated server, fixture data) by the `/requirements` orchestrator's Step 1b — the consultant choice is retired. **application** remains a legal legacy value, honoured by dormant branches. The application-audience document is produced by `/export-application` from the finished `requirements.md`. Durable in `generated-docs/requirements/source-manifest.json > target`.
 Canonical source: `framework/shared/prototype-invariants.md` (PI-06) + `framework/skills/set-build-target.md`.
 
 ### Design-spec
@@ -204,11 +209,11 @@ Canonical source: `framework/assets/prototypes/visual-craft-standard.md §11`.
 Not to be confused with: **mode (design-system)** (colour scheme, app-level and scaffold-locked) or **posture** (layout/workflow preset).
 
 ### design-system
-The brand-token brief produced by `/design-system` (`design-system/design-system-light.html` and/or `design-system-dark.html`) — colour/type/shadow/motion tokens. The *source* of a prototype's `theme.css`. One self-contained file per **mode (design-system)**; the unsuffixed `design-system.html` is retired.
+The brand-token brief produced by `/design-system` (`generated-docs/design-system/design-system-light.html` and/or `design-system-dark.html`) — colour/type/shadow/motion tokens. The *source* of a prototype's `theme.css`. One self-contained file per **mode (design-system)**; the unsuffixed `design-system.html` is retired.
 Not to be confused with: **Design** (UX), **design-spec** (prototype realization), **design philosophy** (posture).
 
 ### mode (design-system)
-The colour scheme a design-system artefact renders — `light` or `dark`. One file per mode (`design-system/design-system-<mode>.html`), each a complete single-mode document; there is no in-document switcher and no combined file. The consultant chooses `light-only` / `dark-only` / `both` at step-05b §E — asked *after* extraction, so the question can name the scheme actually found. The mode is marked in the filename, the `<title>`, the H1, and `meta.mode`. Only the 11 colour and 3 shadow tokens differ between modes; the other 19 (typography + motion) are shared verbatim.
+The colour scheme a design-system artefact renders — `light` or `dark`. One file per mode (`generated-docs/design-system/design-system-<mode>.html`), each a complete single-mode document; there is no in-document switcher and no combined file. The consultant chooses `light-only` / `dark-only` / `both` at step-05b §E — asked *after* extraction, so the question can name the scheme actually found. The mode is marked in the filename, the `<title>`, the H1, and `meta.mode`. Only the 11 colour and 3 shadow tokens differ between modes; the other 19 (typography + motion) are shared verbatim.
 Canonical source: `framework/agents/design-system-styler/steps/step-05b-domain-inference.md` + `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md`.
 Not to be confused with: **hue source** (which mode is the grounded one), **Design** (UX), **design philosophy** (posture).
 
@@ -231,7 +236,7 @@ Not to be confused with: **non-brand family** (`font-rules.md` §1 — the other
 ### colour-mode strategy
 How a prototype's users move between light and dark — one of `toggle` (a control in the application UI, defaulting to the OS/browser setting), `system` (follows `prefers-color-scheme`, no control), `none` (a single mode, no switching), or `custom` (consultant free text, bounded to the default mode / control placement / 2- vs 3-state). Chosen **once per app** at `/prototype` Step B(4b) and locked into `prototypes/.scaffold.json` alongside the brand (D1); later runs ask nothing.
 
-The question is asked **only** when both `design-system/design-system-light.html` and `design-system/design-system-dark.html` exist. Any other state — one mode file, a consultant-supplied brand, template defaults — is a determined outcome: `strategy: none`, reported in one status line, no menu. `/prototype` never derives a missing mode; that is `/design-system`'s contrast-gated job.
+The question is asked **only** when both `generated-docs/design-system/design-system-light.html` and `generated-docs/design-system/design-system-dark.html` exist. Any other state — one mode file, a consultant-supplied brand, template defaults — is a determined outcome: `strategy: none`, reported in one status line, no menu. `/prototype` never derives a missing mode; that is `/design-system`'s contrast-gated job.
 
 Realized by one mechanism regardless of strategy: a `.dark` class on `<html>`, selecting between `theme.css`'s `:root` and `.dark` token blocks. Distinct from **on-colour**, which is about legibility *within* whichever mode is active.
 Canonical source: `framework/orchestrators/prototype-orch.md` Step B(4b) + `framework/assets/prototypes/app-shell-spec.md`.
@@ -344,7 +349,7 @@ An agent's pre-handback checks of its own output (closed-set conformance, citati
 Canonical source: `framework/skills/verify-artifact-write.md`.
 
 ### Source-manifest
-The canonical record of consultant inputs (`requirements/source-manifest.json`) — per-file tier, format, conversion status, provenance, and the build `target`. Shared by `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`; lifecycle owned solely by the input-handler.
+The canonical record of consultant inputs (`generated-docs/requirements/source-manifest.json`) — per-file tier, format, conversion status, provenance, and the build `target`. Shared by `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`; lifecycle owned solely by the input-handler.
 Canonical source: `framework/agents/input-handler.md`.
 
 ### Sidecar
@@ -375,7 +380,7 @@ The runtime ledger `framework/state/.stadium-processed.json`, keyed by `app_id` 
 Canonical source: `framework/agents/stadium-ingestor.md` (writes it) + `framework/orchestrators/ingest-stadium-orch.md` (re-ingest reset removes an entry).
 
 ### Stadium ingestion command (`/ingest-stadium`)
-The standalone command that turns a **Stadium-app (input unit)** dropped in `documentation/` into its **category assets** — the sole trigger for Stadium extraction (formerly the input-handler's Step S pre-pass). A thin command shim launches `framework/orchestrators/ingest-stadium-orch.md`, which runs the **Stadium ingestor** agent in the foreground and surfaces the per-app re-ingest gate. Standalone: it never touches `requirements/` state or builds the source manifest — the produced assets are picked up as ordinary `Native-text` inputs by the next input-consuming pipeline run.
+The standalone command that turns a **Stadium-app (input unit)** dropped in `documentation/` into its **category assets** — the sole trigger for Stadium extraction (formerly the input-handler's Step S pre-pass). A thin command shim launches `framework/orchestrators/ingest-stadium-orch.md`, which runs the **Stadium ingestor** agent in the foreground and surfaces the per-app re-ingest gate. Standalone: it never touches `generated-docs/requirements/` state or builds the source manifest — the produced assets are picked up as ordinary `Native-text` inputs by the next input-consuming pipeline run.
 Canonical source: `.claude/commands/ingest-stadium.md` + `framework/orchestrators/ingest-stadium-orch.md`.
 Not to be confused with: the input-handler's **Step S** — which no longer extracts; it only excludes the raw app folder/pointer and nudges.
 

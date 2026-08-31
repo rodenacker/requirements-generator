@@ -1,13 +1,13 @@
 ---
 name: step-06-artifact-generation
-description: 'Render one single-mode artefact per mode in files_to_write — hue-source mode first: build the JSON token block, render the visual sections, populate the HTML template, append the static standards HTML verbatim, write to design-system/design-system-<mode>.html, then verify each write.'
+description: 'Render one single-mode artefact per mode in files_to_write — hue-source mode first: build the JSON token block, render the visual sections, populate the HTML template, append the static standards HTML verbatim, write to generated-docs/design-system/design-system-<mode>.html, then verify each write.'
 # Variables referenced (inherited from agent):
 # prompt_artifact_generation: 'framework/agents/design-system-styler/prompt-templates/artifact-generation.md'
 # template_path: 'framework/assets/template-design-system.html'
 # standards_path: 'framework/assets/design-system-standards.html'
 # component_catalogue: 'framework/agents/design-system-styler/data/component-catalogue.md'
-# output_path_light: 'design-system/design-system-light.html'
-# output_path_dark: 'design-system/design-system-dark.html'
+# output_path_light: 'generated-docs/design-system/design-system-light.html'
+# output_path_dark: 'generated-docs/design-system/design-system-dark.html'
 ---
 
 # Step 6: Generate the Artefact(s)
@@ -168,15 +168,15 @@ The availability assertions are the same kind of backstop for the second axis. *
 
 ## D. Write
 
-1. Ensure the `design-system/` directory exists. If not, create it: `Bash mkdir -p design-system` (a no-op on the second render).
-2. Write the rendered string to `design-system/design-system-{{mode}}.html` (single atomic Write call).
+1. Ensure the `generated-docs/design-system/` directory exists. If not, create it: `Bash mkdir -p generated-docs/design-system` (a no-op on the second render).
+2. Write the rendered string to `generated-docs/design-system/design-system-{{mode}}.html` (single atomic Write call).
 3. Store `{{artifact_written_{{mode}}}} = true` — i.e. `{{artifact_written_light}}` or `{{artifact_written_dark}}`.
 
 ## E. Verify the Write
 
 Invoke `framework/skills/verify-artifact-write.md` with:
 
-- `path = "design-system/design-system-{{mode}}.html"`
+- `path = "generated-docs/design-system/design-system-{{mode}}.html"`
 - `expected_sha256 = {{expected_sha256_<mode>}}`
 - `expected_min_bytes = 14000` (HTML body + inlined CSS + JSON block + visual sections + components section + standards appendix runs well above this; a truncated render that drops the components section or the standards appendix will not. The threshold was raised from 8000 to 14000 when the components section was added. It applies **per file** — both modes render the same structure, so both clear it.)
 

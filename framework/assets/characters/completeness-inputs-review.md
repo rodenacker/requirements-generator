@@ -203,7 +203,7 @@ Per the `/analyse-inputs` and parallel `/review-inputs` conventions: findings ci
 
 The Completeness inputs-side reviewer reads:
 
-- `requirements/source-manifest.json` (once, at Step 2 — to enumerate consumable sources and read the `target` field).
+- `generated-docs/requirements/source-manifest.json` (once, at Step 2 — to enumerate consumable sources and read the `target` field).
 - For each manifest row where `tier != "Unsupported"`: the file at `converted_sibling` when non-null, else `original_path` (only `Native-text`) — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`; once per row at Step 3.
 - This character file and the reference (`completeness-reference.md`) at activation.
 - `framework/shared/general-rules.md` — once at the disposition-assignment step (Step 15 of the agent), read-only, to map `Standard-Rule-Applies` findings.
@@ -211,13 +211,13 @@ The Completeness inputs-side reviewer reads:
 
 It does **not** read:
 
-- `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts.
-- `review-inputs/ADVERSARIAL/adversarial-review.html`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies.
-- `analyse-requirements/*`, `analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
-- `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md` (except as textual references in the reference and the agent file).
+- `generated-docs/requirements/requirements.md`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims*.ndjson` — derivative artefacts.
+- `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html`, `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies.
+- `generated-docs/analyse-requirements/*`, `generated-docs/analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
+- `generated-docs/design-system/*`, `generated-docs/review-requirements/*`, `framework/state/*`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md` (except as textual references in the reference and the agent file).
 - `framework/skills/completeness-gap-pass.md` — that skill is `/requirements`-private; the conceptual decision tree it embodies is shared inspiration, but the implementations are independent because input artefacts differ.
 
-The reviewer agent's only outputs are `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` and the inline-summary it surfaces to the consultant at handback.
+The reviewer agent's only outputs are `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` and the inline-summary it surfaces to the consultant at handback.
 
 ## Single-threaded discipline (no parallel workers)
 
@@ -235,7 +235,7 @@ The agent does **not** use the `Agent` / `Task` tool at any step. Its Tools list
 The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide whether to revise the findings, override the gate, or restart. The hard halt paths are reserved for:
 
 - `verify-artifact-write` failures at the write step (RF-04).
-- `requirements/source-manifest.json` absent or empty at Step 2 (the orchestrator guarantees presence, but the agent defends in depth).
+- `generated-docs/requirements/source-manifest.json` absent or empty at Step 2 (the orchestrator guarantees presence, but the agent defends in depth).
 - Every manifest row has `tier: Unsupported` (zero consumable sources) at Step 3.
 
 The consultant sees every flagged item in the artefact's diagnostic-summary block.
@@ -262,4 +262,4 @@ If a candidate finding cannot satisfy all three, drop it.
 
 Each run produces a **fresh** gap register reflecting the **current** input set. No additive merge, no manifest-fingerprint cursor across runs, no `Run history` section. A finding tied to a removed source disappears on the next run; new findings from added sources surface clean. This differs from the `/analyse-inputs` analysers (which use additive merge to grow understanding across runs) — completeness-review's purpose is a gap register that **changes** as the input set changes.
 
-The orchestrator's prior-artefact gate (`review-inputs/COMPLETENESS-REVIEW/completeness-review.html` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.
+The orchestrator's prior-artefact gate (`generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.

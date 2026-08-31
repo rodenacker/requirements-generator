@@ -1,4 +1,4 @@
-<!-- ROLE: asset (reference). Reference shape only — actual target-user personas live in `requirements/requirements.md > §Target users`, never as a standalone asset. -->
+<!-- ROLE: asset (reference). Reference shape only — actual target-user personas live in `generated-docs/requirements/requirements.md > §Target users`, never as a standalone asset. -->
 
 # Target-user persona reference
 

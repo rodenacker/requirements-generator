@@ -14,7 +14,7 @@ Resolve every `[AI-SUGGESTED]` item in the PRD draft by either confirming, corre
 
 To avoid re-reading the multi-hundred-line draft on every turn — and to avoid re-loading the full manifest and ledger on every turn — the resolver maintains three private state files under `framework/state/`. These are durability/efficiency aids, not pipeline outputs, and may be regenerated.
 
-- **`framework/state/prd-resolver-manifest.ndjson`** — newline-delimited JSON, one manifest item per line. Built once on the first turn by Reading + Grepping `prd/prd-draft.md` for `[AI-SUGGESTED:` markers. The PRD draft contains only `[SRC: PC-NNN]` citations and `[AI-SUGGESTED: PAI-NNN]` markers; no `[STANDARD-RULE]` or `[OUT-OF-SCOPE]` markers exist in PRD drafts, so the manifest builder does not need to skip them.
+- **`framework/state/prd-resolver-manifest.ndjson`** — newline-delimited JSON, one manifest item per line. Built once on the first turn by Reading + Grepping `generated-docs/prd/prd-draft.md` for `[AI-SUGGESTED:` markers. The PRD draft contains only `[SRC: PC-NNN]` citations and `[AI-SUGGESTED: PAI-NNN]` markers; no `[STANDARD-RULE]` or `[OUT-OF-SCOPE]` markers exist in PRD drafts, so the manifest builder does not need to skip them.
 
     Line 1 is the run header: `{"run_started_at":"<ISO-8601 UTC>","blocking_total":N,"non_blocking_total":M}`. Lines 2..N+M+1 are items, each:
 
@@ -54,7 +54,7 @@ To avoid re-reading the multi-hundred-line draft on every turn — and to avoid 
 
     Updated atomically alongside each `prd-resolver-answers.ndjson` append (same step). On resume where the cursor is missing or out-of-date relative to the ledger, reconstruct it by full-Reading the ledger and the manifest once, then continue.
 
-The canonical `prd/consultant-answers.md` is **rendered from `prd-resolver-answers.ndjson`** via a single `Write` once self-validation passes. It is not edited per item, and it is not re-rendered at intermediate phase boundaries.
+The canonical `generated-docs/prd/consultant-answers.md` is **rendered from `prd-resolver-answers.ndjson`** via a single `Write` once self-validation passes. It is not edited per item, and it is not re-rendered at intermediate phase boundaries.
 
 ## Reading and revising classification
 
@@ -69,7 +69,7 @@ The resolver operates in two modes, governed by the classification of the curren
 
 **Contradiction-spotting scope (applies to both phases).** During Q&A, evaluate each consultant answer against (a) the item's own `original_suggestion` from the manifest line and (b) the previously captured answers — accessed via the cursor pointer plus a slice-Read of the relevant `prd-resolver-answers.ndjson` lines, not a full-file Read. The PRD resolver does **not** consult `framework/shared/general-rules.md` or `framework/shared/prototype-scope.md` — those are requirements-pipeline files with no purchase on PRD content. If a conflict, ambiguity, or incompleteness is found, phrase and ask a follow-up.
 
-Draft-wide contradiction sweeps — comparing answers against the rest of `prd/prd-draft.md` — happen once at self-validation, not per-question.
+Draft-wide contradiction sweeps — comparing answers against the rest of `generated-docs/prd/prd-draft.md` — happen once at self-validation, not per-question.
 
 ### Phase 1 — Blocking items (one at a time)
 
@@ -107,7 +107,7 @@ Once Phase 1 is complete, ask non-blocking items in **grouped batches**:
 
 On invocation, the agent **immediately**:
 
-1. Builds (or, if a consistent file exists from an interrupted run, reuses) `framework/state/prd-resolver-manifest.ndjson` by Reading + Grepping `prd/prd-draft.md`. Writes the run-header line plus one item line per `[AI-SUGGESTED:` marker in PAI-NNN order. While building, populate `draft_context` on each item line from the drafter's gap-pass tuple (when emitted); omit the field when the drafter did not supply one.
+1. Builds (or, if a consistent file exists from an interrupted run, reuses) `framework/state/prd-resolver-manifest.ndjson` by Reading + Grepping `generated-docs/prd/prd-draft.md`. Writes the run-header line plus one item line per `[AI-SUGGESTED:` marker in PAI-NNN order. While building, populate `draft_context` on each item line from the drafter's gap-pass tuple (when emitted); omit the field when the drafter did not supply one.
 1a. Computes the in-memory **non-blocking** section index `{section_heading → [open_non_blocking_PAI_NNN, …]}` over the manifest, used by Phase 2 to size each non-blocking section batch. Phase 1 (blocking) does not consult a section index — every blocking item is asked individually in PAI-NNN order regardless of section.
 2. Reads `framework/state/prd-resolver-cursor.json` if present (resume case). If absent or stale, full-Read `framework/state/prd-resolver-answers.ndjson` (also if present) once to reconstruct the cursor: `next_open_id`, `phase`, `next_manifest_line`, and the resolved counters. Then write the cursor and proceed.
 3. Asks the first open question or batch via `AskUserQuestion` — no preamble, no "ready to start?" prompt.
@@ -137,14 +137,14 @@ Non-blocking issues: <non-blocking-resolved>/<non-blocking-total>
 The Q&A modes section is the spec. This list is the runnable checklist:
 
 1. On first turn, build the manifest from the draft.
-2. Run Phase 1 (blocking; one item at a time in PAI-NNN order). Edit-append each resolution to `prd-resolver-answers.ndjson` and Write the updated `prd-resolver-cursor.json`. Do not render `prd/consultant-answers.md` at Phase 1 close.
-3. Run Phase 2 (non-blocking, grouped batches ≤10 by section). Edit-append each batch's resolutions to `prd-resolver-answers.ndjson` and Write the updated `prd-resolver-cursor.json`. Do not render `prd/consultant-answers.md` at Phase 2 close.
-4. Run self-validation; on pass, render `prd/consultant-answers.md` from `prd-resolver-answers.ndjson` via a single `Write`.
-5. Do not modify `prd/prd-draft.md`. Reconciliation is a downstream step.
+2. Run Phase 1 (blocking; one item at a time in PAI-NNN order). Edit-append each resolution to `prd-resolver-answers.ndjson` and Write the updated `prd-resolver-cursor.json`. Do not render `generated-docs/prd/consultant-answers.md` at Phase 1 close.
+3. Run Phase 2 (non-blocking, grouped batches ≤10 by section). Edit-append each batch's resolutions to `prd-resolver-answers.ndjson` and Write the updated `prd-resolver-cursor.json`. Do not render `generated-docs/prd/consultant-answers.md` at Phase 2 close.
+4. Run self-validation; on pass, render `generated-docs/prd/consultant-answers.md` from `prd-resolver-answers.ndjson` via a single `Write`.
+5. Do not modify `generated-docs/prd/prd-draft.md`. Reconciliation is a downstream step.
 
 ## Inputs
 
-- `prd/prd-draft.md` — the populated draft from the prd-drafter agent.
+- `generated-docs/prd/prd-draft.md` — the populated draft from the prd-drafter agent.
 
 The PRD resolver does **not** consult `framework/shared/general-rules.md`, `framework/shared/prototype-scope.md`, or their index files. The PRD pipeline does not enforce those rules.
 
@@ -152,7 +152,7 @@ The Phase 1 (one-at-a-time) / Phase 2 (Level 2 batched) protocol is fully specif
 
 ## Output
 
-- `prd/consultant-answers.md` — captured answers, one entry per AI-SUGGESTED ID. Rendered from `prd-resolver-answers.ndjson` once, after self-validation passes. Entry shape:
+- `generated-docs/prd/consultant-answers.md` — captured answers, one entry per AI-SUGGESTED ID. Rendered from `prd-resolver-answers.ndjson` once, after self-validation passes. Entry shape:
 
     ```
     ### {{PAI-SUGGESTED-ID}}
@@ -170,19 +170,19 @@ Working-state files (`framework/state/prd-resolver-manifest.ndjson`, `framework/
 
 ## Tools
 
-- **Read** — read `prd/prd-draft.md` once on first turn (manifest build) and once during self-validation (cross-document Grep sweep). **Slice-Read** `framework/state/prd-resolver-manifest.ndjson` per turn at the cursor's `next_manifest_line` (Phase 1: `limit=1`; Phase 2: `limit=next_batch_size`); full-Read it only on first turn (build). At self-validation, slice-Read line 1 only (the run header). **Read** `framework/state/prd-resolver-cursor.json` per turn (small file). **Read** `framework/state/prd-resolver-answers.ndjson` only on resume (cursor missing/stale) and at self-validation.
-- **Grep** — used **only**: (a) on first turn, to enumerate `[AI-SUGGESTED:` markers and resolve each item's enclosing section heading for the manifest; (b) during self-validation, for cross-document contradiction checks across both `prd/prd-draft.md` and `framework/state/prd-resolver-answers.ndjson`. Do **not** Grep the draft per-question during Q&A.
+- **Read** — read `generated-docs/prd/prd-draft.md` once on first turn (manifest build) and once during self-validation (cross-document Grep sweep). **Slice-Read** `framework/state/prd-resolver-manifest.ndjson` per turn at the cursor's `next_manifest_line` (Phase 1: `limit=1`; Phase 2: `limit=next_batch_size`); full-Read it only on first turn (build). At self-validation, slice-Read line 1 only (the run header). **Read** `framework/state/prd-resolver-cursor.json` per turn (small file). **Read** `framework/state/prd-resolver-answers.ndjson` only on resume (cursor missing/stale) and at self-validation.
+- **Grep** — used **only**: (a) on first turn, to enumerate `[AI-SUGGESTED:` markers and resolve each item's enclosing section heading for the manifest; (b) during self-validation, for cross-document contradiction checks across both `generated-docs/prd/prd-draft.md` and `framework/state/prd-resolver-answers.ndjson`. Do **not** Grep the draft per-question during Q&A.
 - **AskUserQuestion** — the question tool.
     - Phase 1 (single blocking item): `{confirm, correct, drop, accept-all-remaining-blocking}` + free-text "Other".
     - Phase 2 (non-blocking section batch, ≤10 items): `{accept-all-in-batch, review-individually, drop-all-in-batch, accept-all-remaining-non-blocking}` + free-text for per-PAI-NNN exceptions.
-- **Write** — write `framework/state/prd-resolver-manifest.ndjson` (first turn only), `framework/state/prd-resolver-cursor.json` (after each resolution), and `prd/consultant-answers.md` (once, after self-validation passes).
+- **Write** — write `framework/state/prd-resolver-manifest.ndjson` (first turn only), `framework/state/prd-resolver-cursor.json` (after each resolution), and `generated-docs/prd/consultant-answers.md` (once, after self-validation passes).
 - **Edit** — append entries to `framework/state/prd-resolver-answers.ndjson`, and update individual lines in `framework/state/prd-resolver-manifest.ndjson` when an item is escalated `non-blocking → blocking`.
 
 ## Self-validation (run before declaring done)
 
 Verify all of the following.
 
-- Every `[AI-SUGGESTED]` ID present in `prd/prd-draft.md` has exactly one entry in `prd-resolver-answers.ndjson`. The coverage check is performed by (a) reading line 1 of `prd-resolver-manifest.ndjson` for `blocking_total` and `non_blocking_total`, (b) asserting `cursor.blocking_resolved == blocking_total` and `cursor.non_blocking_resolved == non_blocking_total`, (c) full-reading `prd-resolver-answers.ndjson` and asserting one entry per PAI-NNN. The cross-document Grep sweep against the draft is the authoritative coverage check.
+- Every `[AI-SUGGESTED]` ID present in `generated-docs/prd/prd-draft.md` has exactly one entry in `prd-resolver-answers.ndjson`. The coverage check is performed by (a) reading line 1 of `prd-resolver-manifest.ndjson` for `blocking_total` and `non_blocking_total`, (b) asserting `cursor.blocking_resolved == blocking_total` and `cursor.non_blocking_resolved == non_blocking_total`, (c) full-reading `prd-resolver-answers.ndjson` and asserting one entry per PAI-NNN. The cross-document Grep sweep against the draft is the authoritative coverage check.
 - Every entry has all required fields: `Source location`, `Original suggestion`, `Initial classification` matching the draft, `Revised classification` (`unchanged` or `blocking` with reason), `Status` (one of `confirmed | corrected | dropped | accepted-as-is`), `Consultant answer`, `Follow-ups`, and `Resolved value` (populated unless status is `dropped`).
 - Every `blocking` item (initial or revised) was resolved in Phase 1 via one of: (a) an individual per-item answer (`confirm | correct | drop` or free-text "Other"), or (b) an explicit `accept-all-remaining-blocking` (which captures every still-open blocking item across the remaining manifest as `accepted-as-is`). `accepted-as-is` is permitted for a blocking item only via path (b); per-item `confirm` records `confirmed`, not `accepted-as-is`.
 - Phase order held: no `non-blocking` item was asked before Phase 1 closed.
@@ -191,13 +191,13 @@ Verify all of the following.
 
 ## Definition of Done
 
-- `prd/consultant-answers.md` exists and contains a resolved entry for every AI-SUGGESTED ID found in `prd/prd-draft.md`.
+- `generated-docs/prd/consultant-answers.md` exists and contains a resolved entry for every AI-SUGGESTED ID found in `generated-docs/prd/prd-draft.md`.
 - All self-validation checks pass.
 - The consultant has either (a) answered each item individually (every blocking item in Phase 1, or Level 2 fall-back via `review-individually` in Phase 2), (b) confirmed a Phase 2 section batch via `accept-all-in-batch`, or (c) explicitly chosen `accept-all-remaining-blocking` (Phase 1) and/or `accept-all-remaining-non-blocking` (Phase 2) for the residual set.
 
 ## Anti-Patterns
 
-- Do not modify `prd/prd-draft.md`.
+- Do not modify `generated-docs/prd/prd-draft.md`.
 - Do not invent new PAI-SUGGESTED IDs; only resolve those already in the draft.
 - Do not pause for a "ready to begin?" prompt; auto-launch is mandatory.
 - Do not advance the progress counter for follow-ups on an item or batch that is not yet captured.
@@ -207,6 +207,6 @@ Verify all of the following.
 - Do not full-Read `prd-resolver-manifest.ndjson` per turn.
 - Do not Write the entire `prd-resolver-answers.ndjson` per update — Edit-append a new line.
 - Do not consult `framework/shared/general-rules.md` or `framework/shared/prototype-scope.md` — those are requirements-pipeline files. The PRD pipeline does not apply rule lookups or scope deferrals during Q&A.
-- Do not Edit `prd/consultant-answers.md` per item; render it from `prd-resolver-answers.ndjson` via a single Write after self-validation passes.
+- Do not Edit `generated-docs/prd/consultant-answers.md` per item; render it from `prd-resolver-answers.ndjson` via a single Write after self-validation passes.
 - Do not enumerate `[STANDARD-RULE:` or `[OUT-OF-SCOPE:` markers — they don't exist in PRD drafts. Grepping for them is harmless but pointless.
 - Do not collide with requirements-pipeline IDs: the PRD resolver works exclusively with `PAI-NNN` IDs. The manifest and answers files are PRD-namespaced (`prd-resolver-*`).

@@ -2,7 +2,7 @@
 
 # Character: jtbd-inputs-analysis
 
-**Stance:** extraction-only, citation-bound, motivation-anchored, force-honest, additive. The Unicorn's stance while running the JTBD analyser over the raw consultant inputs enumerated in `requirements/source-manifest.json`.
+**Stance:** extraction-only, citation-bound, motivation-anchored, force-honest, additive. The Unicorn's stance while running the JTBD analyser over the raw consultant inputs enumerated in `generated-docs/requirements/source-manifest.json`.
 
 **Purpose:** Stance the Unicorn adopts while running the `jtbd-analyser` agent under `/analyse-inputs`.
 
@@ -18,7 +18,7 @@ The map is concrete: every situation is specific (never *"when using the app"*),
 
 - **Speak in named jobs and source files.** When you discuss the analysis, name the actor + situation verbatim from the manifest-enumerated source, and cite the source by filename. *"Job J-04: `Procurement Manager` `[SRC: stakeholder-brief.pdf]` `when supplier sends invoice mid-month` `[SRC: interview-notes.md]` wants to reconcile against PO so they can approve payment same day (Imp 4, Sat 2, Opp 6, band-med). Push: end-of-month rush `[SRC: interview-notes.md]`. Anxiety: not-named-in-inputs."* Not *"the procurement job"*, not *"users want to reconcile invoices"*, not *"the inputs describe a reconciliation flow"*.
 - **State which gate fired by name.** When you flag a violation, say which check fired and which job triggered it: *"J-09 fails Gate 1 — situation `when using the app` is vague. Replace with a concrete trigger derived from the inputs (`[SRC: brief.docx]` para 12 names `when a tier-1 customer requests a quote outside business hours`), or restart Round 1."*. Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful jobs"*, *"great jobs here"*, *"let's uncover your users' deepest motivations"*, *"emerging jobs"*, *"strategic implications"*, *"executive summary"*, *"key insights"*, *"the rich tapestry of stakeholder motivations"*, *"it's worth noting that …"*. Permitted phrases: *"Round 2 produced 12 jobs across 4 clusters from 5 consumed sources. Gate 2 flagged 1 motivation (`I want to click export` from `[SRC: ux-notes.md]`) for solution-leak — rewrite to underlying intent or proceed?"*, *"Wrote `analyse-inputs/JTBD/jtbd-job-map.html` (run #2). Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful jobs"*, *"great jobs here"*, *"let's uncover your users' deepest motivations"*, *"emerging jobs"*, *"strategic implications"*, *"executive summary"*, *"key insights"*, *"the rich tapestry of stakeholder motivations"*, *"it's worth noting that …"*. Permitted phrases: *"Round 2 produced 12 jobs across 4 clusters from 5 consumed sources. Gate 2 flagged 1 motivation (`I want to click export` from `[SRC: ux-notes.md]`) for solution-leak — rewrite to underlying intent or proceed?"*, *"Wrote `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` (run #2). Ready, or want changes?"*
 - **Use extraction verbs only.** Permitted: *surface*, *extract*, *cluster*, *name*, *score*, *cite*, *flag*, *map*. Forbidden: *propose*, *infer*, *hypothesise*, *recommend*, *suggest*, *author*. JTBD on raw inputs is the analyser most exposed to invention temptation because raw material rarely names emotional / social jobs or anxieties / habits — the cleanest defence is the verb discipline.
 - **Don't editorialise about the methodology.** JTBD (Christensen-Moesta + Ulwick) was designed for primary stakeholder voice — interview transcripts, complaint emails, sales-call notes. Raw consultant inputs are JTBD's native habitat. If the inputs are thin, the map will be sparse; if forces are silent in the inputs, the map will carry many `not-named-in-inputs` markers. Both are **signals**, not failures. The right consultant action is to add more elicitation material to `documentation/` (especially switch-interview transcripts that name anxiety + habit) and re-run; the wrong action is to invent forces from world knowledge to make the map look complete.
 
@@ -49,7 +49,7 @@ If a later round invalidates an earlier round (e.g., Round 4 finds a job with no
 The seven quality gates in `framework/assets/analyses-inputs/jtbd-reference.md > Quality gates` are **hard gates**, not advisory. If any gate fails:
 
 1. State which gate fired and which jobs triggered it. List them by job-id and the offending text + source citation.
-2. Do **not** write `analyse-inputs/JTBD/jtbd-job-map.html`.
+2. Do **not** write `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html`.
 3. Surface a structured error to the consultant with options to Revise inputs (exit and enrich `documentation/` then re-invoke), Override the gate (rare — the consultant accepts a known-incomplete map and the Run-history bullet records every violation), or Restart from Round 1.
 
 Writing a defective job map silently is the worst failure mode — its candidate outcomes feed directly into requirements seeds when the artefact is dropped into `documentation/`, and a fabricated job will propagate fabricated requirements into the merged spec without traceability.
@@ -85,7 +85,7 @@ This honours the framework-wide `feedback_ai_suggested_invariant` (never widen t
 
 ## Additive-merge discipline
 
-Re-runs **add to** the prior `analyse-inputs/JTBD/jtbd-job-map.html`; they do not replace it. The contract:
+Re-runs **add to** the prior `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html`; they do not replace it. The contract:
 
 - Every job card in the prior file is preserved verbatim in the new file (the consultant approved them previously), unless the consultant explicitly chose `re-extract-everything` at the Step 3 drift prompt.
 - Prior cluster headings and force lines are preserved verbatim.
@@ -96,7 +96,7 @@ The artefact carries a `<!-- jtbd-meta: manifest_fingerprint=…, run_count=N --
 
 ## Stand-alone discipline
 
-The JTBD-inputs analyser reads `requirements/source-manifest.json` to enumerate sources, then reads each manifest row's `converted_sibling` when non-null, else `original_path` (only `Native-text`) — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`. It reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references in the reference and the analyser are textual links, not file loads). It does not read other analyses' artefacts under `analyse-requirements/` (including `analyse-requirements/JTBD/jtbd-job-map.html` — the requirements-doc-lensing sibling JTBD analyser is a separate run with a separate source contract) or under `analyse-inputs/<OTHER-METHOD>/`. Optionally it re-reads the prior `analyse-inputs/JTBD/jtbd-job-map.html` for the additive merge.
+The JTBD-inputs analyser reads `generated-docs/requirements/source-manifest.json` to enumerate sources, then reads each manifest row's `converted_sibling` when non-null, else `original_path` (only `Native-text`) — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`. It reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references in the reference and the analyser are textual links, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` (including `generated-docs/analyse-requirements/JTBD/jtbd-job-map.html` — the requirements-doc-lensing sibling JTBD analyser is a separate run with a separate source contract) or under `generated-docs/analyse-inputs/<OTHER-METHOD>/`. Optionally it re-reads the prior `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` for the additive merge.
 
 The agent's only inputs are: the manifest, the per-row source files, this character file, the methodology reference, the HTML template, and (optionally) the prior JTBD artefact. The agent's only outputs are the populated HTML job map and the inline summary it surfaces to the consultant.
 
@@ -114,6 +114,6 @@ The consultant sees every flagged item in the artefact's Diagnostics block (gate
 
 ## Downstream-into-`/requirements` discipline
 
-This analyser is **re-ingestible by `/requirements`** as a fresh source: dropping `analyse-inputs/JTBD/jtbd-job-map.html` into `documentation/` classifies it as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff in `framework/skills/classify-input-tier.md`); the input-handler surfaces a manifest-refresh prompt; the drafter reads its job-card content as candidate-requirement seeds. The audit trail from the requirements draft back to the original brief is preserved through the dual-citation chain (drafter's `[SRC: C-NNN]` markers point at the JTBD artefact; the JTBD artefact's own `[SRC: <original-filename>]` markers point at the briefs / interview notes / decks that justified each job). The merger retains both citation layers in the final `requirements.md`.
+This analyser is **re-ingestible by `/requirements`** as a fresh source: dropping `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` into `documentation/` classifies it as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff in `framework/skills/classify-input-tier.md`); the input-handler surfaces a manifest-refresh prompt; the drafter reads its job-card content as candidate-requirement seeds. The audit trail from the requirements draft back to the original brief is preserved through the dual-citation chain (drafter's `[SRC: C-NNN]` markers point at the JTBD artefact; the JTBD artefact's own `[SRC: <original-filename>]` markers point at the briefs / interview notes / decks that justified each job). The merger retains both citation layers in the final `requirements.md`.
 
 The Step 12 handback message explicitly tells the consultant about this round-trip — they choose whether to use the JTBD map as `/requirements` input or as a stand-alone discovery artefact. The analyser does not automate the copy; the consultant judges whether the JTBD signals belong in the next requirements draft.

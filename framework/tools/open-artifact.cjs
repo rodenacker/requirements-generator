@@ -51,15 +51,15 @@ const { pathToFileURL } = require('url');
 // Deliberately NOT matched:
 //   wireframes/<slug>/<variant>/screen-NN-*.html  (3 segments — index.html is
 //     the comparator's entry point and links to these on click)
-//   design-system/.workspace/**                   (transient styler scratch)
-//   design-system/design-system.html              (legacy, no longer authored)
+//   generated-docs/design-system/.workspace/**      (transient styler scratch)
+//   generated-docs/design-system/design-system.html (legacy, no longer authored)
 //   prototypes/** framework/** template/** documentation/**
 const ALLOW = [
-  /^analyse-requirements\/[^/]+\/[^/]+\.html$/,
-  /^analyse-inputs\/[^/]+\/[^/]+\.html$/,
-  /^review-requirements\/[^/]+\/[^/]+\.html$/,
-  /^review-inputs\/[^/]+\/[^/]+\.html$/,
-  /^design-system\/design-system-(light|dark)\.html$/,
+  /^generated-docs\/analyse-requirements\/[^/]+\/[^/]+\.html$/,
+  /^generated-docs\/analyse-inputs\/[^/]+\/[^/]+\.html$/,
+  /^generated-docs\/review-requirements\/[^/]+\/[^/]+\.html$/,
+  /^generated-docs\/review-inputs\/[^/]+\/[^/]+\.html$/,
+  /^generated-docs\/design-system\/design-system-(light|dark)\.html$/,
   /^wireframes\/[^/]+\/index\.html$/,
 ];
 
@@ -293,7 +293,7 @@ function selfTest(argv) {
     cwd: REPO_ROOT,
     hook_event_name: 'PostToolUse',
     tool_name: 'Write',
-    tool_input: { file_path: path.join(REPO_ROOT, 'analyse-inputs', 'SELFTEST', 'selftest.html') },
+    tool_input: { file_path: path.join(REPO_ROOT, 'generated-docs', 'analyse-inputs', 'SELFTEST', 'selftest.html') },
   });
 
   const shells = discoverShells();

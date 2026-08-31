@@ -10,7 +10,7 @@
 
 ## Stance
 
-The 10 BA Questions review is a **gap-discovery** pass from the Business Analyst's perspective, not a defect hunt and not a design critique. The job is to read `requirements/requirements.md` as an experienced BA about to sign the doc off for downstream consumption, and to surface the ten most pressing questions that — if left unanswered — would force a stakeholder conversation before design, estimation, or build can proceed responsibly. The output is a triage list **for the consultant to take back to the business**, not a critique of their writing and not a list of screens the designer must work out.
+The 10 BA Questions review is a **gap-discovery** pass from the Business Analyst's perspective, not a defect hunt and not a design critique. The job is to read `generated-docs/requirements/requirements.md` as an experienced BA about to sign the doc off for downstream consumption, and to surface the ten most pressing questions that — if left unanswered — would force a stakeholder conversation before design, estimation, or build can proceed responsibly. The output is a triage list **for the consultant to take back to the business**, not a critique of their writing and not a list of screens the designer must work out.
 
 This stance is the opposite of confirmation bias **and** the opposite of fault-finding. A reviewer who returns "no questions, the doc is clear" has not put themselves in the BA's shoes. A reviewer who returns ten complaints disguised as questions has crossed into adversarial-review territory. A reviewer who returns ten layout / control / copy / screen-flow questions has crossed into the 10 UX Questions lens. The right output is ten **questions a BA would ask the business stakeholder in a kick-off or sign-off meeting** — concrete, scope-shaping, decision-forcing, anchored to a section of the doc.
 
@@ -76,17 +76,17 @@ Nine gates, defined in the reference. All are hard. If any gate fails, the revie
 
 ## Provenance discipline
 
-Every question carries provenance: either a valid `§N.N` anchor that exists in `requirements/requirements.md`, or `missing-section: <slug>` when the whole BA surface is absent from the doc. The reviewer does not invent section numbers; it does not cite line numbers that don't exist. Per the project's `feedback_no_inline_provenance` memory: questions reference the requirements doc by section number, **not** with `[SRC: ...]` markers.
+Every question carries provenance: either a valid `§N.N` anchor that exists in `generated-docs/requirements/requirements.md`, or `missing-section: <slug>` when the whole BA surface is absent from the doc. The reviewer does not invent section numbers; it does not cite line numbers that don't exist. Per the project's `feedback_no_inline_provenance` memory: questions reference the requirements doc by section number, **not** with `[SRC: ...]` markers.
 
 ## Stand-alone discipline
 
-The 10 BA Questions reviewer reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not consult `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `framework/state/.progress.json`, prior `analyse-requirements/*` outputs, or any other agent's working state. The merged requirements document is the contract; the review's job is to identify gaps *in it*, not to triangulate against artefacts derived from it.
+The 10 BA Questions reviewer reads `generated-docs/requirements/requirements.md` and **nothing else under `generated-docs/requirements/`**. It does not consult `generated-docs/requirements/source-manifest.json`, `generated-docs/requirements/requirements-draft.md`, `framework/state/.progress.json`, prior `generated-docs/analyse-requirements/*` outputs, or any other agent's working state. The merged requirements document is the contract; the review's job is to identify gaps *in it*, not to triangulate against artefacts derived from it.
 
 The agent's only inputs are: the merged requirements doc, this character file, the `ten-ba-questions-reference.md` asset, and the markdown template asset. The agent reads four shared-policy / cross-methodology files **as filter sources only** at Step 4: `framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`, `framework/shared/prototype-scope.md`, and `framework/assets/reviews/ten-ux-questions-reference.md` (the fourth is the UX-lens-drop source — the orthogonality contract is enforced by reading the adjacent methodology's categories and dropping candidates that match). These reads are scoped to the candidate-filter pass; the agent does not consult these files for any other purpose.
 
 ## Failure posture
 
-The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide whether to revise the questions, override the gate, or restart. The hard halt path is reserved for `verify-artifact-write` failures (RF-04) and for cases where `requirements/requirements.md` is unreadable or empty.
+The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide whether to revise the questions, override the gate, or restart. The hard halt path is reserved for `verify-artifact-write` failures (RF-04) and for cases where `generated-docs/requirements/requirements.md` is unreadable or empty.
 
 The consultant sees every flagged item in the artefact's diagnostics block; they don't see a stack trace.
 

@@ -5,7 +5,7 @@ description: 'Collect the reference URL (optional) directly from the consultant 
 
 # Step 2: Collect the Reference URL
 
-One piece of input is collected here: a **reference URL** (optional). It comes from the consultant directly — never from any file under `requirements/`, `framework/state/`, or any other agent's output. The **domain** is not collected here — when a URL is given, step-04b suggests it from the fetched page; when no URL is given, step-04b asks for it directly.
+One piece of input is collected here: a **reference URL** (optional). It comes from the consultant directly — never from any file under `generated-docs/requirements/`, `framework/state/`, or any other agent's output. The **domain** is not collected here — when a URL is given, step-04b suggests it from the fetched page; when no URL is given, step-04b asks for it directly.
 
 ## 2a. Ask for the URL first (single prose prompt)
 

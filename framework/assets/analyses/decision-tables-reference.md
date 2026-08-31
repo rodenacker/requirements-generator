@@ -2,13 +2,13 @@
 
 # Decision Tables / Business-Rules Catalogue (DMN) analysis reference
 
-> **Method:** Find every **decision** in `requirements/requirements.md` — a point where the system reads some condition values and reaches a conclusion (a field becomes required, an action is enabled, a request is routed, an applicant qualifies) — and re-cast each as a **DMN decision table**: condition columns, a conclusion column, one rule per row, and an explicit **hit policy**. Then run the two analyses the tabular form makes mechanical: **completeness** (every reachable combination of the conditions' enumerable values is assigned an outcome) and **consistency** (no two rules assign conflicting outcomes to an overlapping input region). The tables become the form-validation, conditional-visibility, and action-enablement spec the screens enforce; the gaps and conflicts become resolver questions before wireframing.
+> **Method:** Find every **decision** in `generated-docs/requirements/requirements.md` — a point where the system reads some condition values and reaches a conclusion (a field becomes required, an action is enabled, a request is routed, an applicant qualifies) — and re-cast each as a **DMN decision table**: condition columns, a conclusion column, one rule per row, and an explicit **hit policy**. Then run the two analyses the tabular form makes mechanical: **completeness** (every reachable combination of the conditions' enumerable values is assigned an outcome) and **consistency** (no two rules assign conflicting outcomes to an overlapping input region). The tables become the form-validation, conditional-visibility, and action-enablement spec the screens enforce; the gaps and conflicts become resolver questions before wireframing.
 
-**Output file:** `analyse-requirements/DECISION-TABLES/decision-tables.html` — a self-contained HTML artefact (no external CSS/JS, no `<script>`, no CDN, no Mermaid runtime; opens via `file://`). **Diagrams-first** section order: Overview → TOC → Diagrams (decision-health strip + Decision Requirements Diagram) → Tables (decision tables + completeness register + consistency register + business-rules catalogue) → Diagnostics.
+**Output file:** `generated-docs/analyse-requirements/DECISION-TABLES/decision-tables.html` — a self-contained HTML artefact (no external CSS/JS, no `<script>`, no CDN, no Mermaid runtime; opens via `file://`). **Diagrams-first** section order: Overview → TOC → Diagrams (decision-health strip + Decision Requirements Diagram) → Tables (decision tables + completeness register + consistency register + business-rules catalogue) → Diagnostics.
 
 **Re-ingestion:** the artefact embeds a `<pre><code class="language-json" id="decision-tables-body">` model that survives the markitdown HTML→MD round-trip as a fenced ```json block. A consultant may re-drop the HTML into `documentation/`; `/requirements` then ingests the structured rule model, and every completeness gap marked `[AI-SUGGESTED: AI-NNN | blocking]` reaches the resolver as a mandatory confirmation. This is the load-bearing downstream contract — distinct from the sidecar (below).
 
-**Sidecar:** `analyse-requirements/DECISION-TABLES/decision-tables.sidecar.json` — per `framework/assets/analyses/sidecar-schema.md`. Exposes the **`upstream-only`** role (the blueprint-architect does not consume decision-table rules at MVP; the analysis is a requirements-improvement aid like `five-whys` and `mvp-slicing`). Emitting it keeps `sidecar_present == true` so selecting this lens in `/wireframe` never trips the `RF-09` legacy-prose fallback.
+**Sidecar:** `generated-docs/analyse-requirements/DECISION-TABLES/decision-tables.sidecar.json` — per `framework/assets/analyses/sidecar-schema.md`. Exposes the **`upstream-only`** role (the blueprint-architect does not consume decision-table rules at MVP; the analysis is a requirements-improvement aid like `five-whys` and `mvp-slicing`). Emitting it keeps `sidecar_present == true` so selecting this lens in `/wireframe` never trips the `RF-09` legacy-prose fallback.
 
 **Analyser agent:** `framework/agents/analyses/decision-tables-analyser.md`
 
@@ -141,7 +141,7 @@ Some conditional rules are really **entity status-transition guards**, which the
 - If a rule's **conclusion is a status transition** (it moves an entity from one lifecycle state to another) → it belongs to STATE-DIAGRAM. **Exclude it**, and note `see STATE-DIAGRAM` in diagnostics.
 - If a rule governs **validation / conditional requiredness / visibility / enablement / derivation / eligibility / routing** (the conclusion is a field or action state, a value, or a route — not a state change) → it belongs **here**.
 
-The analyser MAY `Glob`+`Read` `analyse-requirements/STATE-DIAGRAM/state-diagram.html` if it exists, purely as a convenience seed to recognise which conditions are transition guards — exactly as `crud-coverage` optionally reads OOUX/DATA-MODEL. It is **never required**, never a dependency, and the lane rule is applied analytically whether or not the STATE-DIAGRAM artefact is present.
+The analyser MAY `Glob`+`Read` `generated-docs/analyse-requirements/STATE-DIAGRAM/state-diagram.html` if it exists, purely as a convenience seed to recognise which conditions are transition guards — exactly as `crud-coverage` optionally reads OOUX/DATA-MODEL. It is **never required**, never a dependency, and the lane rule is applied analytically whether or not the STATE-DIAGRAM artefact is present.
 
 ---
 
@@ -207,7 +207,7 @@ If a later round invalidates an earlier one (Round 3 reveals a condition Round 2
 
 ## Sidecar projection (downstream context-cost optimisation)
 
-Per `framework/assets/analyses/sidecar-schema.md`, the analyser writes `analyse-requirements/DECISION-TABLES/decision-tables.sidecar.json` exposing exactly the **`upstream-only`** role (per `framework/skills/select-supporting-analyses.md > Static method → architect_roles mapping`):
+Per `framework/assets/analyses/sidecar-schema.md`, the analyser writes `generated-docs/analyse-requirements/DECISION-TABLES/decision-tables.sidecar.json` exposing exactly the **`upstream-only`** role (per `framework/skills/select-supporting-analyses.md > Static method → architect_roles mapping`):
 
 ```json
 { "architect_projection": { "upstream-only": { "notes": "Decision-tables is a requirements-improvement aid; the blueprint-architect does not consume the rule model at MVP. Re-ingestion into /requirements is via the embedded JSON body block, not this sidecar." } } }

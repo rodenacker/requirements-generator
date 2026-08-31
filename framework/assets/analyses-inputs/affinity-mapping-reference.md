@@ -2,14 +2,14 @@
 
 # analyses-inputs/affinity-mapping-reference.md
 
-**Purpose:** Methodology reference for **bottom-up affinity diagramming** (Kawakita 1967 KJ method; Beyer & Holtzblatt 1997 *Contextual Design*) applied to **raw consultant inputs** enumerated via `requirements/source-manifest.json`. The analyser follows this document literally and exhaustively.
+**Purpose:** Methodology reference for **bottom-up affinity diagramming** (Kawakita 1967 KJ method; Beyer & Holtzblatt 1997 *Contextual Design*) applied to **raw consultant inputs** enumerated via `generated-docs/requirements/source-manifest.json`. The analyser follows this document literally and exhaustively.
 
 **Used by:**
 
 - `framework/agents/analyses-inputs/affinity-mapping-analyser.md` — drives the agent's six-round process plus the ten-check quality sweep.
 - `framework/skills/map-affinity-mapping-from-inputs-to-ui.md` — uses the cluster + super-theme structure (specifically the embedded JSON body block) to derive feature-area / vision-anchor / out-of-scope / trade-off signals for downstream consumers (stub).
 
-**Output produced by the analyser:** `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — self-contained HTML artefact carrying:
+**Output produced by the analyser:** `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — self-contained HTML artefact carrying:
 
 - A compact overview header with jump-links and a meta-grid (counts + manifest fingerprint).
 - A primary **pre-rendered inline-SVG mindmap** (the diagram-first deliverable — geometry computed by the analyser at render time, no client-side Mermaid runtime) with the `mindmap` source kept as a collapsed `<pre class="mermaid-source">` export adjunct (survives markitdown round-trip as a fenced code block).
@@ -21,7 +21,7 @@
 - A small `<script type="application/json" id="affinity-map-meta">` block in `<head>` carrying counts and the manifest fingerprint (consumed by the drift-detection logic on subsequent runs; not relied on by `/requirements` since markitdown strips `<script>` blocks).
 - A collapsed diagnostics block (Pass-1 vs Pass-2 Jaccard drift log, ten gate results, thin-cluster flags, recommended follow-up questions, run history).
 
-**Sibling:** none on the requirements side. Affinity mapping is intentionally an inputs-side-only methodology because the merged `requirements/requirements.md` has already imposed structure — running affinity mapping on it would surface clusters of the structure, not of the consultant's claims. The closest workspace sibling is `framework/assets/analyses-inputs/thematic-analysis-reference.md` (Braun & Clarke six-phase), which operates at the level of *codes* clustered into *themes* with a deductive coverage check; affinity mapping operates one layer below that — at the level of **atomic notes** clustered by **conceptual similarity** with no deductive frame and no fixed stopping rule.
+**Sibling:** none on the requirements side. Affinity mapping is intentionally an inputs-side-only methodology because the merged `generated-docs/requirements/requirements.md` has already imposed structure — running affinity mapping on it would surface clusters of the structure, not of the consultant's claims. The closest workspace sibling is `framework/assets/analyses-inputs/thematic-analysis-reference.md` (Braun & Clarke six-phase), which operates at the level of *codes* clustered into *themes* with a deductive coverage check; affinity mapping operates one layer below that — at the level of **atomic notes** clustered by **conceptual similarity** with no deductive frame and no fixed stopping rule.
 
 ---
 
@@ -59,7 +59,7 @@ Affinity mapping is the right tool when the corpus is messy enough that the cons
 
 ## Upstream input contract
 
-Affinity mapping on the inputs side is **a bottom-up synthesis lens onto raw consultant material**, not a re-clustering of an already-coded corpus. The analyser starts from `requirements/source-manifest.json` and reads every row whose `tier != "Unsupported"`:
+Affinity mapping on the inputs side is **a bottom-up synthesis lens onto raw consultant material**, not a re-clustering of an already-coded corpus. The analyser starts from `generated-docs/requirements/source-manifest.json` and reads every row whose `tier != "Unsupported"`:
 
 - `Native-text` → read `row.original_path` as text.
 - `Native-multimodal` / `Vector-renderable` → read `row.converted_sibling` — a frozen textual description of the visual prepared by the input-handler; it already enumerates the visible text + structurally significant observations (object labels on diagrams, screen artefact text, whiteboard contents). Treat it as the canonical text source; do **not** re-interpret pixels. The boundary: a note's text must be supported by what is *literally present* in the description, not extrapolated.

@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **t
 
 ## Purpose
 
-Produce `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — a self-contained, dependency-free HTML artefact (`<!doctype html>` + one inline `<style>`; no external CSS/JS, no CDN, no `<script>` behaviour, no client-side Mermaid runtime) populated from `framework/assets/analyses-inputs/template-thematic-analysis.html` by `{{PLACEHOLDER}}` string substitution, carrying:
+Produce `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — a self-contained, dependency-free HTML artefact (`<!doctype html>` + one inline `<style>`; no external CSS/JS, no CDN, no `<script>` behaviour, no client-side Mermaid runtime) populated from `framework/assets/analyses-inputs/template-thematic-analysis.html` by `{{PLACEHOLDER}}` string substitution, carrying:
 
 - An **Overview** (`<h1 id="top">` + `dl.meta-grid`: Domain, Generated timestamp, **Manifest SHA-256**, run count, counts).
 - A **`<script type="application/json" id="thematic-analysis-meta">`** head block carrying the additive-merge cursor (`manifest_sha256`, `run_count`) — the markitdown-stripped drift cursor (the HTML analogue of the former `<!-- thematic-meta: ... -->` line).
@@ -66,18 +66,18 @@ The Braun & Clarke (2006) six phases map to twelve workflow steps. The mapping i
 
 This agent reads:
 
-- `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
+- `generated-docs/requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
 - For each manifest row whose `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null (`Supported-via-MCP`, `Native-multimodal`, `Vector-renderable`), else `original_path` (`Native-text`).
-- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` (read once in Step 3 if present, for additive merge).
+- `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` (read once in Step 3 if present, for additive merge).
 - `framework/assets/analyses-inputs/template-thematic-analysis.html` (the HTML template scaffold — read once in Step 1, substituted at Step 10).
 - `framework/assets/characters/thematic-analysis-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/thematic-analysis-reference.md` (the methodology — read once in Step 1).
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references are textual, not file loads). It does not read other analyses' artefacts under `analyse-requirements/` or under `analyse-inputs/<OTHER-METHOD>/`.
+The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references are textual, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` or under `generated-docs/analyse-inputs/<OTHER-METHOD>/`.
 
 Thematic Analysis populates the HTML template `framework/assets/analyses-inputs/template-thematic-analysis.html` by `{{PLACEHOLDER}}` substitution; it pre-renders the theme-map as inline `<svg>` in the `#diagrams` section and keeps the `graph TD` Mermaid source as an adjacent collapsed export `<details>`. No client-side Mermaid runtime, no CDN, no external CSS/JS.
 
-The agent's only outputs are `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -91,17 +91,17 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 - Read `framework/assets/analyses-inputs/thematic-analysis-reference.md` once. The reference defines what to do in each phase; treat it as authoritative.
 - Read `framework/assets/analyses-inputs/template-thematic-analysis.html` once. This is the HTML scaffold populated at Step 10 by `{{PLACEHOLDER}}` substitution; study its placeholder list, the theme-map SVG schema, the mermaid-block adjunct, the JSON body block, and the diagnostics schema in the leading comment.
 - Apply the human-readability standard from the character's `## Reader & plain language` section (canonical in `framework/shared/output-readability.md`). It is additive — it does not relax any gate or quality check above. Concretely: write the `{{PLAIN_SUMMARY}}` lead (2–5 plain-English sentences; faithful condensation; no new fact, count, or citation; no `[SRC]` of its own); gloss methodology jargon at first use in any human-readable prose (theme, code, inductive/deductive coding, code frequency, saturation); never gloss client domain terms; keep every `[SRC: <filename>]` marker.
-- State readiness in one short line: *"Thematic-analysis analyser ready. Starting from `requirements/source-manifest.json`. Methodology: Braun & Clarke (2006) six-phase thematic analysis adapted for software-requirements inputs — inductive Phases 1–5 generate themes; Phase 6 adds a theme-to-requirement-candidates bridge and a deductive coverage check against the 10-area concern frame. Codes are anchored to verbatim extracts via `[SRC: <filename>]`; coverage gaps surface as `[GAP-DEDUCTIVE: <concern>]` markers, never as invented themes."*
-- Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, and `framework/shared/` are not loaded."*
+- State readiness in one short line: *"Thematic-analysis analyser ready. Starting from `generated-docs/requirements/source-manifest.json`. Methodology: Braun & Clarke (2006) six-phase thematic analysis adapted for software-requirements inputs — inductive Phases 1–5 generate themes; Phase 6 adds a theme-to-requirement-candidates bridge and a deductive coverage check against the 10-area concern frame. Codes are anchored to verbatim extracts via `[SRC: <filename>]`; coverage gaps surface as `[GAP-DEDUCTIVE: <concern>]` markers, never as invented themes."*
+- Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `generated-docs/requirements/requirements.md`, `framework/state/`, and `framework/shared/` are not loaded."*
 
 ### Step 2 — Read manifest & per-tier file ingest
 
-- `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's header line and the cursor field.
+- `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's header line and the cursor field.
 - Parse the manifest. Iterate rows; for each row, apply the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. The description already carries a faithful transcription plus a structured what/how breakdown (objects, fields, relationships, actors, tasks, flows, states, business rules, advisory IA/layout/styling), so it supplies the observations and codes this analyser generates. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with the structured error: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
+- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with the structured error: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud:
 
@@ -109,12 +109,12 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
-- Attempt to `Read analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`. If absent, set `prior_run = null` and skip to Step 4.
+- Attempt to `Read generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`. If absent, set `prior_run = null` and skip to Step 4.
 - If present:
   - Parse the `<script type="application/json" id="thematic-analysis-meta">` head block. Extract `manifest_sha256` (hex string) and `run_count` (integer ≥ 1). (This block survives in the on-disk HTML even though markitdown strips it on HTML→MD conversion; the analyser reads the HTML directly here, so the block is available.)
   - Walk the body to enumerate every theme card (`<article class="theme-card">` / its `<h3>` label under `#themes`) and parse the embedded `language-json` body block (`id="thematic-analysis-body"`) for the structured prior model; record `prior_themes_by_label: Dict[label, {definition, codes[], candidate_requirements[]}]` so the merge can preserve bodies verbatim. The JSON body block is the authoritative prior-state source; the rendered cards are the human-readable mirror.
   - Validate the meta-block values parse cleanly. If they do not, surface `AskUserQuestion`:
-    - Question: *"The prior `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` has an unparseable `thematic-analysis-meta` head block (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
+    - Question: *"The prior `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` has an unparseable `thematic-analysis-meta` head block (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
     - Header: `Prior run`
     - Options: `Start fresh — ignore the unreadable prior file (Recommended)`, `Abort — let me inspect`.
   - On `Start fresh`: set `prior_run = null`; advance to Step 4.
@@ -122,7 +122,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - On successful parse: drift gate via `AskUserQuestion`:
     - **Hash equal** (current `manifest_fingerprint` == `prior_run.manifest_fingerprint`): no drift prompt; set `drift_mode = "none"`; advance to Step 4. (Pure additive widening on top of an unchanged manifest still adds new codes only if a prior consumed source has been edited externally — uncommon; the default behaviour is fine.)
     - **Hash different**: surface the prompt:
-      - Question: *"`requirements/source-manifest.json` has changed since the last thematic analysis (prior fingerprint: `{prior.manifest_fingerprint[:12]}…`, current: `{current_fingerprint[:12]}…`). How should this run reconcile?"*
+      - Question: *"`generated-docs/requirements/source-manifest.json` has changed since the last thematic analysis (prior fingerprint: `{prior.manifest_fingerprint[:12]}…`, current: `{current_fingerprint[:12]}…`). How should this run reconcile?"*
       - Header: `Drift`
       - Options:
         1. `Append new codes only — preserve every prior theme verbatim; cluster new codes into existing themes or seed new ≥ 2-code themes (Recommended)`
@@ -324,11 +324,11 @@ The SHA-256 computed at the end of Sub-step B is final — the theme-map is a pr
 
 ### Step 11 — Write + verify-artifact-write
 
-- Ensure the output directory exists: `Bash mkdir -p analyse-inputs/THEMATIC-ANALYSIS` (on Windows-only environments, the PowerShell-equivalent `New-Item -ItemType Directory -Force analyse-inputs/THEMATIC-ANALYSIS` may be used; the orchestrator's environment determines which shell is in use — use whichever the orchestrator's prior steps used).
-- `Write analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` with the in-memory composed HTML string.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`, `expected_sha256 = <Step 10 sha>`, `expected_min_bytes = 3000`. The self-contained HTML scaffold (inline `<style>` + Overview + theme-map SVG + ≥ 1 Theme card + JSON body block + Diagnostics) clears 3 KB comfortably.
+- Ensure the output directory exists: `Bash mkdir -p generated-docs/analyse-inputs/THEMATIC-ANALYSIS` (on Windows-only environments, the PowerShell-equivalent `New-Item -ItemType Directory -Force generated-docs/analyse-inputs/THEMATIC-ANALYSIS` may be used; the orchestrator's environment determines which shell is in use — use whichever the orchestrator's prior steps used).
+- `Write generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` with the in-memory composed HTML string.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`, `expected_sha256 = <Step 10 sha>`, `expected_min_bytes = 3000`. The self-contained HTML scaffold (inline `<style>` + Overview + theme-map SVG + ≥ 1 Theme card + JSON body block + Diagnostics) clears 3 KB comfortably.
 - **On `pass`:** advance to Step 12 (Handback).
-- **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` after one retry."* and fail handback. The orchestrator does not declare done.
+- **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` after one retry."* and fail handback. The orchestrator does not declare done.
 
 ### Step 12 — Handback (Accept / Revise / Restart)
 
@@ -336,7 +336,7 @@ The SHA-256 computed at the end of Sub-step B is final — the theme-map is a pr
 
 Output one short, concrete line listing the run's counts, the quality-check result, and the coverage shape. Template:
 
-> *"Wrote `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` (run #{run_count}) — {len(final_themes)} themes, {len(codes)} codes, {len(candidate_requirements)} candidate-requirements across {len(consumed_rows)} sources. Coverage frame: {n_covered} covered, {n_gap} gap-deductive, {n_silent} silent. Quality checks: 6/6 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` (run #{run_count}) — {len(final_themes)} themes, {len(codes)} codes, {len(candidate_requirements)} candidate-requirements across {len(consumed_rows)} sources. Coverage frame: {n_covered} covered, {n_gap} gap-deductive, {n_silent} silent. Quality checks: 6/6 pass. Ready, or want changes?"*
 
 Variants:
 
@@ -369,7 +369,7 @@ Use `AskUserQuestion`:
   - **Drop a coverage gap** ("the `NFR` gap is out of scope — accept as silent"): re-classify the entry from `gap-deductive` to `silent` (with a Run-history note that the consultant explicitly accepted this gap); re-render; re-Write; re-verify; loop back to A. Note: the consultant cannot **invent** coverage — they may only re-classify a `gap-deductive` to `silent`, never the reverse.
   - **Toggle code nodes in the theme-map** ("include codes in the theme-map"): set the `include-codes` flag; re-render **both** the inline-SVG theme-map (add `node-code` circles + `edge-theme-code` paths) **and** the adjacent Mermaid source (`c<j>((<code_label>))` nodes + `T<i> --> c<j>` edges); re-Write; re-verify; loop back to A.
   - **Add an Override note** for a previously-failed gate: append the note to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
-- **Restart** — re-enter Step 4 (Phase 1). The previously-written `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` is left in place; the next Step 11 will overwrite it.
+- **Restart** — re-enter Step 4 (Phase 1). The previously-written `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` is left in place; the next Step 11 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10 / Step 11).
 
@@ -381,9 +381,9 @@ Output the final handback line:
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2. The orchestrator's Step 1 input-handler invocation guarantees its presence.
+- `generated-docs/requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2. The orchestrator's Step 1 input-handler invocation guarantees its presence.
 - Each manifest row's read-path per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `converted_sibling` when non-null (`Supported-via-MCP` / `Native-multimodal` / `Vector-renderable`), else `original_path` (`Native-text`). Read in Step 2.
-- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — the prior run's artefact. Read once in Step 3 if present; absent on first run.
+- `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — the prior run's artefact. Read once in Step 3 if present; absent on first run.
 - `framework/assets/analyses-inputs/template-thematic-analysis.html` — the HTML template scaffold. Read once in Step 1; populated by `{{PLACEHOLDER}}` substitution at Step 10.
 - `framework/assets/characters/thematic-analysis-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/thematic-analysis-reference.md` — the methodology reference. Read once in Step 1.
@@ -393,14 +393,14 @@ Output the final handback line:
 
 ## Output
 
-- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior theme cards + the JSON body model preserved verbatim unless the consultant chose the `re-extract-everything` drift branch).
+- `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior theme cards + the JSON body model preserved verbatim unless the consultant chose the `re-extract-everything` drift branch).
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the HTML template scaffold (`framework/assets/analyses-inputs/template-thematic-analysis.html`), the manifest, each manifest-enumerated source file (via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path`), and (if present) the prior thematic-analysis artefact, plus the skills it invokes (`framework/skills/render-layered-tree-svg.md` at Step 10B and `framework/skills/verify-artifact-write.md` at Step 11). **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`.
+- `Read` — read the character file, the reference asset, the HTML template scaffold (`framework/assets/analyses-inputs/template-thematic-analysis.html`), the manifest, each manifest-enumerated source file (via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path`), and (if present) the prior thematic-analysis artefact, plus the skills it invokes (`framework/skills/render-layered-tree-svg.md` at Step 10B and `framework/skills/verify-artifact-write.md` at Step 11). **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyse-inputs/THEMATIC-ANALYSIS` (Step 11 setup). No other Bash usage.
+- `Bash` — `mkdir -p generated-docs/analyse-inputs/THEMATIC-ANALYSIS` (Step 11 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta header is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-check failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
 
 The theme-map is a pre-rendered inline SVG composed by the analyser; the Mermaid source is embedded as an unvalidated export adjunct. There is no `mmdc` / Mermaid-render dependency and no external rendering pipeline.
@@ -411,7 +411,7 @@ The theme-map is a pre-rendered inline SVG composed by the analyser; the Mermaid
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholder tokens.
 - The artefact begins with `<!doctype html>` and is self-contained: exactly one inline `<style>`, no `<script src=…>`, no external stylesheet `<link>`, no CDN URL, no client-side Mermaid runtime, and no `<script>` behaviour other than the head `<script type="application/json" id="thematic-analysis-meta">` data block.
 - The artefact's DOM order (top to bottom) is: `<section id="plain-terms">` **first** (with a non-empty `<p>`) → `<section id="overview">` → `<nav class="toc">` → legend-bar → `<section id="diagrams">` (the inline-SVG theme-map is the first **visual** after the lead) → `<section id="themes">` → `<section id="candidates">` → `<section id="coverage">` → `{{BODY_JSON_BLOCK}}` → collapsed `#diagnostics` `<details>` → `<details class="downstream-toggle">` → `<footer>`. No section precedes `#plain-terms`.
@@ -430,13 +430,13 @@ Before handing back, verify all of the following against the written artefact an
 - The Diagnostics **Consumed** source-roster table has one row per `consumed_rows` entry; the **Skipped** table has one row per `skipped_rows` entry; together they account for every manifest row.
 - The Diagnostics `ul.run-history` contains exactly `run_count` bullets; the last bullet's timestamp is today's date.
 - No occurrence of the literal string `[AI-SUGGESTED]` anywhere in the artefact.
-- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
 
 ## Definition of Done
 
-- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` exists, has been verified, and contains a complete thematic analysis in DOM order: `<section id="plain-terms">` first (non-empty `<p>` with `{{PLAIN_SUMMARY}}` substituted, no `[SRC]` markers, methodology jargon glossed at first use), then Overview (with Manifest SHA-256), TOC ("In plain terms" is the first `<li>`), legend bar, Diagrams (pre-rendered inline-SVG theme-map — the first **visual** — above the Mermaid-source export `<details>`), Themes (≥ 1), Theme-to-requirement candidates, Coverage (10 entries across covered/gap/silent), the `language-json` body block (model + candidate-requirements), the Diagnostics `<details>` (source roster + run history), and the collapsed `<details class="downstream-toggle">` footer.
+- `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` exists, has been verified, and contains a complete thematic analysis in DOM order: `<section id="plain-terms">` first (non-empty `<p>` with `{{PLAIN_SUMMARY}}` substituted, no `[SRC]` markers, methodology jargon glossed at first use), then Overview (with Manifest SHA-256), TOC ("In plain terms" is the first `<li>`), legend bar, Diagrams (pre-rendered inline-SVG theme-map — the first **visual** — above the Mermaid-source export `<details>`), Themes (≥ 1), Theme-to-requirement candidates, Coverage (10 entries across covered/gap/silent), the `language-json` body block (model + candidate-requirements), the Diagnostics `<details>` (source roster + run history), and the collapsed `<details class="downstream-toggle">` footer.
 - Either all 6 hard quality gates passed, or the consultant explicitly chose Override and the run-history bullet for this run records every violation.
 - Every theme appears as a node in the pre-rendered inline SVG theme-map and in the `graph TD` Mermaid export source (embedded as an unvalidated export adjunct).
 - Additive-merge contract honoured: every prior-run theme card is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract-everything` drift branch re-clustered it away with a run-history note).
@@ -445,7 +445,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Anti-Patterns
 
-- **Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files.** The stand-alone-ish constraint is the agent's most load-bearing invariant. The merged `requirements/requirements.md` is not an input to this analyser; thematic analysis operates on raw material, not on synthesised requirements.
+- **Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files.** The stand-alone-ish constraint is the agent's most load-bearing invariant. The merged `generated-docs/requirements/requirements.md` is not an input to this analyser; thematic analysis operates on raw material, not on synthesised requirements.
 - **Do not read `framework/state/` or `framework/shared/` for any purpose.** Pipeline state and shared rules are not thematic-analysis inputs.
 - **Do not invent themes from the deductive coverage check.** Coverage gaps surface as `[GAP-DEDUCTIVE: <concern>]` markers in the Diagnostics section. A "Compliance" theme that no inductive code supports is the worst failure mode — it propagates an analyst hallucination into downstream requirements seeds.
 - **Do not author codes from world knowledge.** Every code carries ≥ 1 `[SRC: <filename>]` and an extract that is verbatim from the source. Paraphrasing the extract is not allowed; if the source phrasing is unclear, the code label can be cleaner than the extract, but the extract is a verbatim lift.

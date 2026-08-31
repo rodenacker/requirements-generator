@@ -2,9 +2,9 @@
 
 # State Diagram analysis reference
 
-> **Method:** Extract a **per-entity state-diagram catalogue** (entities, states, internal activities, transitions, events, cross-entity state coverage matrix) from `requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered entities to add as inline-SVG `<figure>` blocks. Same data, the visuals are views onto the state machines already listed in the catalogue.
+> **Method:** Extract a **per-entity state-diagram catalogue** (entities, states, internal activities, transitions, events, cross-entity state coverage matrix) from `generated-docs/requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered entities to add as inline-SVG `<figure>` blocks. Same data, the visuals are views onto the state machines already listed in the catalogue.
 
-**Output file:** `analyse-requirements/STATE-DIAGRAM/state-diagram.html` — a self-contained HTML artefact containing the per-entity tabular catalogue (always) plus zero or more inline-SVG state-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `generated-docs/analyse-requirements/STATE-DIAGRAM/state-diagram.html` — a self-contained HTML artefact containing the per-entity tabular catalogue (always) plus zero or more inline-SVG state-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/state-diagram-analyser.md`
 
@@ -86,7 +86,7 @@ Each SVG carries:
 
 ## Source-of-truth hierarchy
 
-The analyser walks `requirements/requirements.md` in this order:
+The analyser walks `generated-docs/requirements/requirements.md` in this order:
 
 1. **`§2.3 Aggregates & lifecycles`** — primary. Each aggregate root becomes a candidate entity. State names mentioned in the lifecycle text (*"draft → submitted → approved"*) become candidate states. Inline phrases like *"on entering Submitted, …"* become entry activities; *"while Processing, …"* become do activities. Transitions stated verbatim (*"a Draft order becomes Submitted when the user clicks Submit"*) become candidate transitions with `trigger = clickSubmit`.
 2. **`§7 Data entities`** — supplementary. Every entity carrying a `status` field with an enum becomes a candidate entity if not already discovered via `§2.3`. Enum values become candidate states; provenance `derived-from-§7`.
@@ -299,7 +299,7 @@ Richer inputs → richer catalogue. Methodology degrades gracefully: with thin `
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyse-requirements/STATE-DIAGRAM/state-diagram.html`. The analyser populates `framework/assets/analyses/template-state-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `generated-docs/analyse-requirements/STATE-DIAGRAM/state-diagram.html`. The analyser populates `framework/assets/analyses/template-state-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 
@@ -308,7 +308,7 @@ The artefact is a single self-contained HTML file at `analyse-requirements/STATE
 | `{{TITLE}}` | *"State Diagrams — `<domain>`"* if `§1` declares a domain, else *"State Diagrams"*. |
 | `{{DOMAIN}}` | Verbatim from `§1 Application context > Domain`, else *"(not declared in requirements.md)"*. |
 | `{{GENERATED_AT}}` | ISO-8601 UTC, captured at render time. |
-| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `requirements/requirements.md` captured at Step 2. |
+| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `generated-docs/requirements/requirements.md` captured at Step 2. |
 | `{{ENTITY_COUNT}}` | Number of rows in the Entities table. |
 | `{{STATE_COUNT}}` | Number of rows in the States table (across all entities, including initial/final pseudostates). |
 | `{{TRANSITION_COUNT}}` | Number of rows in the Transitions table (across all entities). |

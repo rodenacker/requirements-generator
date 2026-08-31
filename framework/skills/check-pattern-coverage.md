@@ -119,7 +119,7 @@ Return the structured payload from the **Outputs** section above. The caller (bl
 
 - Do not propose a pattern not in the catalogue index. The skill's job is to match existing patterns to surfaces, not to invent new ones. AI-SUGGESTED gaps go in `ai_suggested_gaps`, not into `candidate_patterns`.
 - Do not skip the `when-not-to-use` block when evaluating a candidate. A pattern whose purpose is adjacent but whose `when-not-to-use` explicitly rules out the surface's intent is **foreclosed**, not `borderline`.
-- Do not consult `requirements/requirements.md` directly. The blueprint is the contract; the architect has already propagated the relevant requirement IDs and their summaries into the blueprint. Reading the requirements doc from this skill would couple it to a single pipeline's source layout and break cross-pipeline reuse.
+- Do not consult `generated-docs/requirements/requirements.md` directly. The blueprint is the contract; the architect has already propagated the relevant requirement IDs and their summaries into the blueprint. Reading the requirements doc from this skill would couple it to a single pipeline's source layout and break cross-pipeline reuse.
 - Do not surface an `AskUserQuestion`. The skill returns a structured verdict; the caller decides whether to gate.
 - Do not write any file. The skill is read-only; even a debug log would couple it to a single caller's filesystem layout.
 - Do not raise the intent heuristics' specificity opportunistically when one blueprint pushes back. The heuristics are project-wide tuning; calibrate them across runs, not for one surface that happened to confuse the matcher.

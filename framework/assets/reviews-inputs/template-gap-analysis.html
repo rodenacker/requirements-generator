@@ -47,7 +47,7 @@
     {{DOMAIN}}                 — domain string (best-effort: from any source carrying a
                                  recognisable domain heading; otherwise "(not declared in inputs)")
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}   — sha256 of requirements/source-manifest.json at Step 2 read time
+    {{MANIFEST_FINGERPRINT}}   — sha256 of generated-docs/requirements/source-manifest.json at Step 2 read time
     {{TOPICS_FINGERPRINT}}     — sha256 of framework/assets/topics-requirements.md at Step 3 read time
     {{TARGET}}                 — manifest's `target` value ("prototype" | "application" | "(unset)")
     {{REVIEWER_IDENTITY}}      — fixed string "Gap Analysis (template-bijection delta, inputs-side)"
@@ -77,7 +77,7 @@
                                  carrier; full schema in the reference §11
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: review-inputs/GAP-ANALYSIS/gap-analysis.html.
+  Output: generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html.
 
   HEATMAP SCHEMA — the {{COVERAGE_HEATMAP_SVG}} is a single <svg> element rendered inline:
 

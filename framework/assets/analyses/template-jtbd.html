@@ -41,7 +41,7 @@
     {{TITLE}}                       — short title (e.g. "JTBD Job Map — Project X")
     {{DOMAIN}}                      — domain string (from requirements §1 if present)
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
-    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
+    {{REQUIREMENTS_SHA256}}         — sha256 of generated-docs/requirements/requirements.md at read time
     {{JOB_COUNT}}                   — total jobs on the map
     {{CLUSTER_COUNT}}               — total clusters
     {{FUNCTIONAL_COUNT}}            — count of type=functional jobs
@@ -54,7 +54,7 @@
     {{JOB_CLUSTERS}}                — pre-rendered <section class="job-cluster">
                                       blocks per the JOB CARD SCHEMA below.
 
-  Output: analyse-requirements/JTBD/jtbd-job-map.html.
+  Output: generated-docs/analyse-requirements/JTBD/jtbd-job-map.html.
 
   JOB CARD SCHEMA — each card the analyser emits has the shape:
 

@@ -2,8 +2,8 @@
   ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/glossary-analyser.md.
 
   Purpose: HTML/CSS skeleton for the Glossary report, INPUT-ANALYSIS variant — analyses raw
-  consultant material enumerated in `requirements/source-manifest.json` (not the synthesised
-  `requirements/requirements.md`). Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`).
+  consultant material enumerated in `generated-docs/requirements/source-manifest.json` (not the synthesised
+  `generated-docs/requirements/requirements.md`). Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`).
   No external CSS/JS, NO Mermaid, NO CDN, NO `<script>`; viewable by opening `file://` in a browser;
   shareable with clients without tooling. Readability-optimised; reads as a lookup reference.
 
@@ -60,7 +60,7 @@
     {{TITLE}}                     — short title (e.g. "Glossary — Inputs — Project X")
     {{DOMAIN}}                    — domain string (best-effort: manifest `target`/brief)
     {{GENERATED_AT}}              — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}      — sha256 of requirements/source-manifest.json at read time
+    {{MANIFEST_FINGERPRINT}}      — sha256 of generated-docs/requirements/source-manifest.json at read time
     {{SOURCE_COUNT}}              — count of consumed manifest rows (tier != "Unsupported")
     {{TIER_BREAKDOWN}}            — e.g. "3 Native-text, 1 Supported-via-MCP"
     {{TOTAL_TERM_COUNT}}          — count of core-glossary terms (domain + application)
@@ -89,7 +89,7 @@
                                     carrying manifest_fingerprint=<sha256>, run_count=<int>.
                                     Step 3 prior-artefact detection parses the first match.
 
-  Output: analyse-inputs/GLOSSARY/glossary.html.
+  Output: generated-docs/analyse-inputs/GLOSSARY/glossary.html.
 
   ----------------------------------------------------------------------------------------------
   TERM CARD SCHEMA — {{DOMAIN_GLOSSARY_BLOCK}} / {{APPLICATION_GLOSSARY_BLOCK}} are one <article> per
@@ -511,7 +511,7 @@
 
     <section id="overview">
       <h1>{{TITLE}}</h1>
-      <p class="subtitle">Glossary (input-analysis variant) — one agreed vocabulary for the system's specification and design, drawn from the raw consultant inputs enumerated in <code>requirements/source-manifest.json</code>. Each term is classified <strong>domain</strong> (problem space) or <strong>application</strong> (solution space), defined from the inputs (cited), and rated 0&ndash;4 for how settled its shared understanding is. Where the inputs leave a term undefined, weak, synonymous, or conflicting, a <strong>proposed</strong> definition or canonical resolution is offered (amber, blocking) for you to confirm. The aim: a usable, agreed glossary <code>/requirements</code> and design can rely on.</p>
+      <p class="subtitle">Glossary (input-analysis variant) — one agreed vocabulary for the system's specification and design, drawn from the raw consultant inputs enumerated in <code>generated-docs/requirements/source-manifest.json</code>. Each term is classified <strong>domain</strong> (problem space) or <strong>application</strong> (solution space), defined from the inputs (cited), and rated 0&ndash;4 for how settled its shared understanding is. Where the inputs leave a term undefined, weak, synonymous, or conflicting, a <strong>proposed</strong> definition or canonical resolution is offered (amber, blocking) for you to confirm. The aim: a usable, agreed glossary <code>/requirements</code> and design can rely on.</p>
 
       <dl class="meta-grid">
         <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>

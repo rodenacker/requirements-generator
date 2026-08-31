@@ -10,7 +10,7 @@ description: 'Orchestrate brand extraction by loading data files together (one b
 # data_shadow_motion_rules: 'framework/agents/design-system-styler/data/shadow-motion-rules.md'
 # data_contrast_validation: 'framework/agents/design-system-styler/data/contrast-validation.md'
 # data_insufficient_handling: 'framework/agents/design-system-styler/data/insufficient-data-handling.md'
-# workspace_path: 'design-system/.workspace'
+# workspace_path: 'generated-docs/design-system/.workspace'
 ---
 
 # Step 5: Brand Extraction (URL-driven)
@@ -19,7 +19,7 @@ description: 'Orchestrate brand extraction by loading data files together (one b
 
 - `{{reference_url}}` is null (consultant skipped the URL), or
 - `{{extraction_status}}` is set to any non-CSS value — `no_url`, `fetch_failed`, `no_css`, `css_fetch_failed`, or `playwright_unavailable` (the RF-06 *Drop URL* / unavailable path), or
-- no `design-system/.workspace/css-content.txt` was written (equivalently, `{{primary_css_content}}` is unavailable).
+- no `generated-docs/design-system/.workspace/css-content.txt` was written (equivalently, `{{primary_css_content}}` is unavailable).
 
 In all those cases, step 5b infers every token per-run from the `{{domain}}` set in step-04b. (Note: `{{extraction_status}}` is not yet `"success"` at this point — step-04 deliberately defers setting it; on the happy path it is unset here and set to `"success"` after extraction.)
 
@@ -27,8 +27,8 @@ In all those cases, step 5b infers every token per-run from the `{{domain}}` set
 
 Read CSS content from disk (not from in-memory state of step-04):
 
-1. Read `design-system/.workspace/css-content.txt` → store as `{{primary_css_content}}`.
-2. Read `design-system/.workspace/metadata.json` → confirm `css_source_type`, `css_source_url`, `reference_url`.
+1. Read `generated-docs/design-system/.workspace/css-content.txt` → store as `{{primary_css_content}}`.
+2. Read `generated-docs/design-system/.workspace/metadata.json` → confirm `css_source_type`, `css_source_url`, `reference_url`.
 
 **If workspace file read fails:**
 
@@ -92,7 +92,7 @@ Apply `font-availability-rules.md` (already loaded) to each family Section 4 **s
 Run its §1 evidence ladder per family, canonicalising the name per §2 before any lookup or probe:
 
 1. **E1** — the evidence is already on disk from step-04, so read it rather than fetching anything:
-   - `design-system/.workspace/computed-tokens.json` → `sources` — a `fonts.googleapis.com` href naming this family proves it is Google-hosted, and its `family=` segment is the canonical spelling. Prefer that spelling over §2's derived one. **Playwright path only** — this file is absent on the WebFetch fallback, in which case skip this bullet rather than treating the missing file as evidence of anything.
+   - `generated-docs/design-system/.workspace/computed-tokens.json` → `sources` — a `fonts.googleapis.com` href naming this family proves it is Google-hosted, and its `family=` segment is the canonical spelling. Prefer that spelling over §2's derived one. **Playwright path only** — this file is absent on the WebFetch fallback, in which case skip this bullet rather than treating the missing file as evidence of anything.
    - `{{primary_css_content}}` (already in memory, both paths) → an `@font-face` for this family whose `src: url(...)` points at a self-hosted or licensed-foundry origin. **Suspicion only — never a verdict.** Many Google-hosted faces are self-hosted; concluding here is the documented way to implement this wrongly.
    - On the **WebFetch fallback** path, expect E1 to resolve rarely: the content is LLM-summarised rather than raw CSS, so `@font-face` blocks and link hrefs are frequently absent. That pushes families to E2/E3, which is the correct outcome — it does **not** license a guess.
 2. **E2** — the curated tables: §4.1 → `google-native`; §3 → `substituted`.

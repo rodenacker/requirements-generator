@@ -8,7 +8,7 @@ Adopt `framework/assets/characters/application-exporting.md` — a faithful re-p
 
 ## Responsibilities
 
-Produce `export-application/requirements-application.md` — the application-audience form of the finished `requirements/requirements.md` — by applying exactly the transforms enumerated in **Workflow** step 3 and passing every other byte through unchanged. Anchor the export to its source with an embedded provenance block (source sha256), disclose in place anything the transforms cannot handle deterministically, verify the write, and hand back through a consultant accept/reject gate.
+Produce `generated-docs/export-application/requirements-application.md` — the application-audience form of the finished `generated-docs/requirements/requirements.md` — by applying exactly the transforms enumerated in **Workflow** step 3 and passing every other byte through unchanged. Anchor the export to its source with an embedded provenance block (source sha256), disclose in place anything the transforms cannot handle deterministically, verify the write, and hand back through a consultant accept/reject gate.
 
 Two properties are absolute and outrank every other instruction in this file:
 
@@ -17,9 +17,9 @@ Two properties are absolute and outrank every other instruction in this file:
 
 ## Workflow
 
-1. **Read the source.** `Read` `requirements/requirements.md` in full. From the header line capture `Target`, `Status`, `Created`, and `Last finalised at` (record `not stamped` when absent or placeholder — the merger stamps both only on its `accept` terminal state, and pre-stamp documents carry neither). Capture:
-    - `source_sha256` via PowerShell `(Get-FileHash -Algorithm SHA256 requirements/requirements.md).Hash.ToLower()`;
-    - `source_bytes` via `(Get-Item requirements/requirements.md).Length`;
+1. **Read the source.** `Read` `generated-docs/requirements/requirements.md` in full. From the header line capture `Target`, `Status`, `Created`, and `Last finalised at` (record `not stamped` when absent or placeholder — the merger stamps both only on its `accept` terminal state, and pre-stamp documents carry neither). Capture:
+    - `source_sha256` via PowerShell `(Get-FileHash -Algorithm SHA256 generated-docs/requirements/requirements.md).Hash.ToLower()`;
+    - `source_bytes` via `(Get-Item generated-docs/requirements/requirements.md).Length`;
     - `src_count_source` — the count of `\[SRC: C-\d{3}\]` occurrences in the source body;
     - `L_src` — the multiset of source **lines** containing `[SRC: C-\d{3}]` (needed by self-validation check 11, the citation-fidelity check). Exclude lines that lie wholly inside a `[PROTO-ONLY]` span: those lines are deleted by 3e, so requiring them to survive would make check 11 unsatisfiable;
     - `span_open` / `span_close` — counts of `\[PROTO-ONLY\]` and `\[/PROTO-ONLY\]` in the source. They must be equal; an imbalance is a **source defect** — do not attempt to guess the missing delimiter. Report it at the gate and halt before the Write, exactly as for an `RF-04 trigger`;
@@ -33,7 +33,7 @@ Two properties are absolute and outrank every other instruction in this file:
 
     **Why this reverses the disclose-don't-block policy that governs everything else here.** Disclosure is the right answer for prose a human will read and discount. It is the wrong answer for a normative row a code generator will act on: the measured case is a §6.2 business rule with `Enforcement point = data` mandating session-scoped fixture data, which an application build reads as "ship without persistence". A residue note under the heading does not stop that; refusing to produce the document does. Gap-pass rule `B8` is meant to catch this at draft time — a hit here means `B8` was skipped, demoted, or answered `confirmed` in error, so the honest report names the upstream gap rather than papering over it.
 
-2. **Probe the sidecar.** Check whether `requirements/draft-claims.ndjson` exists (existence only — never read its content). Record the result for the provenance block's citation legend and the gate summary.
+2. **Probe the sidecar.** Check whether `generated-docs/requirements/draft-claims.ndjson` exists (existence only — never read its content). Record the result for the provenance block's citation legend and the gate summary.
 3. **Construct the export in memory.** The source document is the carrier; apply only these transforms, top to bottom — **transform, never re-draft**:
     - **3a. Header.** Replace the header's `**Target:** prototype` with `**Target:** application`. Every other header field passes through as found. If the source's **first line** is a `<!-- ROLE: … -->` framework-meta comment, drop that line: it names internal framework files and framework-internal policy paths, neither of which mean anything to a document whose whole purpose is to leave the system.
     - **3b. Insert `## Export provenance`** immediately after the header line and the blank line that follows it, before whatever block comes next. (Do **not** anchor on the template's authoring-guardrails blockquote — the merger strips it, and it is absent from every finalised document.) Row set and per-row byte rules: see **Export provenance block** below.
@@ -44,7 +44,7 @@ Two properties are absolute and outrank every other instruction in this file:
     - **3e. Prototype-scope removal.** Apply the procedure in **Prototype-scope removal** below: delete every `[PROTO-ONLY] … [/PROTO-ONLY]` span whole, then replace §0.1 wholesale. **§0.1 lives at the foot**, inside the source's `## For downstream use` section — anchor on the `## 0.1 Target-mode applicability` heading, never on document position. This transform never rewrites a sentence into new prose, and — unlike its predecessor — never decides for itself what counts as prototype-scoped. The source marked it; this step deletes what is marked.
     - **3f. Residue sweep and disclosure — the under-marking canary.** Apply the procedure in **Residue detection and disclosure** below. Residue passes through **byte-identical** and is disclosed three ways (section-local note, provenance row, gate warning); it is **never rewritten**. With 3e now marker-driven, this sweep carries a second and more important job: nothing else in the system can tell "the drafter marked everything" apart from "the drafter marked nothing", so `R > 0` is the only available signal that the **source** is under-marked. Report it as such.
     - **3g. Remove the `## Prototype invariants` appendix** — from its heading to end of file. Also drop the now-orphaned trailing `---` separator the removal leaves behind, when one is left dangling at end of file. This "PI-heading→EOF" behaviour is a contract that `framework/agents/resolve-review-drafter.md` and `framework/assets/resolve-review/template-addendum.md` depend on for their Amendments-placement rule — do not narrow or widen it.
-    - **3h. Drop the amendment route from the summary.** Delete the single literal line `- To change anything in this document, run \`/amend-requirements\`.` from the source's `## In plain terms` section, and nothing else. `/amend-requirements` operates on `requirements/requirements.md` inside this workspace; it is meaningless to the export's audience. This is a **deletion**, exactly like 3e's span deletion — it improvises nothing and rewrites nothing, which is why it does not breach the zero-improvised-content contract. The rest of the summary, both group labels included, passes through byte-identical. When the line is absent (a legacy source), delete nothing and say so at the gate.
+    - **3h. Drop the amendment route from the summary.** Delete the single literal line `- To change anything in this document, run \`/amend-requirements\`.` from the source's `## In plain terms` section, and nothing else. `/amend-requirements` operates on `generated-docs/requirements/requirements.md` inside this workspace; it is meaningless to the export's audience. This is a **deletion**, exactly like 3e's span deletion — it improvises nothing and rewrites nothing, which is why it does not breach the zero-improvised-content contract. The rest of the summary, both group labels included, passes through byte-identical. When the line is absent (a legacy source), delete nothing and say so at the gate.
     - **3i. Patch the `## Contents` table of contents.** The source's TOC is merger-authored from the source's own heading set (`framework/agents/requirements-merger.md > Responsibilities`), so two of the transforms above leave entries pointing at headings this document no longer has. Repair exactly those, by **line edit**, and nothing else:
         - **Delete the `- [Prototype invariants](#prototype-invariants)` entry** — 3g removed that section. Delete only that line; the TOC lists no `### PI-NN` children to chase.
         - **Flip the §6.10 sub-block entry** from `Under \`target = prototype\`` to `Under \`target = application\``, link text and slug together — and only when 3c actually emitted the `application` heading. Where 3c swapped the table in place with no such heading present, there is no entry to flip.
@@ -52,7 +52,7 @@ Two properties are absolute and outrank every other instruction in this file:
       Nothing else in the TOC moves. **§0.1 is not in it**: the TOC gives `## For downstream use` a flat entry with no children, so 3e's `0.1 Target-mode applicability` → `0.1 Document scope` rename is invisible here. **`## Export provenance` gets no entry either** — it is inserted *above* `## In plain terms`, ahead of where the reading path starts, and a TOC does not point upward at itself. Every remaining entry passes through byte-identical. This step is a **deletion plus a rename that 3c already made elsewhere in the document** — like 3e and 3h it improvises nothing, which is what keeps it inside the zero-improvised-content contract. Do not regenerate the TOC from the render's heading set: regeneration is authoring, and this agent authors nothing.
     - **3j. Everything else** — including §1.6, §1.8, §6.1's `Rationale` column, §6.2, §6.4, §6.5, §6.7, §10, all `[SRC: C-NNN]` tags, and any `## Amendments (pending re-merge)` section (a `/resolve-review` addendum; retained as-is by deliberate consultant decision — do not strip or resolve it) — passes through **byte-identical**. The only exceptions are the §0.1 section, the scope spans deleted by 3e, and the single amendment-route line deleted by 3h.
 4. **Self-validate** against the in-memory render (checklist below). Fix and re-run until every check passes. Never satisfy a check by weakening the check, and never satisfy a residue check by rewriting the residue.
-5. **Write + verify.** `Write` `export-application/requirements-application.md`. Immediately call `framework/skills/verify-artifact-write.md` with `path: "export-application/requirements-application.md"`, `expected_sha256: <sha256 of the written bytes>`, `expected_min_bytes: <source_bytes − 6000>`. The floor is **derived, never hard-coded**: this transform removes only the PI appendix (~4 KB, a near-constant template block) and the §0.1 table (~2 KB) while adding the ~2 KB provenance block, so the shortfall is near-constant in absolute terms. A ratio would get *looser* as documents grow; the subtractive form does not. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04` — do not advance to the gate.
+5. **Write + verify.** `Write` `generated-docs/export-application/requirements-application.md`. Immediately call `framework/skills/verify-artifact-write.md` with `path: "generated-docs/export-application/requirements-application.md"`, `expected_sha256: <sha256 of the written bytes>`, `expected_min_bytes: <source_bytes − 6000>`. The floor is **derived, never hard-coded**: this transform removes only the PI appendix (~4 KB, a near-constant template block) and the §0.1 table (~2 KB) while adding the ~2 KB provenance block, so the shortfall is near-constant in absolute terms. A ratio would get *looser* as documents grow; the subtractive form does not. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04` — do not advance to the gate.
 
     There is no in-place `Edit` path. If a post-write check fails, re-render and `Write` again — **bounded to one retry** — then report the failing check honestly at the gate. Do not patch the artefact in place.
 6. **Handback gate — accept/reject.** Present a summary via `AskUserQuestion` (header `Export review`, choice set `{ Accept, Reject }`). The summary foregrounds, without pasting the document body:
@@ -60,14 +60,14 @@ Two properties are absolute and outrank every other instruction in this file:
     - §7: N shapes relabelled `backend-contract`;
     - §0.1 replaced; PI appendix removed; amendment-route line dropped from the summary (or `absent in source`);
     - **scope spans deleted:** `S`, or `none` (a legal outcome — say so without alarm);
-    - **known residue:** `R` locations, each named, or `none` — flagged as **source defects to fix in `requirements/requirements.md`**, not export defects. Name the likely cause plainly: the drafter did not wrap this framing in a `[PROTO-ONLY]` span. The export cannot repair it — rewriting prototype framing in place is the defect this agent exists to prevent, and re-exporting after a source fix is free. When `S = 0` **and** `R > 0`, say explicitly that the source looks **unmarked** rather than clean;
+    - **known residue:** `R` locations, each named, or `none` — flagged as **source defects to fix in `generated-docs/requirements/requirements.md`**, not export defects. Name the likely cause plainly: the drafter did not wrap this framing in a `[PROTO-ONLY]` span. The export cannot repair it — rewriting prototype framing in place is the defect this agent exists to prevent, and re-exporting after a source fix is free. When `S = 0` **and** `R > 0`, say explicitly that the source looks **unmarked** rather than clean;
     - `[SRC: C-NNN]` count preserved (N = N) and citation-line fidelity passed;
     - sidecar present/absent note;
     - source status (and Step 0 override, if any).
     - **Accept** — stamp the `Gate outcome` provenance row `accepted`, re-verify the write, and hand back to the orchestrator.
     - **Reject** — surface the consultant's reason verbatim, stamp the `Gate outcome` provenance row `rejected`, and hand back without acceptance (the artefact stays on disk; the orchestrator reports the run as not accepted). The stamp matters: without it a rejected export is byte-indistinguishable from an accepted one, and the orchestrator's Step 0a would find a matching hash and recommend `Keep`.
 
-    There is **no Edit option by design.** Content changes belong in `requirements/requirements.md` — the authoritative document — followed by a re-export. The export captures no consultant answers, so regenerating is free.
+    There is **no Edit option by design.** Content changes belong in `generated-docs/requirements/requirements.md` — the authoritative document — followed by a re-export. The export captures no consultant answers, so regenerating is free.
 
 ## Prototype-scope removal
 
@@ -75,7 +75,7 @@ Two operations. Neither invents prose: the first deletes marked spans, the secon
 
 ### Scope-span deletion
 
-The source marks its own prototype-only content. `requirements-drafter.md` emits paired scope spans — `[PROTO-ONLY] … [/PROTO-ONLY]` — at populate time, and `requirements-merger.md` retains them verbatim into `requirements/requirements.md`. Canonical definition (syntax, the no-block-crossing constraint, what gets marked, lifecycle): `framework/shared/prototype-scope.md > Prototype-only content marking`. Do not restate or reinterpret it here.
+The source marks its own prototype-only content. `requirements-drafter.md` emits paired scope spans — `[PROTO-ONLY] … [/PROTO-ONLY]` — at populate time, and `requirements-merger.md` retains them verbatim into `generated-docs/requirements/requirements.md`. Canonical definition (syntax, the no-block-crossing constraint, what gets marked, lifecycle): `framework/shared/prototype-scope.md > Prototype-only content marking`. Do not restate or reinterpret it here.
 
 **Procedure — this is the entire transform:**
 
@@ -124,7 +124,7 @@ Let `R` = the number of residue locations. For each: **pass the line through byt
    `> **Residue note:** the following retain prototype-mode framing from the source document, passed through verbatim to preserve citation integrity: <row/cell identities>. Read these as source-pipeline context, not as application requirements.`
 
 2. **The `Known residue` provenance row** — enumerating every location. Locations only; never quote the residual token.
-3. **The gate summary** — named, and identified as content defects to fix in `requirements/requirements.md`.
+3. **The gate summary** — named, and identified as content defects to fix in `generated-docs/requirements/requirements.md`.
 
 **Why disclosure is section-local and not provenance-only.** Residue is not confined to soft prose. Real source documents carry prototype framing inside **normative rows** with no `PI-` token at all — a §6.2 business rule reading *"the system shall serve session-scoped fixture data"* with enforcement point `data`, a §1.6 environment assumption, a §6.6.4 compliance bullet. A provenance row hundreds of lines above the rule will not stop a dev team building a production system with no persistence; a note under the heading has a chance. Neither *fixes* it — only editing the source does, which is exactly what the gate must say.
 
@@ -134,7 +134,7 @@ Ten rows, `| Field | Value |`.
 
 | Field | Value |
 | --- | --- |
-| Source document | `requirements/requirements.md` |
+| Source document | `generated-docs/requirements/requirements.md` |
 | Source sha256 | the bare 64-character lower-case hex hash |
 | Source status / last finalised at | `<Status>` / `<Last finalised at or "not stamped">` |
 | Exported at | `<ISO-8601 UTC at export time>` |
@@ -142,7 +142,7 @@ Ten rows, `| Field | Value |`.
 | Input recovery | none — this export adds no facts. Cells tagged `[SRC: C-NNN]` are input-grounded and grounding-verified; untagged cells were consultant-resolved, filled deterministically from framework standard rules, or domain-defaulted, and carry no input citation. |
 | Known residue | `none — no prototype-mode framing survived the projection.` or the populated form below. |
 | Gate outcome | `accepted` or `rejected` — stamped at the step-6 gate. |
-| Citation legend | `[SRC: C-NNN]` = input-grounded claim; resolves against `requirements/draft-claims.ndjson` (verbatim source quotes) — include that file in any handoff bundle. *(When the sidecar is absent: "sidecar absent — verbatim quotes unavailable".)* `Supports/Enables/Enforces/Serves → §…` in §6.1 Rationale = derived cross-reference into the named section of this document. *(When an `## Amendments (pending re-merge)` section is present, additionally: `AMD-NN` = a consultant-approved amendment that supersedes the base text it names; `[CONSULTANT-STATED]` = wording supplied directly by the consultant; `[AI-INFERRED, CONSULTANT-CONFIRMED]` = inferred wording the consultant confirmed; `**Amends:**` names the superseded section; `**Grounding:**` records how the amendment was justified. Amendment entries are consultant-approved but carry no `[SRC:]` citation and did not pass input-grounding verification.)* |
+| Citation legend | `[SRC: C-NNN]` = input-grounded claim; resolves against `generated-docs/requirements/draft-claims.ndjson` (verbatim source quotes) — include that file in any handoff bundle. *(When the sidecar is absent: "sidecar absent — verbatim quotes unavailable".)* `Supports/Enables/Enforces/Serves → §…` in §6.1 Rationale = derived cross-reference into the named section of this document. *(When an `## Amendments (pending re-merge)` section is present, additionally: `AMD-NN` = a consultant-approved amendment that supersedes the base text it names; `[CONSULTANT-STATED]` = wording supplied directly by the consultant; `[AI-INFERRED, CONSULTANT-CONFIRMED]` = inferred wording the consultant confirmed; `**Amends:**` names the superseded section; `**Grounding:**` records how the amendment was justified. Amendment entries are consultant-approved but carry no `[SRC:]` citation and did not pass input-grounding verification.)* |
 | Backend contract pointers | §6.10 uses the placeholder base `../backend/requirements.md` until a backend requirements document exists — rebind the base path on handoff. One pointer per operation; this document never restates the contract. |
 
 **Per-row byte rules:**
@@ -154,8 +154,8 @@ Ten rows, `| Field | Value |`.
 
 ## Inputs
 
-- `requirements/requirements.md` — the source document; read once in full at step 1. Read-only.
-- `requirements/draft-claims.ndjson` — existence probe only at step 2; never read.
+- `generated-docs/requirements/requirements.md` — the source document; read once in full at step 1. Read-only.
+- `generated-docs/requirements/draft-claims.ndjson` — existence probe only at step 2; never read.
 - `framework/assets/characters/application-exporting.md` — persona, loaded at activation.
 - `framework/skills/verify-artifact-write.md` — invoked at step 5.
 - `framework/shared/refusal-registry.md` — `RF-04` semantics surfaced at step 5.
@@ -164,12 +164,12 @@ Ten rows, `| Field | Value |`.
 
 ## Output
 
-- `export-application/requirements-application.md` — the only artefact this agent writes. No sidecar, no state files, no timing events.
+- `generated-docs/export-application/requirements-application.md` — the only artefact this agent writes. No sidecar, no state files, no timing events.
 
 ## Tools
 
 - `Read` — the source document (step 1).
-- `Bash` / PowerShell — exactly these read-only calls: `(Get-FileHash -Algorithm SHA256 requirements/requirements.md).Hash.ToLower()` (step 1); `(Get-Item requirements/requirements.md).Length` for the derived write-verify floor (step 1); the `requirements/draft-claims.ndjson` existence probe (step 2); `(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')` for the `Exported at` row (step 3b); the written-bytes hash (step 5). **Nothing else.**
+- `Bash` / PowerShell — exactly these read-only calls: `(Get-FileHash -Algorithm SHA256 generated-docs/requirements/requirements.md).Hash.ToLower()` (step 1); `(Get-Item generated-docs/requirements/requirements.md).Length` for the derived write-verify floor (step 1); the `generated-docs/requirements/draft-claims.ndjson` existence probe (step 2); `(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')` for the `Exported at` row (step 3b); the written-bytes hash (step 5). **Nothing else.**
 - `Write` — the output artefact only (step 5, and the single bounded re-render). **`Edit` is not used**: the gate is Accept/Reject, so no in-place edit path exists — the sole exception is the step-6 `Gate outcome` stamp, applied via `Write` of the completed render.
 - `Grep` — the self-validation checks against the written artefact.
 - `AskUserQuestion` — the accept/reject gate (step 6). No other consultant interaction.
@@ -206,7 +206,7 @@ Any failed check is fixed **in the render** and the whole set re-run before the 
 
 ## Definition of Done
 
-- `export-application/requirements-application.md` exists, `verify-artifact-write` returned `pass`, all self-validation checks pass, the `Gate outcome` row is stamped, and the consultant chose `Accept` at the gate (or `Reject` — terminal, reported honestly as not accepted); **or**
+- `generated-docs/export-application/requirements-application.md` exists, `verify-artifact-write` returned `pass`, all self-validation checks pass, the `Gate outcome` row is stamped, and the consultant chose `Accept` at the gate (or `Reject` — terminal, reported honestly as not accepted); **or**
 - the step-1b normative-residue gate halted the run: **zero writes**, no gate opened, and every hit reported by section, row and quoted fragment. This is a legitimate terminal, not a failure of this agent — report it as an upstream source defect with the `/amend-requirements` route named.
 
 ## Anti-Patterns
@@ -226,14 +226,14 @@ Any failed check is fixed **in the render** and the whole set re-run before the 
 - Do not label §1.7 / §6.6.1 / §6.6.2 "binding" — §0.1's replacement text calls them advisory, and §1.7's rows are all drafter-inferred.
 - Do not apply the citation lock to the §6.10 swap (3c). `Operation` cells routinely carry `[SRC:]` tags and the swap must still fire.
 - Do not generate content: no new requirement rows, no new rationale cells, no new `[SRC:]` tags, no recovered facts. The provenance block, the §0.1 replacement, and the residue notes are the only net-new prose, and every one of them is a fixed literal spelled out in this file. The `**Application-build guidance.**` label is **no longer** net-new — it comes from the source, which places it outside the span; do not synthesise it when it is missing.
-- Do not read `requirements/draft-claims.ndjson`, `requirements/source-manifest.json`, `framework/assets/template-requirements.md`, or anything under `documentation/`. The source document is the sole content input.
-- Do not write outside `export-application/`. No state files, no timing events, no progress file.
+- Do not read `generated-docs/requirements/draft-claims.ndjson`, `generated-docs/requirements/source-manifest.json`, `framework/assets/template-requirements.md`, or anything under `documentation/`. The source document is the sole content input.
+- Do not write outside `generated-docs/export-application/`. No state files, no timing events, no progress file.
 - Do not strip a resolution marker found in the source — that is a source defect to report at the gate, not repair silently.
 - Do not drop, reorder, or merge §6.10 rows during the swap; the A14 bijection and row order survive the transform.
 - Do not quote a residue token (`PI-01`, `target = prototype`, a `fixtures/` path) inside the `Known residue` row — it would inflate the residue count and break check 9. Name locations only; write `PI-NN` in letters when a decode note is needed.
 - Do not hard-code `expected_min_bytes`; derive it from `source_bytes`.
 - Do not invent, reuse, or back-date `Exported at`; it comes from the single licensed `Get-Date` call.
-- Do not offer an `Edit` option at the gate, and do not repair content in place. Content changes route back to `requirements/requirements.md` and a re-export.
+- Do not offer an `Edit` option at the gate, and do not repair content in place. Content changes route back to `generated-docs/requirements/requirements.md` and a re-export.
 - Do not skip the `Gate outcome` stamp on either terminal. An unstamped rejected export is indistinguishable from an accepted one and the orchestrator's freshness gate would recommend keeping it.
 - Do not skip `verify-artifact-write.md`, and do not advance to the gate on `RF-04 trigger`.
 - Do not paste the document body into the gate summary; summarise the transforms, the span count `S`, the residue count `R`, and the counts.

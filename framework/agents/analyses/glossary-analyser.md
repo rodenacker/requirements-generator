@@ -6,11 +6,11 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **g
 
 ## Purpose
 
-Produce `analyse-requirements/GLOSSARY/glossary.html` — a self-contained HTML artefact (`<!doctype html>` + ONE inline `<style>`; no external CSS/JS, no CDN, no `<script>`, no Mermaid runtime) carrying:
+Produce `generated-docs/analyse-requirements/GLOSSARY/glossary.html` — a self-contained HTML artefact (`<!doctype html>` + ONE inline `<style>`; no external CSS/JS, no CDN, no `<script>`, no Mermaid runtime) carrying:
 
 - An **Overview** block (`<h1 id="top">` + `dl.meta-grid`: Domain, Generated, Requirements SHA-256, active scope tier, plus term counts — total, defined, used-without-definition, per-category counts, new-this-run, run number).
 - A **sticky TOC**.
-- A **Defined terms** section — one alphabetical `<article class="term-card …">` per term whose definition the analyser found in `requirements/requirements.md`, each carrying a verbatim definition quote + a section citation + a maturity badge (L3 · Settled).
+- A **Defined terms** section — one alphabetical `<article class="term-card …">` per term whose definition the analyser found in `generated-docs/requirements/requirements.md`, each carrying a verbatim definition quote + a section citation + a maturity badge (L3 · Settled).
 - A **Used without explicit definition** section — one alphabetical term card per term whose definition the analyser did not find, carrying use-site citations + a maturity badge (L0 · Undefined). **No analyser-authored gloss.**
 - An **Acronyms and abbreviations** section (cards when scope tier ≥ 2, else an italic tier-placeholder).
 - An **Action terms** section (cards when scope tier ≥ 3, else placeholder).
@@ -46,19 +46,19 @@ The analyser populates the template's `{{PLACEHOLDER}}` slots via string substit
 
 ## Stand-alone-ish constraint
 
-This agent reads `requirements/requirements.md` and the prior `analyse-requirements/GLOSSARY/glossary.html` (if it exists, for additive merge). It reads **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `framework/state/.progress.json`, or any other agent's working state. It also does not read `framework/assets/glossary.md` — that asset is the cross-agent vocabulary reference and is unrelated to this analyser's output.
+This agent reads `generated-docs/requirements/requirements.md` and the prior `generated-docs/analyse-requirements/GLOSSARY/glossary.html` (if it exists, for additive merge). It reads **nothing else under `generated-docs/requirements/`**. It does not read `generated-docs/requirements/source-manifest.json`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `framework/state/.progress.json`, or any other agent's working state. It also does not read `framework/assets/glossary.md` — that asset is the cross-agent vocabulary reference and is unrelated to this analyser's output.
 
 The agent's only inputs are:
 
-- `requirements/requirements.md` (the merged document — read once in Step 2).
-- `analyse-requirements/GLOSSARY/glossary.html` (the prior run's artefact — read once in Step 3 if present, for the additive-merge cursor + prior entries).
+- `generated-docs/requirements/requirements.md` (the merged document — read once in Step 2).
+- `generated-docs/analyse-requirements/GLOSSARY/glossary.html` (the prior run's artefact — read once in Step 3 if present, for the additive-merge cursor + prior entries).
 - `framework/assets/characters/glossary-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses/glossary-reference.md` (the methodology — read once in Step 1).
 - `framework/assets/analyses/template-glossary.html` (the read-only HTML scaffold — read once at Step 9).
 
 Glossary populates the template's `{{PLACEHOLDER}}` slots from in-memory tables; it does not read pipeline-internal artefacts.
 
-The agent's only outputs are `analyse-requirements/GLOSSARY/glossary.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/analyse-requirements/GLOSSARY/glossary.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -71,24 +71,24 @@ Ten steps in order. Do not skip steps; do not collapse steps. Each step's succes
 - Read `framework/assets/characters/glossary-analysis.md` once.
 - Read `framework/assets/analyses/glossary-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
 - Apply the human-readability standard from `framework/assets/characters/glossary-analysis.md > Reader & plain language` (canonical; additive — does not relax any gate or citation rule above). Concretely: produce the `{{PLAIN_SUMMARY}}` placeholder as 2–5 plain-English sentences explaining what this glossary IS — the agreed vocabulary for the project's domain, how many terms are defined, how many are used-but-undefined (flagged), and that the consultant should confirm or correct the proposed definitions. The lead must NOT re-define domain terms; that is the term cards' job. Gloss methodology jargon at first use in the lead and the handback line (e.g. *"used-but-undefined"*, *"scope tier"*, *"provenance"*); never gloss client domain terms — they are this artefact's content. Keep every `[SRC: C-NNN]` marker.
-- State readiness in one short line: *"Glossary analyser ready. Starting from `requirements/requirements.md`. Methodology: domain-vocabulary extraction (Evans 2003 DDD / ISO/IEC/IEEE 24765). Tier scope is strictly cumulative (1 = nouns + roles + statuses → 2 += acronyms → 3 += action verbs → 4 += field names). Definitions are lifted verbatim from the document; terms without an explicit definition are surfaced as gaps — never glossed."*
-- Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only (plus the prior glossary, if present, for additive merge) — no other pipeline state is consulted; `framework/assets/glossary.md` is not loaded."*
+- State readiness in one short line: *"Glossary analyser ready. Starting from `generated-docs/requirements/requirements.md`. Methodology: domain-vocabulary extraction (Evans 2003 DDD / ISO/IEC/IEEE 24765). Tier scope is strictly cumulative (1 = nouns + roles + statuses → 2 += acronyms → 3 += action verbs → 4 += field names). Definitions are lifted verbatim from the document; terms without an explicit definition are surfaced as gaps — never glossed."*
+- Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `generated-docs/requirements/requirements.md` only (plus the prior glossary, if present, for additive merge) — no other pipeline state is consulted; `framework/assets/glossary.md` is not loaded."*
 
 ### Step 2 — Read input
 
-- `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
+- `Read generated-docs/requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's Overview meta-grid `Requirements SHA-256` value, in the `glossary-body` JSON `requirements_sha256`, and in the `last_input_sha256` cursor field of the trailing `<!-- glossary-meta: ... -->` comment.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`generated-docs/requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - Locate the canonical sections (`§1 Application context`, `§2 Domain model`, `§3 Target users`, `§4 User goals & stories`, `§5 Task flows`, `§6 Requirements`, `§7 Data entities`, optional `§8 Prototype invariants`, optional `§9 General rules`). Record which sections are present, which are absent. Record the byte offsets / line ranges of each section so later rounds can grep them efficiently.
 
 ### Step 3 — Detect prior run
 
-- Attempt to `Read analyse-requirements/GLOSSARY/glossary.html`. If absent, set `prior_run = null` and skip to Step 4.
+- Attempt to `Read generated-docs/analyse-requirements/GLOSSARY/glossary.html`. If absent, set `prior_run = null` and skip to Step 4.
 - If present:
   - Parse the trailing `<!-- glossary-meta: ... -->` comment. Extract `last_scope_tier` (integer 1–4), `last_input_sha256` (hex string), `run_count` (integer ≥ 1).
   - Recover the prior entries from the embedded `<code class="language-json" id="glossary-body">` model (the canonical machine-readable record): parse its `terms[]` to build `prior_terms_by_section: Dict[section_name, List[term]]` (key by the term's category-derived section: domain-noun/role/status → defined-or-undefined, acronym → acronyms, action → actions, field → fields) and capture each term's full prior record (definition, citation, use-sites, category, maturity) so Step 7's merge can preserve prior bodies verbatim. (The visible `<article class="term-card">` headwords are a human-facing mirror of the same data; the JSON body is authoritative for the merge.)
   - Validate that the meta-comment values **and** the `glossary-body` JSON parse cleanly. If either does not, surface `AskUserQuestion`:
-    - Question: *"The prior `analyse-requirements/GLOSSARY/glossary.html` has an unparseable glossary-meta comment or machine-readable model (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
+    - Question: *"The prior `generated-docs/analyse-requirements/GLOSSARY/glossary.html` has an unparseable glossary-meta comment or machine-readable model (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
     - Header: `Prior run`
     - Options: `Start fresh — ignore the unreadable prior file (Recommended)`, `Abort — let me inspect`.
   - On `Start fresh`: set `prior_run = null`. (A subsequent run that overwrites the file restores a clean machine-readable model.)
@@ -124,7 +124,7 @@ Capture `active_tier ∈ {1, 2, 3, 4}`.
 
 - If `prior_run == null` or `prior_run.last_input_sha256 == current_sha256` from Step 2: no drift prompt; set `drift_mode = "none"` and advance.
 - Else (the requirements doc has changed since the last run) — surface `AskUserQuestion`:
-  - Question: *"`requirements/requirements.md` has changed since the last glossary run (prior sha256: `{prior.last_input_sha256[:12]}…`, current: `{current_sha256[:12]}…`). How should this run reconcile?"*
+  - Question: *"`generated-docs/requirements/requirements.md` has changed since the last glossary run (prior sha256: `{prior.last_input_sha256[:12]}…`, current: `{current_sha256[:12]}…`). How should this run reconcile?"*
   - Header: `Drift`
   - multiSelect: false
   - Options:
@@ -138,7 +138,7 @@ Capture `active_tier ∈ {1, 2, 3, 4}`.
 
 Per `glossary-reference.md > Round 1` and `> Round 2`:
 
-- Walk `requirements/requirements.md` collecting candidate term tokens at `active_tier`. For each candidate, build the record:
+- Walk `generated-docs/requirements/requirements.md` collecting candidate term tokens at `active_tier`. For each candidate, build the record:
 
   ```
   {
@@ -198,7 +198,7 @@ Per `glossary-reference.md > Quality checks`. Run all 7 hard checks. Each check 
 
 - Do **not** write the artefact.
 - Surface a structured error to the consultant listing every check that fired and every flagged item. Use `AskUserQuestion` with three options:
-  1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`.
+  1. `Revise requirements — exit so the consultant can edit generated-docs/requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`.
   2. `Override — proceed and write a known-incomplete artefact (the Run-history bullet for this run will record every violation)`.
   3. `Restart — re-run from Step 6 (Round 1 / 2) with a fresh extraction`.
 - On **Revise**: hand back to the orchestrator with a `failed-handback` state.
@@ -222,7 +222,7 @@ Read `framework/assets/analyses/template-glossary.html` once. Compose the artefa
 - `{{TITLE}}` = `Glossary — {domain}` (escaped). `{domain}` is verbatim from `§1 Application context > Domain` if present, else `(not declared in requirements.md)`.
 - `{{DOMAIN}}` = the domain string (escaped).
 - `{{GENERATED_AT}}` = ISO-8601 UTC captured at render time.
-- `{{REQUIREMENTS_SHA256}}` = the sha256 captured in Step 2 (reads `requirements/requirements.md`). This same value also fills the `glossary-body` JSON and the trailing `<!-- glossary-meta: ... -->` comment.
+- `{{REQUIREMENTS_SHA256}}` = the sha256 captured in Step 2 (reads `generated-docs/requirements/requirements.md`). This same value also fills the `glossary-body` JSON and the trailing `<!-- glossary-meta: ... -->` comment.
 - `{{SCOPE_TIER}}` = `active_tier`.
 - `{{TOTAL_TERM_COUNT}}`, `{{DEFINED_COUNT}}`, `{{UNDEFINED_COUNT}}`, `{{DOMAIN_NOUN_COUNT}}`, `{{ROLE_COUNT}}`, `{{STATUS_COUNT}}`, `{{ACRONYM_COUNT}}`, `{{ACTION_COUNT}}`, `{{FIELD_COUNT}}` = the corresponding counts from the merged set (counts beyond the active tier are `0`).
 - `{{NEW_THIS_RUN_COUNT}}` = `len(new_terms_added_this_run)`.
@@ -250,11 +250,11 @@ After substitution, compute the SHA-256 of the final HTML byte-string for Step 1
 
 ### Step 10 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p analyse-requirements/GLOSSARY` (on Windows, the PowerShell equivalent: `New-Item -ItemType Directory -Force analyse-requirements/GLOSSARY`. The orchestrator's environment determines which shell is used; use whichever the orchestrator's prior steps used).
-- `Write analyse-requirements/GLOSSARY/glossary.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/GLOSSARY/glossary.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 3000`. The self-contained template (`<!doctype html>` + inline `<style>` + chrome) clears 3 KB before any content; even a first-run tier-1 render with empty-state sections and a minimal `glossary-body` clears it comfortably.
+- Ensure the output directory exists: `Bash mkdir -p generated-docs/analyse-requirements/GLOSSARY` (on Windows, the PowerShell equivalent: `New-Item -ItemType Directory -Force generated-docs/analyse-requirements/GLOSSARY`. The orchestrator's environment determines which shell is used; use whichever the orchestrator's prior steps used).
+- `Write generated-docs/analyse-requirements/GLOSSARY/glossary.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/analyse-requirements/GLOSSARY/glossary.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 3000`. The self-contained template (`<!doctype html>` + inline `<style>` + chrome) clears 3 KB before any content; even a first-run tier-1 render with empty-state sections and a minimal `glossary-body` clears it comfortably.
 - On `pass`: advance to Step 11 (Handback).
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/GLOSSARY/glossary.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `generated-docs/analyse-requirements/GLOSSARY/glossary.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -262,7 +262,7 @@ After substitution, compute the SHA-256 of the final HTML byte-string for Step 1
 
 Output one short, concrete line listing the run's scope tier, the counts, the quality-check result, and the new-entries figure. No marketing language. Template:
 
-> *"Wrote `analyse-requirements/GLOSSARY/glossary.html` (run #{run_count}, tier {active_tier}) — {n_defined}/{n_total} entries carry definitions; {n_undefined} are used without explicit definition. Added {n_new} new entries this run; preserved {n_prior} prior entries. Quality checks: 7/7 pass. Opened in your browser (if not, open it via `file://`); the embedded JSON model keeps the vocabulary machine-readable. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/GLOSSARY/glossary.html` (run #{run_count}, tier {active_tier}) — {n_defined}/{n_total} entries carry definitions; {n_undefined} are used without explicit definition. Added {n_new} new entries this run; preserved {n_prior} prior entries. Quality checks: 7/7 pass. Opened in your browser (if not, open it via `file://`); the embedded JSON model keeps the vocabulary machine-readable. Ready, or want changes?"*
 
 Variants:
 
@@ -292,7 +292,7 @@ Use `AskUserQuestion`:
   - **Re-classify entry** (consultant says "`Approve` should be a defined term, not undefined — see `§6.3`"): re-run Round 2 detection on the specified term against the supplied section ref; if a pattern matches, update `explicit_definition`; re-render; re-Write; re-verify; loop back to A. If no pattern matches at the supplied site, surface the result and offer the consultant the option to drop the entry or accept the consultant's verbatim quote as the definition (records `pattern: "consultant-supplied"` in memory; the citation still resolves to `§N.M`).
   - **Add entry** (consultant points to a term the analyser missed at the active tier): record the consultant's term; run Round 1's lookup and Round 2's detection against it; if the term is lexically present in `requirements.md`, add the entry; if not, refuse and explain (gate 3 — phantom-term).
   - **Refresh entry from current `requirements.md`** (consultant says "re-extract `Order`"): re-run Round 2 detection for that single term against the current document; if a new pattern matches at an earlier document position than the prior one, the body is updated; else the body is left unchanged. Re-render; re-Write; re-verify; loop back to A.
-- **Restart** — re-enter Step 6 (Round 1 / 2). The previously-written `analyse-requirements/GLOSSARY/glossary.html` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 6 (Round 1 / 2). The previously-written `generated-docs/analyse-requirements/GLOSSARY/glossary.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10).
 
@@ -304,22 +304,22 @@ Output the final handback line:
 
 ## Inputs
 
-- `requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
-- `analyse-requirements/GLOSSARY/glossary.html` — the prior run's artefact. Read once in Step 3 if present; absent on first run. The embedded `glossary-body` JSON is the authoritative source for the additive-merge cursor + prior entries.
+- `generated-docs/requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
+- `generated-docs/analyse-requirements/GLOSSARY/glossary.html` — the prior run's artefact. Read once in Step 3 if present; absent on first run. The embedded `glossary-body` JSON is the authoritative source for the additive-merge cursor + prior entries.
 - `framework/assets/characters/glossary-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses/glossary-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/analyses/template-glossary.html` — the read-only HTML scaffold. Read once in Step 9; the analyser substitutes its `{{PLACEHOLDER}}` slots, never edits the scaffold or CSS.
 
 ## Output
 
-- `analyse-requirements/GLOSSARY/glossary.html` — the populated self-contained HTML artefact. Always written to the same path; **additively merged** with the prior run's contents (prior entries preserved verbatim unless the consultant chose the "re-extract everything" drift branch). Carries the `language-json` `glossary-body` machine-readable model and the trailing `<!-- glossary-meta: ... -->` cursor comment.
+- `generated-docs/analyse-requirements/GLOSSARY/glossary.html` — the populated self-contained HTML artefact. Always written to the same path; **additively merged** with the prior run's contents (prior entries preserved verbatim unless the consultant chose the "re-extract everything" drift branch). Carries the `language-json` `glossary-body` machine-readable model and the trailing `<!-- glossary-meta: ... -->` cursor comment.
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the HTML template, the merged requirements document, and (if present) the prior glossary artefact. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, against any path under `framework/shared/`, or against `framework/assets/glossary.md`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyse-requirements/GLOSSARY/glossary.html`.
+- `Read` — read the character file, the reference asset, the HTML template, the merged requirements document, and (if present) the prior glossary artefact. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md`, against any path under `framework/state/`, against any path under `framework/shared/`, or against `framework/assets/glossary.md`.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `generated-docs/analyse-requirements/GLOSSARY/glossary.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyse-requirements/GLOSSARY` (Step 10 setup). No other Bash usage.
+- `Bash` — `mkdir -p generated-docs/analyse-requirements/GLOSSARY` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta comment or `glossary-body` JSON is unparseable); surface the Step 4 scope-tier picker; surface the Step 5 drift gate; surface the Step 8 quality-check failure prompt (Revise / Override / Restart) when any hard check fires; surface the Step 11 Accept / Revise / Restart prompt.
 
 **No MCP tools.** No Agent / Task delegation. The analyser populates the HTML template directly in-thread; there is no external rendering pipeline.
@@ -328,7 +328,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyse-requirements/GLOSSARY/glossary.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-requirements/GLOSSARY/glossary.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact is **self-contained**: it begins with `<!doctype html>`, has exactly one inline `<style>` block, and contains **no** `<script>`, no `src=`/`href=` to any external or CDN resource, and **no Mermaid runtime**. (Glossary has no diagram.)
 - The artefact contains **zero** literal `{{` or `}}` placeholder sequences (every template slot was substituted).
 - The artefact contains `<section id="plain-terms">` as the **first content section** inside `<main>` (DOM-order: before `#overview`), with a non-empty `<p>` child. The lead explains what the glossary IS — the agreed vocabulary for the domain; it contains no new term, count, or citation not already present in the entry set; it carries no `[SRC]` of its own; and it does **not** re-define or gloss domain terms.
@@ -341,14 +341,14 @@ Before handing back, verify all of the following against the written artefact an
 - Every undefined-term `<article>` carries a `<p class="no-definition">` and a `<ul class="term-sources">` line with at least one `§N.M` ref.
 - The Run-history `<ul>` contains exactly `run_count` `<li>` bullets; the last bullet's timestamp is today's date.
 - No occurrence of the literal string `[AI-SUGGESTED]` anywhere in the artefact — visible text, attribute, or the `glossary-body` JSON (gate 7 invariant).
-- No file under `requirements/` other than `requirements/requirements.md` was read during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md` was read during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
 - `framework/assets/glossary.md` was not read during this run.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - The consultant has chosen Accept in Step 11 (or the Step 8 Override path was taken, in which case Accept is still required in Step 11 to declare done).
 
 ## Definition of Done
 
-- `analyse-requirements/GLOSSARY/glossary.html` exists, has been verified, and contains a complete glossary at the active scope tier: a `#plain-terms` "In plain terms" section first (explaining what the glossary is — not re-defining domain terms), Overview meta-grid, alphabetical Defined-terms cards, alphabetical Used-without-explicit-definition cards, the three tier-scoped sections (Acronyms / Action terms / Field names) populated where the active tier covers them and tier-placeheld otherwise, the `language-json` `glossary-body` machine-readable model, a Run-history block with one bullet per run, a collapsed Diagnostics section, a collapsed `downstream-toggle` footer, and the trailing `<!-- glossary-meta: ... -->` cursor comment.
+- `generated-docs/analyse-requirements/GLOSSARY/glossary.html` exists, has been verified, and contains a complete glossary at the active scope tier: a `#plain-terms` "In plain terms" section first (explaining what the glossary is — not re-defining domain terms), Overview meta-grid, alphabetical Defined-terms cards, alphabetical Used-without-explicit-definition cards, the three tier-scoped sections (Acronyms / Action terms / Field names) populated where the active tier covers them and tier-placeheld otherwise, the `language-json` `glossary-body` machine-readable model, a Run-history block with one bullet per run, a collapsed Diagnostics section, a collapsed `downstream-toggle` footer, and the trailing `<!-- glossary-meta: ... -->` cursor comment.
 - Either all 7 hard quality checks passed, or the consultant explicitly chose Override and the Run-history entry for this run records every violation.
 - Additive-merge contract honoured: every prior-run entry is present in the new artefact (unless the consultant explicitly dropped it via Revise and accepted the gate-6 break).
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
@@ -356,10 +356,10 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Anti-Patterns
 
-- Do not read any path under `requirements/` other than `requirements/requirements.md`. The stand-alone-ish constraint is the agent's most load-bearing invariant.
+- Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md`. The stand-alone-ish constraint is the agent's most load-bearing invariant.
 - Do not read `framework/assets/glossary.md`. That asset is the cross-agent vocabulary reference and is unrelated to this analyser; loading it conflates two distinct artefacts and risks circular-reasoning failures (the asset citing this analyser's output as a source).
 - Do not read `framework/state/` or `framework/shared/` for any purpose. Other agents' pipeline state and shared rules are not glossary inputs.
-- **Do not author definitions.** Every defined-term entry's body is a verbatim quote lifted from `requirements/requirements.md` at a section ref the artefact cites. Paraphrasing, summarising, generalising, or "improving" a definition all count as authoring — none are permitted.
+- **Do not author definitions.** Every defined-term entry's body is a verbatim quote lifted from `generated-docs/requirements/requirements.md` at a section ref the artefact cites. Paraphrasing, summarising, generalising, or "improving" a definition all count as authoring — none are permitted.
 - **Do not consult world knowledge to gloss undefined terms.** A term used in `requirements.md` without an explicit definition goes in the "used without explicit definition" section with use-site citations. The `[AI-SUGGESTED]` marker is explicitly disallowed in this analyser (gate 7).
 - **Do not invent terms.** Every entry's term string is lexically present in `requirements.md` (gate 3). The analyser does not propose terms the document does not use.
 - **Do not invent section refs.** Every cited section ref resolves to a real section in `requirements.md` (gate 4). The analyser does not cite `§6.99` if `§6` has only 7 clauses.

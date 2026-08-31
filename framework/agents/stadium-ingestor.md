@@ -84,7 +84,7 @@ DoD is satisfied when the agent has processed every detected Stadium unit to a t
 
 ## Anti-Patterns
 
-- Do not extract requirement facts, author requirements/personas/business-purpose narratives, or read the app's databases yourself. Route every Stadium app through `framework/skills/extract-stadium-app.md` (which owns the Python extractor, the asset schemas, the redaction, and the bounded inference), exactly as the input-handler routes visual rows through `describe-visual-input.md`.
+- Do not extract requirement facts, author generated-docs/requirements/personas/business-purpose narratives, or read the app's databases yourself. Route every Stadium app through `framework/skills/extract-stadium-app.md` (which owns the Python extractor, the asset schemas, the redaction, and the bounded inference), exactly as the input-handler routes visual rows through `describe-visual-input.md`.
 - Do not re-extract a Stadium app whose `app_id` is already in the processed-ledger. The process-once contract keeps consultant hand-edits to the extracted assets safe and avoids redundant work; the orchestrator's re-ingest gate (which removes the ledger entry) is the only sanctioned path to re-extraction.
 - Do not write the processed-ledger on a failed Stadium extraction. The ledger records only successful one-shot processing; leaving a failed app un-ledgered allows a clean retry on the next run (e.g. after installing Python).
 - Do not build, refresh, or write the source manifest, and do not write a `*.converted.md` sibling. The produced assets are ordinary `Native-text` files that the next input-handler run enumerates; manifest lifecycle is the input-handler's exclusively.

@@ -7,7 +7,7 @@
 
   Sibling (inputs-side) HTML template: framework/assets/reviews-inputs/template-adversarial.html
   — six dimension blocks and MANIFEST_FINGERPRINT instead of eight dimension blocks and
-  REQUIREMENTS_SHA256. This requirements-doc template reads requirements/requirements.md
+  REQUIREMENTS_SHA256. This requirements-doc template reads generated-docs/requirements/requirements.md
   (not the source manifest) and carries eight per-dimension sections. The CSS / page chrome
   (header, dl.meta-grid, sticky nav.toc, section cards, .chip severity/disposition classes,
   tables, details.diagnostics-toggle, .back-to-top, @media responsive + print) is copied
@@ -38,7 +38,7 @@
     {{DOMAIN}}                 — domain string (from requirements §1 if present;
                                  otherwise "(not declared in requirements.md)")
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered
-    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at Step 2 read time
+    {{REQUIREMENTS_SHA256}}    — sha256 of generated-docs/requirements/requirements.md at Step 2 read time
     {{REVIEWER_IDENTITY}}      — fixed string "Adversarial Review (BMAD-style, strict mode)"
     {{TOTAL_FINDINGS}}         — count of findings across all dimensions
     {{BLOCKER_COUNT}}          — count of Severity: Blocker
@@ -65,7 +65,7 @@
                                  (Quality gates [11 rows], Coverage map [8 dimension rows],
                                   Strict-BMAD re-run log, Scope recalibration log, Override log)
 
-  Output: review-requirements/ADVERSARIAL/adversarial-review.html.
+  Output: generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html.
 
   FINDINGS TABLE SCHEMA — each row the reviewer emits has the shape:
 

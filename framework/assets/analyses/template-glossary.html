@@ -2,8 +2,8 @@
   ROLE: asset (HTML template). Populated by framework/agents/analyses/glossary-analyser.md.
 
   Purpose: HTML/CSS skeleton for the Glossary report, REQUIREMENTS-ANALYSIS variant — surfaces the
-  domain vocabulary of the synthesised `requirements/requirements.md` (NOT the raw `documentation/*` material;
-  that is the separate analyse-inputs/GLOSSARY method). Self-contained (`<!doctype html>` + ONE inlined
+  domain vocabulary of the synthesised `generated-docs/requirements/requirements.md` (NOT the raw `documentation/*` material;
+  that is the separate generated-docs/analyse-inputs/GLOSSARY method). Self-contained (`<!doctype html>` + ONE inlined
   `<style>` + `<body>`). NO external CSS/JS, NO Mermaid, NO CDN, NO `<script>`; viewable by opening
   `file://` in a browser; prints to PDF; shareable with clients without tooling. CSS lineage adapted from
   the near-identical sibling framework/assets/analyses-inputs/template-glossary.html so the analysis
@@ -65,7 +65,7 @@
     {{TITLE}}                     — short title (e.g. "Glossary — Project X")
     {{DOMAIN}}                    — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
     {{GENERATED_AT}}              — ISO-8601 UTC timestamp the artefact was rendered
-    {{REQUIREMENTS_SHA256}}       — sha256 of requirements/requirements.md at read time
+    {{REQUIREMENTS_SHA256}}       — sha256 of generated-docs/requirements/requirements.md at read time
     {{SCOPE_TIER}}                — active scope tier, 1–4
     {{TOTAL_TERM_COUNT}}          — total entries
     {{DEFINED_COUNT}}             — entries carrying a cited definition
@@ -134,7 +134,7 @@
 
       {
         "method": "glossary",
-        "source": "requirements/requirements.md",
+        "source": "generated-docs/requirements/requirements.md",
         "requirements_sha256": "<sha>",
         "scope_tier": 2,
         "run_count": 1,
@@ -411,7 +411,7 @@
 
     <section id="overview">
       <h1>{{TITLE}}</h1>
-      <p class="subtitle">Glossary (requirements-analysis variant) — the domain vocabulary of the merged <code>requirements/requirements.md</code> and the definitions the document itself gives. Each term is either <strong>defined</strong> (a verbatim definition lifted from the document, with a section citation) or <strong>used without explicit definition</strong> (surfaced as a gap, with use-site citations). Nothing is glossed from world knowledge — there are no <code>[AI-SUGGESTED]</code> entries. Scope is tiered and cumulative; re-run at a wider tier to widen additively.</p>
+      <p class="subtitle">Glossary (requirements-analysis variant) — the domain vocabulary of the merged <code>generated-docs/requirements/requirements.md</code> and the definitions the document itself gives. Each term is either <strong>defined</strong> (a verbatim definition lifted from the document, with a section citation) or <strong>used without explicit definition</strong> (surfaced as a gap, with use-site citations). Nothing is glossed from world knowledge — there are no <code>[AI-SUGGESTED]</code> entries. Scope is tiered and cumulative; re-run at a wider tier to widen additively.</p>
 
       <dl class="meta-grid">
         <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>

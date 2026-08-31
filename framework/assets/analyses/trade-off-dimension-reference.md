@@ -2,20 +2,20 @@
 
 # analyses/trade-off-dimension-reference.md
 
-**Purpose:** Methodology reference for Trade-Off Dimension Analysis. The analyser follows this document literally and exhaustively. Trade-off dimensions are A-versus-B axes (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, ...) along which every UX design decision implicitly lands. The analyser surfaces, per user goal, where that goal should lean — anchored to evidence in `requirements/requirements.md`.
+**Purpose:** Methodology reference for Trade-Off Dimension Analysis. The analyser follows this document literally and exhaustively. Trade-off dimensions are A-versus-B axes (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, ...) along which every UX design decision implicitly lands. The analyser surfaces, per user goal, where that goal should lean — anchored to evidence in `generated-docs/requirements/requirements.md`.
 
 **Used by:**
 
 - `framework/agents/analyses/trade-off-dimension-analyser.md` — drives Stage A relevance scoring, Stage B per-goal scoring, post-pass prune, and per-goal design-guidance synthesis.
 - `framework/skills/map-trade-off-dimension-to-ui.md` — uses the produced scores to bias downstream wireframing options (stub).
 
-**Output produced by the analyser:** `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` — self-contained HTML matrix using `framework/assets/analyses/template-trade-off-dimension.html` as scaffold.
+**Output produced by the analyser:** `generated-docs/analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` — self-contained HTML matrix using `framework/assets/analyses/template-trade-off-dimension.html` as scaffold.
 
 ---
 
 ## Upstream input contract
 
-The analyser starts from `requirements/requirements.md`. It uses:
+The analyser starts from `generated-docs/requirements/requirements.md`. It uses:
 
 - `§1` Application context — domain, business goal.
 - `§1.5` Scope buckets — In / Out / Deferred.
@@ -25,7 +25,7 @@ The analyser starts from `requirements/requirements.md`. It uses:
 - `§5` Task flows — secondary evidence per goal (matched by flow name referenced from §4.2 `Linked task flow`).
 - `§6` Requirements (functional, business rules, validation, UI features, access control, NFRs, reporting, notifications, audit-trail) — secondary evidence per goal (matched by goal-ID back-reference where present, by topic keyword otherwise).
 
-The analyser does not consult `requirements/source-manifest.json`, `framework/state/`, `framework/shared/`, or any other pipeline-internal artefact. Target is derived from the preamble line in `requirements/requirements.md`, preserving the stand-alone-ish constraint.
+The analyser does not consult `generated-docs/requirements/source-manifest.json`, `framework/state/`, `framework/shared/`, or any other pipeline-internal artefact. Target is derived from the preamble line in `generated-docs/requirements/requirements.md`, preserving the stand-alone-ish constraint.
 
 ---
 

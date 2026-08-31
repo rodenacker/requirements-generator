@@ -12,11 +12,11 @@
 - `RF-04 trigger` — the agent halts per the `RF-04 artifact_write_unverified` surface in `framework/shared/refusal-registry.md`.
 
 **Used by:**
-- `framework/agents/input-handler.md` — after writing each `*.converted.md` sibling and after writing the source-manifest at `manifest_path` (always `requirements/source-manifest.json` in current usage). Shared between `/requirements` and `/analyse-inputs`.
-- `framework/agents/requirements-drafter.md` — after writing `requirements/requirements-draft.md`.
-- `framework/agents/requirements-resolver.md` — after writing `requirements/consultant-answers.md`.
-- `framework/agents/requirements-merger.md` — after writing `requirements/requirements.md`.
-- `framework/agents/export-application-exporter.md` — after writing `export-application/requirements-application.md`. `expected_min_bytes` is **derived** (`source byte length − 6000`), never hard-coded: the export removes a near-constant PI appendix plus the §0.1 table and adds the provenance block, so the shortfall is constant in absolute terms while a ratio floor would loosen as documents grow.
+- `framework/agents/input-handler.md` — after writing each `*.converted.md` sibling and after writing the source-manifest at `manifest_path` (always `generated-docs/requirements/source-manifest.json` in current usage). Shared between `/requirements` and `/analyse-inputs`.
+- `framework/agents/requirements-drafter.md` — after writing `generated-docs/requirements/requirements-draft.md`.
+- `framework/agents/requirements-resolver.md` — after writing `generated-docs/requirements/consultant-answers.md`.
+- `framework/agents/requirements-merger.md` — after writing `generated-docs/requirements/requirements.md`.
+- `framework/agents/export-application-exporter.md` — after writing `generated-docs/export-application/requirements-application.md`. `expected_min_bytes` is **derived** (`source byte length − 6000`), never hard-coded: the export removes a near-constant PI appendix plus the §0.1 table and adds the provenance block, so the shortfall is constant in absolute terms while a ratio floor would loosen as documents grow.
 
 ## Procedure
 

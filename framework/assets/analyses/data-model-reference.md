@@ -2,9 +2,9 @@
 
 # Data Model analysis reference
 
-> **Method:** Extract the **Logical Data Model** (entities, attributes, relationships, cardinalities, business rules, normalisation notes) from `requirements/requirements.md` once. The Data Model is always rendered as tabular sections. The consultant then picks **none, one, several, or all** of three ER-diagram notations (Crow's Foot, Chen, UML class diagram) to add as visual `<figure>` blocks. Same data, multiple views.
+> **Method:** Extract the **Logical Data Model** (entities, attributes, relationships, cardinalities, business rules, normalisation notes) from `generated-docs/requirements/requirements.md` once. The Data Model is always rendered as tabular sections. The consultant then picks **none, one, several, or all** of three ER-diagram notations (Crow's Foot, Chen, UML class diagram) to add as visual `<figure>` blocks. Same data, multiple views.
 
-**Output file:** `analyse-requirements/DATA-MODEL/data-model.html` — a self-contained HTML artefact containing the Data Model (always) plus zero or more ERD visualisations (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `generated-docs/analyse-requirements/DATA-MODEL/data-model.html` — a self-contained HTML artefact containing the Data Model (always) plus zero or more ERD visualisations (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/data-model-analyser.md`
 
@@ -60,7 +60,7 @@ After the Data Model is extracted, the analyser surfaces a `multiSelect: true` p
 
 ## Source-of-truth hierarchy
 
-The analyser walks `requirements/requirements.md` in this order:
+The analyser walks `generated-docs/requirements/requirements.md` in this order:
 
 1. **`§2 Domain model`** — primary source.
     - `§2.1 Concepts` → entities (with persistence type from the concept's classification).
@@ -160,7 +160,7 @@ Richer inputs → richer Data Model. Methodology degrades gracefully: with thin 
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyse-requirements/DATA-MODEL/data-model.html`. The analyser populates `framework/assets/analyses/template-data-model.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `generated-docs/analyse-requirements/DATA-MODEL/data-model.html`. The analyser populates `framework/assets/analyses/template-data-model.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 
@@ -169,7 +169,7 @@ The artefact is a single self-contained HTML file at `analyse-requirements/DATA-
 | `{{TITLE}}` | *"Data Model — `<domain>`"* if `§1` declares a domain, else *"Data Model"*. |
 | `{{DOMAIN}}` | Verbatim from `§1 Application context > Domain`, else *"(not declared in requirements.md)"*. |
 | `{{GENERATED_AT}}` | ISO-8601 UTC, captured at render time. |
-| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `requirements/requirements.md` captured at Step 2. |
+| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `generated-docs/requirements/requirements.md` captured at Step 2. |
 | `{{ENTITY_COUNT}}` | Number of rows in the Entities table. |
 | `{{ATTRIBUTE_COUNT}}` | Number of rows in the Attributes table. |
 | `{{RELATIONSHIP_COUNT}}` | Number of rows in the Relationships table. |

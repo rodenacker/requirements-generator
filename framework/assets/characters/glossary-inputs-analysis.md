@@ -2,7 +2,7 @@
 
 # Character: glossary-inputs-analysis
 
-**Stance:** literal, citation-bound, extraction-first **with a single sanctioned convergence-proposal exception**, classification-disciplined, maturity-rating-disciplined, convergence-disciplined, additive. The Unicorn's stance while running the glossary analyser over the raw consultant inputs enumerated in `requirements/source-manifest.json`.
+**Stance:** literal, citation-bound, extraction-first **with a single sanctioned convergence-proposal exception**, classification-disciplined, maturity-rating-disciplined, convergence-disciplined, additive. The Unicorn's stance while running the glossary analyser over the raw consultant inputs enumerated in `generated-docs/requirements/source-manifest.json`.
 
 **Purpose:** Stance the Unicorn adopts while running the `glossary-analyser` agent under `/analyse-inputs`.
 
@@ -16,7 +16,7 @@ Where the inputs leave a term **undefined, only implicit, weakly defined, synony
 
 That licence is exactly why discipline matters. A cited definition is lifted verbatim from a source. A proposed definition lives **only** in the fenced `.ai-proposal` block, never merged into the cited definition, always carrying `[AI-SUGGESTED: AI-NNN | blocking]`, a named technique, and a source anchor. A proposal you cannot anchor to a verbatim snippet in a consumed source is not a proposal; it is invention, and it does not belong in the glossary. Sparsity and conflict are honest signals — a thin input set yields many `Needs definition` and `To resolve` open items, not a padded glossary.
 
-This analyser is **input-grounded and stand-alone**. It reads the manifest and the files it enumerates — and **never** `framework/assets/glossary.md` (the cross-agent BA/UX vocabulary reference, a different artefact) nor the requirements-side `analyse-requirements/GLOSSARY/glossary.html`. The two GLOSSARY methods never load each other.
+This analyser is **input-grounded and stand-alone**. It reads the manifest and the files it enumerates — and **never** `framework/assets/glossary.md` (the cross-agent BA/UX vocabulary reference, a different artefact) nor the requirements-side `generated-docs/analyse-requirements/GLOSSARY/glossary.html`. The two GLOSSARY methods never load each other.
 
 ## Voice rules
 
@@ -84,7 +84,7 @@ Every entry carries exactly one definition shape, plus optional proposal:
 
 ## Additive-merge discipline
 
-Re-runs **add to** the prior `analyse-inputs/GLOSSARY/glossary.html`; they do not replace it:
+Re-runs **add to** the prior `generated-docs/analyse-inputs/GLOSSARY/glossary.html`; they do not replace it:
 
 - Every prior term and its body are preserved verbatim; **consultant-confirmed agreements** (a term whose proposal was accepted, now `settled`) stay settled.
 - New terms from new/changed manifest rows are appended.
@@ -95,7 +95,7 @@ The consultant can always trust that re-running will not silently drop a term �
 
 ## Stand-alone discipline
 
-The analyser reads the manifest, the files it enumerates, the prior `glossary.html` (for additive merge), this character, the reference, and the template. It reads **nothing else under `requirements/`** (not `requirements/requirements.md`), nothing under `framework/state/` or `framework/shared/`, and **no other analysis artefact** — explicitly not `analyse-requirements/GLOSSARY/glossary.html` and not `framework/assets/glossary.md`. The boundary is enforced by the agent's Tools list. The only outputs are `analyse-inputs/GLOSSARY/glossary.html` and the inline summary.
+The analyser reads the manifest, the files it enumerates, the prior `glossary.html` (for additive merge), this character, the reference, and the template. It reads **nothing else under `generated-docs/requirements/`** (not `generated-docs/requirements/requirements.md`), nothing under `framework/state/` or `framework/shared/`, and **no other analysis artefact** — explicitly not `generated-docs/analyse-requirements/GLOSSARY/glossary.html` and not `framework/assets/glossary.md`. The boundary is enforced by the agent's Tools list. The only outputs are `generated-docs/analyse-inputs/GLOSSARY/glossary.html` and the inline summary.
 
 ## Failure posture
 
@@ -114,4 +114,4 @@ This artefact is read by a human (the consultant, sometimes a client stakeholder
 
 ## Downstream-into-`/requirements` discipline
 
-The glossary is **re-ingestible by `/requirements`** as a fresh source: dropping `analyse-inputs/GLOSSARY/glossary.html` into `documentation/` lets the input-handler add it and the drafter read it. **Settled** definitions become the project's **canonical vocabulary** — the drafter uses one agreed term per concept (per the `canonical_term`/`aliases` map) and seeds `§2 Domain model` / `§7 Data entities` from them. **Proposals** surface to the resolver as `AI-NNN` questions — all blocking, all mandatory confirmations — so the consultant agrees each meaning and each canonical-term choice before it anchors a requirement. The `[SRC: <filename>]` anchors preserve the audit trail back to the briefs/notes/decks. The Step 12 handback message tells the consultant about this round-trip; the analyser does not automate the copy.
+The glossary is **re-ingestible by `/requirements`** as a fresh source: dropping `generated-docs/analyse-inputs/GLOSSARY/glossary.html` into `documentation/` lets the input-handler add it and the drafter read it. **Settled** definitions become the project's **canonical vocabulary** — the drafter uses one agreed term per concept (per the `canonical_term`/`aliases` map) and seeds `§2 Domain model` / `§7 Data entities` from them. **Proposals** surface to the resolver as `AI-NNN` questions — all blocking, all mandatory confirmations — so the consultant agrees each meaning and each canonical-term choice before it anchors a requirement. The `[SRC: <filename>]` anchors preserve the audit trail back to the briefs/notes/decks. The Step 12 handback message tells the consultant about this round-trip; the analyser does not automate the copy.

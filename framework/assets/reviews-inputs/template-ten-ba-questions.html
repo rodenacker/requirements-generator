@@ -40,7 +40,7 @@
     {{TITLE}}                    — short title (e.g. "10 BA Questions (inputs-side) — Project X")
     {{DOMAIN}}                   — domain string (from a bundle source if recognisable, else "(not declared in inputs)")
     {{GENERATED_AT}}             — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}     — sha256 of requirements/source-manifest.json at read time (Step 2)
+    {{MANIFEST_FINGERPRINT}}     — sha256 of generated-docs/requirements/source-manifest.json at read time (Step 2)
     {{REVIEWER_IDENTITY}}        — fixed string "10 BA Questions Review (inputs-side, experienced Business Analyst lens, BABOK-aware)"
     {{SOURCE_COUNT}}             — number of consumable source files ingested at Step 3
     {{TOTAL_QUESTIONS}}          — always 10 (gate-enforced; placeholder retained for visibility)
@@ -62,7 +62,7 @@
     {{QUESTION_10_BLOCK}}
     {{DIAGNOSTICS_BLOCK}}        — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html.
+  Output: generated-docs/review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html.
 
   TRIAGE BLOCK SCHEMA — {{TRIAGE_BLOCK}} is the <tbody> rows (the <thead> is in the
   scaffold) listing every selected question in rank order (BAQ-01 first, BAQ-10 last):
@@ -592,7 +592,7 @@
     <strong>minor</strong> — answer affects refinement only; a reasonable default produces an acceptable requirement.
   </p>
   <p class="legend">
-    Source: the raw input set (<code>documentation/</code>, enumerated by <code>requirements/source-manifest.json</code>). Each question cites <code>[SRC: &lt;filename&gt;]</code> or <code>absent-from-corpus</code>. Categories: C1 Problem &amp; justification · C2 Stakeholders &amp; users · C3 Success &amp; acceptance criteria · C4 Scope &amp; MVP boundaries · C5 Business rules &amp; decisions · C6 Data, entities &amp; integrations · C7 Edge cases &amp; exception flows · C8 Assumptions, dependencies &amp; sequencing.
+    Source: the raw input set (<code>documentation/</code>, enumerated by <code>generated-docs/requirements/source-manifest.json</code>). Each question cites <code>[SRC: &lt;filename&gt;]</code> or <code>absent-from-corpus</code>. Categories: C1 Problem &amp; justification · C2 Stakeholders &amp; users · C3 Success &amp; acceptance criteria · C4 Scope &amp; MVP boundaries · C5 Business rules &amp; decisions · C6 Data, entities &amp; integrations · C7 Edge cases &amp; exception flows · C8 Assumptions, dependencies &amp; sequencing.
   </p>
 </section>
 

@@ -53,7 +53,7 @@
     {{TITLE}}                  — short title (e.g. "Task Analysis & Task Flows — Project X").
     {{DOMAIN}}                 — domain string (from requirements §1 if present).
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
-    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{REQUIREMENTS_SHA256}}    — sha256 of generated-docs/requirements/requirements.md at read time.
     {{TASK_COUNT}}             — number of rows in the Tasks table.
     {{SUBGOAL_COUNT}}          — number of `kind=subgoal` rows in the Nodes table.
     {{OPERATION_COUNT}}        — number of `kind=operation` rows in the Nodes table.
@@ -83,7 +83,7 @@
                                  `flowchart LR` source per selected
                                  task's TFD). Empty if none selected.
 
-  Output: analyse-requirements/TASK-FLOWS/task-flows.html.
+  Output: generated-docs/analyse-requirements/TASK-FLOWS/task-flows.html.
 
   CATALOGUE SCHEMA — the analyser's {{CATALOGUE_BLOCK}} substitutes a
   single <section class="catalogue">. The inner section contains, in

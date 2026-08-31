@@ -9,13 +9,13 @@
 - `framework/agents/analyses/ooux-analyser.md` — drives the agent's six-round process plus the quality-check sweep.
 - `framework/skills/map-ooux-to-ui.md` — uses the object-map structure to derive UI inventory entries (downstream consumer; stub).
 
-**Output produced by the analyser:** `analyse-requirements/OOUX/ooux-object-map.html` — self-contained HTML object-map grid using `framework/assets/analyses/template-ooux.html` as scaffold.
+**Output produced by the analyser:** `generated-docs/analyse-requirements/OOUX/ooux-object-map.html` — self-contained HTML object-map grid using `framework/assets/analyses/template-ooux.html` as scaffold.
 
 ---
 
 ## Upstream input contract
 
-OOUX is a **UX-lens refinement** of the BA's domain model, never a parallel inventory. The analyser starts from `requirements/requirements.md > §2 Domain model > Concepts` as the canonical object list. Object names match `§2.1` concept names verbatim; OOUX adds CTAs, relationship-navigation intent, and grid attributes the domain model does not carry.
+OOUX is a **UX-lens refinement** of the BA's domain model, never a parallel inventory. The analyser starts from `generated-docs/requirements/requirements.md > §2 Domain model > Concepts` as the canonical object list. Object names match `§2.1` concept names verbatim; OOUX adds CTAs, relationship-navigation intent, and grid attributes the domain model does not carry.
 
 If §2 Domain model is absent or empty, the analyser falls back to extracting candidate object names from `§Task flows`, `§User stories`, or the document's running prose — flagging the synthesis path in the artefact's frontmatter so the consultant can see the object list was not anchored to a domain-model section.
 
@@ -27,7 +27,7 @@ Six rounds, executed in order. The analyser does not skip rounds and does not co
 
 ### Round 1 — Discovery
 
-Read `requirements/requirements.md` in full. Extract every candidate noun phrase that names a thing the consultant's users will interact with: business entities, content types, user-facing concepts. Include synonyms and near-duplicates at this stage; deduplication happens in Round 2.
+Read `generated-docs/requirements/requirements.md` in full. Extract every candidate noun phrase that names a thing the consultant's users will interact with: business entities, content types, user-facing concepts. Include synonyms and near-duplicates at this stage; deduplication happens in Round 2.
 
 **Sources, in priority order:**
 

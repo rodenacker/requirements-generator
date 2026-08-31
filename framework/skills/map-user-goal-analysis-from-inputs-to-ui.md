@@ -2,9 +2,9 @@
 
 # map-user-goal-analysis-from-inputs-to-ui.md
 
-**Purpose:** Translate an inputs-side User Goal Analysis register (`analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html`) into UI inventory signals for downstream design-spec consumption: end goals → primary-task weighting hints; soft goals → NFR / quality-attribute seeds; the goal-refinement hierarchy → information-architecture grouping hints; actor↔goal dependencies → role/permission seeds; surfaced conflicts → trade-off-aware design decisions.
+**Purpose:** Translate an inputs-side User Goal Analysis register (`generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html`) into UI inventory signals for downstream design-spec consumption: end goals → primary-task weighting hints; soft goals → NFR / quality-attribute seeds; the goal-refinement hierarchy → information-architecture grouping hints; actor↔goal dependencies → role/permission seeds; surfaced conflicts → trade-off-aware design decisions.
 
-**Inputs:** `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` (specifically the embedded `<pre><code class="language-json" id="user-goal-analysis-body">` block — survives markitdown round-trip and is the load-bearing machine-readable contract carrying every goal's `cooper_type`, `hardness`, `provenance`, `inference`, `parent`/`refinement`, `actors`, and `criterion`).
+**Inputs:** `generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` (specifically the embedded `<pre><code class="language-json" id="user-goal-analysis-body">` block — survives markitdown round-trip and is the load-bearing machine-readable contract carrying every goal's `cooper_type`, `hardness`, `provenance`, `inference`, `parent`/`refinement`, `actors`, and `criterion`).
 
 **Outputs:** UI inventory rows + NFR seeds for the design spec.
 

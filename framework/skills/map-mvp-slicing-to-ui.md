@@ -2,9 +2,9 @@
 
 # map-mvp-slicing-to-ui.md
 
-**Purpose:** Translate an MVP-slicing artefact (`analyse-requirements/MVP-SLICING/mvp-slicing.html`) into prioritisation signals for downstream design: the proposed MVP set (the `Must` cards) → a default in-scope feature set; the backbone activities → screen-sequencing hints; the release bands → a phased build order.
+**Purpose:** Translate an MVP-slicing artefact (`generated-docs/analyse-requirements/MVP-SLICING/mvp-slicing.html`) into prioritisation signals for downstream design: the proposed MVP set (the `Must` cards) → a default in-scope feature set; the backbone activities → screen-sequencing hints; the release bands → a phased build order.
 
-**Inputs:** `analyse-requirements/MVP-SLICING/mvp-slicing.html` (and its embedded `<script type="application/json" id="mvp-slice">` machine dump), `assets/taxonomy-screens.md`.
+**Inputs:** `generated-docs/analyse-requirements/MVP-SLICING/mvp-slicing.html` (and its embedded `<script type="application/json" id="mvp-slice">` machine dump), `assets/taxonomy-screens.md`.
 
 **Outputs:** Prioritisation signals for the design spec — a default MVP feature set and a release-phase ordering.
 

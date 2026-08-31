@@ -17,14 +17,14 @@ It is referenced (not restated) by each producing agent's or character's *Reader
 
 | Artefact | Produced by |
 |---|---|
-| `requirements/requirements.md` | `/requirements` |
-| `prd/prd.md` | `/generate-prd` |
-| `analyse-inputs/**`, `analyse-requirements/**` | `/analyse-inputs`, `/analyse-requirement` |
-| `review-inputs/**`, `review-requirements/**` | `/review-inputs`, `/review-requirement` |
+| `generated-docs/requirements/requirements.md` | `/requirements` |
+| `generated-docs/prd/prd.md` | `/generate-prd` |
+| `generated-docs/analyse-inputs/**`, `generated-docs/analyse-requirements/**` | `/analyse-inputs`, `/analyse-requirement` |
+| `generated-docs/review-inputs/**`, `generated-docs/review-requirements/**` | `/review-inputs`, `/review-requirement` |
 | `documentation/<stem>-<date>.md` resolutions document | `/resolve-review` |
 | `documentation/amendments-<date>.md` + the transient `## Amendments (pending re-merge)` section | `/amend-requirements` |
-| `design-system/design-system-{light,dark}.html` | `/design-system` |
-| `export-application/requirements-application.md` | `/export-application` |
+| `generated-docs/design-system/design-system-{light,dark}.html` | `/design-system` |
+| `generated-docs/export-application/requirements-application.md` | `/export-application` |
 | `wireframes/<scope-slug>/**` | `/wireframe` |
 | Every consultant-facing question, batch, and gate summary | all pipelines |
 
@@ -50,7 +50,7 @@ Analyses are **additionally** read by a downstream consumer that differs by pipe
 | `/analyse-requirement` outputs | yes | **`/wireframe` `blueprint-architect`** — *optional*, via the per-analysis machine-readable sidecar (the `RF-09` fallback path) |
 | `/review-requirement` outputs | yes | **none** — nothing downstream parses a review |
 | `/review-inputs` outputs | yes | **none** |
-| `requirements/requirements.md` | yes | **`/wireframe`, `/prototype`, `/analyse-requirement`, `/review-requirement`, `/export-application`** |
+| `generated-docs/requirements/requirements.md` | yes | **`/wireframe`, `/prototype`, `/analyse-requirement`, `/review-requirement`, `/export-application`** |
 
 In every downstream case the embedded machine-readable sidecar + retained `[SRC:]` markers carry the load; plain prose on top does not disturb them. **Reviews have no machine consumer**, so no part of a review needs to be preserved "for the machine".
 

@@ -8,7 +8,7 @@ methodologies:
     status: mvp
     group: Objects, data & lifecycle
     description: Choose this when the requirements imply data but never state the schema and you need an explicit entity model before designing forms, lists, and detail views. It produces an HTML data model of the entities, attributes, and relationships the requirements imply, each traced back to its source requirement. Use it as the schema your screens and field-level UI are designed against, and to spot entities the requirements left undefined.
-    output_path: analyse-requirements/DATA-MODEL/data-model.html
+    output_path: generated-docs/analyse-requirements/DATA-MODEL/data-model.html
     reference_asset: framework/assets/analyses/data-model-reference.md
     template_asset: framework/assets/analyses/template-data-model.html
     map_skill: framework/skills/map-data-model-to-ui.md
@@ -18,7 +18,7 @@ methodologies:
     status: mvp
     group: Users, goals & value
     description: Choose this when you want design decisions anchored to user motivation rather than to the feature list the requirements already assume. It produces an HTML job map of the jobs users hire the product for and the outcomes they expect from each. Use the jobs and outcomes to sanity-check which features earn their place and to prioritise the ones that serve a real job.
-    output_path: analyse-requirements/JTBD/jtbd-job-map.html
+    output_path: generated-docs/analyse-requirements/JTBD/jtbd-job-map.html
     reference_asset: framework/assets/analyses/jtbd-reference.md
     template_asset: framework/assets/analyses/template-jtbd.html
     map_skill: framework/skills/map-jtbd-to-ui.md
@@ -28,7 +28,7 @@ methodologies:
     status: mvp
     group: Objects, data & lifecycle
     description: Choose this when you need to structure screens and navigation around the product's core objects before laying out any UI. It produces an HTML object map of the core objects, their attributes, and their call-to-action verbs implied by the requirements. Use the objects to drive your information architecture — what gets its own screen, what nests, and what each object's primary actions are.
-    output_path: analyse-requirements/OOUX/ooux-object-map.html
+    output_path: generated-docs/analyse-requirements/OOUX/ooux-object-map.html
     reference_asset: framework/assets/analyses/ooux-reference.md
     template_asset: framework/assets/analyses/template-ooux.html
     map_skill: framework/skills/map-ooux-to-ui.md
@@ -38,7 +38,7 @@ methodologies:
     status: mvp
     group: Processes & flows
     description: Choose this when a scenario crosses the user, system components, and external services and you need that interaction clear before specifying APIs or async flows. It produces an HTML sequence diagram of the messages exchanged across one scenario, ordered over time. Use it to pin down API calls, request and response ordering, and the failure points async flows must handle.
-    output_path: analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html
+    output_path: generated-docs/analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html
     reference_asset: framework/assets/analyses/sequence-diagram-reference.md
     template_asset: framework/assets/analyses/template-sequence-diagram.html
     map_skill: framework/skills/map-sequence-diagram-to-ui.md
@@ -48,7 +48,7 @@ methodologies:
     status: mvp
     group: Processes & flows
     description: Choose this when you want explicit usage paths — actor goals, preconditions, and main and extension flows — before designing the screens and APIs that serve them. It produces an HTML use-case map of each actor's goals with the main flow and its extensions and exceptions. Use the flows as the usage paths your screens and endpoints are designed against, and to catch unhandled exception branches.
-    output_path: analyse-requirements/USE-CASES/use-cases-map.html
+    output_path: generated-docs/analyse-requirements/USE-CASES/use-cases-map.html
     reference_asset: framework/assets/analyses/use-cases-reference.md
     template_asset: framework/assets/analyses/template-use-cases.html
     map_skill: framework/skills/map-use-cases-to-ui.md
@@ -58,7 +58,7 @@ methodologies:
     status: mvp
     group: Users, goals & value
     description: Choose this when you want to target the experience moments that matter most rather than spreading design effort evenly across features. It produces an HTML journey map of the experience phases, pain-points, and opportunities the requirements describe. Use the pain-points and opportunities to prioritise the features that relieve the sharpest friction.
-    output_path: analyse-requirements/USER-JOURNEYS/user-journeys-map.html
+    output_path: generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html
     reference_asset: framework/assets/analyses/user-journeys-reference.md
     template_asset: framework/assets/analyses/template-user-journeys.html
     map_skill: framework/skills/map-user-journeys-to-ui.md
@@ -68,7 +68,7 @@ methodologies:
     status: mvp
     group: Users, goals & value
     description: Choose this when you want to check that the requirements' features actually ladder up to its stated outcomes and surface opportunities it missed. It produces an HTML opportunity-solution tree linking the desired outcome to opportunities, the proposed solutions, and their assumption tests. Use it to cut features that serve no outcome, flag outcomes with no solution, and queue the assumption tests worth running.
-    output_path: analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html
+    output_path: generated-docs/analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html
     reference_asset: framework/assets/analyses/opportunity-solution-trees-reference.md
     template_asset: framework/assets/analyses/template-opportunity-solution-trees.html
     map_skill: framework/skills/map-opportunity-solution-trees-to-ui.md
@@ -78,7 +78,7 @@ methodologies:
     status: mvp
     group: Users, goals & value
     description: Choose this when the requirements carry priorities but no one has drawn the line between what ships first and what waits. It produces an HTML user-story map — a task-flow backbone with feature, UI, and user-story cards beneath each activity and a proposed release-slice line marking the MVP cut — paired with a MoSCoW board (must / should / could / won't) of the requirement priorities. Use the proposed slice to confirm the MVP scope before wireframing, and the MoSCoW board to see at a glance what each priority bucket holds.
-    output_path: analyse-requirements/MVP-SLICING/mvp-slicing.html
+    output_path: generated-docs/analyse-requirements/MVP-SLICING/mvp-slicing.html
     reference_asset: framework/assets/analyses/mvp-slicing-reference.md
     template_asset: framework/assets/analyses/template-mvp-slicing.html
     map_skill: framework/skills/map-mvp-slicing-to-ui.md
@@ -88,7 +88,7 @@ methodologies:
     status: mvp
     group: Users, goals & value
     description: Choose this when you suspect some requirements rest on thin justification and want each one's rationale traced before designing against it. It produces an HTML report — a pre-rendered inline-SVG why-chain diagram per requirement above the textual drill-down — drilling each requirement down to the user goal, business driver, or external mandate behind it. Use the thin-justification chains it flags as an interview list for the consultant before those features are built.
-    output_path: analyse-requirements/FIVE-WHYS/five-whys.html
+    output_path: generated-docs/analyse-requirements/FIVE-WHYS/five-whys.html
     reference_asset: framework/assets/analyses/five-whys-reference.md
     template_asset: framework/assets/analyses/template-five-whys.html
     map_skill: framework/skills/map-five-whys-to-ui.md
@@ -98,7 +98,7 @@ methodologies:
     status: mvp
     group: Objects, data & lifecycle
     description: Choose this before writing copy, labels, status pills, or role surfaces, when terms in the requirements need one agreed meaning. It produces an alphabetical, citation-bound HTML glossary of every domain term the requirements use, with an embedded machine-readable term model. Use it as the single source for UI wording and to catch terms used inconsistently across the document.
-    output_path: analyse-requirements/GLOSSARY/glossary.html
+    output_path: generated-docs/analyse-requirements/GLOSSARY/glossary.html
     reference_asset: framework/assets/analyses/glossary-reference.md
     template_asset: framework/assets/analyses/template-glossary.html
     map_skill: framework/skills/map-glossary-to-ui.md
@@ -108,7 +108,7 @@ methodologies:
     status: mvp
     group: Processes & flows
     description: Choose this when a multi-actor process with branching or parallel paths needs to be clear before designing the screens that drive it. It produces an HTML activity diagram of the process flow, including decision branches and concurrent paths. Use it to design each step's screen and to make sure no branch or parallel path is left without UI.
-    output_path: analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html
+    output_path: generated-docs/analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html
     reference_asset: framework/assets/analyses/activity-diagram-reference.md
     template_asset: framework/assets/analyses/template-activity-diagram.html
     map_skill: framework/skills/map-activity-diagram-to-ui.md
@@ -118,7 +118,7 @@ methodologies:
     status: mvp
     group: Objects, data & lifecycle
     description: Choose this when entities move through statuses and you need their lifecycle explicit before designing status-driven UI. It produces an HTML state diagram of each entity's statuses, the transitions between them, and the guards on each transition. Use it to drive status pills, enabled and disabled actions, and the transition rules your screens must enforce.
-    output_path: analyse-requirements/STATE-DIAGRAM/state-diagram.html
+    output_path: generated-docs/analyse-requirements/STATE-DIAGRAM/state-diagram.html
     reference_asset: framework/assets/analyses/state-diagram-reference.md
     template_asset: framework/assets/analyses/template-state-diagram.html
     map_skill: framework/skills/map-state-diagram-to-ui.md
@@ -128,7 +128,7 @@ methodologies:
     status: mvp
     group: Objects, data & lifecycle
     description: Choose this when your domain is entity-and-operation heavy and you want a mechanical check that every entity has a create, read, update, and delete path before wireframing. It produces an HTML coverage matrix crossing each entity against the four lifecycle operations, marking each cell delivered, granted-not-delivered, forgotten, or intentional, plus a lifecycle-hole register and an optional role view with Segregation-of-Duties flags. Use the filled cells as a screen-and-action checklist against the blueprint and chase the flagged holes — especially permission rights the spec grants that no function delivers — before building. Recommended: run data-model and/or ooux first — this matrix seeds its entity list from them when present, and runs cold from the spec when they are absent.
-    output_path: analyse-requirements/CRUD-COVERAGE/crud-matrix.html
+    output_path: generated-docs/analyse-requirements/CRUD-COVERAGE/crud-matrix.html
     reference_asset: framework/assets/analyses/crud-coverage-reference.md
     template_asset: framework/assets/analyses/template-crud-coverage.html
     map_skill: framework/skills/map-crud-coverage-to-ui.md
@@ -138,7 +138,7 @@ methodologies:
     status: mvp
     group: Objects, data & lifecycle
     description: Choose this when your requirements are dense with conditional logic — validation, conditional fields, eligibility, status-and-role-driven enable/disable — and you want it pulled into structured rule tables and checked for gaps before building. It produces an HTML set of DMN decision tables (condition columns to a conclusion, with a hit policy per table), a completeness check flagging unhandled condition combinations, and a consistency check flagging conflicting rules, with the rule model embedded for re-ingestion. Use the tables as the form-validation, conditional-visibility, and action-enablement spec your screens enforce, chase the flagged gaps and conflicts before wireframing, and re-drop the HTML into documentation/ so /requirements turns each blocking gap into a question. Recommended: run state-diagram first — these tables seed transition-guard recognition from it when present, and run cold from the spec when it is absent.
-    output_path: analyse-requirements/DECISION-TABLES/decision-tables.html
+    output_path: generated-docs/analyse-requirements/DECISION-TABLES/decision-tables.html
     reference_asset: framework/assets/analyses/decision-tables-reference.md
     template_asset: framework/assets/analyses/template-decision-tables.html
     map_skill: framework/skills/map-decision-tables-to-ui.md
@@ -148,7 +148,7 @@ methodologies:
     status: mvp
     group: Processes & flows
     description: Choose this when you need the step-by-step paths a user takes to reach a goal before designing screens, wizards, or form sequences. It produces an HTML task-flow map decomposing each goal into its ordered steps and decision points. Use the flows to decide screen sequencing, wizard splits, and where a single form should branch.
-    output_path: analyse-requirements/TASK-FLOWS/task-flows.html
+    output_path: generated-docs/analyse-requirements/TASK-FLOWS/task-flows.html
     reference_asset: framework/assets/analyses/task-flows-reference.md
     template_asset: framework/assets/analyses/template-task-flows.html
     map_skill: framework/skills/map-task-flows-to-ui.md
@@ -158,7 +158,7 @@ methodologies:
     status: mvp
     group: Design posture
     description: Choose this when you want a clear design posture per user goal — fast versus accurate, simple versus powerful, automated versus controlled — before wireframing. It produces an HTML matrix scoring each user goal against a curated set of UX trade-off dimensions. Use each goal's scores to set the design stance for its screens and to brief divergent wireframe variants.
-    output_path: analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html
+    output_path: generated-docs/analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html
     reference_asset: framework/assets/analyses/trade-off-dimension-reference.md
     template_asset: framework/assets/analyses/template-trade-off-dimension.html
     map_skill: framework/skills/map-trade-off-dimension-to-ui.md
@@ -168,7 +168,7 @@ methodologies:
     status: mvp
     group: Objects, data & lifecycle
     description: Choose this when your app is list-heavy and you need to specify how users filter, sort, and search records before wireframing those list surfaces. It produces an HTML facet map of the orthogonal dimensions records can be sliced along — status, type, owner, date-range — each with its value set and the data property it filters on, an orthogonality check, a per-surface filter/sort scaffolding note, and a facet-value-scoped controlled vocabulary. Use the facets as the filter-chip, facet-rail, and sort-axis specification your list surfaces are designed against, and re-drop it into documentation/ so /requirements hardens the filter/sort UI requirements. Recommended: run glossary first — this facet map seeds its controlled vocabulary from it when present, and runs cold from the spec when it is absent.
-    output_path: analyse-requirements/FACETED-CLASSIFICATION/facet-map.html
+    output_path: generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html
     reference_asset: framework/assets/analyses/faceted-classification-reference.md
     template_asset: framework/assets/analyses/template-faceted-classification.html
     map_skill: framework/skills/map-faceted-classification-to-ui.md
@@ -201,7 +201,7 @@ methodologies:
 
 **Field semantics:**
 
-- `name` — kebab-case slug. Used as the subdirectory name under `analyse-requirements/` and as the path component in the analyser agent file.
+- `name` — kebab-case slug. Used as the subdirectory name under `generated-docs/analyse-requirements/` and as the path component in the analyser agent file.
 - `status` — currently always `mvp`. The selector filters to `status == mvp` defensively (discarding any row whose status is absent or non-`mvp`); planned, not-yet-built methodologies live in `plans/`, not as registry rows.
 - `group` — optional lens-group label (e.g. `Objects, data & lifecycle`, `Processes & flows`). The selector clusters MVP rows by this value (groups in first-appearance order, registry order preserved within each group) and renders it as a header. Rows with no `group` fall into a trailing `Other` group. Consultant-facing — keep it short and human-readable.
 - `description` — short consultant-facing blurb surfaced in the selector's printed list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output). A methodology that opportunistically seeds from a sibling analysis's on-disk output (the `crud-coverage`/`decision-tables`/`faceted-classification` optional-seed pattern) appends a fourth `Recommended: run <sibling(s)> first — …` sentence so the consultant sees the suggested ordering at selection time; the seed is always optional (the analyser runs cold from the spec when the sibling is absent), so the sentence reads as advice, never a prerequisite.

@@ -49,7 +49,7 @@
     {{TITLE}}                  — short title (e.g. "Activity Diagrams — Project X").
     {{DOMAIN}}                 — domain string (from requirements §1 if present).
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
-    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{REQUIREMENTS_SHA256}}    — sha256 of generated-docs/requirements/requirements.md at read time.
     {{FLOW_COUNT}}             — number of rows in the Flows table.
     {{SWIMLANE_COUNT}}         — number of rows in the global Swimlanes table.
     {{ACTION_COUNT}}           — number of rows in the Actions table.
@@ -73,7 +73,7 @@
                                  `flowchart TD` source per selected
                                  flow). Empty if none selected.
 
-  Output: analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html.
+  Output: generated-docs/analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html.
 
   CATALOGUE SCHEMA — the analyser's {{CATALOGUE_BLOCK}} substitutes a
   single <section class="catalogue">. The inner section contains, in

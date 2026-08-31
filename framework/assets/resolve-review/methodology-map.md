@@ -9,11 +9,11 @@ kind: methodology-map
 # template asset); zero agent edits, zero orchestrator edits.
 #
 # Scope: TWO review kinds, each with its own block of rows below (the orchestrator globs
-# both review-inputs/*/*.html and review-requirements/*/*.html):
+# both generated-docs/review-inputs/*/*.html and generated-docs/review-requirements/*/*.html):
 #   (a) /review-inputs rows       — critique the input corpus; fingerprint = source-manifest.json sha
 #   (b) /review-requirements rows — critique requirements.md;   fingerprint = requirements.md sha
 # The lookup key is `method_dir`: the bare parent directory name for (a) review-inputs
-# artefacts (legacy v1 keying), the root-qualified `review-requirements/<METHOD>` for
+# artefacts (legacy v1 keying), the root-qualified `generated-docs/review-requirements/<METHOD>` for
 # (b) review-requirements artefacts — qualified because the same method dir name can exist
 # under both roots (e.g. ADVERSARIAL).
 methodologies:
@@ -199,7 +199,7 @@ methodologies:
       input file ([SRC: <filename>]) when the chosen resolution changes a fact stated there;
       absent-from-corpus cards are net-new by construction.
   # ---- /review-requirement rows (root-qualified keys; fingerprint = requirements.md sha) ----
-  - method_dir: review-requirements/ADVERSARIAL
+  - method_dir: generated-docs/review-requirements/ADVERSARIAL
     method_slug: adversarial
     filename_stem: adversarial-requirements-review-resolutions
     id_prefix: ADV
@@ -222,9 +222,9 @@ methodologies:
       requirement must state or cover — never an edit instruction against the doc);
       options: Confirm-as-drafted / Edit (Other free text) / Skip. Confirm →
       [AI-INFERRED, CONSULTANT-CONFIRMED]; Edit → [CONSULTANT-STATED]. Supersession
-      names `requirements/requirements.md` + the finding's Location anchor (the
+      names `generated-docs/requirements/requirements.md` + the finding's Location anchor (the
       reviewed document is the only file these findings cite).
-  - method_dir: review-requirements/FIRST-PRINCIPLES
+  - method_dir: generated-docs/review-requirements/FIRST-PRINCIPLES
     method_slug: first-principles
     filename_stem: first-principles-review-resolutions
     id_prefix: 'mixed — subject IDs (G-NN | US-NN | BR-NN | FR-NN | EN-NN) for Top-10 items; composed labels ORPHAN:{anchor} and CS:{row-n} for the id-less orphan articles and cross-subject rows'
@@ -251,14 +251,14 @@ methodologies:
       fact or descope; the answer IS the resolution → [CONSULTANT-STATED]; options: Answer
       (Other free text) / Mark out-of-scope / Skip. Findings-list display: ttitem entries
       show "score N/6" in place of a severity word (orphans are all blocking). Supersession
-      names `requirements/requirements.md` + the finding's anchor.
+      names `generated-docs/requirements/requirements.md` + the finding's anchor.
   # The two review-requirements question-style rows below use `elicitation-with-options`
   # (gap-surfacing peer flow), as do the two review-inputs TEN-BA-QUESTIONS / TEN-UX-QUESTIONS
   # rows above (grounded in the input corpus rather than requirements.md). Other elicitation rows
   # (COMPLETENESS-REVIEW; the elicitation halves of the kind-dispatched FIRST-PRINCIPLES and
   # REQUIREMENTS-QUALITY rows; REQUIREMENTS-TRACEABILITY) MAY adopt it later but stay
   # `answer-elicitation` for now — out of scope here.
-  - method_dir: review-requirements/TEN-BA-QUESTIONS
+  - method_dir: generated-docs/review-requirements/TEN-BA-QUESTIONS
     method_slug: ten-ba-questions
     filename_stem: ten-ba-questions-review-resolutions
     id_prefix: BAQ
@@ -300,9 +300,9 @@ methodologies:
       finding only — never bulk, no accept-all for this flow); typing/editing an answer, or
       typing "out of scope", → [CONSULTANT-STATED]; Skip → skipped. Every resolved finding
       carries its grounding tag (the tag, not a new marker, is the trust signal). Supersession
-      names `requirements/requirements.md` + the card's anchor when the chosen resolution
+      names `generated-docs/requirements/requirements.md` + the card's anchor when the chosen resolution
       changes a stated fact; "missing-section" anchors are net-new by construction.
-  - method_dir: review-requirements/TEN-UX-QUESTIONS
+  - method_dir: generated-docs/review-requirements/TEN-UX-QUESTIONS
     method_slug: ten-ux-questions
     filename_stem: ten-ux-questions-review-resolutions
     id_prefix: UXQ
@@ -344,9 +344,9 @@ methodologies:
       finding only — never bulk, no accept-all for this flow); typing/editing an answer, or
       typing "out of scope", → [CONSULTANT-STATED]; Skip → skipped. Every resolved finding
       carries its grounding tag (the tag, not a new marker, is the trust signal). Supersession
-      names `requirements/requirements.md` + the card's anchor when the chosen resolution
+      names `generated-docs/requirements/requirements.md` + the card's anchor when the chosen resolution
       changes a stated fact; "missing-section" anchors are net-new by construction.
-  - method_dir: review-requirements/USER-STORIES
+  - method_dir: generated-docs/review-requirements/USER-STORIES
     method_slug: user-stories
     filename_stem: user-stories-review-resolutions
     id_prefix: US
@@ -369,9 +369,9 @@ methodologies:
       statement of what the story must specify (persona, action, outcome, scope, acceptance
       conditions — as the issues demand); options: Confirm-as-drafted / Edit (Other free
       text) / Skip. Confirm → [AI-INFERRED, CONSULTANT-CONFIRMED]; Edit →
-      [CONSULTANT-STATED]. Supersession names `requirements/requirements.md` + the story's
+      [CONSULTANT-STATED]. Supersession names `generated-docs/requirements/requirements.md` + the story's
       §4.2 anchor.
-  - method_dir: review-requirements/REQUIREMENTS-QUALITY
+  - method_dir: generated-docs/review-requirements/REQUIREMENTS-QUALITY
     method_slug: requirements-quality
     filename_stem: requirements-quality-review-resolutions
     id_prefix: 'mixed — fix-{req_id} for per-requirement fix cards; {characteristic}-{n} for set-level findings'
@@ -399,8 +399,8 @@ methodologies:
       the resolving fact or descopes → [CONSULTANT-STATED]; options: Answer (Other free
       text) / Mark out-of-scope / Skip. Findings-list display: fix-cards show their tier
       (Red | Yellow), setlevel findings their severity word. Supersession names
-      `requirements/requirements.md` + the finding's anchor(s).
-  - method_dir: review-requirements/REQUIREMENTS-TRACEABILITY
+      `generated-docs/requirements/requirements.md` + the finding's anchor(s).
+  - method_dir: generated-docs/review-requirements/REQUIREMENTS-TRACEABILITY
     method_slug: requirements-traceability
     filename_stem: requirements-traceability-review-resolutions
     id_prefix: untraced
@@ -424,7 +424,7 @@ methodologies:
       remove it from scope. Options: Ratify as stated fact / Name the source or state the
       fact (Other free text) / Remove from scope / Skip. A bare Ratify confirms
       review-presented content → [AI-INFERRED, CONSULTANT-CONFIRMED]; typed content →
-      [CONSULTANT-STATED]. Supersession names `requirements/requirements.md` + the unit's
+      [CONSULTANT-STATED]. Supersession names `generated-docs/requirements/requirements.md` + the unit's
       anchor.
 ---
 
@@ -439,7 +439,7 @@ methodologies:
 
 **Field semantics:**
 
-- `method_dir` — **the lookup key.** For review-inputs artefacts: the bare parent directory name under `review-inputs/` (uppercase, legacy v1 keying). For review-requirements artefacts: the root-qualified `review-requirements/<METHOD>` — qualified because the same method dir name can exist under both roots (e.g. `ADVERSARIAL`). The orchestrator derives the key per this rule at its step 0 and passes it as `methodology_key`.
+- `method_dir` — **the lookup key.** For review-inputs artefacts: the bare parent directory name under `generated-docs/review-inputs/` (uppercase, legacy v1 keying). For review-requirements artefacts: the root-qualified `generated-docs/review-requirements/<METHOD>` — qualified because the same method dir name can exist under both roots (e.g. `ADVERSARIAL`). The orchestrator derives the key per this rule at its step 0 and passes it as `methodology_key`.
 - `method_slug` — lowercase methodology slug, matching the source registry's `name` field. Recorded in the resolutions document's provenance table.
 - `filename_stem` — the output filename stem: the final document is `documentation/<filename_stem>-<YYYY-MM-DD>.md` (same-day collision → `-2`, `-3`, …). Explicit per row so slugs already ending in `-review` don't produce `…-review-review-resolutions…`.
 - `id_prefix` — the finding-ID prefix (`ADV`, `COMP`, `AMB`, `GAP`). **Finding IDs are per-run labels** — the source review resets them on every fresh run — so the resolutions document anchors on verbatim content (`verbatim_anchor`) and treats IDs as convenience labels only.
@@ -450,8 +450,8 @@ methodologies:
 - `severity_vocab` — the ranking vocabulary, **highest first** (gap-analysis ranks by MoSCoW, not Blocker/Major/Minor). Drives the findings-list display and `severity_keyword_map`.
 - `severity_keyword_map` — free-text selection keywords accepted at the drafter's Step 4 multi-pick (e.g. `all blockers`), each mapping to a single vocab value meaning "every finding at that value".
 - `fingerprint_label` — the header `<dt>` label carrying the review's source fingerprint (`Manifest SHA-256` / `Manifest fingerprint` for review-inputs rows; `Source SHA-256` / `Requirements fingerprint` for review-requirements rows). Used by the drafter's Step-2 drift check.
-- `fingerprint_compares_to` — closed enum naming what the drafter's Step-2 drift check hashes for comparison: `source-manifest` (`requirements/source-manifest.json`, review-inputs rows) or `requirements-doc` (`requirements/requirements.md`, review-requirements rows). For `requirements-doc` rows the drafter also pre-flights that `requirements/requirements.md` exists, and its Step 9b addendum branch is armed (see the drafter).
-- `resolution_semantics` — closed enum naming the resolution flow: `apply-recommendation` | `answer-elicitation` | `elicitation-with-options` | `pick-interpretation` | `ratify-candidate` | `kind-dispatched` (the row's findings come in more than one structural kind; the `ask_shape` names per kind which flow applies — confirmation for kinds with an actionable payload, elicitation for observational kinds). `elicitation-with-options` is the **gap-surfacing** flow for question-style methodologies: the finding is an open question an experienced BA/UX peer would raise, so the drafter does not merely collect a free-text answer — it drafts ≥2 (target 3) genuinely distinct, grounded candidate enrichments (each with a one-line implication and exactly one grounding tag — `[grounded: <anchor>]` / `[domain-default]` / `[assumption — confirm with client]`), reconciles them against prior decisions, and presents them as selectable options with out-of-scope demoted to the free-text path (full flow in the drafter's Step 5; trust signal carried by the grounding tag, not a new marker). New methodologies may reuse an existing value or append a new one **here** (with its `ask_shape` describing the flow); the drafter's Step 5 executes whatever the row describes. The grounding-tag `<anchor>` resolves per the row's source: requirements.md anchors (`§N.N / F-NN / BR-NN / AMD-NN`) for `requirements-doc` rows, an input filename (the card's cited `[SRC: <filename>]`) for `source-manifest` rows. **Scope note:** four rows use `elicitation-with-options` today — `review-requirements/TEN-BA-QUESTIONS`, `review-requirements/TEN-UX-QUESTIONS` (grounded in requirements.md via the drafter's Step-5 read), and the review-inputs `TEN-BA-QUESTIONS`, `TEN-UX-QUESTIONS` (grounded in the input corpus: the card's own `[SRC: <filename>]` citation + domain defaults, no Step-5 read); the other elicitation rows (`COMPLETENESS-REVIEW`, the elicitation halves of the `kind-dispatched` `review-requirements/FIRST-PRINCIPLES` and `review-requirements/REQUIREMENTS-QUALITY`, and `review-requirements/REQUIREMENTS-TRACEABILITY`) **may** adopt it later but retain `answer-elicitation` for now.
+- `fingerprint_compares_to` — closed enum naming what the drafter's Step-2 drift check hashes for comparison: `source-manifest` (`generated-docs/requirements/source-manifest.json`, review-inputs rows) or `requirements-doc` (`generated-docs/requirements/requirements.md`, review-requirements rows). For `requirements-doc` rows the drafter also pre-flights that `generated-docs/requirements/requirements.md` exists, and its Step 9b addendum branch is armed (see the drafter).
+- `resolution_semantics` — closed enum naming the resolution flow: `apply-recommendation` | `answer-elicitation` | `elicitation-with-options` | `pick-interpretation` | `ratify-candidate` | `kind-dispatched` (the row's findings come in more than one structural kind; the `ask_shape` names per kind which flow applies — confirmation for kinds with an actionable payload, elicitation for observational kinds). `elicitation-with-options` is the **gap-surfacing** flow for question-style methodologies: the finding is an open question an experienced BA/UX peer would raise, so the drafter does not merely collect a free-text answer — it drafts ≥2 (target 3) genuinely distinct, grounded candidate enrichments (each with a one-line implication and exactly one grounding tag — `[grounded: <anchor>]` / `[domain-default]` / `[assumption — confirm with client]`), reconciles them against prior decisions, and presents them as selectable options with out-of-scope demoted to the free-text path (full flow in the drafter's Step 5; trust signal carried by the grounding tag, not a new marker). New methodologies may reuse an existing value or append a new one **here** (with its `ask_shape` describing the flow); the drafter's Step 5 executes whatever the row describes. The grounding-tag `<anchor>` resolves per the row's source: requirements.md anchors (`§N.N / F-NN / BR-NN / AMD-NN`) for `requirements-doc` rows, an input filename (the card's cited `[SRC: <filename>]`) for `source-manifest` rows. **Scope note:** four rows use `elicitation-with-options` today — `generated-docs/review-requirements/TEN-BA-QUESTIONS`, `generated-docs/review-requirements/TEN-UX-QUESTIONS` (grounded in requirements.md via the drafter's Step-5 read), and the review-inputs `TEN-BA-QUESTIONS`, `TEN-UX-QUESTIONS` (grounded in the input corpus: the card's own `[SRC: <filename>]` citation + domain defaults, no Step-5 read); the other elicitation rows (`COMPLETENESS-REVIEW`, the elicitation halves of the `kind-dispatched` `generated-docs/review-requirements/FIRST-PRINCIPLES` and `generated-docs/review-requirements/REQUIREMENTS-QUALITY`, and `generated-docs/review-requirements/REQUIREMENTS-TRACEABILITY`) **may** adopt it later but retain `answer-elicitation` for now.
 - `ask_shape` — one short paragraph specifying the per-finding `AskUserQuestion`: what is presented, the option set, and which option maps to which origin marker (`[CONSULTANT-STATED]` / `[AI-INFERRED, CONSULTANT-CONFIRMED]`, and — for `elicitation-with-options` rows — the grounding tag; all canonically defined in `framework/assets/resolve-review/template-resolutions.md`). Every flow must include a Skip option, and every flow in which the drafted content originates from the review (not the consultant) must be confirmed by an explicit consultant affirmative — per finding, or via the explicit accept-all-remaining choice — never silently or by default.
 
 **Adding a new methodology (per-PR steps):**

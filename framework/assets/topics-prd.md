@@ -2,7 +2,7 @@
 
 # topics-prd.md
 
-**Purpose:** Canonical list of the topics every PRD must cover, with per-topic acceptance criteria and minimum-useful-content rules. Every section is unconditional (always emit). The PRD audience is human (consultant, client stakeholders, sign-off authorities) — distinct from `requirements/requirements.md` which is LLM-audience.
+**Purpose:** Canonical list of the topics every PRD must cover, with per-topic acceptance criteria and minimum-useful-content rules. Every section is unconditional (always emit). The PRD audience is human (consultant, client stakeholders, sign-off authorities) — distinct from `generated-docs/requirements/requirements.md` which is LLM-audience.
 
 **Used by:**
 - `framework/assets/template-prd.md` — section skeleton mirrors this list one-to-one.
@@ -34,7 +34,7 @@ The PRD has no conditional sections. Every gap becomes either a `[SRC: PC-NNN]` 
 
 ## Pre-authoring invariants (preserve when filling in)
 
-- §1 metadata includes a **reading list** of companion artefacts (`requirements/requirements.md`, `design-system/design-system-light.html` and/or `design-system/design-system-dark.html`, analyses, reviews) when they exist. List whichever design-system mode file(s) are actually on disk — a run may have produced one or both. Pointers are by filename only — never restate content from those files inside the PRD.
+- §1 metadata includes a **reading list** of companion artefacts (`generated-docs/requirements/requirements.md`, `generated-docs/design-system/design-system-light.html` and/or `generated-docs/design-system/design-system-dark.html`, analyses, reviews) when they exist. List whichever design-system mode file(s) are actually on disk — a run may have produced one or both. Pointers are by filename only — never restate content from those files inside the PRD.
 - §2 problem statement leads with user/stakeholder pain in plain language, then sizes the opportunity. §2.3 opportunity-size dimensions (affected users, frequency, cost of inaction, trend) are all required cells.
 - §3 competitive context names competitors, alternatives, and "do nothing" — never abstract phrasing like "the market alternative." This is the section most likely to need vendor names and is exempt from `GR-20`.
 - §4 stakeholders includes a sign-off domain for every row. "No sign-off needed" is not a valid sign-off domain; if a person doesn't sign off on anything, they belong in §12 dependencies, not §4 stakeholders.
@@ -79,13 +79,13 @@ The PRD pipeline has no Tier C (out-of-scope sections) and no Tier D (visual-man
 
 The PRD pipeline emits exactly two markers:
 
-- `[SRC: PC-NNN]` — input-cited fact. PRD-namespaced (`PC-` for **P**RD **C**laim) to avoid visual collision with requirements `C-NNN` IDs. Sidecar at `prd/draft-claims.ndjson`. Retained verbatim in the final merged `prd/prd.md`.
+- `[SRC: PC-NNN]` — input-cited fact. PRD-namespaced (`PC-` for **P**RD **C**laim) to avoid visual collision with requirements `C-NNN` IDs. Sidecar at `generated-docs/prd/draft-claims.ndjson`. Retained verbatim in the final merged `generated-docs/prd/prd.md`.
 - `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]` — inferred fill. PRD-namespaced (`PAI-` for **P**RD **AI**-suggested). Resolver Q&As; merger strips after applying resolution.
 
 **Not emitted:**
 - `[STANDARD-RULE: GR-NN]` — the `GR-NN` rules in `framework/shared/general-rules.md` are UI behaviour guardrails (validation timing, badge mapping, table sorting). None apply to PRD content.
 - `[OUT-OF-SCOPE: domain-default]` — the PRD's §10 *is* the out-of-scope discussion. A marker inside §10 saying "out of scope" would be self-referential nonsense, and §10 is not the only place out-of-scope content appears — it's just the discussion of it.
-- `[REQ: §X.Y]` — the PRD pipeline is fully independent of `requirements/requirements.md`. It reads only `requirements/source-manifest.json` and the input files under `documentation/`. Cross-doc pointers into `requirements.md` would widen the closed marker set forbidden by CLAUDE.md §1.
+- `[REQ: §X.Y]` — the PRD pipeline is fully independent of `generated-docs/requirements/requirements.md`. It reads only `generated-docs/requirements/source-manifest.json` and the input files under `documentation/`. Cross-doc pointers into `requirements.md` would widen the closed marker set forbidden by CLAUDE.md §1.
 
 ## Citation scope
 

@@ -2,9 +2,9 @@
 
 # Thematic Analysis reference
 
-> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`, generate per-source observations (Phase 1), transform them into codes anchored to verbatim extracts (Phase 2), cluster the codes into candidate themes (Phase 3), refine the themes against their underlying codes (Phase 4), define and name the final themes (Phase 5), then produce the report — including a bridge from each theme to candidate-requirement seeds and a deductive coverage check against a fixed 10-area concern frame (Phase 6). Every code, theme-definition, and candidate-requirement carries one or more `[SRC: <filename>]` markers naming a manifest row. Coverage gaps surface as `[GAP-DEDUCTIVE: <concern>]` markers in a diagnostics section — **never** as invented themes. Across re-runs the artefact is **additive**: prior theme headings, code lists, and candidate-requirements are preserved; new manifest content extends them.
+> **Method:** Walk every consumable source enumerated in `generated-docs/requirements/source-manifest.json`, generate per-source observations (Phase 1), transform them into codes anchored to verbatim extracts (Phase 2), cluster the codes into candidate themes (Phase 3), refine the themes against their underlying codes (Phase 4), define and name the final themes (Phase 5), then produce the report — including a bridge from each theme to candidate-requirement seeds and a deductive coverage check against a fixed 10-area concern frame (Phase 6). Every code, theme-definition, and candidate-requirement carries one or more `[SRC: <filename>]` markers naming a manifest row. Coverage gaps surface as `[GAP-DEDUCTIVE: <concern>]` markers in a diagnostics section — **never** as invented themes. Across re-runs the artefact is **additive**: prior theme headings, code lists, and candidate-requirements are preserved; new manifest content extends them.
 
-**Output file:** `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — a self-contained HTML document rendered via `framework/assets/analyses-inputs/template-thematic-analysis.html`. The theme-map is a **pre-rendered inline SVG** in a `#diagrams` section, with an adjacent collapsed `<details class="mermaid-block">` block carrying the Mermaid source as an export / re-ingestion adjunct (embedded as text, not validated by `mmdc`). A `language-json` `thematic-analysis-body` block carries the structured model (themes + codes) and the candidate-requirement seeds, so the artefact survives a markitdown HTML→Markdown conversion for re-ingestion by `/requirements`.
+**Output file:** `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — a self-contained HTML document rendered via `framework/assets/analyses-inputs/template-thematic-analysis.html`. The theme-map is a **pre-rendered inline SVG** in a `#diagrams` section, with an adjacent collapsed `<details class="mermaid-block">` block carrying the Mermaid source as an export / re-ingestion adjunct (embedded as text, not validated by `mmdc`). A `language-json` `thematic-analysis-body` block carries the structured model (themes + codes) and the candidate-requirement seeds, so the artefact survives a markitdown HTML→Markdown conversion for re-ingestion by `/requirements`.
 
 **Analyser agent:** `framework/agents/analyses-inputs/thematic-analysis-analyser.md`
 
@@ -33,7 +33,7 @@ Consultants drop briefs, decks, screenshots, interview notes, and meeting transc
 | Causal chain × root drivers | five-whys (input variant) | Why does this concern exist in the inputs? | raw `documentation/` |
 | **Pattern recognition × cross-source themes** | **thematic-analysis** | **What recurring patterns do the inputs carry, and what candidate requirements do they imply?** | **raw `documentation/`** |
 
-Thematic analysis is the **right first methodology** for `/analyse-inputs` because qualitative-research TA was designed for transcripts, interview notes, and source documents — exactly the shape of raw consultant material. By contrast, the merged `requirements/requirements.md` that `/analyse-requirement` lenses has already normalised the consultant's phrasing into *"the system shall …"* statements; TA on that document would surface themes about the normaliser, not about the consultant's inputs.
+Thematic analysis is the **right first methodology** for `/analyse-inputs` because qualitative-research TA was designed for transcripts, interview notes, and source documents — exactly the shape of raw consultant material. By contrast, the merged `generated-docs/requirements/requirements.md` that `/analyse-requirement` lenses has already normalised the consultant's phrasing into *"the system shall …"* statements; TA on that document would surface themes about the normaliser, not about the consultant's inputs.
 
 ### Why HTML with embedded Mermaid source + JSON body
 
@@ -48,7 +48,7 @@ Thematic analysis is the **right first methodology** for `/analyse-inputs` becau
 The artefact has a fixed top-to-bottom shape:
 
 0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this thematic analysis is, what it found, what the consultant should do with it. The **first** section, above the meta-grid. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon (theme, code, inductive/deductive coding, code frequency, saturation) is glossed at first use here; client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`. The theme-map remains the first **visual** after this lead.
-1. **Header.** Title, generation timestamp, manifest fingerprint (sha256 of `requirements/source-manifest.json`), run count.
+1. **Header.** Title, generation timestamp, manifest fingerprint (sha256 of `generated-docs/requirements/source-manifest.json`), run count.
 2. **Thematic-meta** HTML comment carrying the additive-merge cursor (`manifest_fingerprint`, `run_count`).
 3. **Summary.** Counts: observations, codes, candidate themes, final themes, candidate-requirements, coverage-frame results (covered / gap-deductive / silent), sources consumed / skipped.
 4. **Themes.** One block per final theme, alphabetical by theme label. Each block:
@@ -262,10 +262,10 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 
 The analyser **never** reads:
 
-- Any path under `requirements/` other than `requirements/source-manifest.json`.
+- Any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json`.
 - Any path under `framework/state/`.
 - Any path under `framework/shared/` (textual references to `RF-NN` / `GR-NN` in this file and in the analyser are links for the reader, not file loads).
-- Other analyses' artefacts (`analyse-requirements/<OTHER-METHOD>/...`, `analyse-inputs/<OTHER-METHOD>/...`).
+- Other analyses' artefacts (`generated-docs/analyse-requirements/<OTHER-METHOD>/...`, `generated-docs/analyse-inputs/<OTHER-METHOD>/...`).
 - Any pattern-catalogue or design-system file.
 
 ---
@@ -315,7 +315,7 @@ The analysis is complete when:
 - `final_themes` is non-empty (or the consultant Override'd a zero-theme run with a recorded reason).
 - All 6 hard gates pass, or the consultant chose Override and the failures are recorded in Diagnostics.
 - Every theme is a node in both the pre-rendered inline SVG theme-map and the Mermaid export source (embedded as unvalidated text).
-- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` has been written and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 
 ---

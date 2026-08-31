@@ -2,11 +2,11 @@
 
 # map-trade-off-dimension-to-ui.md
 
-**Purpose:** Translate a trade-off dimension matrix (`analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html`) into UI-design guidance entries: per-goal posture cells become bias inputs to downstream wireframing options, and the kept-dimensions list constrains the dimensions design variants are evaluated against.
+**Purpose:** Translate a trade-off dimension matrix (`generated-docs/analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html`) into UI-design guidance entries: per-goal posture cells become bias inputs to downstream wireframing options, and the kept-dimensions list constrains the dimensions design variants are evaluated against.
 
 **Inputs:**
 
-- `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` — the artefact written by `framework/agents/analyses/trade-off-dimension-analyser.md`.
+- `generated-docs/analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` — the artefact written by `framework/agents/analyses/trade-off-dimension-analyser.md`.
 - The embedded JSON payload at `<script type="application/json" id="trade-off-scores">` inside that file is the canonical machine-readable contract. HTML parsing is not required — extract the JSON text between the opening and closing script tags and `JSON.parse` it.
 
 **Outputs:** UI design guidance entries for the downstream wireframing / prototyping agents. Two shapes:

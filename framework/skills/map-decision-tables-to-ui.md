@@ -4,7 +4,7 @@
 
 ## Inputs
 
-- `analyse-requirements/DECISION-TABLES/decision-tables.html` — the decision-tables artefact (or its embedded `<pre><code class="language-json" id="decision-tables-body">` model for the structured subset).
+- `generated-docs/analyse-requirements/DECISION-TABLES/decision-tables.html` — the decision-tables artefact (or its embedded `<pre><code class="language-json" id="decision-tables-body">` model for the structured subset).
 
 ## Mapping
 

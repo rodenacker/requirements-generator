@@ -2,9 +2,9 @@
 
 # Activity Diagram analysis reference
 
-> **Method:** Extract a **per-flow activity-diagram catalogue** (flows, swimlanes, actions, control nodes, edges, cross-flow swimlane matrix) from `requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered flows to add as inline-SVG `<figure>` blocks. Same data, the visuals are views onto the flows already listed in the catalogue.
+> **Method:** Extract a **per-flow activity-diagram catalogue** (flows, swimlanes, actions, control nodes, edges, cross-flow swimlane matrix) from `generated-docs/requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered flows to add as inline-SVG `<figure>` blocks. Same data, the visuals are views onto the flows already listed in the catalogue.
 
-**Output file:** `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` — a self-contained HTML artefact containing the per-flow tabular catalogue (always) plus zero or more inline-SVG activity-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `generated-docs/analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` — a self-contained HTML artefact containing the per-flow tabular catalogue (always) plus zero or more inline-SVG activity-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/activity-diagram-analyser.md`
 
@@ -90,7 +90,7 @@ Each SVG carries:
 
 ## Source-of-truth hierarchy
 
-The analyser walks `requirements/requirements.md` in this order:
+The analyser walks `generated-docs/requirements/requirements.md` in this order:
 
 1. **`§5 Task flows`** — primary. Each top-level task flow becomes a candidate flow. Each step in the flow becomes a candidate action. The first noun in each step is a candidate swimlane owner.
 2. **`§5` *Decision points* sub-cell** — every "if X then Y else Z" or "when Q is met, …" branch becomes a candidate decision node with `guard = X` or `Q`.
@@ -310,7 +310,7 @@ Richer inputs → richer catalogue. Methodology degrades gracefully: with thin `
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html`. The analyser populates `framework/assets/analyses/template-activity-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `generated-docs/analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html`. The analyser populates `framework/assets/analyses/template-activity-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 
@@ -319,7 +319,7 @@ The artefact is a single self-contained HTML file at `analyse-requirements/ACTIV
 | `{{TITLE}}` | *"Activity Diagrams — `<domain>`"* if `§1` declares a domain, else *"Activity Diagrams"*. |
 | `{{DOMAIN}}` | Verbatim from `§1 Application context > Domain`, else *"(not declared in requirements.md)"*. |
 | `{{GENERATED_AT}}` | ISO-8601 UTC, captured at render time. |
-| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `requirements/requirements.md` captured at Step 2. |
+| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `generated-docs/requirements/requirements.md` captured at Step 2. |
 | `{{FLOW_COUNT}}` | Number of rows in the Flows table. |
 | `{{SWIMLANE_COUNT}}` | Number of rows in the global Swimlanes table. |
 | `{{ACTION_COUNT}}` | Number of rows in the Actions table (across all flows). |

@@ -6,9 +6,9 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **t
 
 ## Purpose
 
-Produce `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — a self-contained HTML document listing the **10 most pressing unanswered UX questions** an experienced UX designer would ask after critically reading the **raw consultant input set** (the material in `documentation/` enumerated by `requirements/source-manifest.json`) — by applying the eight-category methodology (`framework/assets/reviews-inputs/ten-ux-questions-reference.md`) literally and exhaustively. Each question carries a priority (`blocking | major | minor`), a source provenance (`[SRC: <filename>]` for material a consumed source partially touches, or `absent-from-corpus` when the whole topic is missing from every source), and a 1–2 sentence rationale on the design impact of leaving the question unanswered. The ten questions are selected from a candidate pool of up to 50, after filtering against `GR-NN` general rules, `PI-NN` prototype invariants, `prototype-scope.md`, **and** the adjacent 10 BA Questions methodology's categories (the BA-lens drop). Every quality gate in the reference is a hard gate.
+Produce `generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — a self-contained HTML document listing the **10 most pressing unanswered UX questions** an experienced UX designer would ask after critically reading the **raw consultant input set** (the material in `documentation/` enumerated by `generated-docs/requirements/source-manifest.json`) — by applying the eight-category methodology (`framework/assets/reviews-inputs/ten-ux-questions-reference.md`) literally and exhaustively. Each question carries a priority (`blocking | major | minor`), a source provenance (`[SRC: <filename>]` for material a consumed source partially touches, or `absent-from-corpus` when the whole topic is missing from every source), and a 1–2 sentence rationale on the design impact of leaving the question unanswered. The ten questions are selected from a candidate pool of up to 50, after filtering against `GR-NN` general rules, `PI-NN` prototype invariants, `prototype-scope.md`, **and** the adjacent 10 BA Questions methodology's categories (the BA-lens drop). Every quality gate in the reference is a hard gate.
 
-This is the inputs-side sibling of `framework/agents/reviews/ten-ux-questions-reviewer.md`, which runs the same lens against the merged `requirements/requirements.md`. This agent runs one stage earlier — against the gathered material before `/requirements` drafts from it.
+This is the inputs-side sibling of `framework/agents/reviews/ten-ux-questions-reviewer.md`, which runs the same lens against the merged `generated-docs/requirements/requirements.md`. This agent runs one stage earlier — against the gathered material before `/requirements` drafts from it.
 
 The agent is **single-pass**: source-ingest, candidate-generation, filter, score-and-select, validate, render, and write all execute in this one thread without sub-agent fan-out. This contrasts with the adversarial inputs reviewer, which fans out six dimension workers; the 10 UX Questions task is a rank-and-select over a 50-item pool with cross-category trade-offs, and one agent context produces better-coordinated questions than parallel category-workers re-merged centrally. (Mirrors the requirements-side 10 UX Questions reviewer's single-pass design and its defence of that choice.) Because the agent reads the sources itself (rather than fanning out tool-less workers), there is **no** serialised evidence bundle, no per-worker quote index, and no 200 KB bundle-inflation cap — the single context reads the corpus once.
 
@@ -16,7 +16,7 @@ The agent is **single-pass**: source-ingest, candidate-generation, filter, score
 
 This agent reads:
 
-- `requirements/source-manifest.json` (once, at Step 2).
+- `generated-docs/requirements/source-manifest.json` (once, at Step 2).
 - For each manifest row where `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` when `converted_sibling` is null (`Native-text`), otherwise `converted_sibling` (`Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`). Read once per row at Step 3.
 - `framework/assets/characters/ten-ux-questions-inputs-review.md` (the character — loaded at activation).
 - `framework/assets/reviews-inputs/ten-ux-questions-reference.md` (the methodology — read at activation).
@@ -26,11 +26,11 @@ This agent reads:
 - `framework/shared/prototype-scope.md` (read at Step 5 as a **filter source** only).
 - `framework/assets/reviews-inputs/ten-ba-questions-reference.md` (read at Step 5 as a **filter source** only — the BA-lens-drop source; the inputs-side BA reference is reused read-only purely as the BA-classification rubric, carrying the canonical UX-vs-BA boundary table. This is the symmetric inverse of how the 10 BA Questions reviewer reads `reviews/ten-ux-questions-reference.md`).
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read other lenses' artefacts under `analyse-requirements/`, `analyse-inputs/<METHOD>/`, `review-requirements/`, or `review-inputs/<OTHER-METHOD>/`. It does **not** read any path under `framework/assets/reviews/`. The four filter-source reads at Step 5 are the agent's **only** reads under `framework/shared/` and the only read under `framework/assets/reviews-inputs/` outside its own reference and template.
+The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read other lenses' artefacts under `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/<METHOD>/`, `generated-docs/review-requirements/`, or `generated-docs/review-inputs/<OTHER-METHOD>/`. It does **not** read any path under `framework/assets/reviews/`. The four filter-source reads at Step 5 are the agent's **only** reads under `framework/shared/` and the only read under `framework/assets/reviews-inputs/` outside its own reference and template.
 
 The raw input corpus is the contract; the review's job is to identify gaps *in the gathered material*, not to triangulate against artefacts that derive from it or against pipeline-internal state.
 
-The agent's only outputs are `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts, analyses outputs, design-system outputs, or `framework/state/` is granted.
 
@@ -47,15 +47,15 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
   - **Gloss review jargon at first use** in the lead — e.g. *"priority (how pressing — blocking / major / minor)"*, *"category (which of the eight UX gap areas)"*, *"candidate pool (the up-to-50 questions generated before top 10 are selected)"*, *"source (the input file the question targets, or 'absent-from-corpus' when no source touches the topic)"*. **Never gloss client domain terms.**
   - **Punch-list below the lead.** Triage, question cards, and diagnostics keep the cited, telegraphic form. No marketing language or chatbot warmth.
   - **Traceability stays as `[SRC: <filename>]` or `absent-from-corpus`.** This is the inputs-pipeline citation convention.
-- State readiness in one short line: *"10 UX Questions reviewer (inputs-side) ready. Starting from `requirements/source-manifest.json`."*
-- Restate the stand-alone constraint in-thread so the consultant can see it: *"This run reads `requirements/source-manifest.json` plus the source files it enumerates — no `requirements.md`, no analyses, no design-system, no pipeline state. Four filter sources (general-rules, prototype-invariants, prototype-scope, ten-ba-questions-reference) are read once at Step 5 to filter candidates."*
+- State readiness in one short line: *"10 UX Questions reviewer (inputs-side) ready. Starting from `generated-docs/requirements/source-manifest.json`."*
+- Restate the stand-alone constraint in-thread so the consultant can see it: *"This run reads `generated-docs/requirements/source-manifest.json` plus the source files it enumerates — no `requirements.md`, no analyses, no design-system, no pipeline state. Four filter sources (general-rules, prototype-invariants, prototype-scope, ten-ba-questions-reference) are read once at Step 5 to filter candidates."*
 - Restate the methodology's core promise in one line: *"Up to 50 candidate questions generated across 8 UX gap categories, filtered against the framework's deterministic answer set and against the adjacent BA-questions lens, scored by (design-impact × answerability-gap), top 10 selected with natural priority distribution."*
 
 ### Step 2 — Read manifest
 
-- `Read requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists (if absent at orchestrator step 1, the input-handler is invoked first).
+- `Read generated-docs/requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists (if absent at orchestrator step 1, the input-handler is invoked first).
 - Compute and remember the SHA-256 of the file's bytes — this is `manifest_fingerprint`, the value that lands in the artefact's `MANIFEST_FINGERPRINT` field and in Quality Gate 10.
-- If the file is empty, malformed JSON, or parses to a zero-row file list, halt with the structured error: *"`requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
+- If the file is empty, malformed JSON, or parses to a zero-row file list, halt with the structured error: *"`generated-docs/requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - Parse the manifest's row list. Each row carries (at minimum): `filename`, `tier`, `original_path`, `converted_sibling` (when applicable), `sha256`, `conversions_applied`. Classify rows:
     - `consumable_rows` = rows where `tier != "Unsupported"` — these will be ingested at Step 3.
     - `skipped_rows` = rows where `tier == "Unsupported"` — these contribute to the skipped roster only.
@@ -231,11 +231,11 @@ The template scaffold itself is **not edited** — the inline `<style>` block, s
 
 ### Step 9 — Write
 
-- Ensure the output directory exists. On Windows / PowerShell environments use `Bash New-Item -ItemType Directory -Force review-inputs/TEN-UX-QUESTIONS`; on POSIX environments use `Bash mkdir -p review-inputs/TEN-UX-QUESTIONS`. Use whichever the orchestrator's prior steps used.
-- `Write review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html`, `expected_sha256 = <Step-8 sha>`, `expected_min_bytes = 5000` (a minimum legal render carries the full inline `<style>` block plus 10 question cards, a triage table, and an 11-gate diagnostics block with the Corpus Shape and source rosters, comfortably above 5 KB).
+- Ensure the output directory exists. On Windows / PowerShell environments use `Bash New-Item -ItemType Directory -Force generated-docs/review-inputs/TEN-UX-QUESTIONS`; on POSIX environments use `Bash mkdir -p generated-docs/review-inputs/TEN-UX-QUESTIONS`. Use whichever the orchestrator's prior steps used.
+- `Write generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html`, `expected_sha256 = <Step-8 sha>`, `expected_min_bytes = 5000` (a minimum legal render carries the full inline `<style>` block plus 10 question cards, a triage table, and an 11-gate diagnostics block with the Corpus Shape and source rosters, comfortably above 5 KB).
 - On `pass`: advance to Step 10.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 10 — Handback
 
@@ -243,7 +243,7 @@ The template scaffold itself is **not edited** — the inline `<style>` block, s
 
 Output one short, concrete line listing the counts and gate result. No marketing language. Template:
 
-> *"Wrote `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — 10 UX questions selected from `{{CANDIDATE_POOL_SIZE}}` candidates over `{{SOURCE_COUNT}}` sources. Priority: `{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor. Category coverage: `{{N}}` of 8. Quality gates: `{{n_gates_passed}}/11` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
+> *"Wrote `generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — 10 UX questions selected from `{{CANDIDATE_POOL_SIZE}}` candidates over `{{SOURCE_COUNT}}` sources. Priority: `{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor. Category coverage: `{{N}}` of 8. Quality gates: `{{n_gates_passed}}/11` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 
@@ -271,7 +271,7 @@ Use `AskUserQuestion`:
     - **Re-source a question:** update the `source` field to a `[SRC: <filename>]` in the consumed-filename set or `absent-from-corpus`. Re-run gate 5 only. Re-render, re-Write, re-verify, loop back to A.
     - **Edit rationale text:** update the rationale (1–3 sentences). Re-run gate 4 only. Re-render, re-Write, re-verify, loop back to A.
     - **Expand category coverage:** if gate 8 was the failure, the consultant may add a candidate from an under-represented category. Add it to the selected list and drop the lowest-scoring existing question to restore `len == 10`. Re-number IDs. Re-run gates 1, 5, 6, 7, 8, 9. Re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 4 from a clean state. Generate a fresh candidate pool; re-filter; re-score; re-select. The Step-2/3 manifest ingest is preserved (the manifest has not changed mid-run; no re-ingest needed). The previously-written `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` is left in place; the next Step 9 will overwrite it.
+- **Restart** — re-enter Step 4 from a clean state. Generate a fresh candidate pool; re-filter; re-score; re-select. The Step-2/3 manifest ingest is preserved (the manifest has not changed mid-run; no re-ingest needed). The previously-written `generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` is left in place; the next Step 9 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 9).
 
@@ -283,7 +283,7 @@ Output the final handback line:
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2. The orchestrator's Step 1 manifest preflight guarantees existence.
+- `generated-docs/requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2. The orchestrator's Step 1 manifest preflight guarantees existence.
 - Each manifest row's read-path resolved per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text` (null `converted_sibling`), `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` — read once per row at Step 3. The agent does **not** read `original_path` for any row carrying a non-null `converted_sibling` (the `.converted.md` sibling is the contract).
 - `framework/assets/characters/ten-ux-questions-inputs-review.md` — the reviewer's stance. Loaded once in Step 1.
 - `framework/assets/reviews-inputs/ten-ux-questions-reference.md` — the methodology reference. Read once in Step 1.
@@ -295,7 +295,7 @@ Output the final handback line:
 
 ## Output
 
-- `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep choice before the agent is invoked).
+- `generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep choice before the agent is invoked).
 
 Section order in the rendered artefact:
 
@@ -307,10 +307,10 @@ Section order in the rendered artefact:
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the manifest (`requirements/source-manifest.json`), each manifest-enumerated source file (resolved per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`), and (at Step 5 only) the four filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`, `framework/shared/prototype-scope.md`, `framework/assets/reviews-inputs/ten-ba-questions-reference.md`). **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyse-requirements/`, `analyse-inputs/`, `review-requirements/`, `review-inputs/<OTHER-METHOD>/`; not against `framework/state/`; not against any other path under `framework/shared/`; not against any path under `framework/assets/reviews/`; not against any other path under `framework/assets/reviews-inputs/` other than its own reference, its own template, and the BA reference.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html`.
+- `Read` — read the character file, the reference asset, the template scaffold, the manifest (`generated-docs/requirements/source-manifest.json`), each manifest-enumerated source file (resolved per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`), and (at Step 5 only) the four filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`, `framework/shared/prototype-scope.md`, `framework/assets/reviews-inputs/ten-ba-questions-reference.md`). **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/`, `generated-docs/review-requirements/`, `generated-docs/review-inputs/<OTHER-METHOD>/`; not against `framework/state/`; not against any other path under `framework/shared/`; not against any path under `framework/assets/reviews/`; not against any other path under `framework/assets/reviews-inputs/` other than its own reference, its own template, and the BA reference.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 8's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` / `PowerShell` — `mkdir -p review-inputs/TEN-UX-QUESTIONS` (POSIX) or `New-Item -ItemType Directory -Force review-inputs/TEN-UX-QUESTIONS` (Windows) at Step 9 setup. No other shell usage.
+- `Bash` / `PowerShell` — `mkdir -p generated-docs/review-inputs/TEN-UX-QUESTIONS` (POSIX) or `New-Item -ItemType Directory -Force generated-docs/review-inputs/TEN-UX-QUESTIONS` (Windows) at Step 9 setup. No other shell usage.
 - `AskUserQuestion` — surface the Step 7 quality-gate failure prompt (Revise / Override / Restart) when any gate fires; surface the Step 10 Accept / Revise / Restart prompt.
 
 The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no sub-agent dispatch, no parallel-worker invocation. Single-pass single-thread is the methodology — the reference's defence of this choice (rank-and-select over a 50-item pool is a sorting problem, not eight independent evidence scans) is the binding contract.
@@ -319,7 +319,7 @@ The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no su
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - `<section id="plain-terms">` is the **first** content section in DOM order (before `#executive-summary`). It contains a non-empty `<p>` (the `{{PLAIN_SUMMARY}}` substitution).
 - The `{{PLAIN_SUMMARY}}` text is 2–5 sentences, introduces no question or count not in the punch-list, states priority (blocking / major / minor) verbatim without softening, and glosses review jargon at first use without glossing client domain terms.
@@ -337,14 +337,14 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains zero questions that match a BA category in `ten-ba-questions-reference.md` (gate 9 cross-check).
 - The `UXQ-NN` ID sequence is contiguous from `UXQ-01` through `UXQ-10`, assigned in score-descending order (with the documented tie-breaker).
 - The consultant has chosen Accept in Step 10 (or the Step 7 Override path was taken, in which case Accept is still required in Step 10 to declare done).
-- No file under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files was read during this run.
-- No file under `analyse-requirements/`, `analyse-inputs/`, `review-requirements/`, `review-inputs/<OTHER-METHOD>/`, `design-system/`, `framework/state/`, or `framework/shared/` (except the three shared filter sources at Step 5) was read during this run.
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files was read during this run.
+- No file under `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/`, `generated-docs/review-requirements/`, `generated-docs/review-inputs/<OTHER-METHOD>/`, `generated-docs/design-system/`, `framework/state/`, or `framework/shared/` (except the three shared filter sources at Step 5) was read during this run.
 - No file under `framework/assets/reviews/` was read during this run; no file under `framework/assets/reviews-inputs/` other than this methodology's own reference + template and the BA reference (Step-5 filter source only) was read during this run.
 - The `Agent` / `Task` tool was not used.
 
 ## Definition of Done
 
-- `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains exactly 10 UX questions selected from a candidate pool of ≤ 50.
+- `generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains exactly 10 UX questions selected from a candidate pool of ≤ 50.
 - `<section id="plain-terms">` is first in DOM order; its `<p>` is non-empty, plain-English, 2–5 sentences, priority-preserving, and jargon-glossed at first use.
 - Every selected question has a priority ∈ {blocking, major, minor}, a valid source (`[SRC: <filename>]` in the consumed-filename set, or `absent-from-corpus`), and a 1–3 sentence rationale.
 - Category coverage among the selected ten is ≥ 5 of 8 (or the consultant explicitly chose Override at Step 7 and the diagnostics block records the violation).
@@ -355,9 +355,9 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Anti-Patterns
 
-- Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files. The stand-alone-ish constraint is the agent's most load-bearing invariant.
-- Do not read `requirements/requirements.md` or any other `/requirements`-pipeline derivative artefact. The review's contract is to critique **raw inputs**, not anything synthesised from them — reviewing the inputs against a document drafted from those same inputs conflates "what the corpus says" with "what the drafter inferred".
-- Do not read `analyse-requirements/`, `analyse-inputs/`, `review-requirements/`, `review-inputs/<OTHER-METHOD>/`, `design-system/`, or `framework/state/` for any purpose. Derivative artefacts and pipeline state are not 10-UX-Questions inputs.
+- Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files. The stand-alone-ish constraint is the agent's most load-bearing invariant.
+- Do not read `generated-docs/requirements/requirements.md` or any other `/requirements`-pipeline derivative artefact. The review's contract is to critique **raw inputs**, not anything synthesised from them — reviewing the inputs against a document drafted from those same inputs conflates "what the corpus says" with "what the drafter inferred".
+- Do not read `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/`, `generated-docs/review-requirements/`, `generated-docs/review-inputs/<OTHER-METHOD>/`, `generated-docs/design-system/`, or `framework/state/` for any purpose. Derivative artefacts and pipeline state are not 10-UX-Questions inputs.
 - Do not read any file under `framework/shared/` other than the three filter sources (`general-rules.md`, `prototype-invariants.md`, `prototype-scope.md`) — and only at Step 5. Other shared files (e.g. `refusal-registry.md`) are referenced by ID, not read by this agent.
 - Do not read any file under `framework/assets/reviews/` (the requirements-side methodology assets), and do not read any other file under `framework/assets/reviews-inputs/` than this methodology's own reference + template and the BA reference (the Step-5 rule-4 filter source). The requirements-side UX reference is not an input to this agent.
 - Do not re-invoke `markitdown-mcp`. Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract. Re-converting would produce drift between the reviewer's reads and the manifest's recorded `sha256` field.

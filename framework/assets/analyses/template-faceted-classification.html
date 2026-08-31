@@ -3,7 +3,7 @@
 
   Purpose: HTML/CSS skeleton for a Faceted Classification & Controlled Vocabulary artefact —
   the orthogonal facets (slicing dimensions) of each list-bearing / collection surface in
-  requirements/requirements.md, each with its kind, value set, and a backing §7 data property,
+  generated-docs/requirements/requirements.md, each with its kind, value set, and a backing §7 data property,
   plus an orthogonality matrix, a filter/sort scaffolding note per surface, a facet-value-scoped
   controlled vocabulary, and a non-orthogonality register (dependent facet pairs to collapse).
 
@@ -51,7 +51,7 @@
     {{DOMAIN}}                         — domain string (from requirements §1), or
                                          "(not declared in requirements.md)".
     {{GENERATED_AT}}                   — ISO-8601 UTC timestamp at render time.
-    {{REQUIREMENTS_SHA256}}            — sha256 of requirements/requirements.md at read time.
+    {{REQUIREMENTS_SHA256}}            — sha256 of generated-docs/requirements/requirements.md at read time.
     {{COLLECTION_COUNT}}               — number of list-bearing / collection surfaces analysed.
     {{FACET_COUNT}}                    — total facets across all collections.
     {{NON_ORTHOGONAL_COUNT}}           — total non-orthogonality-register rows (dependent pairs).
@@ -86,7 +86,7 @@
   Dependency / flag signalling is always glyph + word — colour is never the sole signal.
   Only the documented {{placeholders}} are substituted; CSS, layout, and class names are fixed.
 
-  Output: analyse-requirements/FACETED-CLASSIFICATION/facet-map.html.
+  Output: generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html.
 -->
 <!doctype html>
 <html lang="en">

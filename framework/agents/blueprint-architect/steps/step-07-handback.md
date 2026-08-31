@@ -60,7 +60,7 @@ Compose a structured prompt for `AskUserQuestion`:
 - **Revise inventory** — surface a follow-up `AskUserQuestion` to capture the specific revision intent (free text). Re-run step 3 with the revision applied; re-run step 4 (the blueprint will be re-written); re-run step 5 (variants will be re-prompted from scratch); re-evaluate the gate. Loop until accept or cancel.
 - **Revise variants** — re-run step 5 only (variants are re-prompted from scratch); re-write `variants.json`; re-evaluate the gate. The blueprint is unchanged. **A `surface_plan_gap` is resolved on this path** (re-authoring the `surface_plan` with a catalogue-valid pattern/variant + a coherent realization); it never requires re-authoring the blueprint.
 - **Narrow scope** — fail handback cleanly with structured plain-text *"Cancelled at design-brief gate. The blueprint at `<blueprint_output_path>` may still exist on disk; remove it by re-running `/wireframe` with the same `scope_slug` and choosing `Overwrite` at the prior-set gate."*
-- **Escalate to /review-requirement** — fail handback cleanly with the same structured plain-text plus *"Then run `/review-requirement → ADVERSARIAL` against `requirements/requirements.md` to surface and resolve the conflict before re-invoking `/wireframe`."*
+- **Escalate to /review-requirement** — fail handback cleanly with the same structured plain-text plus *"Then run `/review-requirement → ADVERSARIAL` against `generated-docs/requirements/requirements.md` to surface and resolve the conflict before re-invoking `/wireframe`."*
 - **Cancel** — fail handback cleanly with the structured plain-text.
 
 The orchestrator does not advance to Stage 3 on any of the three exit paths (Narrow scope / Escalate / Cancel).

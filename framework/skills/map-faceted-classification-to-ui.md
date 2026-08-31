@@ -4,7 +4,7 @@
 
 ## Inputs
 
-- `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` — the faceted-classification artefact (or its embedded `<pre><code class="language-json" id="faceted-classification-body">` model for the structured subset).
+- `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` — the faceted-classification artefact (or its embedded `<pre><code class="language-json" id="faceted-classification-body">` model for the structured subset).
 
 ## Mapping
 

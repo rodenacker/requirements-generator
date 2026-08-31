@@ -115,7 +115,7 @@
     {{DOMAIN}}                      — domain string (from manifest meta if declared, else
                                       "(not declared in manifest)").
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered.
-    {{MANIFEST_SHA256}}             — sha256 of requirements/source-manifest.json at read time.
+    {{MANIFEST_SHA256}}             — sha256 of generated-docs/requirements/source-manifest.json at read time.
     {{RUN_COUNT}}                   — integer ≥ 1, increments per run.
     {{TARGET}}                      — "prototype" | "application" | "(not declared in manifest)".
     {{NOTE_COUNT}}                  — total notes extracted in Round 1.
@@ -164,7 +164,7 @@
     {{DIAGNOSTICS_BLOCK}}           — pre-rendered <section class="diagnostics">
                                       per DIAGNOSTICS SCHEMA.
 
-  Output: analyse-inputs/AFFINITY-MAPPING/affinity-map.html.
+  Output: generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html.
 
   MINDMAP SVG SCHEMA — {{PRIMARY_MINDMAP_SVG}} substitutes a single
   <figure class="affinity-mindmap"> containing ONE inline <svg>. The analyser

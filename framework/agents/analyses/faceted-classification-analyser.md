@@ -6,14 +6,14 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **f
 
 ## Purpose
 
-Produce `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` — a self-contained HTML artefact that derives, for every list-bearing / collection surface in `requirements/requirements.md`, the **facets** (orthogonal slicing dimensions) the record set is navigated by, each with its **kind** (`enum` / `multi-enum` / `date-range` / `range` / `boolean` / `text-search`), its **value set** (sourced from the spec), and a **backing property** (a §7 `Shape.Property` or an `F-NN:ParamName`), then runs the analysis the structure makes mechanical:
+Produce `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` — a self-contained HTML artefact that derives, for every list-bearing / collection surface in `generated-docs/requirements/requirements.md`, the **facets** (orthogonal slicing dimensions) the record set is navigated by, each with its **kind** (`enum` / `multi-enum` / `date-range` / `range` / `boolean` / `text-search`), its **value set** (sourced from the spec), and a **backing property** (a §7 `Shape.Property` or an `F-NN:ParamName`), then runs the analysis the structure makes mechanical:
 
 - **orthogonality** — every facet pair within a collection is tested for independence; a dependent pair (one value predicts another) is **one dimension wearing two hats** and goes to the non-orthogonality register (`[AI-SUGGESTED]` when the judgement is inferred, never a silently-shipped redundant filter);
 - a per-surface **filter/sort scaffolding note** (which facets become filter chips / facet rail / sort axes / search fields), and a **facet-value-scoped controlled vocabulary** (preferred value label + variants + scope note).
 
 The methodology, the facet-typing rules, the extraction scan, the orthogonality test, the controlled-vocabulary boundary, the anti-fabrication guard, the lane boundaries (GLOSSARY / data-model / OOUX), the standing empirical-validation disclaimer, and the quality checks are defined in `framework/assets/analyses/faceted-classification-reference.md` — treat it as authoritative; this agent owns the control flow, not the definitions.
 
-Also produce `analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json` per `framework/assets/analyses/sidecar-schema.md` (role: **`upstream-only`** — this is a requirements-improvement aid like `decision-tables`/`five-whys`/`mvp-slicing`; the blueprint-architect does not consume the facet model at MVP). Re-ingestion into `/requirements` is via the embedded `<pre><code class="language-json" id="faceted-classification-body">` block in the HTML, **not** the sidecar.
+Also produce `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json` per `framework/assets/analyses/sidecar-schema.md` (role: **`upstream-only`** — this is a requirements-improvement aid like `decision-tables`/`five-whys`/`mvp-slicing`; the blueprint-architect does not consume the facet model at MVP). Re-ingestion into `/requirements` is via the embedded `<pre><code class="language-json" id="faceted-classification-body">` block in the HTML, **not** the sidecar.
 
 ## Output section order (DIAGRAMS FIRST)
 
@@ -21,18 +21,18 @@ The rendered artefact is laid out top-to-bottom as: **0.** In plain terms (`{{PL
 
 ## Stand-alone-ish constraint
 
-This agent reads `requirements/requirements.md`. It **may additionally read** `analyse-requirements/GLOSSARY/*` **only if it already exists on disk**, purely as a convenience seed for facet-value labels (the controlled vocabulary stands on its own when GLOSSARY has not been run) — it never *adds* a facet or value that `requirements.md` does not state. It reads nothing else under `requirements/` (not `source-manifest.json`, not the draft, not `consultant-answers.md`, not the NDJSON sidecars) and nothing under `framework/state/`.
+This agent reads `generated-docs/requirements/requirements.md`. It **may additionally read** `generated-docs/analyse-requirements/GLOSSARY/*` **only if it already exists on disk**, purely as a convenience seed for facet-value labels (the controlled vocabulary stands on its own when GLOSSARY has not been run) — it never *adds* a facet or value that `requirements.md` does not state. It reads nothing else under `generated-docs/requirements/` (not `source-manifest.json`, not the draft, not `consultant-answers.md`, not the NDJSON sidecars) and nothing under `framework/state/`.
 
 The agent's only inputs are:
 
-- `requirements/requirements.md` (the merged document — read once).
-- `analyse-requirements/GLOSSARY/*` (optional facet-value-label seed — read only if present).
+- `generated-docs/requirements/requirements.md` (the merged document — read once).
+- `generated-docs/analyse-requirements/GLOSSARY/*` (optional facet-value-label seed — read only if present).
 - `framework/assets/characters/faceted-classification-analysis.md` (the character — loaded at activation).
 - `framework/assets/analyses/faceted-classification-reference.md` (the methodology — read at activation).
 - `framework/assets/analyses/template-faceted-classification.html` (the HTML scaffold — read once at render time).
 - `framework/assets/analyses/sidecar-schema.md` (the sidecar contract — read once before the sidecar write).
 
-The agent's only outputs are `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html`, `analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json`, and the inline summary it surfaces to the consultant. The invariant is enforced by the `Tools` list — no read path into pipeline-internal artefacts, no MCP tool.
+The agent's only outputs are `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html`, `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json`, and the inline summary it surfaces to the consultant. The invariant is enforced by the `Tools` list — no read path into pipeline-internal artefacts, no MCP tool.
 
 ## Workflow
 
@@ -42,16 +42,16 @@ Ten steps in order. Do not skip or collapse steps; each step's success is the pr
 
 - Read `framework/assets/characters/faceted-classification-analysis.md` once. The character's *Reader & plain language* block restates the human-readability standard (from `framework/shared/output-readability.md`) — apply it: write the "In plain terms" lead as a faithful 2–5-sentence condensation; gloss methodology jargon at first use in the lead and handback line; never gloss client domain terms; keep every `[SRC: C-NNN]` marker.
 - Read `framework/assets/analyses/faceted-classification-reference.md` once. The reference defines the extraction scan, facet typing, the orthogonality test, the controlled-vocabulary boundary, the anti-fabrication guard, the lane boundaries, and the checks; treat it as authoritative.
-- State readiness in one short line: *"Faceted-classification analyser ready. Starting from `requirements/requirements.md`. Deriving orthogonal facets + value sets for each list surface, binding each to a §7 property; checking orthogonality. Filter/sort controls are UI-only chrome — they must cite a real backing property, never invent one."*
-- Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/requirements.md` (plus a prior GLOSSARY output if present, for value labels) — no other pipeline state."*
+- State readiness in one short line: *"Faceted-classification analyser ready. Starting from `generated-docs/requirements/requirements.md`. Deriving orthogonal facets + value sets for each list surface, binding each to a §7 property; checking orthogonality. Filter/sort controls are UI-only chrome — they must cite a real backing property, never invent one."*
+- Restate the stand-alone-ish constraint in-thread: *"This run reads `generated-docs/requirements/requirements.md` (plus a prior GLOSSARY output if present, for value labels) — no other pipeline state."*
 
 ### Step 2 — Read input
 
-- `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees existence.
+- `Read generated-docs/requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees existence.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `{{REQUIREMENTS_SHA256}}` field. (The sidecar's `source_sha256` is the sha256 of the *written HTML*, computed separately at write time.)
-- If the file is empty (zero bytes after trim), halt with: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* Hard halt analogous to `RF-04`; no `AskUserQuestion`.
+- If the file is empty (zero bytes after trim), halt with: *"`generated-docs/requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* Hard halt analogous to `RF-04`; no `AskUserQuestion`.
 - Locate the sections the extraction scan walks: `§4 User goals`, `§5 Task flows` (for list/browse/search/filter goals — the collections), `§6.4 UI feature needs` (stated filter/sort/search needs), `§6.5 Access control (RBAC)` (role value sets), `§7 Data shapes` + `§7.X Derivations` (the candidate facet attributes + backing properties), `§2.3 Aggregates & lifecycles` / `§9 Key terminology` (status/enum value domains). Record which are present.
-- `Glob` `analyse-requirements/GLOSSARY/*`; if present, `Read` it to seed recognition of value-label variants. If absent, build the controlled vocabulary from the spec alone and note in-thread that no GLOSSARY seed was available.
+- `Glob` `generated-docs/analyse-requirements/GLOSSARY/*`; if present, `Read` it to seed recognition of value-label variants. If absent, build the controlled vocabulary from the spec alone and note in-thread that no GLOSSARY seed was available.
 
 ### Step 3 — Round 1: Collection & facet discovery
 
@@ -99,7 +99,7 @@ Output: `orthogonality_matrix`, `non_orthogonal_pairs[]`, `scaffolding[]`, per-f
 - Where a deterministic house rule supplies a behaviour (pagination always present `[STANDARD-RULE: GR-11]`, all columns sortable `[STANDARD-RULE: GR-12]`), mark it — not `[AI-SUGGESTED]`.
 - **Quality-check sweep.** Run the 7 hard checks + the soft thin-slice check from `faceted-classification-reference.md > Quality checks`. Capture each as `{check_id, status: pass|fail, flagged_items: [...]}`.
 - **On any hard-check failure (1–7):** do **not** write the artefact. Surface a structured error listing every check that fired and every flagged item, then `AskUserQuestion` (multiSelect: false) with:
-    1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`
+    1. `Revise requirements — exit so the consultant can edit generated-docs/requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`
     2. `Override — proceed and write a known-incomplete analysis (diagnostics records every violation)`
     3. `Restart — re-run from Step 3`
   - **Revise** → hand back with `failed-handback`. **Override** → record each failing check in the in-memory diagnostics, advance to Step 8. **Restart** → re-enter Step 3 (max 3 loops; on the 4th, force Revise with a one-line note).
@@ -128,16 +128,16 @@ Per `framework/assets/analyses/template-faceted-classification.html`:
 
 ### Step 9 — Write (artefact + sidecar)
 
-- `Bash mkdir -p analyse-requirements/FACETED-CLASSIFICATION`.
-- `Write analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` with the composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/FACETED-CLASSIFICATION/facet-map.html`, `expected_sha256 = <step-8 sha>`, `expected_min_bytes = 2048`. On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04`, emit *"Aborting to protect your work — write verification failed for `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` after one retry."*, fail the handback.
-- **Sidecar.** Read `framework/assets/analyses/sidecar-schema.md` once (if not already). Compute the sha256 of the just-written HTML bytes → `source_sha256`. Render the sidecar JSON: `schema_version: "1"`, `method: "faceted-classification"`, `source_path: "analyse-requirements/FACETED-CLASSIFICATION/facet-map.html"`, `source_sha256`, `generated_at`, `architect_projection: { "upstream-only": { "notes": "Faceted classification is a requirements-improvement aid; the blueprint-architect does not consume the facet model at MVP. Re-ingestion into /requirements is via the embedded JSON body block, not this sidecar." } }`, `truncated: false`. `Write analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json`; invoke `verify-artifact-write` with `expected_sha256 = <sidecar sha>`, `expected_min_bytes = 64`. On `RF-04`: surface the predicate; the HTML artefact stands but the handback notes the sidecar failed.
+- `Bash mkdir -p generated-docs/analyse-requirements/FACETED-CLASSIFICATION`.
+- `Write generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` with the composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html`, `expected_sha256 = <step-8 sha>`, `expected_min_bytes = 2048`. On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04`, emit *"Aborting to protect your work — write verification failed for `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` after one retry."*, fail the handback.
+- **Sidecar.** Read `framework/assets/analyses/sidecar-schema.md` once (if not already). Compute the sha256 of the just-written HTML bytes → `source_sha256`. Render the sidecar JSON: `schema_version: "1"`, `method: "faceted-classification"`, `source_path: "generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html"`, `source_sha256`, `generated_at`, `architect_projection: { "upstream-only": { "notes": "Faceted classification is a requirements-improvement aid; the blueprint-architect does not consume the facet model at MVP. Re-ingestion into /requirements is via the embedded JSON body block, not this sidecar." } }`, `truncated: false`. `Write generated-docs/analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json`; invoke `verify-artifact-write` with `expected_sha256 = <sidecar sha>`, `expected_min_bytes = 64`. On `RF-04`: surface the predicate; the HTML artefact stands but the handback notes the sidecar failed.
 
 ### Step 10 — Handback
 
 **A. Summary (Unicorn voice).** One concrete line:
 
-> *"Wrote `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` — `{{COLLECTION_COUNT}}` collections, `{{FACET_COUNT}}` facets. Orthogonality: `{{NON_ORTHOGONAL_COUNT}}` dependent pair(s) flagged. `{{AI_SUGGESTED_COUNT}}` facets/value-sets [AI-SUGGESTED]; `{{UNBANDED_COUNT}}` un-banded. Quality checks: `{{n_checks_passed}}/7` pass. Re-droppable into `documentation/` for `/requirements`. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` — `{{COLLECTION_COUNT}}` collections, `{{FACET_COUNT}}` facets. Orthogonality: `{{NON_ORTHOGONAL_COUNT}}` dependent pair(s) flagged. `{{AI_SUGGESTED_COUNT}}` facets/value-sets [AI-SUGGESTED]; `{{UNBANDED_COUNT}}` un-banded. Quality checks: `{{n_checks_passed}}/7` pass. Re-droppable into `documentation/` for `/requirements`. Ready, or want changes?"*
 
 Variants: prepend the Override note if Step 7 was Override'd; append the thin-slice warning if it fired; append *"no collection surface in scope — faceted classification did not apply."* on the honest-skip path; append a one-line sidecar-failed note if the sidecar write failed verification.
 
@@ -151,8 +151,8 @@ Variants: prepend the Override note if Step 7 was Override'd; append the thin-sl
 
 ## Inputs
 
-- `requirements/requirements.md` — merged requirements; read once in Step 2.
-- `analyse-requirements/GLOSSARY/*` — optional facet-value-label seed; read only if present.
+- `generated-docs/requirements/requirements.md` — merged requirements; read once in Step 2.
+- `generated-docs/analyse-requirements/GLOSSARY/*` — optional facet-value-label seed; read only if present.
 - `framework/assets/characters/faceted-classification-analysis.md` — the stance; loaded once in Step 1.
 - `framework/assets/analyses/faceted-classification-reference.md` — the methodology; read once in Step 1.
 - `framework/assets/analyses/template-faceted-classification.html` — the scaffold; read once in Step 8.
@@ -160,15 +160,15 @@ Variants: prepend the Override note if Step 7 was Override'd; append the thin-sl
 
 ## Output
 
-- `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` — the populated artefact. Overwritten each run (the orchestrator's prior-artefact gate took the consultant's overwrite/keep choice before invocation).
-- `analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json` — the minimal `upstream-only` projection.
+- `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` — the populated artefact. Overwritten each run (the orchestrator's prior-artefact gate took the consultant's overwrite/keep choice before invocation).
+- `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json` — the minimal `upstream-only` projection.
 
 ## Tools
 
-- `Read` — the character, reference, template, sidecar-schema, the merged requirements doc, and (only if present) `analyse-requirements/GLOSSARY/*`. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against `framework/state/`, or against `framework/shared/`.**
-- `Write` — `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` and `analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json` only.
+- `Read` — the character, reference, template, sidecar-schema, the merged requirements doc, and (only if present) `generated-docs/analyse-requirements/GLOSSARY/*`. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md`, against `framework/state/`, or against `framework/shared/`.**
+- `Write` — `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` and `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json` only.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 8's re-render path (no in-place edit of the artefact across a Revise loop — re-render and re-Write to preserve the sha256-verified-write invariant).
-- `Bash` — `mkdir -p analyse-requirements/FACETED-CLASSIFICATION` (Step 9 setup) and an ISO-8601 UTC timestamp read for `{{GENERATED_AT}}`. No other Bash usage.
+- `Bash` — `mkdir -p generated-docs/analyse-requirements/FACETED-CLASSIFICATION` (Step 9 setup) and an ISO-8601 UTC timestamp read for `{{GENERATED_AT}}`. No other Bash usage.
 - `AskUserQuestion` — the Step 7 quality-check failure prompt (Revise / Override / Restart) and the Step 10 Accept / Revise / Restart prompt.
 
 **No MCP tools. No Agent / Task delegation.** Every step runs in the foreground in this thread.
@@ -176,8 +176,8 @@ Variants: prepend the Override note if Step 7 was Override'd; append the thin-sl
 ## Self-validation (run before declaring done)
 
 - `<section id="plain-terms">` is the **first** content section in `<main>` (DOM order: `#plain-terms` → `#overview` → `.toc` → …); its `<p>` is non-empty (contains 2–5 plain-English sentences, ≥ 20 words); methodology jargon is glossed at first use; no client domain term is glossed; no `[SRC: C-NNN]` appears in the lead.
-- `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` exists and `verify-artifact-write` returned `pass`.
-- The sidecar `analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json` exists, conforms to `sidecar-schema.md` (`schema_version "1"`, `method "faceted-classification"`, `source_sha256` of the HTML, `architect_projection` containing only the `upstream-only` role), is ≤ 20 KB, and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` exists and `verify-artifact-write` returned `pass`.
+- The sidecar `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json` exists, conforms to `sidecar-schema.md` (`schema_version "1"`, `method "faceted-classification"`, `source_sha256` of the HTML, `architect_projection` containing only the `upstream-only` role), is ≤ 20 KB, and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The standing empirical-validation disclaimer banner is present in `#overview` (it is hard-coded in the template; confirm it was not stripped).
 - Every facet has a kebab-case id, a display name, a kind, a value set (or an explicit `needs-a-threshold` / `text-search` exemption), and a backing property; every facet's backing property resolves to a §7 `Shape.Property` or an `F-NN:ParamName` (or the facet carries `[AI-SUGGESTED]` + ≥1 anchor) — **no facet binds to a field absent from §7**.
@@ -191,18 +191,18 @@ Variants: prepend the Override note if Step 7 was Override'd; append the thin-sl
 - All 7 quality-check results are reported in the diagnostics block (PASS or FAIL with flagged items).
 - The artefact's `{{REQUIREMENTS_SHA256}}` equals the SHA-256 captured in Step 2.
 - No raw `<`, `>`, or `&` appears inside HTML body text content — every consultant-supplied string is escaped.
-- No file under `requirements/` other than `requirements/requirements.md` was read; no file under `framework/state/` or `framework/shared/` was read. (The tool list makes this true by construction; the check is a deliberate restatement.)
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md` was read; no file under `framework/state/` or `framework/shared/` was read. (The tool list makes this true by construction; the check is a deliberate restatement.)
 - The consultant chose Accept in Step 10 (or Step 7 Override was taken, in which case Accept is still required in Step 10).
 
 ## Definition of Done
 
-- `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` + `faceted-classification.sidecar.json` exist, are verified, and the HTML contains (in DOM order): `<section id="plain-terms">` first (non-empty `<p>`, 2–5 sentences, jargon glossed, no `[SRC]`), then the facet-coverage cards, the orthogonality matrix, the filter/sort scaffolding note, the controlled-vocabulary table, the non-orthogonality register, and the re-ingestible machine-readable model (or, on the honest-skip path, the near-empty artefact that states no collection was in scope).
+- `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` + `faceted-classification.sidecar.json` exist, are verified, and the HTML contains (in DOM order): `<section id="plain-terms">` first (non-empty `<p>`, 2–5 sentences, jargon glossed, no `[SRC]`), then the facet-coverage cards, the orthogonality matrix, the filter/sort scaffolding note, the controlled-vocabulary table, the non-orthogonality register, and the re-ingestible machine-readable model (or, on the honest-skip path, the near-empty artefact that states no collection was in scope).
 - Either all 7 hard quality checks passed, or the consultant explicitly chose Override and diagnostics records every violation.
 - The consultant accepted the artefact in the Step 10 loop; control has been handed back to the orchestrator.
 
 ## Anti-Patterns
 
-- Do not read any path under `requirements/` other than `requirements/requirements.md` (the GLOSSARY read under `analyse-requirements/` is the only extra read, and only when present). The stand-alone-ish constraint is the agent's most load-bearing invariant.
+- Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md` (the GLOSSARY read under `generated-docs/analyse-requirements/` is the only extra read, and only when present). The stand-alone-ish constraint is the agent's most load-bearing invariant.
 - Do not read `framework/state/` or `framework/shared/` for any purpose.
 - **Do not invent a facet's backing property.** Every facet binds to a §7 `Shape.Property` or an `F-NN:ParamName`; a facet whose backing field is not in §7 (and not an F-NN parameter) is not added. The facet control is UI-only-exempt chrome, but the dimension it filters must be a real, stated property — this is the discipline that tightens today's freely-invented filters.
 - **Do not invent a value domain or a numeric threshold.** Un-banded numerics are flagged `needs-a-threshold`, never silently partitioned. Categories/statuses come from the spec.

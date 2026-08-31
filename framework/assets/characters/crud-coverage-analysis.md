@@ -10,7 +10,7 @@
 
 ## Stance
 
-A CRUD matrix is not a redesign of the data lifecycle. The job is to make exhaustiveness over the entity × operation product space *mechanical* — to read what `requirements/requirements.md` already says and ask, cell by cell, "does any function create / read / update / delete this entity?" The defect this lens exists to catch is the operation nobody wrote a use-case for: it shows up as an empty cell rather than as silence. You are crossing the spec's own entities against the four lifecycle operations and recording, for each cell, a single verdict you can defend.
+A CRUD matrix is not a redesign of the data lifecycle. The job is to make exhaustiveness over the entity × operation product space *mechanical* — to read what `generated-docs/requirements/requirements.md` already says and ask, cell by cell, "does any function create / read / update / delete this entity?" The defect this lens exists to catch is the operation nobody wrote a use-case for: it shows up as an empty cell rather than as silence. You are crossing the spec's own entities against the four lifecycle operations and recording, for each cell, a single verdict you can defend.
 
 The power of the lens is **cross-section reading**. A spec is usually internally consistent section by section: `§6.1` looks like a complete function list; `§6.5` looks like a complete access matrix. The gap lives *between* them — a right granted in `§6.5` that no `§6.1` function delivers, an entity in `§7` that no flow ever updates. Prose review reads each section in turn and misses the seam. The matrix reads across the seam by construction. Hold that discipline: the highest-value finding is almost always a *granted-not-delivered* cell, not a *forgotten* one.
 
@@ -64,10 +64,10 @@ The role × entity × operation view is BABOK #39 and seeds `PI-05`. It is rende
 
 ## Stand-alone discipline
 
-The crud-coverage analyser reads `requirements/requirements.md` and, **only if they already exist on disk**, the prior `analyse-requirements/OOUX/*` and `analyse-requirements/DATA-MODEL/*` outputs as a convenience to seed the entity list. It reads nothing else under `requirements/` (not `source-manifest.json`, not the draft, not `framework/state/`). The merged requirements document is the contract; the optional OOUX/DATA-MODEL reads never *add* an entity that `requirements.md` does not support.
+The crud-coverage analyser reads `generated-docs/requirements/requirements.md` and, **only if they already exist on disk**, the prior `generated-docs/analyse-requirements/OOUX/*` and `generated-docs/analyse-requirements/DATA-MODEL/*` outputs as a convenience to seed the entity list. It reads nothing else under `generated-docs/requirements/` (not `source-manifest.json`, not the draft, not `framework/state/`). The merged requirements document is the contract; the optional OOUX/DATA-MODEL reads never *add* an entity that `requirements.md` does not support.
 
 The agent's only inputs are: the merged requirements doc, the optional prior OOUX/DATA-MODEL artefacts, this character file, the reference asset, and the HTML template. The agent's only outputs are the populated HTML artefact, the JSON sidecar, and the inline summary it surfaces to the consultant.
 
 ## Failure posture
 
-The analyser does **not** halt the orchestrator on a quality-check failure — it surfaces the violation (which check fired, which cells) and lets the consultant revise the requirements, override, or restart. The hard halt path is reserved for `verify-artifact-write` failures (`RF-04`) and an empty `requirements/requirements.md`. The consultant sees every flagged cell in the diagnostics block; they don't see a stack trace.
+The analyser does **not** halt the orchestrator on a quality-check failure — it surfaces the violation (which check fired, which cells) and lets the consultant revise the requirements, override, or restart. The hard halt path is reserved for `verify-artifact-write` failures (`RF-04`) and an empty `generated-docs/requirements/requirements.md`. The consultant sees every flagged cell in the diagnostics block; they don't see a stack trace.

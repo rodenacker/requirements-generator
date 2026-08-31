@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **a
 
 ## Purpose
 
-Produce `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — a self-contained HTML5 affinity map of the raw consultant material enumerated in `requirements/source-manifest.json` — by applying the **KJ method (Kawakita 1967) + Beyer & Holtzblatt (1997) Contextual Design** literally and exhaustively to every manifest row whose `tier != "Unsupported"`, with **sub-agent-isolated Pass-2 anti-anchoring** as the load-bearing methodological discipline.
+Produce `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — a self-contained HTML5 affinity map of the raw consultant material enumerated in `generated-docs/requirements/source-manifest.json` — by applying the **KJ method (Kawakita 1967) + Beyer & Holtzblatt (1997) Contextual Design** literally and exhaustively to every manifest row whose `tier != "Unsupported"`, with **sub-agent-isolated Pass-2 anti-anchoring** as the load-bearing methodological discipline.
 
 The artefact has **eight visible surfaces** in DOM order (diagram-first per the user's hard requirement): a compact overview header with counts + jump-links + manifest fingerprint; a primary **pre-rendered inline-SVG mindmap** (root → L3 super-themes → L2 clusters — the "MUST contain a diagram" deliverable, note-level leaves excluded to preserve legibility at ≤ 34 nodes; geometry computed by the analyser at render time, NO client-side Mermaid runtime) with an adjacent collapsed `<details class="mermaid-block">` holding the `mindmap` source as an export / re-ingestion adjunct; a conditional secondary **inline-SVG directed graph** for cross-cluster tensions (rendered only when `tensions.length >= 1`, with its `flowchart TD` Mermaid source as a collapsed export adjunct; otherwise emits a deterministic "no tensions" copy so the section header is always structurally present); a source roster table (consumed + skipped manifest rows); cluster cards (one `<article class="cluster-card">` per L2 cluster, grouped under `<section class="super-theme">` headings for L3, each card listing every member note verbatim with `[SRC: <filename>]` citations and a `confidence: stable | drifted` chip carrying the Jaccard value); an orphans parking-lot table; a `<pre><code class="language-json" id="affinity-map-body">` block carrying the full machine-readable hierarchy (the load-bearing `/requirements` re-ingestion contract — survives markitdown HTML→MD as a fenced ```json code block); and a collapsed diagnostics block (Pass-1 vs Pass-2 Jaccard drift log + 10 gate results + cluster-size distribution + irrelevant-to-domain rows + recommended consultant follow-up questions + run history). The `<head>` also carries a small `<script type="application/json" id="affinity-map-meta">` block with counts and the manifest fingerprint for drift detection on subsequent runs (markitdown strips this block — it is not the round-trip carrier).
 
@@ -14,7 +14,7 @@ Every note in a cluster card, every orphan, and every JSON `notes[].source` / `o
 
 ## Sibling
 
-None on the requirements side. Affinity mapping is intentionally an inputs-side-only methodology — running it against the synthesised `requirements/requirements.md` would surface clusters of the document's structure, not of the consultant's claims. The closest workspace sibling is `framework/agents/analyses-inputs/thematic-analysis-analyser.md` (Braun & Clarke six-phase: codes → themes against a deductive 10-area frame), one abstraction layer above this analyser's per-claim atomic-note level.
+None on the requirements side. Affinity mapping is intentionally an inputs-side-only methodology — running it against the synthesised `generated-docs/requirements/requirements.md` would surface clusters of the document's structure, not of the consultant's claims. The closest workspace sibling is `framework/agents/analyses-inputs/thematic-analysis-analyser.md` (Braun & Clarke six-phase: codes → themes against a deductive 10-area frame), one abstraction layer above this analyser's per-claim atomic-note level.
 
 ## Output section order
 
@@ -61,20 +61,20 @@ The in-memory `model` (notes + Pass-1 clusters + Pass-2 assignments + Jaccard va
 
 This agent reads:
 
-- `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
+- `generated-docs/requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
 - For each manifest row whose `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null (`Supported-via-MCP`, `Native-multimodal`, `Vector-renderable`), else `original_path` (`Native-text`).
-- `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` (read once in Step 3 if present, for additive merge / drift detection).
+- `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` (read once in Step 3 if present, for additive merge / drift detection).
 - `framework/assets/characters/affinity-mapping-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/affinity-mapping-reference.md` (the methodology — read once in Step 1).
 - `framework/assets/analyses-inputs/template-affinity-mapping.html` (the HTML scaffold — read once at render time in Step 11).
 - `framework/skills/verify-artifact-write.md` (read once before invocation in Step 11 sub-step F).
 - `framework/skills/svg-overlap-check.md` (read once before invocation in Step 11 sub-step F).
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry and general-rule references in this file and in the reference are textual links, not file loads). It does not read other analyses' artefacts under `analyse-requirements/` or `analyse-inputs/<OTHER-METHOD>/`.
+The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry and general-rule references in this file and in the reference are textual links, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` or `generated-docs/analyse-inputs/<OTHER-METHOD>/`.
 
 The agent writes:
 
-- `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — the artefact.
+- `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — the artefact.
 - `/tmp/affinity-mapping-<run-id>/pass-1.json`, `/tmp/affinity-mapping-<run-id>/pass-2.json`, `/tmp/affinity-mapping-<run-id>/notes-input.json` — scratch files used by the two-pass sub-agent protocol. Cleaned up at handback in Step 12.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted; the only `Agent` invocation is the bounded computational Pass-2 sub-agent in Step 6 (no consultant interaction within the sub-agent).
@@ -89,18 +89,18 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 - Read `framework/assets/analyses-inputs/affinity-mapping-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
 - Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (affinity cluster, super-theme, note/observation, insight-statement label, Pass-2 re-cluster, drifted note), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: <filename>]`, and confine plain prose to the lead + glosses (cluster cards, JSON body, and diagnostics keep their concrete discipline).
 - Generate a `run_id` for this run (UTC timestamp `YYYYMMDD-HHMMSS` plus a short random suffix is fine; this seeds the `/tmp/affinity-mapping-<run-id>/` scratch path).
-- State readiness in one short line: *"Affinity-mapping inputs-side analyser ready. Starting from `requirements/source-manifest.json`. Methodology: KJ method (Kawakita 1967) + Beyer & Holtzblatt 1997 Contextual Design adapted for raw consultant inputs — six rounds (Note extraction → Pass-1 cluster → Pass-2 sub-agent re-cluster → Insight-statement labels → L3 super-themes → Orphans + tensions); load-bearing sub-agent context isolation in Round 3 with Jaccard-similarity drift detection; insight-statement labels written *after* clusters stabilise; orphans preserved as signal; `[SRC: <filename>]` citations; 10 hard quality gates."*
-- Restate the stand-alone-ish constraint and the two-pass discipline in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, and `framework/shared/` are not loaded. Round 3's Pass-2 will run in an isolated sub-agent context — the only realistic anti-anchoring mechanism for an autonomous LLM run; the sub-agent receives the Round 1 notes JSON only, no Pass-1 cluster labels in its prompt."*
+- State readiness in one short line: *"Affinity-mapping inputs-side analyser ready. Starting from `generated-docs/requirements/source-manifest.json`. Methodology: KJ method (Kawakita 1967) + Beyer & Holtzblatt 1997 Contextual Design adapted for raw consultant inputs — six rounds (Note extraction → Pass-1 cluster → Pass-2 sub-agent re-cluster → Insight-statement labels → L3 super-themes → Orphans + tensions); load-bearing sub-agent context isolation in Round 3 with Jaccard-similarity drift detection; insight-statement labels written *after* clusters stabilise; orphans preserved as signal; `[SRC: <filename>]` citations; 10 hard quality gates."*
+- Restate the stand-alone-ish constraint and the two-pass discipline in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `generated-docs/requirements/requirements.md`, `framework/state/`, and `framework/shared/` are not loaded. Round 3's Pass-2 will run in an isolated sub-agent context — the only realistic anti-anchoring mechanism for an autonomous LLM run; the sub-agent receives the Round 1 notes JSON only, no Pass-1 cluster labels in its prompt."*
 
 ### Step 2 — Read manifest & per-tier file ingest
 
-- `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block, the body JSON, and the drift cursor.
+- `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block, the body JSON, and the drift cursor.
 - Parse the manifest. Capture `target` field if present (`prototype` | `application`); else default to `"(not declared in manifest)"`. Capture `domain` field if present in manifest meta; else `null` (the mindmap root falls back to `Affinity Map`).
 - Iterate rows; for each row, apply the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. The description already carries a faithful transcription (object labels, ERD entity names, sticky-note captions, screen-mock copy naming data fields or actions) plus a structured what/how breakdown. **The boundary still holds at the note level:** a Round 1 note's text must be supported by what the frozen description actually records, not extrapolated from surrounding context the description does not contain. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
+- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
 - If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
@@ -108,18 +108,18 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 3 — Detect prior artefact + re-run mode decision
 
-- Attempt to `Read analyse-inputs/AFFINITY-MAPPING/affinity-map.html`. If absent, set `prior_run = null`, `drift_mode = "fresh"`, and advance to Step 4.
+- Attempt to `Read generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html`. If absent, set `prior_run = null`, `drift_mode = "fresh"`, and advance to Step 4.
 - If present:
   - Locate the `<script type="application/json" id="affinity-map-meta">` block in `<head>`. Parse the JSON. Extract `manifest_sha256`, `run_count`, `note_count`, `cluster_count`, `super_theme_count`, `orphan_count`, `tension_count`, `drifted_note_count`.
   - If the JSON metadata block fails to parse, surface `AskUserQuestion`:
-    - Question: *"The prior `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` has an unparseable affinity-map-meta JSON block (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
+    - Question: *"The prior `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` has an unparseable affinity-map-meta JSON block (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
     - Header: `Prior run`
     - Options: `Start fresh — ignore the unreadable prior file (Recommended)`, `Abort — let me inspect`.
     - On `Start fresh`: set `prior_run = null`, `drift_mode = "fresh"`; advance to Step 4.
     - On `Abort`: hand back to the orchestrator with `failed-handback`.
   - On successful parse, compare manifest fingerprints and surface the drift-mode prompt:
     - **Identical manifest** (current `manifest_sha256` == `prior.manifest_sha256`): surface `AskUserQuestion`:
-      - Question: *"Prior `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` found (run #{prior.run_count}, {prior.note_count} notes, {prior.cluster_count} clusters, {prior.super_theme_count} super-themes). Manifest fingerprint unchanged since prior run. Keep the existing artefact, re-run from scratch, or cancel?"*
+      - Question: *"Prior `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` found (run #{prior.run_count}, {prior.note_count} notes, {prior.cluster_count} clusters, {prior.super_theme_count} super-themes). Manifest fingerprint unchanged since prior run. Keep the existing artefact, re-run from scratch, or cancel?"*
       - Header: `Prior run (no drift)`
       - Options:
         1. `Keep — exit without changes (Recommended)`
@@ -188,7 +188,7 @@ Apply the reference's Round 2 rules verbatim:
 - **Singletons are allowed.** Round 6 may relocate them to orphans if Pass-2 also failed to corroborate them.
 
 On `drift_mode == "append-new-notes-only"`:
-- Load the prior `clusters[]` and `notes[]` from the prior artefact's embedded JSON body block (via `Read analyse-inputs/AFFINITY-MAPPING/affinity-map.html`).
+- Load the prior `clusters[]` and `notes[]` from the prior artefact's embedded JSON body block (via `Read generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html`).
 - For each new note from Round 1, attempt single-pass assignment to an existing cluster by conceptual similarity. If no existing cluster fits, spawn a new cluster (continue the `TH-NN` numbering from the prior run).
 - Do **not** re-cluster prior notes. Prior `note_ids[]` are preserved verbatim.
 
@@ -480,13 +480,13 @@ Compute SHA-256 of the in-memory bytes after final composition.
 
 **Sub-step F — Write + verify.**
 
-- Ensure the output directory exists. On POSIX: `Bash mkdir -p analyse-inputs/AFFINITY-MAPPING`. On Windows-only environments: `PowerShell New-Item -ItemType Directory -Force -Path analyse-inputs/AFFINITY-MAPPING`. The orchestrator's environment determines which shell.
-- `Write analyse-inputs/AFFINITY-MAPPING/affinity-map.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-inputs/AFFINITY-MAPPING/affinity-map.html`, `expected_sha256 = <Step 11 sha>`, `expected_min_bytes = 4096`. A minimum legal render (template scaffold + overview + primary mindmap SVG + no-tensions copy + source-roster with ≥ 1 consumed row + cluster cards with ≥ 1 super-theme containing ≥ 1 cluster + orphans table + JSON body block + diagnostics + next-steps banner) clears 4 KB.
-- **On `pass`:** invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyse-inputs/AFFINITY-MAPPING/affinity-map.html`, `report_path = /tmp/affinity-mapping-<run-id>/svg-overlap.ndjson` (POSIX) or `$env:TEMP\affinity-mapping-<run-id>\svg-overlap.ndjson` (Windows) — kept in the run scratch dir so the no-`framework/state/`-write invariant holds; cleaned up at handback. Allowlists: `node_class_allowlist = ["am-node"]` (every mindmap node rect carries `am-node` + a colour class `am-root`/`am-super`/`am-cluster`; every tension node rect carries `am-node` + `at-node` — using the single generic `am-node` marker avoids the substring collision where a node-colour token like `am-super` would also match the label class `am-super-label`), `edge_class_allowlist = ["am-edge", "at-edge"]`, `label_bg_class_suffix = "-bg"`.
+- Ensure the output directory exists. On POSIX: `Bash mkdir -p generated-docs/analyse-inputs/AFFINITY-MAPPING`. On Windows-only environments: `PowerShell New-Item -ItemType Directory -Force -Path generated-docs/analyse-inputs/AFFINITY-MAPPING`. The orchestrator's environment determines which shell.
+- `Write generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html`, `expected_sha256 = <Step 11 sha>`, `expected_min_bytes = 4096`. A minimum legal render (template scaffold + overview + primary mindmap SVG + no-tensions copy + source-roster with ≥ 1 consumed row + cluster cards with ≥ 1 super-theme containing ≥ 1 cluster + orphans table + JSON body block + diagnostics + next-steps banner) clears 4 KB.
+- **On `pass`:** invoke `framework/skills/svg-overlap-check.md` with `artefact_path = generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html`, `report_path = /tmp/affinity-mapping-<run-id>/svg-overlap.ndjson` (POSIX) or `$env:TEMP\affinity-mapping-<run-id>\svg-overlap.ndjson` (Windows) — kept in the run scratch dir so the no-`framework/state/`-write invariant holds; cleaned up at handback. Allowlists: `node_class_allowlist = ["am-node"]` (every mindmap node rect carries `am-node` + a colour class `am-root`/`am-super`/`am-cluster`; every tension node rect carries `am-node` + `at-node` — using the single generic `am-node` marker avoids the substring collision where a node-colour token like `am-super` would also match the label class `am-super-label`), `edge_class_allowlist = ["am-edge", "at-edge"]`, `label_bg_class_suffix = "-bg"`.
   - On `pass` (`total: 0`): finalise `gate_9_status: pass`; advance to Step 12.
   - On `fail` (`total > 0`): finalise `gate_9_status: overlap-warning`; record one layout-warning line per detected overlap in the diagnostics `diagram-status` (template *"SVG overlap — `<kind>` in figure `<figure_id>`: `<a_class>` ↔ `<b_class>`"*), then re-render + re-Write + re-verify **once** so the warning lands in the artefact, and advance to Step 12. The cluster cards (every member note verbatim) are the canonical deliverable; the mindmap SVG is an additive visual and the Mermaid export is the clean fallback — an overlap is a recorded warning, not a halt. Do not re-run the overlap check (no reflow loop).
-- **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` after one retry."* and fail handback.
+- **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` after one retry."* and fail handback.
 
 ### Step 12 — Handback (Accept / Revise / Restart)
 
@@ -494,7 +494,7 @@ Compute SHA-256 of the in-memory bytes after final composition.
 
 Output one short, concrete line:
 
-> *"Wrote `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` (run #{run_count}) — {note_count} notes, {cluster_count} L2 clusters in {super_theme_count} L3 super-themes, {orphan_count} orphans, {tension_count} tensions. Anti-anchoring: {drifted_note_count} notes drifted (J<0.5) on the sub-agent Pass-2 re-cluster. Quality gates: {n_pass}/10 pass. Diagram: inline SVG, {gate_9_status}. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` (run #{run_count}) — {note_count} notes, {cluster_count} L2 clusters in {super_theme_count} L3 super-themes, {orphan_count} orphans, {tension_count} tensions. Anti-anchoring: {drifted_note_count} notes drifted (J<0.5) on the sub-agent Pass-2 re-cluster. Quality gates: {n_pass}/10 pass. Diagram: inline SVG, {gate_9_status}. Ready, or want changes?"*
 
 Variants:
 
@@ -504,7 +504,7 @@ Variants:
 - If `drift_mode == "append-new-notes-only"`, append: *"Drift handling: prior clusters preserved verbatim; {n_new_notes} new notes assigned to existing clusters (or new clusters spawned); Pass-2 sub-agent skipped per methodology (incremental mode)."*
 - If `drift_mode == "re-run-full"`, append: *"Drift handling: Rounds 1–6 re-executed from scratch on the current manifest."*
 - If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to extend the map."*
-- Always append: *"To re-ingest into `/requirements`, copy `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` into `documentation/` and re-run `/requirements` — instructions are in the Next-steps banner of the artefact."*
+- Always append: *"To re-ingest into `/requirements`, copy `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` into `documentation/` and re-run `/requirements` — instructions are in the Next-steps banner of the artefact."*
 
 **B. Accept / Revise / Restart loop.**
 
@@ -540,7 +540,7 @@ Use `AskUserQuestion`:
   - **Mark a row as not irrelevant-to-domain** ("`analytics-summary.csv` does describe the domain — re-scan"): re-run Round 1 against the specific file; update `notes_contributed`; remove from `irrelevant_to_domain_rows`; re-run Gate 8; re-render; re-Write; re-verify; loop back to A.
   - **Re-run Pass-2** ("the Pass-2 sub-agent did something odd; re-invoke it"): re-enter Step 6; re-compute Jaccard for every note; re-render; re-Write; re-verify; loop back to A.
   - **Add an Override note** for a previously-failed gate: append to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
-- **Restart** — re-enter Step 4 (Round 1). The previously-written `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` is left in place; the next Step 11 will overwrite it. `/tmp/affinity-mapping-<run-id>/` files are NOT cleaned up on Restart (a Restart re-invokes them); only Accept triggers the cleanup.
+- **Restart** — re-enter Step 4 (Round 1). The previously-written `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` is left in place; the next Step 11 will overwrite it. `/tmp/affinity-mapping-<run-id>/` files are NOT cleaned up on Restart (a Restart re-invokes them); only Accept triggers the cleanup.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced `RF-04`, which propagates per Step 11).
 
@@ -558,9 +558,9 @@ Output the final handback line:
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the manifest. Read once in Step 2.
+- `generated-docs/requirements/source-manifest.json` — the manifest. Read once in Step 2.
 - Each manifest row's read-path per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `converted_sibling` when non-null (`Supported-via-MCP` / `Native-multimodal` / `Vector-renderable`), else `original_path` (`Native-text`). Read in Step 2.
-- `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — prior run's artefact. Read once in Step 3 if present.
+- `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — prior run's artefact. Read once in Step 3 if present.
 - `framework/assets/characters/affinity-mapping-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/affinity-mapping-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/analyses-inputs/template-affinity-mapping.html` — the HTML scaffold. Read once at render time in Step 11.
@@ -569,15 +569,15 @@ Output the final handback line:
 
 ## Output
 
-- `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — the populated artefact. Always written to the same path; **additively merged with the prior run's contents on `drift_mode == "append-new-notes-only"`** (prior clusters preserved verbatim; new notes assigned to existing clusters or spawn new clusters; Pass-2 sub-agent skipped). On `drift_mode == "re-run-full"` (or fresh first-run), the artefact is fully rewritten.
+- `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — the populated artefact. Always written to the same path; **additively merged with the prior run's contents on `drift_mode == "append-new-notes-only"`** (prior clusters preserved verbatim; new notes assigned to existing clusters or spawn new clusters; Pass-2 sub-agent skipped). On `drift_mode == "re-run-full"` (or fresh first-run), the artefact is fully rewritten.
 - Transient: `/tmp/affinity-mapping-<run-id>/notes-input.json`, `/tmp/affinity-mapping-<run-id>/pass-1.json`, `/tmp/affinity-mapping-<run-id>/pass-2.json`, `/tmp/affinity-mapping-<run-id>/svg-overlap.ndjson`. Cleaned up at handback in Step 12 sub-step C (Accept branch only).
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file (via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path`), the prior artefact (if present), and the in-memory composed HTML for the sha256 read-back. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
-- `Write` — write `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` and the transient `/tmp/affinity-mapping-<run-id>/*.json` and `*.mmd` files.
+- `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file (via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path`), the prior artefact (if present), and the in-memory composed HTML for the sha256 read-back. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
+- `Write` — write `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` and the transient `/tmp/affinity-mapping-<run-id>/*.json` and `*.mmd` files.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not `Edit` the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` (POSIX) / `PowerShell` (Windows) — `mkdir -p /tmp/affinity-mapping-<run-id>` (run scratch dir for the two-pass JSON + the `svg-overlap-check` report; ensure it exists before the first scratch write) and `mkdir -p analyse-inputs/AFFINITY-MAPPING` (Step 11 output dir); `rm -rf /tmp/affinity-mapping-<run-id>` (Step 12 cleanup on Accept). No `mmdc` / Mermaid-render dependency — the diagrams are pre-rendered inline SVG.
+- `Bash` (POSIX) / `PowerShell` (Windows) — `mkdir -p /tmp/affinity-mapping-<run-id>` (run scratch dir for the two-pass JSON + the `svg-overlap-check` report; ensure it exists before the first scratch write) and `mkdir -p generated-docs/analyse-inputs/AFFINITY-MAPPING` (Step 11 output dir); `rm -rf /tmp/affinity-mapping-<run-id>` (Step 12 cleanup on Accept). No `mmdc` / Mermaid-render dependency — the diagrams are pre-rendered inline SVG.
 - `Agent` — invoked exactly once in Step 6 with `subagent_type: "general-purpose"`, prompt content limited to the Round 1 notes JSON plus the methodology instructions in the prompt template above. **No other Agent / Task delegation.** This is the documented sub-agent exception for the Pass-2 re-cluster (computational only, no consultant interaction, no `AskUserQuestion` within the sub-agent). On `drift_mode == "append-new-notes-only"`, this tool invocation is skipped entirely.
 - `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (drift gate or unparseable-meta), the Step 9 "no orphans" justification prompt (when orphans empty), the Step 10 quality-gate failure prompts (Revise / Override / Restart), and the Step 12 Accept / Revise / Restart prompt + its Revise sub-prompts.
 
@@ -587,7 +587,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholder strings.
 - The artefact begins with `<!doctype html>`.
 - The artefact contains exactly one `<script type="application/json" id="affinity-map-meta">` block in `<head>`. Its `manifest_sha256` equals the Step 2 value; its `run_count` equals `prior.run_count + 1` (or `1` on first run); its `note_count`, `cluster_count`, `super_theme_count`, `orphan_count`, `tension_count`, `drifted_note_count`, `consumed_row_count`, `skipped_row_count`, `irrelevant_row_count` match the rendered content.
@@ -607,16 +607,16 @@ Before handing back, verify all of the following against the written artefact an
 - The mindmap node count (1 root + count of super-themes + count of clusters) ≤ 34.
 - Every L2 cluster label and every L3 super-theme label passes Gate 7 (insight-statement form) or is recorded with a `gate-warn` / `gate-fail` entry in diagnostics.
 - Every consultant-supplied string in HTML body content is HTML-escaped (`<` → `&lt;`, `&` → `&amp;`, etc.). **Exception:** Mermaid syntax inside `<pre class="mermaid-source">` retains literal `|`, `[`, `]`, `(`, `)`, `{`, `}` after the per-Mermaid escaping in Sub-step B.
-- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
-- No file under `analyse-requirements/` or `analyse-inputs/<OTHER-METHOD>/` was read.
+- No file under `generated-docs/analyse-requirements/` or `generated-docs/analyse-inputs/<OTHER-METHOD>/` was read.
 - If a Pass-2 sub-agent was invoked, its prompt content (recoverable from the Agent tool call) did not contain Pass-1 cluster labels, Pass-1 assignments, or Pass-1 cluster counts. (This is the load-bearing anti-anchoring invariant — if it is violated, the methodology is undermined.)
 - The consultant has chosen Accept in Step 12.
 - The `/tmp/affinity-mapping-<run-id>/` directory has been cleaned up (Accept branch only; not on Restart).
 
 ## Definition of Done
 
-- `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` exists, has been verified, and contains a complete affinity map: overview, primary mindmap (pre-rendered inline SVG + collapsed Mermaid export), tensions diagram (inline SVG + collapsed Mermaid export) or "no tensions" copy, source roster, cluster cards with ≥ 1 super-theme containing ≥ 1 cluster, orphans table, machine-readable JSON body block, collapsed diagnostics with Pass-1/Pass-2 drift log + 10 gate results + cluster-size distribution + irrelevant-to-domain rows + follow-up questions + run history, and the Next-steps banner.
+- `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` exists, has been verified, and contains a complete affinity map: overview, primary mindmap (pre-rendered inline SVG + collapsed Mermaid export), tensions diagram (inline SVG + collapsed Mermaid export) or "no tensions" copy, source roster, cluster cards with ≥ 1 super-theme containing ≥ 1 cluster, orphans table, machine-readable JSON body block, collapsed diagnostics with Pass-1/Pass-2 drift log + 10 gate results + cluster-size distribution + irrelevant-to-domain rows + follow-up questions + run history, and the Next-steps banner.
 - Either all 10 hard quality gates passed (Gate 9 = pass or overlap-warning; Gate 10 = pass), or the consultant explicitly chose Override and the Run-history bullet for this run records every violation.
 - DOM order is plain-terms → overview → diagram-primary → diagram-tensions → source-roster → clusters → orphans → affinity-map-body → diagnostics → next-steps → downstream-toggle.
 - The `<pre><code class="language-json" id="affinity-map-body">` block parses as valid JSON and matches the reference's JSON schema.
@@ -628,7 +628,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Anti-Patterns
 
-- **Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files.** The stand-alone-ish constraint is the agent's most load-bearing invariant. The merged `requirements/requirements.md` is not an input to this analyser; the inputs-side affinity-mapping operates on raw material, not synthesised requirements.
+- **Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files.** The stand-alone-ish constraint is the agent's most load-bearing invariant. The merged `generated-docs/requirements/requirements.md` is not an input to this analyser; the inputs-side affinity-mapping operates on raw material, not synthesised requirements.
 - **Do not read `framework/state/` or `framework/shared/` for any purpose.** Pipeline state and shared rules are not inputs-side affinity-mapping inputs (refusal-registry / general-rule textual references are links, not file loads).
 - **Do not invent notes.** Every note has provenance traceable to exactly one consumed source. For converted-sibling rows, reading the frozen description is not fabrication; extrapolation beyond it is. The boundary: a note's text must be supported by what the source text or the frozen description actually records.
 - **Do not collapse the six rounds into a single pass.** Each round produces a distinct in-memory output; the round-by-round structure is what makes the analysis reviewable and what enables the sub-agent isolation in Round 3.

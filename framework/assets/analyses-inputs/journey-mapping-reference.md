@@ -2,9 +2,9 @@
 
 # Journey Mapping reference
 
-> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`. For each named actor surfaced in the inputs, build one current-state journey map of the as-is workflow described in the briefs / decks / interview notes / screenshots — phases (3–6), steps per phase (3–8, user-as-subject verb phrases), touchpoints, channels, thoughts (verbatim quotes only), emotions (proxy-derived, −2…+2 scale), pain points, backstage systems, opportunities, and moments of truth. Render the artefact as self-contained HTML at `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` with **diagrams-first ordering** — a compact overview, then one `<article class="diagram-block">` per persona (inline SVG emotion curve + CSS-grid swim-lane table) stacked in the `#diagrams` gallery, then narrative bridges + moments-of-truth in `#narratives`, then collapsed diagnostics. Every non-empty cell carries one `[SRC: <filename>]` or `[STANDARD-RULE: GR-NN]` marker naming a manifest row's `filename` field (basename + extension). Coverage gaps surface as `[GAP-NO-EVIDENCE]` notes inside the diagnostics block — **never** as fabricated cells. Across re-runs the artefact is **additive**: prior journey cards, swim-lane cell contents, bridges, and moments-of-truth are preserved; new manifest content extends them.
+> **Method:** Walk every consumable source enumerated in `generated-docs/requirements/source-manifest.json`. For each named actor surfaced in the inputs, build one current-state journey map of the as-is workflow described in the briefs / decks / interview notes / screenshots — phases (3–6), steps per phase (3–8, user-as-subject verb phrases), touchpoints, channels, thoughts (verbatim quotes only), emotions (proxy-derived, −2…+2 scale), pain points, backstage systems, opportunities, and moments of truth. Render the artefact as self-contained HTML at `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` with **diagrams-first ordering** — a compact overview, then one `<article class="diagram-block">` per persona (inline SVG emotion curve + CSS-grid swim-lane table) stacked in the `#diagrams` gallery, then narrative bridges + moments-of-truth in `#narratives`, then collapsed diagnostics. Every non-empty cell carries one `[SRC: <filename>]` or `[STANDARD-RULE: GR-NN]` marker naming a manifest row's `filename` field (basename + extension). Coverage gaps surface as `[GAP-NO-EVIDENCE]` notes inside the diagnostics block — **never** as fabricated cells. Across re-runs the artefact is **additive**: prior journey cards, swim-lane cell contents, bridges, and moments-of-truth are preserved; new manifest content extends them.
 
-**Output file:** `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — self-contained HTML (inline `<style>`, inline SVG, no external JS, no CDN, no remote font). Mirrors the precedent set by `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. Re-ingestible into `documentation/` for `/requirements` consumption: HTML classifies as `Markitdown-text` tier and converts cleanly to Markdown while preserving the inline `[SRC: <filename>]` markers (the audit trail end-to-end is the load-bearing reason for the marker discipline).
+**Output file:** `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — self-contained HTML (inline `<style>`, inline SVG, no external JS, no CDN, no remote font). Mirrors the precedent set by `generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. Re-ingestible into `documentation/` for `/requirements` consumption: HTML classifies as `Markitdown-text` tier and converts cleanly to Markdown while preserving the inline `[SRC: <filename>]` markers (the audit trail end-to-end is the load-bearing reason for the marker discipline).
 
 **Analyser agent:** `framework/agents/analyses-inputs/journey-mapping-analyser.md`
 
@@ -35,18 +35,18 @@ This analyser ships **current-state only**. Rationale:
 
 ### Why journey mapping for INPUTS is distinct from `/analyse-requirement`'s `USER-JOURNEYS`
 
-The codebase already ships a `USER-JOURNEYS` analyser under `/analyse-requirement` that lenses the synthesised `requirements/requirements.md`. The two methodologies share column names but operate at different pipeline stages with different source material:
+The codebase already ships a `USER-JOURNEYS` analyser under `/analyse-requirement` that lenses the synthesised `generated-docs/requirements/requirements.md`. The two methodologies share column names but operate at different pipeline stages with different source material:
 
 | Lens | Pipeline | Source material | Temporal pose | Downstream use |
 |---|---|---|---|---|
-| `USER-JOURNEYS` (requirements side) | `/analyse-requirement` | `requirements/requirements.md` (synthesised spec) | **Future-state** (current-of-the-spec — system to be built) | Verify the spec covers the right experience |
+| `USER-JOURNEYS` (requirements side) | `/analyse-requirement` | `generated-docs/requirements/requirements.md` (synthesised spec) | **Future-state** (current-of-the-spec — system to be built) | Verify the spec covers the right experience |
 | `JOURNEY-MAPPING` (inputs side, this analyser) | `/analyse-inputs` | Raw `documentation/` (briefs, decks, interview notes) | **Current-state** (current-of-the-world — as-is workflow) | Inform the spec by providing a structured experience map of what exists today |
 
 Same column shape, different source material at different pipeline stages, different downstream uses. Compare: `opportunity-solution-trees` exists on both sides too (reverse-discovery for requirements, forward-discovery for inputs).
 
 ### Why this analyser uses HTML, not Markdown + Mermaid
 
-- **Stakeholder-presentable** as-is via `file://` — consultants and PMs can open it in a browser without a Mermaid runtime, the same way they open `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`.
+- **Stakeholder-presentable** as-is via `file://` — consultants and PMs can open it in a browser without a Mermaid runtime, the same way they open `generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html`.
 - **Higher diagram fidelity.** Inline SVG renders the true −2…+2 emotion scale with negative-territory gridlines (Mermaid's `journey` chart is locked to 1–5 integers); CSS-grid swim-lane tables give deterministic column-per-phase × row-per-lane layout with text wrapping, accessibility, and hover states (Mermaid `flowchart LR` with `subgraph` swim-lanes can look cramped or overflow with 5+ lanes).
 - **No `mmdc` dependency at write-time** — diagrams are inline SVG and HTML, so no Mermaid validator call, no install-instruction halt, fewer failure modes.
 - **Round-trip safe.** The drafter reads HTML through markitdown, which preserves text content (including inline `[SRC: <filename>]` markers) while collapsing visual fidelity — exactly the trade-off this pipeline wants (visuals for consultants, text for `/requirements`).
@@ -308,10 +308,10 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 
 The analyser **never** reads:
 
-- Any path under `requirements/` other than `requirements/source-manifest.json` and its enumerated rows' `original_path` / `converted_sibling`.
+- Any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and its enumerated rows' `original_path` / `converted_sibling`.
 - Any path under `framework/state/`.
 - Any path under `framework/shared/` (textual references to `RF-NN` / `GR-NN` in this file and in the analyser are links for the reader, not file loads).
-- Other analyses' artefacts (`analyse-requirements/<METHOD>/…`, `analyse-inputs/<OTHER-METHOD>/…`).
+- Other analyses' artefacts (`generated-docs/analyse-requirements/<METHOD>/…`, `generated-docs/analyse-inputs/<OTHER-METHOD>/…`).
 - Any pattern-catalogue or design-system file.
 
 ---
@@ -362,7 +362,7 @@ The analysis is complete when:
 - `journeys` is non-empty (at least one persona × scenario pair survived Round 1–6).
 - All 8 hard gates pass, or the consultant chose Override and the failures are recorded in diagnostics.
 - The HTML has been rendered, every `<svg>` validates structurally (well-formed XML, polyline points = phase count, every `<text>` XML-escaped), every swim-lane `<tr>` has the expected lane class and N `<td>` cells (matching phase count).
-- `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` has been written and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 
 ---

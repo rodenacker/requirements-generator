@@ -2,13 +2,13 @@
 
 # reviews/requirements-quality-reference.md
 
-**Purpose:** Methodology reference for the **Requirements Quality** review of every ID-bearing requirement in `requirements/requirements.md`. The reviewer scores each requirement against the **nine ISO/IEC/IEEE 29148:2018 individual well-formedness characteristics**, runs the **five set-level characteristics** as a document-level pass, and — for the ambiguous and compound requirements — proposes **EARS-form rewrites**. The reviewer follows this document literally and exhaustively.
+**Purpose:** Methodology reference for the **Requirements Quality** review of every ID-bearing requirement in `generated-docs/requirements/requirements.md`. The reviewer scores each requirement against the **nine ISO/IEC/IEEE 29148:2018 individual well-formedness characteristics**, runs the **five set-level characteristics** as a document-level pass, and — for the ambiguous and compound requirements — proposes **EARS-form rewrites**. The reviewer follows this document literally and exhaustively.
 
 **Used by:**
 
 - `framework/agents/reviews/requirements-quality-reviewer.md` — drives enumeration, per-requirement nine-characteristic scoring, the set-level pass, the GR/PI rescue, the fix-list/EARS construction, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` — a self-contained HTML document structured as follows (section order fixed):
+**Output produced by the reviewer:** `generated-docs/review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` — a self-contained HTML document structured as follows (section order fixed):
 
 0. **In plain terms** — 2–5 plain-English sentences: what this review is, what it found (verdict + tier counts), and what the consultant should do next. A faithful condensation — no finding or count not in the punch-list below; severity preserved verbatim (a BLOCKED verdict is stated as plainly in the lead as in the findings). Jargon glossed at first use (verdict, risk tier, decidable characteristic, judgment band, EARS). The *one* sanctioned narrative paragraph; everything below is a punch-list.
 1. **Executive summary** — verdict banner, per-characteristic failure tally, tier distribution, set-level tally, judgment-band tally.
@@ -303,7 +303,7 @@ Run before writing. Each is `pass | fail` (gate 8 has a `warn` variant). On any 
 
 ## Worked examples (the build-time decidability fixture)
 
-A 14-requirement deliberately-flawed fixture (the lens's by-hand decidability pilot — there is no live `requirements/requirements.md` in this generator repo). Real ID shapes; a mix of clean controls and seeded defects. This is reference material, never a runtime input.
+A 14-requirement deliberately-flawed fixture (the lens's by-hand decidability pilot — there is no live `generated-docs/requirements/requirements.md` in this generator repo). Real ID shapes; a mix of clean controls and seeded defects. This is reference material, never a runtime input.
 
 | ID | Pri | Statement (as written) | AC (as written) | Tier | Decidable failures (rule code) | Judgment |
 |---|---|---|---|---|---|---|
@@ -344,7 +344,7 @@ This fixture proves the four acceptance criteria: ≥70% of the 70 decidable cel
 - **Do not report a single blended conformance %.** Report the per-characteristic tally + tier distribution.
 - **Do not score §6.3 / §6.5 / §6.6 as per-requirement rows.** They are set-level-only; disclose the exclusion.
 - **Do not write `[SRC: …]` or `[AI-SUGGESTED: AI-NN]` markers in the artefact.** Per `feedback_no_inline_provenance`, the review artefact is clean of inline markers; provenance is the requirement ID / §-anchor. Rescued judgment cells use `[STANDARD-RULE: GR-NN]` / `[PROTOTYPE-INVARIANT: PI-NN]` as in-artefact evidence tags (the same convention first-principles uses).
-- **Do not read draft sidecars / analyses / design-system / framework state.** Read `requirements/requirements.md` + this reference + the character + the template + the conforming-target files + (at the late filter step) general-rules + prototype-invariants. Nothing else.
+- **Do not read draft sidecars / analyses / design-system / framework state.** Read `generated-docs/requirements/requirements.md` + this reference + the character + the template + the conforming-target files + (at the late filter step) general-rules + prototype-invariants. Nothing else.
 - **Do not cross lanes.** A contradiction *between* requirements is a set-level Consistent finding, not nine separate cell fails. A "should this exist at all" judgment is the Necessary band's thin shadow + a pointer to FIRST-PRINCIPLES — do not run the full defensibility audit here.
 - **Do not paste the artefact body into the conversation.** The file lands on disk; the consultant opens it.
 

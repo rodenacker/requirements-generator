@@ -2,9 +2,9 @@
 
 # Opportunity Solution Tree (inputs-side) reference
 
-> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`, extract a single root **Outcome** (Round 1; multi-outcome candidates surface an interactive picker), inductively surface customer-perspective **Opportunities** (Round 2), inductively surface candidate **Solutions** (Round 3), best-effort extract **Assumption Tests** (Round 4), **ladder** the four layers into a tree (Round 5), then produce the report — including a **bridge** from each Opportunity to candidate-requirement seeds the `/requirements` drafter can pick up when the artefact is re-ingested (Round 6). Every node carries one or more `[SRC: <filename>]` markers naming a manifest row whose `filename` field equals the marker payload. Across re-runs the artefact is **additive**: prior tree nodes, ladder edges, and candidate-requirement lines are preserved; new manifest content extends them.
+> **Method:** Walk every consumable source enumerated in `generated-docs/requirements/source-manifest.json`, extract a single root **Outcome** (Round 1; multi-outcome candidates surface an interactive picker), inductively surface customer-perspective **Opportunities** (Round 2), inductively surface candidate **Solutions** (Round 3), best-effort extract **Assumption Tests** (Round 4), **ladder** the four layers into a tree (Round 5), then produce the report — including a **bridge** from each Opportunity to candidate-requirement seeds the `/requirements` drafter can pick up when the artefact is re-ingested (Round 6). Every node carries one or more `[SRC: <filename>]` markers naming a manifest row whose `filename` field equals the marker payload. Across re-runs the artefact is **additive**: prior tree nodes, ladder edges, and candidate-requirement lines are preserved; new manifest content extends them.
 
-**Output file:** `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — a self-contained HTML document rendered via `framework/assets/analyses-inputs/template-opportunity-solution-trees.html`. The tree is a **pre-rendered inline SVG** in a `#diagrams` section (reusing the requirements-side twin's `{{TREE}}` SVG approach), with an adjacent collapsed `<details class="mermaid-block">` block carrying the `graph TD` source as an export / re-ingestion adjunct (embedded as text, not validated by `mmdc`). A `language-json` `opportunity-solution-tree-body` block carries the tree model and the candidate-requirement seeds, so the artefact survives a markitdown HTML→Markdown conversion for re-ingestion by `/requirements`.
+**Output file:** `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — a self-contained HTML document rendered via `framework/assets/analyses-inputs/template-opportunity-solution-trees.html`. The tree is a **pre-rendered inline SVG** in a `#diagrams` section (reusing the requirements-side twin's `{{TREE}}` SVG approach), with an adjacent collapsed `<details class="mermaid-block">` block carrying the `graph TD` source as an export / re-ingestion adjunct (embedded as text, not validated by `mmdc`). A `language-json` `opportunity-solution-tree-body` block carries the tree model and the candidate-requirement seeds, so the artefact survives a markitdown HTML→Markdown conversion for re-ingestion by `/requirements`.
 
 **Analyser agent:** `framework/agents/analyses-inputs/opportunity-solution-trees-analyser.md`
 
@@ -21,7 +21,7 @@ The Opportunity Solution Tree is Teresa Torres's product-discovery artefact: a s
 - **Validity test for Opportunities:** *"Is there more than one way to address this opportunity?"* If only one Solution could possibly address it, it is a Solution disguised as an Opportunity.
 - **Anti-pattern:** vertical-only branches (one Opportunity, one Solution, no siblings) signal premature commitment — the discovery space has been collapsed.
 
-The sibling analyser at `framework/agents/analyses/opportunity-solution-trees-analyser.md` runs Torres's tree in **reverse** — it audits a merged `requirements/requirements.md` to surface gaps after the team has committed to features. This inputs-side analyser runs Torres's tree **forward** — closer to her original intent, but adapted for raw consultant material:
+The sibling analyser at `framework/agents/analyses/opportunity-solution-trees-analyser.md` runs Torres's tree in **reverse** — it audits a merged `generated-docs/requirements/requirements.md` to surface gaps after the team has committed to features. This inputs-side analyser runs Torres's tree **forward** — closer to her original intent, but adapted for raw consultant material:
 
 - Raw inputs legitimately carry **multiple stakeholder Outcomes** (the brief names one goal; the workshop notes another; the slide deck a third). The analyser surfaces an interactive picker on first run (consultant picks one as primary; others render in `## Candidate outcomes` with `[CANDIDATE-OUTCOME]` markers) rather than hard-halting.
 - Raw inputs carry **contradictory pains**, **vague feelings**, **unnamed actors**, and **near-duplicate phrasings** of the same need across multiple sources. The analyser merges aggressively by actor + semantic head, keeps every source citation, and flags contradictions in diagnostics rather than inventing a reconciliation.
@@ -58,7 +58,7 @@ The artefact has a fixed top-to-bottom shape:
 
 0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this analysis is, what it found, and what the consultant should do with it (e.g. re-ingest into `/requirements`, use the coverage diagnostics to drive interviews). The **first** section, above the meta-grid — the tree diagram remains the first visual immediately after this lead. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use here; client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`.
 
-1. **Header.** Title, generation timestamp, manifest fingerprint (sha256 of `requirements/source-manifest.json`), run count.
+1. **Header.** Title, generation timestamp, manifest fingerprint (sha256 of `generated-docs/requirements/source-manifest.json`), run count.
 2. **ost-meta** HTML comment carrying the additive-merge cursor (`manifest_fingerprint`, `run_count`).
 3. **Summary.** Counts: outcomes (primary + candidate), opportunities, solutions (with orphan count), assumption tests (or `absent` flag), candidate-requirements, orphan / unaddressed / weakly-anchored counts, sources consumed / skipped.
 4. **Outcome.** Single block — the primary root.
@@ -283,7 +283,7 @@ For each Opportunity in the tree, derive one or more **candidate-requirement** l
 **Mechanism downstream:**
 
 - When the consultant drops this artefact into `documentation/`, the input-handler classifies it as `Native-text` and the `/requirements` drafter reads the `## Candidate requirements` section as candidate-requirement seeds.
-- The drafter normalises voice, assigns `R-NN` IDs, and merges into `§6` of `requirements/requirements-draft.md`. The drafter's `[SRC: C-NNN]` claim-IDs coexist with this artefact's `[SRC: <filename>]` markers in the draft; the merger strips both at requirements-finalisation time, producing a clean `requirements/requirements.md`.
+- The drafter normalises voice, assigns `R-NN` IDs, and merges into `§6` of `generated-docs/requirements/requirements-draft.md`. The drafter's `[SRC: C-NNN]` claim-IDs coexist with this artefact's `[SRC: <filename>]` markers in the draft; the merger strips both at requirements-finalisation time, producing a clean `generated-docs/requirements/requirements.md`.
 
 ### Sub-step B — Coverage diagnostics
 
@@ -351,10 +351,10 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 
 The analyser **never** reads:
 
-- Any path under `requirements/` other than `requirements/source-manifest.json`.
+- Any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json`.
 - Any path under `framework/state/`.
 - Any path under `framework/shared/` (textual references to `RF-NN` / `GR-NN` are links for the reader, not file loads).
-- Other analyses' artefacts (`analyse-requirements/<OTHER-METHOD>/...`, `analyse-inputs/<OTHER-METHOD>/...`) — including `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`, even though both lenses operate on the same inputs.
+- Other analyses' artefacts (`generated-docs/analyse-requirements/<OTHER-METHOD>/...`, `generated-docs/analyse-inputs/<OTHER-METHOD>/...`) — including `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`, even though both lenses operate on the same inputs.
 - Any pattern-catalogue or design-system file.
 
 ---
@@ -415,7 +415,7 @@ The analysis is complete when:
 - A primary root Outcome exists (Round 1 produced ≥ 1 candidate, and the consultant picked one on multi-candidate runs).
 - All 6 hard gates pass, or the consultant chose Override and the failures are recorded in Diagnostics.
 - Every node is a `<g class="node …">` in the pre-rendered layered SVG tree diagram and a node in the `graph TD` Mermaid export source (embedded as unvalidated text).
-- `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` has been written and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 
 ---

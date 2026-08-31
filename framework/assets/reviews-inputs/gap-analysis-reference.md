@@ -2,13 +2,13 @@
 
 # reviews-inputs/gap-analysis-reference.md
 
-**Purpose:** Methodology reference for **Gap Analysis** (inputs-side) — a template-bijection delta of the **raw consultant input set** enumerated by `requirements/source-manifest.json` against the `/requirements` drafter's specific template (`framework/assets/topics-requirements.md`). The reviewer follows this document literally and exhaustively.
+**Purpose:** Methodology reference for **Gap Analysis** (inputs-side) — a template-bijection delta of the **raw consultant input set** enumerated by `generated-docs/requirements/source-manifest.json` against the `/requirements` drafter's specific template (`framework/assets/topics-requirements.md`). The reviewer follows this document literally and exhaustively.
 
 **Used by:**
 
 - `framework/agents/reviews-inputs/gap-analysis-reviewer.md` — drives the agent's topic-walk, coverage classification, severity scoring, recommendation + candidate-requirement composition, cross-dimension consolidation, and quality-gate sweep.
 
-**Output produced by the reviewer:** `review-inputs/GAP-ANALYSIS/gap-analysis.html` — a self-contained HTML artefact with an inline-SVG coverage heatmap, a gap matrix table, per-dimension narrative, an action list, an embedded structured JSON block (the `/requirements` re-ingestion carrier), and diagnostics.
+**Output produced by the reviewer:** `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` — a self-contained HTML artefact with an inline-SVG coverage heatmap, a gap matrix table, per-dimension narrative, an action list, an embedded structured JSON block (the `/requirements` re-ingestion carrier), and diagnostics.
 
 **Sibling lenses under `/review-inputs`:**
 
@@ -50,7 +50,7 @@ This reference's **yardstick = `framework/assets/topics-requirements.md`** — t
 
 **To-Be:** `framework/assets/topics-requirements.md` — the project's canonical list of topics every `/requirements` artefact must cover, with per-topic emit predicates, Tier A/B/C/D completeness rules, and per-topic `Dimension` values (SPoT). 30+ topics spanning §0.1, §1, §1.5, …, §10.
 
-**As-Is:** the raw consultant input set enumerated by `requirements/source-manifest.json` — every manifest row whose `tier != "Unsupported"` is read once per the Read-path resolution rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null, else `original_path` — only `Native-text` is read at `original_path`). For `Native-multimodal` / `Vector-renderable` rows the `converted_sibling` is a frozen textual description prepared by the input-handler (labels, field captions, table contents, status/error states, KPI values, structured breakdown); treat it as the canonical text source and do **not** re-interpret pixels.
+**As-Is:** the raw consultant input set enumerated by `generated-docs/requirements/source-manifest.json` — every manifest row whose `tier != "Unsupported"` is read once per the Read-path resolution rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null, else `original_path` — only `Native-text` is read at `original_path`). For `Native-multimodal` / `Vector-renderable` rows the `converted_sibling` is a frozen textual description prepared by the input-handler (labels, field captions, table contents, status/error states, KPI values, structured breakdown); treat it as the canonical text source and do **not** re-interpret pixels.
 
 **The gap** = the per-topic delta. For every topic the reviewer walks the six-step decision tree in §4 below and assigns one of six coverage states. Two of those states (`Missing` and `Partial`) produce `GAP-NN` rows in the artefact; the other four (`Covered`, `Standard-rule`, `Out-of-scope`, `N/A`) appear in the coverage matrix and per-dimension narrative but carry no `GAP-NN`.
 
@@ -199,7 +199,7 @@ The reviewer runs 12 steps total (4 operational + 8 rounds). The eight rounds ar
 4. **Round 4 — Coverage matrix.** Compute aggregate counts per top-level template section × coverage tier (heatmap data) and per-dimension × MoSCoW (executive summary).
 5. **Round 5 — Cross-dimension consolidation.** Where a single corpus span produces multiple findings (e.g. silence on RBAC produces both a `§6.5 Stakeholder` gap and a `§3 Personas` gap), keep both findings but cross-reference them via `also_see: [GAP-NN]` cells. Same discipline `completeness-reviewer` Step 14 enforces.
 6. **Round 6 — Self-validate.** Run the eight quality gates (§9 below). On failure, surface `AskUserQuestion` (Revise / Override / Restart).
-7. **Round 7 — Render + write + verify.** Read template, build substitution map, HTML-escape every consultant-supplied string, compute SHA-256, write to `review-inputs/GAP-ANALYSIS/gap-analysis.html`, invoke `verify-artifact-write.md` (`expected_min_bytes = 6144`).
+7. **Round 7 — Render + write + verify.** Read template, build substitution map, HTML-escape every consultant-supplied string, compute SHA-256, write to `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html`, invoke `verify-artifact-write.md` (`expected_min_bytes = 6144`).
 8. **Round 8 — Handback.** Unicorn-voice summary; sibling-methodology hint; Accept / Revise / Restart loop.
 
 The four operational steps preceding the eight rounds are: (1) Activate, (2) Read manifest + per-tier ingest, (3) Read bijection target (`topics-requirements.md` + `general-rules.md` + `prototype-scope.md`), (4) Detect prior artefact (drift gate).
@@ -223,7 +223,7 @@ Every gate runs at Round 6 (Step 10 of the agent). On any gate failure, the revi
 
 ---
 
-## 10. Output structure (`review-inputs/GAP-ANALYSIS/gap-analysis.html`)
+## 10. Output structure (`generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html`)
 
 Self-contained HTML5. No external CSS / JS / fonts / CDNs. Opens cleanly via `file://`; prints sensibly to PDF via the browser's native dialog.
 
@@ -346,7 +346,7 @@ The artefact is human-read (and has no downstream machine consumer), so the revi
 - Solutioning the Candidate Requirement column. Architecture verbs (`build`, `implement with`, `use Kafka`) are forbidden — capability-category and behavioural vocabulary only. Gate 4 enforces.
 - UI-layout vocabulary in the Candidate Requirement. *"display in a modal"*, *"show errors inline"*, *"render as a table"* are layout. Behavioural / capability vocabulary only.
 - Inventing a dimension. The reviewer reads from `topics-requirements.md`'s `Dimension` column verbatim. Halt and surface the schema violation if the column is missing for any topic.
-- Reading sibling reviewer artefacts. The reviewer never reads `review-inputs/COMPLETENESS-REVIEW/*`, `review-inputs/ADVERSARIAL/*`, `review-inputs/AMBIGUITY-REVIEW/*`.
+- Reading sibling reviewer artefacts. The reviewer never reads `generated-docs/review-inputs/COMPLETENESS-REVIEW/*`, `generated-docs/review-inputs/ADVERSARIAL/*`, `generated-docs/review-inputs/AMBIGUITY-REVIEW/*`.
 - Writing `[AI-SUGGESTED]` markers in the artefact. That namespace belongs to the drafter.
 - Performing additive merge across runs. Full-overwrite per run; the orchestrator's prior-artefact gate has already taken the consultant's decision.
 - Using line numbers in Evidence. Citation is `[SRC: <filename>]` only.

@@ -18,12 +18,12 @@ methodologies:
   # Slug-collision note: methodology slugs are shared across registries (a row named
   # `completeness` could exist in both `reviews-inputs/registry.md` and
   # `reviews/registry.md`); the artefacts do not clobber because the output paths
-  # differ (`review-inputs/COMPLETENESS/...` vs `review-requirements/COMPLETENESS/...`).
+  # differ (`generated-docs/review-inputs/COMPLETENESS/...` vs `generated-docs/review-requirements/COMPLETENESS/...`).
   - name: adversarial
     status: mvp
     group: Corpus integrity
     description: Choose this when you want the raw input corpus itself stress-tested — stakeholder & role coverage, ambiguity, cross-source contradiction, and consequential silence — before /requirements drafts from it. It produces an HTML adversarial review flagging each defect across six dimensions, treating the corpus as the stakeholder voice and rating each finding against the frontend-spec purpose (backend-only corpus gaps are raised but capped, never blocking), so it recommends how to handle the existing material rather than new elicitation. Apply each flagged defect's corpus-handling recommendation to your input set so the requirements draft starts from material whose weaknesses are already accounted for.
-    output_path: review-inputs/ADVERSARIAL/adversarial-review.html
+    output_path: generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html
     reference_asset: framework/assets/reviews-inputs/adversarial-reference.md
     template_asset: framework/assets/reviews-inputs/template-adversarial.html
     map_skill: null
@@ -33,7 +33,7 @@ methodologies:
     status: mvp
     group: Completeness & gaps
     description: Choose this when you want a broad, authority-grounded punch-list of what the raw inputs are missing, measured against the BA canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — pick its sibling gap-analysis instead to measure against this project's own requirements template. It produces a self-contained HTML completeness register across ten coverage dimensions (rendered as a coverage-matrix table), each finding classified Needs-Clarification, Standard-Rule-Applies, or Out-of-Scope, plus per-source elicitation questions (ready-to-ask stakeholder questions). Send the elicitation questions to stakeholders to chase missing material before /requirements drafts from the inputs.
-    output_path: review-inputs/COMPLETENESS-REVIEW/completeness-review.html
+    output_path: generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html
     reference_asset: framework/assets/reviews-inputs/completeness-reference.md
     template_asset: framework/assets/reviews-inputs/template-completeness.html
     map_skill: null
@@ -43,7 +43,7 @@ methodologies:
     status: mvp
     group: Clarity
     description: Choose this when you suspect the raw inputs are worded loosely and want every ambiguity caught — lexical, syntactic, referential, vague, subjective, weak-verb, and optionality (Berry/Kamsties + Femmer) — before /requirements drafts from them. It produces a self-contained HTML register of each ambiguous passage, keyed by ambiguity type, with a ready-to-paste stakeholder question per finding. Send the questions to pin down the intended meaning, then feed the clarified wording back into your input set.
-    output_path: review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html
+    output_path: generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html
     reference_asset: framework/assets/reviews-inputs/ambiguity-reference.md
     template_asset: framework/assets/reviews-inputs/template-ambiguity.html
     map_skill: null
@@ -53,7 +53,7 @@ methodologies:
     status: mvp
     group: Completeness & gaps
     description: Choose this when you want a visual, drafter-aligned gap map — the raw inputs measured against this project's own requirements template — rather than the BA-literature canon its sibling completeness-review uses. It produces an HTML report with a coverage heatmap and gap matrix, each gap scored Impact × Confidence → MoSCoW priority (must / should / could / won't) and every Must/Should gap carrying a ready-drafted candidate requirement (in "the system shall …" form). Ratify, edit, or reject each candidate, then drop the HTML into documentation/ so the next /requirements run ingests and cites it.
-    output_path: review-inputs/GAP-ANALYSIS/gap-analysis.html
+    output_path: generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html
     reference_asset: framework/assets/reviews-inputs/gap-analysis-reference.md
     template_asset: framework/assets/reviews-inputs/template-gap-analysis.html
     map_skill: null
@@ -63,7 +63,7 @@ methodologies:
     status: mvp
     group: Stakeholder & BA gaps
     description: Choose this before drafting requirements when you want the most consequential business-analysis gaps in the raw inputs named rather than an exhaustive coverage audit — pick its siblings completeness-review or gap-analysis instead when you want every gap mapped. It produces a self-contained HTML list of the ten most pressing stakeholder questions the gathered material leaves unanswered, ranked by business impact, across eight BA gap categories, each sourced to an input file or marked absent-from-corpus. Take the ten questions to your stakeholders and fold the answers back into documentation/ before /requirements drafts.
-    output_path: review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html
+    output_path: generated-docs/review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html
     reference_asset: framework/assets/reviews-inputs/ten-ba-questions-reference.md
     template_asset: framework/assets/reviews-inputs/template-ten-ba-questions.html
     map_skill: null
@@ -73,7 +73,7 @@ methodologies:
     status: mvp
     group: UX gaps
     description: Choose this before drafting requirements when you want the most consequential UX-design-discovery gaps in the raw inputs named — its complementary sibling ten-ba-questions covers the business-analysis gaps (scope, rules, data ownership); pick the exhaustive completeness-review or gap-analysis instead when you want every gap mapped. It produces a self-contained HTML list of the ten most pressing design questions the gathered material leaves unanswered, ranked by design impact, across eight UX gap categories (users & segmentation, context of use, goals & success signals, task flows & decision points, decision-supporting data, errors & recovery, collaboration, trust & audit), each sourced to an input file or marked absent-from-corpus. Take the ten questions to your stakeholders and users and fold the answers back into documentation/ before /requirements drafts.
-    output_path: review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html
+    output_path: generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html
     reference_asset: framework/assets/reviews-inputs/ten-ux-questions-reference.md
     template_asset: framework/assets/reviews-inputs/template-ten-ux-questions.html
     map_skill: null
@@ -85,7 +85,7 @@ methodologies:
 
 **Purpose:** Methodology registry for `/review-inputs`. Sibling of `framework/assets/reviews/registry.md` (which drives `/review-requirement`) and of `framework/assets/analyses-inputs/registry.md` (which drives `/analyse-inputs`). The frontmatter above is the **machine-readable** contract — `framework/skills/analysis-selector.md` filters `status == "mvp"` to present options to the consultant when invoked with `registry_path: "framework/assets/reviews-inputs/registry.md"`; `framework/orchestrators/review-inputs-orch.md` looks up `reviewer_agent` for the chosen methodology and invokes it at step 3.
 
-**Source material:** like `/analyse-inputs` (and unlike `/review-requirement`, whose reviewers read `requirements/requirements.md`), methodologies registered here operate over the raw consultant-dropped material in `documentation/`, enumerated via `requirements/source-manifest.json`. The shared `framework/agents/input-handler.md` builds the manifest on demand at the orchestrator's step 1.
+**Source material:** like `/analyse-inputs` (and unlike `/review-requirement`, whose reviewers read `generated-docs/requirements/requirements.md`), methodologies registered here operate over the raw consultant-dropped material in `documentation/`, enumerated via `generated-docs/requirements/source-manifest.json`. The shared `framework/agents/input-handler.md` builds the manifest on demand at the orchestrator's step 1.
 
 **Pipeline cleavage:**
 
@@ -104,27 +104,27 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 
 1. Pick a candidate from `plans/` (see `plans/README.md` for the roadmap) and follow its build checklist, or author a brand-new methodology. The row is appended with `status: mvp` at step 6.
 2. Author the reviewer agent at `framework/agents/reviews-inputs/<method>-reviewer.md`. Each reviewer:
-    - Reads `requirements/source-manifest.json` once at its source-enumeration step.
+    - Reads `generated-docs/requirements/source-manifest.json` once at its source-enumeration step.
     - For each manifest row where `tier != "Unsupported"`: Read the file per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null (a markitdown rendering for `Supported-via-MCP`; a frozen textual description for `Native-multimodal` and `Vector-renderable`), otherwise `original_path` (only `Native-text`). Do **not** re-interpret image pixels — the frozen description sibling is the canonical text surface for visual inputs. Cite the manifest row's `filename` (the original's name) in `[SRC: <filename>]` markers regardless of which path was read.
     - Skips manifest rows with `tier == "Unsupported"` and records the reason in the artefact's diagnostics block.
     - Cites source-of-fact in the artefact body using `[SRC: <filename>]` markers (filename payload, matching the `/analyse-inputs` convention; not the `/requirements` pipeline's `C-NNN` sidecar IDs).
     - Records a source-roster section in the artefact listing every filename consumed and every skipped filename with reason.
     - Records a manifest-fingerprint field in the artefact (the manifest's sha256, or sha256 of its serialised bytes) so the artefact captures exactly which manifest version it reviewed.
-    - Self-validates: every manifest row with `tier != "Unsupported"` was Read or skipped-with-reason; the artefact reads no path under `requirements/` other than `requirements/source-manifest.json`; the artefact reads no path under `framework/state/` or `framework/shared/`.
+    - Self-validates: every manifest row with `tier != "Unsupported"` was Read or skipped-with-reason; the artefact reads no path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json`; the artefact reads no path under `framework/state/` or `framework/shared/`.
 3. Author the reference asset at `framework/assets/reviews-inputs/<method>-reference.md` (methodology rules and patterns).
 4. Author the character file at `framework/assets/characters/<method>-inputs-review.md` (Unicorn stance during the reviewer run).
 5. (Optional) Author the template asset at `framework/assets/reviews-inputs/template-<method>.{html,md}`. Set `template_asset: null` for methodologies that emit pure Markdown without a scaffold.
-6. Append the registry row with `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `reviewer_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `review-inputs/<METHOD>/` (uppercase methodology name) — e.g. `review-inputs/COMPLETENESS-REVIEW/completeness-review.html`.
+6. Append the registry row with `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `reviewer_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `generated-docs/review-inputs/<METHOD>/` (uppercase methodology name) — e.g. `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html`.
 7. Add the reviewer node to graph 6 in `framework/dependency-graphs.md`.
 8. No orchestrator changes required — the selector skill picks the new MVP row up automatically.
 
 **Field semantics:**
 
-- `name` — kebab-case slug. Used as the subdirectory name under `review-inputs/` (uppercased to `review-inputs/<METHOD>/`) and as the path component in the reviewer agent file. Methodology slugs are shared across registries; the artefacts do not clobber because the output paths differ.
+- `name` — kebab-case slug. Used as the subdirectory name under `generated-docs/review-inputs/` (uppercased to `generated-docs/review-inputs/<METHOD>/`) and as the path component in the reviewer agent file. Methodology slugs are shared across registries; the artefacts do not clobber because the output paths differ.
 - `status` — currently always `mvp`. The selector filters to `status == mvp` defensively; planned, not-yet-built methodologies live in `plans/`, not as registry rows.
 - `group` — optional lens-group label (e.g. `Completeness & gaps`, `Clarity`). The selector clusters MVP rows by this value (groups in first-appearance order, registry order preserved within each group) and renders it as a header. Rows with no `group` fall into a trailing `Other` group. Consultant-facing — keep it short and human-readable.
 - `description` — short consultant-facing blurb surfaced in the selector's printed list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output). Required only when `status: mvp`.
-- `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `review-inputs/` for write-isolation. Required only when `status: mvp`.
+- `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `generated-docs/review-inputs/` for write-isolation. Required only when `status: mvp`.
 - `reference_asset` — the methodology reference the reviewer follows. Required only when `status: mvp`.
 - `template_asset` — file scaffold the reviewer populates (may be `null` for methodologies that emit pure Markdown).
 - `map_skill` — present for parity with `analyses-inputs/registry.md`; **almost always `null`** for reviews because reviews don't translate into UI inventory. Mirrors the `reviews/registry.md` convention.

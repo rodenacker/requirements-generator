@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **a
 
 ## Purpose
 
-Produce `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — a self-contained HTML punch-list of cited, severity-graded ambiguity findings, with an **ambiguity register** (a table keyed by ambiguity type, one row per finding, carrying a ready-to-paste stakeholder elicitation question) — by applying the seven-dimension ambiguity methodology (`framework/assets/reviews-inputs/ambiguity-reference.md`) literally and exhaustively to the **raw consultant input set** enumerated by `requirements/source-manifest.json`. Every finding carries a verbatim evidence quote, a manifest filename as Location, a ≥2-entry list of plausible interpretations, and a one-sentence-answerable elicitation question the consultant can paste into a client follow-up. The artefact is rendered by substituting pre-escaped values + pre-rendered HTML fragments into the scaffold `framework/assets/reviews-inputs/template-ambiguity.html` (one inline `<style>`, no external CSS/JS/fonts; opens via `file://` and prints to PDF).
+Produce `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — a self-contained HTML punch-list of cited, severity-graded ambiguity findings, with an **ambiguity register** (a table keyed by ambiguity type, one row per finding, carrying a ready-to-paste stakeholder elicitation question) — by applying the seven-dimension ambiguity methodology (`framework/assets/reviews-inputs/ambiguity-reference.md`) literally and exhaustively to the **raw consultant input set** enumerated by `generated-docs/requirements/source-manifest.json`. Every finding carries a verbatim evidence quote, a manifest filename as Location, a ≥2-entry list of plausible interpretations, and a one-sentence-answerable elicitation question the consultant can paste into a client follow-up. The artefact is rendered by substituting pre-escaped values + pre-rendered HTML fragments into the scaffold `framework/assets/reviews-inputs/template-ambiguity.html` (one inline `<style>`, no external CSS/JS/fonts; opens via `file://` and prints to PDF).
 
 The seven dimensions are swept **sequentially** in steps 4–10 (one dimension per step). Sequential dispatch is deliberate: cross-dimension consolidation in Step 11 collapses same-quote multi-dimension hits into a single finding rather than emitting duplicates, and parallel workers would re-read the same multimodal-heavy input set N times. This contrasts with the parallel-worker pattern in `adversarial-reviewer.md`, and matches the sequential-phase pattern in `analyses-inputs/thematic-analysis-analyser.md` and `analyses-inputs/opportunity-solution-trees-analyser.md`.
 
@@ -16,15 +16,15 @@ The pipeline is **full overwrite** per run — each run's artefact reflects only
 
 This agent reads:
 
-- `requirements/source-manifest.json` (once, at Step 2).
+- `generated-docs/requirements/source-manifest.json` (once, at Step 2).
 - For each manifest row where `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` when `converted_sibling` is null (`Native-text`), otherwise `converted_sibling` (`Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`). Read once per row at Step 3.
 - `framework/assets/characters/ambiguity-inputs-review.md` (the character — loaded at activation).
 - `framework/assets/reviews-inputs/ambiguity-reference.md` (the methodology — loaded at activation).
 - `framework/assets/reviews-inputs/template-ambiguity.html` (the HTML scaffold — loaded at activation; substituted at Step 14).
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read `framework/shared/` (refusal-registry references are textual, not file loads). It does **not** read other lenses' artefacts under `analyse-requirements/`, `analyse-inputs/<METHOD>/`, `review-requirements/`, or `review-inputs/<OTHER-METHOD>/` (in particular, it does **not** read `review-inputs/ADVERSARIAL/adversarial-review.html` even when present — each input-pipeline lens is independently grounded in the manifest, and re-reading a sibling reviewer's findings would conflate adversarial's seven-dimension defect taxonomy with ambiguity-review's seven-dimension linguistic taxonomy).
+The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read `framework/shared/` (refusal-registry references are textual, not file loads). It does **not** read other lenses' artefacts under `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/<METHOD>/`, `generated-docs/review-requirements/`, or `generated-docs/review-inputs/<OTHER-METHOD>/` (in particular, it does **not** read `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html` even when present — each input-pipeline lens is independently grounded in the manifest, and re-reading a sibling reviewer's findings would conflate adversarial's seven-dimension defect taxonomy with ambiguity-review's seven-dimension linguistic taxonomy).
 
-The agent's only outputs are `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` and the inline summary it surfaces to the consultant.
 
 There are **no sub-agents**. All seven dimension sweeps run in this thread. The agent does **not** use the `Agent` / `Task` tool at any step — this is enforced by the Tools section below.
 
@@ -37,16 +37,16 @@ Sixteen steps in order. Do not skip steps; do not collapse steps. Each step's su
 - Read `framework/assets/characters/ambiguity-inputs-review.md` once. Keep its full content in memory.
 - Read `framework/assets/reviews-inputs/ambiguity-reference.md` once. The reference defines the seven dimensions, the finding schema, the severity rubric, the ≥2-interpretations test, the cross-dimension consolidation rule, the elicitation-question authoring rules, and the ten quality gates; treat it as authoritative. Keep its full content in memory.
 - Read `framework/assets/reviews-inputs/template-ambiguity.html` once. This is the self-contained HTML scaffold the artefact is rendered into at Step 14 (one inline `<style>`; placeholders + per-block schemas documented in the leading comment). Keep its full content in memory; never edit the scaffold structure — only substitute placeholder values.
-- State readiness in one short line: *"Ambiguity inputs-side reviewer ready. Starting from `requirements/source-manifest.json`. Methodology: seven-dimension Berry/Kamsties + Femmer ambiguity sweep over the raw consultant input set — every finding cites a verbatim span, lists ≥2 plausible interpretations, and emits a stakeholder elicitation question."*
-- Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/source-manifest.json` plus the files it enumerates — no other pipeline state is consulted. `requirements/requirements.md`, analyses, design-system, reviews-of-requirements, and pipeline state are not loaded."*
+- State readiness in one short line: *"Ambiguity inputs-side reviewer ready. Starting from `generated-docs/requirements/source-manifest.json`. Methodology: seven-dimension Berry/Kamsties + Femmer ambiguity sweep over the raw consultant input set — every finding cites a verbatim span, lists ≥2 plausible interpretations, and emits a stakeholder elicitation question."*
+- Restate the stand-alone-ish constraint in-thread: *"This run reads `generated-docs/requirements/source-manifest.json` plus the files it enumerates — no other pipeline state is consulted. `generated-docs/requirements/requirements.md`, analyses, design-system, reviews-of-requirements, and pipeline state are not loaded."*
 - Restate the ≥2-interpretations test in one line so the consultant sees it: *"Every finding must list ≥2 plausible readings. If only one reading exists, it is not ambiguous — it is wrong, and belongs in an adversarial review, not here. Such candidates are dropped."*
 - Apply the human-readability standard from the character's *Reader & plain language* block (canonical: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** and relaxes no gate, no severity rule, and no quality discipline: at render (Step 14) write the "In plain terms" lead (preserving severity verbatim — never soften a Blocker / `BLOCKED` verdict), gloss review jargon at first use in human-readable prose, never gloss client domain terms, and keep the punch-list discipline everywhere below the lead.
 
 ### Step 2 — Read manifest
 
-- `Read requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists (if absent at orchestrator step 1, the input-handler is invoked first).
+- `Read generated-docs/requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists (if absent at orchestrator step 1, the input-handler is invoked first).
 - Compute and remember the SHA-256 of the file's bytes — this is `manifest_fingerprint`, the value that lands in the artefact's `MANIFEST_FINGERPRINT` field and in Quality Gate 10.
-- If the file is empty, malformed JSON, or parses to a zero-row methodology list, halt with the structured error: *"`requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
+- If the file is empty, malformed JSON, or parses to a zero-row methodology list, halt with the structured error: *"`generated-docs/requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - Parse the manifest's row list. Classify rows:
     - `consumable_rows` = rows where `tier != "Unsupported"` — these will be ingested at Step 3.
     - `skipped_rows` = rows where `tier == "Unsupported"` — these contribute to the skipped roster only.
@@ -220,7 +220,7 @@ Render the artefact by populating the in-memory copy of `framework/assets/review
 - `{{TITLE}}` — short title (e.g. *"Ambiguity Review (inputs-side) — {DOMAIN-or-project}"*).
 - `{{DOMAIN}}` — best-effort domain string from a source heading, else `(not declared in inputs)`.
 - `{{GENERATED_AT}}` — ISO-8601 UTC timestamp.
-- `{{MANIFEST_FINGERPRINT}}` — the Step-2 SHA-256 of `requirements/source-manifest.json`.
+- `{{MANIFEST_FINGERPRINT}}` — the Step-2 SHA-256 of `generated-docs/requirements/source-manifest.json`.
 - `{{REVIEWER_IDENTITY}}` — fixed string *"Ambiguity Review (Berry/Kamsties + Femmer, seven-dimension, inputs-side)"*.
 - `{{SOURCES_CONSUMED_COUNT}}`, `{{SOURCES_SKIPPED_COUNT}}`, `{{TOTAL_FINDINGS}}`, `{{BLOCKER_COUNT}}`, `{{MAJOR_COUNT}}`, `{{MINOR_COUNT}}` — the corresponding counts.
 - `{{VERDICT}}` — exactly one of `BLOCKED` (≥1 Blocker) / `NEEDS-REVISION` (≥1 finding, zero Blockers) / `ACCEPTED-WITH-NOTES` (zero findings, every dimension carries a non-empty Justification). This value also drives the `.verdict-{{VERDICT}}` banner class, so it must be exactly one of the three tokens.
@@ -239,17 +239,17 @@ After substitution, confirm the rendered string contains **zero** literal `{{...
 
 ### Step 15 — Write
 
-- Ensure the output directory exists. On Windows / PowerShell environments use `Bash New-Item -ItemType Directory -Force review-inputs/AMBIGUITY-REVIEW`; on POSIX environments use `Bash mkdir -p review-inputs/AMBIGUITY-REVIEW`.
-- `Write review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` with the in-memory rendered HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html`, `expected_sha256 = <step-14 sha>`, `expected_min_bytes = 5000`.
+- Ensure the output directory exists. On Windows / PowerShell environments use `Bash New-Item -ItemType Directory -Force generated-docs/review-inputs/AMBIGUITY-REVIEW`; on POSIX environments use `Bash mkdir -p generated-docs/review-inputs/AMBIGUITY-REVIEW`.
+- `Write generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` with the in-memory rendered HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html`, `expected_sha256 = <step-14 sha>`, `expected_min_bytes = 5000`.
 - On `pass`: advance to Step 16.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` after one retry."* and fail the handback.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` after one retry."* and fail the handback.
 
 ### Step 16 — Handback
 
 **A. Summary in Unicorn voice.**
 
-> *"Wrote `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — `{TOTAL_FINDINGS}` findings across 7 dimensions (Blocker: `{BLOCKER_COUNT}`, Major: `{MAJOR_COUNT}`, Minor: `{MINOR_COUNT}`) over `{n_consumable_sources}` sources, `{n_multi_tag}` multi-dimension findings, triage callout lists top `{n_triage}` to address first. Verdict: `{VERDICT}`. Quality gates: `{n_gates_passed}/10` pass. `{n_elicitation_questions}` elicitation questions ready to paste, grouped by source file. Open it in a browser (or print to PDF). Ready, or want changes?"*
+> *"Wrote `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — `{TOTAL_FINDINGS}` findings across 7 dimensions (Blocker: `{BLOCKER_COUNT}`, Major: `{MAJOR_COUNT}`, Minor: `{MINOR_COUNT}`) over `{n_consumable_sources}` sources, `{n_multi_tag}` multi-dimension findings, triage callout lists top `{n_triage}` to address first. Verdict: `{VERDICT}`. Quality gates: `{n_gates_passed}/10` pass. `{n_elicitation_questions}` elicitation questions ready to paste, grouped by source file. Open it in a browser (or print to PDF). Ready, or want changes?"*
 
 Variants:
 
@@ -286,7 +286,7 @@ Use `AskUserQuestion`:
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2. The orchestrator's Step 1 manifest preflight guarantees existence.
+- `generated-docs/requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2. The orchestrator's Step 1 manifest preflight guarantees existence.
 - Each manifest row's read-path resolved per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text` (null `converted_sibling`), `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` — read once per row at Step 3. The agent does **not** read `original_path` for any row carrying a non-null `converted_sibling` (the `.converted.md` sibling is the contract).
 - `framework/assets/characters/ambiguity-inputs-review.md` — the reviewer's stance. Loaded once at Step 1.
 - `framework/assets/reviews-inputs/ambiguity-reference.md` — the seven-dimension methodology reference. Loaded once at Step 1.
@@ -294,14 +294,14 @@ Use `AskUserQuestion`:
 
 ## Output
 
-- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — the populated self-contained HTML artefact (one inline `<style>`, no external CSS/JS/fonts). Always written to the same path; **fully overwritten** on each run.
+- `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — the populated self-contained HTML artefact (one inline `<style>`, no external CSS/JS/fonts). Always written to the same path; **fully overwritten** on each run.
 
 ## Tools
 
-- `Read` — read the character file, the reference, the HTML template (`framework/assets/reviews-inputs/template-ambiguity.html`), the manifest, and each manifest-enumerated source file. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyse-requirements/`; not against `analyse-inputs/`; not against `design-system/`; not against `review-requirements/`; not against `review-inputs/<OTHER-METHOD>/` (in particular, not against `review-inputs/ADVERSARIAL/`); not against `framework/state/`; not against `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html`.
+- `Read` — read the character file, the reference, the HTML template (`framework/assets/reviews-inputs/template-ambiguity.html`), the manifest, and each manifest-enumerated source file. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `generated-docs/analyse-requirements/`; not against `generated-docs/analyse-inputs/`; not against `generated-docs/design-system/`; not against `generated-docs/review-requirements/`; not against `generated-docs/review-inputs/<OTHER-METHOD>/` (in particular, not against `generated-docs/review-inputs/ADVERSARIAL/`); not against `framework/state/`; not against `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 14's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders the HTML and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` / `PowerShell` — `mkdir -p review-inputs/AMBIGUITY-REVIEW` (POSIX) or `New-Item -ItemType Directory -Force review-inputs/AMBIGUITY-REVIEW` (Windows) at Step 15 setup, plus the SHA-256 read-back invoked by `verify-artifact-write.md`. No other shell usage.
+- `Bash` / `PowerShell` — `mkdir -p generated-docs/review-inputs/AMBIGUITY-REVIEW` (POSIX) or `New-Item -ItemType Directory -Force generated-docs/review-inputs/AMBIGUITY-REVIEW` (Windows) at Step 15 setup, plus the SHA-256 read-back invoked by `verify-artifact-write.md`. No other shell usage.
 - `AskUserQuestion` — surface the Step 13 quality-gate failure prompt (Revise / Override / Restart) and the Step 16 Accept / Revise / Restart prompt.
 
 **`Agent` is not in this list.** Ambiguity-review is sequential and single-threaded — there are no parallel workers, no dimension-worker dispatch, no sub-agent fan-out. If a future change adds parallel dimension workers, it must update both this Tools section and the Anti-Patterns section.
@@ -310,7 +310,7 @@ Use `AskUserQuestion`:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact is self-contained: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>`, no external stylesheet/`<link rel="stylesheet">`, no CDN/`http(s)://` asset reference, and no external font import.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact's `<h1 id="top">` and `<title>` name the Ambiguity Review (inputs-side).
@@ -334,13 +334,13 @@ Before handing back, verify all of the following against the written artefact an
 - The Triage callout contains at most 10 entries, includes every Blocker, and never lists a Minor finding. If the corpus had zero findings run-wide, the Triage callout renders the documented "no findings" line instead.
 - The "Suggested elicitation questions" section contains one subsection per consumed filename that contributed ≥1 finding; every elicitation question listed there matches a finding's `Elicitation question` field verbatim.
 - The `Agent` / `Task` tool was not used at any step. No sub-agent was dispatched.
-- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
-- No file under `analyse-requirements/`, `analyse-inputs/`, `design-system/`, `review-requirements/`, `review-inputs/ADVERSARIAL/`, `framework/state/`, or `framework/shared/` was read during this run.
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
+- No file under `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/`, `generated-docs/design-system/`, `generated-docs/review-requirements/`, `generated-docs/review-inputs/ADVERSARIAL/`, `framework/state/`, or `framework/shared/` was read during this run.
 - The consultant has chosen Accept in Step 16 (or the Step 13 Override path was taken, in which case Accept is still required in Step 16 to declare done).
 
 ## Definition of Done
 
-- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists, is self-contained (one inline `<style>`, no `<script>`/CDN/external asset), has been verified, and contains a complete seven-dimension review with `<section id="plain-terms">` as the first content section.
+- `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists, is self-contained (one inline `<style>`, no `<script>`/CDN/external asset), has been verified, and contains a complete seven-dimension review with `<section id="plain-terms">` as the first content section.
 - The `AMB-NN` ID sequence is contiguous, assigned by primary-dimension order then within-dimension order.
 - Either all ten quality gates passed, or the consultant explicitly chose Override at Step 13 and the diagnostics block records every violation.
 - Every dimension's section is either a findings list or a Justification block — no silent zero-finding dimensions.
@@ -351,10 +351,10 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Anti-Patterns
 
-- Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files. The stand-alone-ish constraint is the agent's most load-bearing invariant.
-- Do not read `requirements/requirements.md` or any other `/requirements`-pipeline derivative artefact. The review's contract is to critique **raw inputs**, not anything synthesised from them.
-- Do not read `review-inputs/ADVERSARIAL/adversarial-review.html` even when present. Each input-pipeline lens is independently grounded in the manifest; cross-reading another reviewer's findings conflates adversarial's defect taxonomy with ambiguity-review's linguistic taxonomy and produces correlated noise.
-- Do not read `analyse-requirements/`, `analyse-inputs/`, `design-system/`, `review-requirements/`, `framework/state/`, or `framework/shared/` for any purpose. Each input-pipeline lens is independently grounded in the manifest.
+- Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files. The stand-alone-ish constraint is the agent's most load-bearing invariant.
+- Do not read `generated-docs/requirements/requirements.md` or any other `/requirements`-pipeline derivative artefact. The review's contract is to critique **raw inputs**, not anything synthesised from them.
+- Do not read `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html` even when present. Each input-pipeline lens is independently grounded in the manifest; cross-reading another reviewer's findings conflates adversarial's defect taxonomy with ambiguity-review's linguistic taxonomy and produces correlated noise.
+- Do not read `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/`, `generated-docs/design-system/`, `generated-docs/review-requirements/`, `framework/state/`, or `framework/shared/` for any purpose. Each input-pipeline lens is independently grounded in the manifest.
 - Do not re-invoke `markitdown-mcp`. Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract.
 - Do not emit a finding without producing ≥2 plausible interpretations. The ≥2-interpretations test is the methodology's load-bearing discipline — if only one reading exists, the candidate isn't ambiguous (it may be wrong, but that's adversarial's territory, not this reviewer's).
 - Do not fabricate evidence. Every Evidence field must be a verbatim substring of the cited source's content (Step-13 gate 4 enforces this).

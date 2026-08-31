@@ -3,7 +3,7 @@
 
   Purpose: HTML/CSS skeleton for the User Goal Analysis goal register, **input-analysis
   variant** — analyses raw consultant material enumerated in
-  `requirements/source-manifest.json` (not the synthesised `requirements/requirements.md`).
+  `generated-docs/requirements/source-manifest.json` (not the synthesised `generated-docs/requirements/requirements.md`).
   Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No external CSS/JS
   dependencies, NO Mermaid, NO CDN, NO `<script>`; viewable by opening `file://` in a
   browser; shareable with clients without tooling. Readability-optimised.
@@ -41,7 +41,7 @@
     {{TITLE}}                    — short title (e.g. "User Goal Register — Inputs — Project X")
     {{DOMAIN}}                   — domain string (best-effort: manifest `target`/brief)
     {{GENERATED_AT}}             — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}     — sha256 of requirements/source-manifest.json at read time
+    {{MANIFEST_FINGERPRINT}}     — sha256 of generated-docs/requirements/source-manifest.json at read time
     {{SOURCE_COUNT}}             — count of consumed manifest rows (tier != "Unsupported")
     {{TIER_BREAKDOWN}}           — e.g. "3 Native-text, 1 Native-multimodal, 1 Supported-via-MCP"
     {{GOAL_COUNT}}               — total goals
@@ -64,7 +64,7 @@
                                    carrying manifest_fingerprint=<sha256>, run_count=<int>.
                                    Step 3 prior-artefact detection parses the first match.
 
-  Output: analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html.
+  Output: generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html.
 
   GOAL CARD SCHEMA — the register groups cards under one <section class="type-group"> per
   Cooper type that has ≥1 goal (Life, then End, then Experience). Each card:
@@ -516,7 +516,7 @@
 
     <section id="overview">
       <h1>{{TITLE}}</h1>
-      <p class="subtitle">User goal register (input-analysis variant) — one card per goal (type · hardness · provenance · statement · criterion), grouped by Cooper goal type, with a refinement hierarchy, actor map, and conflicts. Sourced from raw consultant inputs enumerated in <code>requirements/source-manifest.json</code>. Explicit goals are cited; inferred goals are anchored, marked, and auditable.</p>
+      <p class="subtitle">User goal register (input-analysis variant) — one card per goal (type · hardness · provenance · statement · criterion), grouped by Cooper goal type, with a refinement hierarchy, actor map, and conflicts. Sourced from raw consultant inputs enumerated in <code>generated-docs/requirements/source-manifest.json</code>. Explicit goals are cited; inferred goals are anchored, marked, and auditable.</p>
 
       <dl class="meta-grid">
         <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>

@@ -129,9 +129,9 @@ Then derive:
 
 **Echo the resolved file list, and be explicit when it exceeds the request:**
 
-- One file: *"Writing `design-system/design-system-{{mode}}.html`."*
+- One file: *"Writing `generated-docs/design-system/design-system-{{mode}}.html`."*
 - Two files, both asked for: *"Writing both files — `{{hue_source_mode}}` is primary (the extracted palette); `{{other_mode}}` is derived from the same hues."*
-- Two files, only one asked for: *"Writing `design-system/design-system-{{requested}}.html` as asked, **plus** `design-system/design-system-{{hue_source_mode}}.html` — the `{{hue_source_mode}}` palette is what the URL actually shipped, so it's kept as the grounded record and marked primary."*
+- Two files, only one asked for: *"Writing `generated-docs/design-system/design-system-{{requested}}.html` as asked, **plus** `generated-docs/design-system/design-system-{{hue_source_mode}}.html` — the `{{hue_source_mode}}` palette is what the URL actually shipped, so it's kept as the grounded record and marked primary."*
 
 Never let the second file appear unannounced; a consultant who asked for one file and finds two must be told why.
 

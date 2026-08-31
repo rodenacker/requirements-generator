@@ -34,7 +34,7 @@ The agent reads only:
 
 The comparator reads each variant's `surface_plan` (from `variants.json`) and its `manifest.json` (which mirrors the rendered plan). It **never reads** the `tradeoff-dimensions-registry.md` — drift is now a plan-vs-manifest diff, not a registry re-derivation.
 
-The agent **never reads** any screen HTML (`screen-NN-*.html`), `requirements/`, `framework/state/`, `framework/shared/`, or any other agent's working state.
+The agent **never reads** any screen HTML (`screen-NN-*.html`), `generated-docs/requirements/`, `framework/state/`, `framework/shared/`, or any other agent's working state.
 
 The agent writes only `wireframes/<scope_slug>/{index.html, _drift.json}` and nothing else.
 
@@ -254,7 +254,7 @@ Listed in **Stand-alone constraint** above. The five required input parameters a
 
 ## Tools
 
-- `Read` — every file listed in **Inputs** + the per-variant sidecars. Not authorised against screen HTML, `requirements/`, `framework/state/`, `framework/shared/`, the consumer `design-system/`, or any agent's working state.
+- `Read` — every file listed in **Inputs** + the per-variant sidecars. Not authorised against screen HTML, `generated-docs/requirements/`, `framework/state/`, `framework/shared/`, the consumer `generated-docs/design-system/`, or any agent's working state.
 - `Write` — write `<set_output_dir>/index.html` and `<set_output_dir>/_drift.json`.
 - `Bash` — `mkdir -p <set_output_dir>` only when needed; `rm -f <set_output_dir>/comparison.html` at step 5 only (legacy cleanup). No other Bash.
 - (No `AskUserQuestion`. The orchestrator owns the Stage-4 accept gate.)

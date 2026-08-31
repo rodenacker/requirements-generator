@@ -35,7 +35,7 @@
     {{TITLE}}                  — short title (e.g. "User Journeys — Project X").
     {{DOMAIN}}                 — domain string (from requirements §1 if present).
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
-    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{REQUIREMENTS_SHA256}}    — sha256 of generated-docs/requirements/requirements.md at read time.
     {{JOURNEY_COUNT}}          — number of journey cards.
     {{PERSONA_COUNT}}          — distinct personas covered.
     {{PHASE_COUNT}}            — total phases across all journeys.
@@ -51,7 +51,7 @@
     {{JOURNEY_CARDS}}          — pre-rendered <section class="journey-card">
                                  blocks per the JOURNEY CARD SCHEMA below.
 
-  Output: analyse-requirements/USER-JOURNEYS/user-journeys-map.html.
+  Output: generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html.
 
   JOURNEY CARD SCHEMA — each card the analyser emits has the shape:
 

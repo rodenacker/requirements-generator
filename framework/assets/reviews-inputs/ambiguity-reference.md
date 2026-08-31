@@ -2,13 +2,13 @@
 
 # reviews-inputs/ambiguity-reference.md
 
-**Purpose:** Methodology reference for Ambiguity Review of the **raw consultant input set** enumerated by `requirements/source-manifest.json`. The reviewer follows this document literally and exhaustively.
+**Purpose:** Methodology reference for Ambiguity Review of the **raw consultant input set** enumerated by `generated-docs/requirements/source-manifest.json`. The reviewer follows this document literally and exhaustively.
 
 **Used by:**
 
 - `framework/agents/reviews-inputs/ambiguity-reviewer.md` — drives the agent's seven-dimension sequential sweep plus the quality-gate sweep.
 
-**Output produced by the reviewer:** `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — a self-contained HTML punch-list of cited, severity-graded findings, with an ambiguity register (a table keyed by ambiguity type, one row per finding) carrying a ready-to-paste stakeholder elicitation question per finding. The reviewer renders it by substituting into the scaffold `framework/assets/reviews-inputs/template-ambiguity.html`.
+**Output produced by the reviewer:** `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — a self-contained HTML punch-list of cited, severity-graded findings, with an ambiguity register (a table keyed by ambiguity type, one row per finding) carrying a ready-to-paste stakeholder elicitation question per finding. The reviewer renders it by substituting into the scaffold `framework/assets/reviews-inputs/template-ambiguity.html`.
 
 **Sibling lens:** The `/review-inputs` adversarial reviewer (`framework/assets/reviews-inputs/adversarial-reference.md`) sweeps a broader seven-dimension critique (stakeholder coverage, workflow coverage, ambiguity & vague language, provenance & conflict, quantitative signal, scope & MVP, bias & sampling). Adversarial's Dimension 3 (Ambiguity & Vague Language) overlaps this reference, but at a coarser grain: adversarial reports "vague verb in load-bearing position" as a single finding; this reviewer decomposes that into the specific linguistic taxonomy class (lexical / syntactic / referential / vague-predicate / subjective / weak-verb / optionality-passive), produces ≥2 plausible interpretations per finding, and emits a ready-to-paste elicitation question. The two reviewers are complementary: run adversarial when you want the broad coverage punch-list; run this one when you have a draft of the requirements thinking and need to flush specific ambiguities before drafting.
 
@@ -35,17 +35,17 @@ The motivation: ambiguity is, by definition, **multi-readable**. A reader who on
 
 The reviewer reads:
 
-- `requirements/source-manifest.json` (the manifest enumerating consumable input files; read once at the parent reviewer's Step 2).
+- `generated-docs/requirements/source-manifest.json` (the manifest enumerating consumable input files; read once at the parent reviewer's Step 2).
 - For each manifest row whose `tier != "Unsupported"`, the file selected by the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path` — only `Native-text` is read at `original_path`). For `Native-multimodal` / `Vector-renderable` rows the `converted_sibling` is a frozen textual description prepared by the input-handler — it already captures labels, field captions, table contents, status/error states, KPI values, and a structured breakdown; treat it as the canonical text source and do **not** re-interpret pixels. `Supported-via-MCP` rows read the markitdown sibling. Read once by the parent at Step 3.
 - `framework/assets/characters/ambiguity-inputs-review.md` (the character — loaded once at activation).
 - `framework/assets/reviews-inputs/ambiguity-reference.md` (this file — loaded once at activation).
 
 The reviewer does **not** read:
 
-- `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts; the review's contract is to critique the raw inputs themselves.
-- `review-inputs/ADVERSARIAL/adversarial-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate adversarial's defect taxonomy with this reviewer's linguistic taxonomy.
-- `analyse-requirements/*` or `analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
-- `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/*` (except as textual references in this document) — out of scope.
+- `generated-docs/requirements/requirements.md`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims*.ndjson` — derivative artefacts; the review's contract is to critique the raw inputs themselves.
+- `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate adversarial's defect taxonomy with this reviewer's linguistic taxonomy.
+- `generated-docs/analyse-requirements/*` or `generated-docs/analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
+- `generated-docs/design-system/*`, `generated-docs/review-requirements/*`, `framework/state/*`, `framework/shared/*` (except as textual references in this document) — out of scope.
 
 ---
 
@@ -462,7 +462,7 @@ Ten gates. All are hard. If any gate fails, the reviewer does **not** write the 
 7. **Every finding's Elicitation question ends with `?` and contains the Location filename as a substring.** Step 13 gate 7 is a syntactic check; the four authoring rules above are the spirit, gate 7 is the enforceable letter.
 8. **Every dimension has ≥1 finding or a non-empty Justification block ≥3 sentences citing specific evidence and naming at least one filename from the corpus.** Silent zero-finding dimensions are a methodology violation.
 9. **The Findings Table row count equals the sum of per-primary-dimension finding counts.** Multi-tag findings count once, against their primary dimension. Drift is a render bug.
-10. **The artefact's `MANIFEST_FINGERPRINT` field equals the SHA-256 of `requirements/source-manifest.json` captured at Step 2, AND every Source-roster (Consumed) `sha256[:8]` matches its manifest row's `sha256` field.** Mismatch means the artefact reviewed one version of the input set and reports against another.
+10. **The artefact's `MANIFEST_FINGERPRINT` field equals the SHA-256 of `generated-docs/requirements/source-manifest.json` captured at Step 2, AND every Source-roster (Consumed) `sha256[:8]` matches its manifest row's `sha256` field.** Mismatch means the artefact reviewed one version of the input set and reports against another.
 
 ---
 
@@ -496,8 +496,8 @@ The artefact is a punch-list + action list — with **one** sanctioned narrative
 - **Generating leading elicitation questions.** *"Did you mean X?"* primes the stakeholder. Ask *"What is X?"* instead — the interpretation list is the reviewer's hypothesis, not the question's framing.
 - **Citing `Unsupported`-tier filenames.** Those files have no content for the reviewer to ambiguity-check. If a stakeholder mentions an ambiguous term only in a skipped file, the ambiguity is downstream of conversion failure — surface the skip in adversarial-review's Dim 1, not here.
 - **Skipping cross-dimension consolidation.** A sentence tripping dimensions 4 and 6 must emit one finding with `dimensions: [4, 6]`, not two duplicate findings. Step 11 of the agent handles this; bypassing it produces double-counting in gate 9.
-- **Reviewing against the synthesised requirements doc.** Do not consult `requirements/requirements.md` or any other `/requirements`-pipeline derivative. The review's contract is to critique the **raw inputs**.
-- **Reviewing against parallel reviews.** Do not consult `review-inputs/ADVERSARIAL/adversarial-review.html` to triangulate findings. Each input-pipeline lens is independently grounded in the manifest.
+- **Reviewing against the synthesised requirements doc.** Do not consult `generated-docs/requirements/requirements.md` or any other `/requirements`-pipeline derivative. The review's contract is to critique the **raw inputs**.
+- **Reviewing against parallel reviews.** Do not consult `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html` to triangulate findings. Each input-pipeline lens is independently grounded in the manifest.
 - **Line numbers in Location.** The Location field is `filename` only.
 - **Skipping the strict-Justification rule.** A dimension with zero findings requires a non-empty Justification block ≥3 sentences. *"Clean"* is not a Justification.
 

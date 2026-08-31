@@ -180,7 +180,7 @@ Each rule has a stable ID `GR-NN`, a scope predicate (template field/element it 
 
 ## GR-22 — AI-SUGGESTED marker cap
 
-**Applies to:** the count of `[AI-SUGGESTED]` markers emitted into `requirements/requirements-draft.md` by the drafter (consumed by `framework/skills/completeness-gap-pass.md` at its cap step).
+**Applies to:** the count of `[AI-SUGGESTED]` markers emitted into `generated-docs/requirements/requirements-draft.md` by the drafter (consumed by `framework/skills/completeness-gap-pass.md` at its cap step).
 
 **Rule:** the total count of `[AI-SUGGESTED]` markers in the written draft is capped at **50**. Within the cap:
 

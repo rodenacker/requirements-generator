@@ -34,7 +34,7 @@
     {{TITLE}}                       — short title (e.g. "First Principles Review — Project X")
     {{DOMAIN}}                      — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
-    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
+    {{REQUIREMENTS_SHA256}}         — sha256 of generated-docs/requirements/requirements.md at read time
     {{REVIEWER_IDENTITY}}           — fixed string "First Principles Review (Aristotelian decomposition; 7-question defensibility audit)"
     {{TOTAL_SUBJECTS}}              — count of subjects rated (§4.1 + §4.2 + §6 + §7 numbered items)
     {{GOALS_COUNT}}                 — count of §4.1 goals rated
@@ -56,7 +56,7 @@
     {{CS_FINDINGS_BLOCK}}           — pre-rendered cross-subject findings table per CS BLOCK SCHEMA below
     {{DIAGNOSTICS_BLOCK}}           — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: review-requirements/FIRST-PRINCIPLES/first-principles-review.html.
+  Output: generated-docs/review-requirements/FIRST-PRINCIPLES/first-principles-review.html.
 
   NOTE ON THE VERDICT BANNER CLASSES — this method's verdict set is
   { BLOCKED | NEEDS-REVISION | ACCEPTED-WITH-CONCERNS }. The donor CSS ships
@@ -179,7 +179,7 @@
       - {HEADLINE} is a short noun-phrase summary (≤8 words, no prescriptive verbs).
       - Each {ANCHOR_N} is a §-anchor from the Step-2 anchor index. For relational lenses
         (CS1, CS3) there are ≥2 anchors; for others ≥1.
-      - Each {QUOTE_N_VERBATIM} is a verbatim substring of requirements/requirements.md
+      - Each {QUOTE_N_VERBATIM} is a verbatim substring of generated-docs/requirements/requirements.md
         (≤3 lines per quote). The leading "{ANCHOR_N}: " is reviewer prose, not part of the quote.
       - For a multi-lens cluster, the Relation and Consequence cells carry one labelled line per
         lens (e.g. "CS1: …" then a line break "CS3: …").
@@ -776,7 +776,7 @@
     <code>ACCEPTED-WITH-CONCERNS</code> — Top-10 minimum <code>≥4/6</code>, zero orphans, and no <code>blocking</code> cross-subject findings. Major and minor cross-subject findings do not block this verdict. First Principles never accepts unconditionally — the Top-10 always merits a look.
   </p>
   <p class="verdict-legend">
-    Source: <code>requirements/requirements.md</code> only. Subjects: every numbered item in §4.1, §4.2, §6, §7. Questions: Q1 <em>Why does this exist?</em> · Q2 <em>Which business goal?</em> · Q3 <em>Which problem?</em> · Q4 <em>What operational outcome?</em> · Q5 <em>Simplest valid way?</em> · Q6 <em>What if we remove it?</em> · Q7 <em>Anything critical missing?</em> (coverage pass). Scoring: count of <code>yes-with-evidence</code> answers across Q1–Q6 (0–6 integer). Cross-subject lenses CS1–CS5 audit collective coherence; findings carry severity, not score.
+    Source: <code>generated-docs/requirements/requirements.md</code> only. Subjects: every numbered item in §4.1, §4.2, §6, §7. Questions: Q1 <em>Why does this exist?</em> · Q2 <em>Which business goal?</em> · Q3 <em>Which problem?</em> · Q4 <em>What operational outcome?</em> · Q5 <em>Simplest valid way?</em> · Q6 <em>What if we remove it?</em> · Q7 <em>Anything critical missing?</em> (coverage pass). Scoring: count of <code>yes-with-evidence</code> answers across Q1–Q6 (0–6 integer). Cross-subject lenses CS1–CS5 audit collective coherence; findings carry severity, not score.
   </p>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>

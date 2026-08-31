@@ -2,13 +2,13 @@
 
 # reviews/adversarial-reference.md
 
-**Purpose:** Methodology reference for Adversarial Review of `requirements/requirements.md`. The reviewer follows this document literally and exhaustively.
+**Purpose:** Methodology reference for Adversarial Review of `generated-docs/requirements/requirements.md`. The reviewer follows this document literally and exhaustively.
 
 **Used by:**
 
 - `framework/agents/reviews/adversarial-reviewer.md` — drives the agent's eight-dimension process plus the quality-gate sweep.
 
-**Output produced by the reviewer:** `review-requirements/ADVERSARIAL/adversarial-review.html` — a self-contained HTML punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews/template-adversarial.html` as scaffold.
+**Output produced by the reviewer:** `generated-docs/review-requirements/ADVERSARIAL/adversarial-review.html` — a self-contained HTML punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews/template-adversarial.html` as scaffold.
 
 ---
 
@@ -34,11 +34,11 @@ This reference operationalises BMAD's rule with explicit dimensions, a finding s
 
 ## Upstream input contract
 
-The reviewer reads **only** `requirements/requirements.md` (plus this reference, the character file, and the HTML template). It does not consult:
+The reviewer reads **only** `generated-docs/requirements/requirements.md` (plus this reference, the character file, and the HTML template). It does not consult:
 
-- `requirements/requirements-draft.md`, `requirements/source-manifest.json`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — pipeline-internal.
-- `analyse-requirements/*` outputs (OOUX maps, JTBD job maps, Use Cases) — derived; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what the analyser inferred". The review's contract is to critique the source doc as the source doc.
-- `design-system/*` outputs — not relevant to a requirements review.
+- `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/source-manifest.json`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims*.ndjson` — pipeline-internal.
+- `generated-docs/analyse-requirements/*` outputs (OOUX maps, JTBD job maps, Use Cases) — derived; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what the analyser inferred". The review's contract is to critique the source doc as the source doc.
+- `generated-docs/design-system/*` outputs — not relevant to a requirements review.
 - `framework/state/*` — pipeline state is not a review input.
 
 The merged requirements document is the contract. If the doc doesn't say it, the doc doesn't say it — and that is a finding.
@@ -282,7 +282,7 @@ The disposition and severity tallies that drive this mapping are read **after** 
 
 ## Purpose-aware scope recalibration
 
-This framework generates **frontend** requirements. `requirements/requirements.md` is the frontend spec, and every downstream consumer of it — `/design-system`, `/analyse-requirement`, `/wireframe`, `/prototype` — is a frontend pipeline. Several dimensions legitimately surface concerns that are **out of scope for a frontend spec**: Dimension 8 flags absent monitoring / alerting / backups / disaster-recovery / caching / scale, Dimension 1 flags missing backend NFRs and integration-contract internals, Dimension 5 flags storage-layer sequencing. Left un-recalibrated, the disposition rubric and verdict mapping would let such a gap escalate to `Reject`/`BLOCKED`, holding a correctly-frontend-scoped document hostage to a backend gap that no frontend consumer needs filled.
+This framework generates **frontend** requirements. `generated-docs/requirements/requirements.md` is the frontend spec, and every downstream consumer of it — `/design-system`, `/analyse-requirement`, `/wireframe`, `/prototype` — is a frontend pipeline. Several dimensions legitimately surface concerns that are **out of scope for a frontend spec**: Dimension 8 flags absent monitoring / alerting / backups / disaster-recovery / caching / scale, Dimension 1 flags missing backend NFRs and integration-contract internals, Dimension 5 flags storage-layer sequencing. Left un-recalibrated, the disposition rubric and verdict mapping would let such a gap escalate to `Reject`/`BLOCKED`, holding a correctly-frontend-scoped document hostage to a backend gap that no frontend consumer needs filled.
 
 The fix is **raise-and-recalibrate, never drop**. After the eight-dimension sweep merges (Step 3b), the reviewer classifies every finding by its **finding-scope class** (`framework/shared/prototype-scope.md > Finding-scope classification`) and recalibrates the rating of `backend-only` findings, per `framework/skills/recalibrate-scope-severity.md`. The procedure is executed at **Step 3s** of `framework/agents/reviews/adversarial-reviewer.md`.
 
@@ -364,7 +364,7 @@ Eleven gates. All are hard. If any gate fails, the reviewer does **not** write t
 2. **Every finding's Dimension is exactly one integer 1–8.** Multi-dimension findings must be decomposed.
 3. **Every finding's Severity is exactly one of `Blocker | Major | Minor`** — AND every `backend-only` finding's Severity is at or below its target cap (`Minor` under `prototype`, `Major` under `application`); a `backend-only` finding is never `Blocker`.
 4. **Every finding's Disposition is exactly one of `Patch | Defer | Reject`** — AND no `backend-only` finding's Disposition is `Reject`.
-5. **Every finding's Evidence field is a verbatim quote, ≤5 lines, that actually exists in `requirements/requirements.md`.** Paraphrased or fabricated evidence is a gate failure.
+5. **Every finding's Evidence field is a verbatim quote, ≤5 lines, that actually exists in `generated-docs/requirements/requirements.md`.** Paraphrased or fabricated evidence is a gate failure.
 6. **Every finding's Location anchors a section, ID, or line that exists in the doc.** Citations to non-existent IDs are a gate failure.
 7. **Every dimension reports either ≥1 finding or a non-empty Justification block.** Silent zero-finding dimensions are a methodology violation.
 8. **Every Justification block (if any) cites specific evidence and is ≥3 sentences.** Stub justifications are a gate failure.
@@ -386,7 +386,7 @@ Beyond the eleven numbered gates, the reviewer's self-validation also verifies t
 - **Dropping a backend-only finding.** Scope recalibration *raises and re-rates*; it never drops. A backend / infra / operational gap is still a finding — it is capped (never `Blocker`/`Reject`) and logged, not deleted. Silently omitting it is the GR/PI "rescue" model this methodology deliberately does not use.
 - **Mis-classing a UI-actionable finding as `backend-only`.** Classify by the corrective action. A network-failure UI state, a validation **message**, a role-gated **screen** is `fe-relevant` and keeps its severity, however backend the topic sounds. When undecided between `fe-facing-contract` and `backend-only`, choose `fe-facing-contract` — bias toward not suppressing.
 - **Collapsing dimensions.** Each dimension is its own pass with its own gate. Running them in a single combined sweep hides reasoning and breaks the diagnostics block.
-- **Reviewing against derivatives.** Do not consult `analyse-requirements/*` outputs to triangulate findings. The review's contract is to critique `requirements/requirements.md` as the source of truth.
+- **Reviewing against derivatives.** Do not consult `generated-docs/analyse-requirements/*` outputs to triangulate findings. The review's contract is to critique `generated-docs/requirements/requirements.md` as the source of truth.
 - **Inline `[SRC: ...]` markers.** Per project convention (`feedback_no_inline_provenance`), the merged requirements doc is clean of provenance markers; the review artefact is also clean. Findings cite by section/ID, not by `[SRC: ...]`.
 
 ---

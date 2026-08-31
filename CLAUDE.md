@@ -24,33 +24,35 @@
 |---|---|
 | `/start` | Dispatcher — lists the other commands and launches the chosen one. |
 | `/ingest-stadium` | Extracts a **Stadium 6 application** dropped in `documentation/` into citation-ready assets under `documentation/<App>.stadium-assets/`, consumed by every input pipeline as ordinary inputs. |
-| `/requirements` | LLM-audience FE spec (`requirements/requirements.md`). A completed run offers `{ amend, regenerate, cancel }`; `amend` delegates to `/amend-requirements`. |
+| `/requirements` | LLM-audience FE spec (`generated-docs/requirements/requirements.md`). A completed run offers `{ amend, regenerate, cancel }`; `amend` delegates to `/amend-requirements`. |
 | `/amend-requirements` | Consultant-stated changes to a finished `requirements.md` — recorded as a NEW dated `documentation/amendments-<date>.md` and applied as the transient `## Amendments (pending re-merge)` section. |
-| `/generate-prd` | Human-audience PRD (`prd/prd.md`) — strategic framing, success metrics, hypotheses, MVP phasing, risks. Independent of `/requirements`. |
-| `/design-system` | Brand-token brief, one file per colour mode (`design-system/design-system-{light,dark}.html`). The extracted scheme is the hue source; the other mode is derived from the same brand hues. |
-| `/analyse-requirement` | Lens-transforms `requirements/requirements.md` (`framework/assets/analyses/registry.md`). |
+| `/generate-prd` | Human-audience PRD (`generated-docs/prd/prd.md`) — strategic framing, success metrics, hypotheses, MVP phasing, risks. Independent of `/requirements`. |
+| `/design-system` | Brand-token brief, one file per colour mode (`generated-docs/design-system/design-system-{light,dark}.html`). The extracted scheme is the hue source; the other mode is derived from the same brand hues. |
+| `/analyse-requirement` | Lens-transforms `generated-docs/requirements/requirements.md` (`framework/assets/analyses/registry.md`). |
 | `/analyse-inputs` | Lens-transforms raw `documentation/` material (`framework/assets/analyses-inputs/registry.md`). |
-| `/review-requirement` | Critiques `requirements/requirements.md` (`framework/assets/reviews/registry.md`). |
+| `/review-requirement` | Critiques `generated-docs/requirements/requirements.md` (`framework/assets/reviews/registry.md`). |
 | `/review-inputs` | Critiques raw `documentation/` material (`framework/assets/reviews-inputs/registry.md`). |
-| `/wireframe` | 2–3 parallel low-fi HTML wireframe variants for a scope of `requirements/requirements.md`; its `blueprint-architect` + `scope-selector` + `design-philosophies.md` are reused by `/prototype`. |
+| `/wireframe` | 2–3 parallel low-fi HTML wireframe variants for a scope of `generated-docs/requirements/requirements.md`; its `blueprint-architect` + `scope-selector` + `design-philosophies.md` are reused by `/prototype`. |
 | `/prototype` | One hi-fi, clickable, client-side-only Next.js prototype per run, accumulating in one shared app under `prototypes/` behind a single landing page. Brand-locked; divergence is pure UX (posture + D1–D5). |
-| `/export-application` | Application-audience re-projection of the finished `requirements.md` (`export-application/requirements-application.md`) — zero improvised content, Accept/Reject gate. |
-| `/resolve-review` | Consultant-approved resolutions from an existing `review-inputs/` or `review-requirements/` artefact, written as a NEW dated file into `documentation/`. |
+| `/export-application` | Application-audience re-projection of the finished `requirements.md` (`generated-docs/export-application/requirements-application.md`) — zero improvised content, Accept/Reject gate. |
+| `/resolve-review` | Consultant-approved resolutions from an existing `generated-docs/review-inputs/` or `generated-docs/review-requirements/` artefact, written as a NEW dated file into `documentation/`. |
 
 **For.** Solo consultants / BAs running Claude Code locally to produce deterministic, citation-grounded handoff artefacts — specs, PRDs, analyses, reviews, wireframes, and prototypes — from briefs, decks, screenshots, spreadsheets, PDFs.
+
+**Where outputs land.** Every consultant-facing **document** output is nested under the single `generated-docs/` root (`generated-docs/requirements/`, `generated-docs/prd/`, `generated-docs/design-system/`, and so on — ten in all). The generated **visual / runnable** outputs are *not* nested and keep their repo-root dirs: `wireframes/`, `prototypes/`, and the shared `blueprints/` IR. `documentation/` remains the consultant's **input** drop zone and `docs/` the system's own documentation — neither is an output.
 
 **Output audience.**
 
 | Output | Audience |
 |---|---|
-| Requirements — `requirements/requirements.md` | Human & LLM |
-| PRD — `prd/prd.md` | Human & LLM |
-| Analyses — `analyse-inputs/**`, `analyse-requirements/**` | Human & LLM |
-| Reviews — `review-inputs/**`, `review-requirements/**` | Human & LLM |
+| Requirements — `generated-docs/requirements/requirements.md` | Human & LLM |
+| PRD — `generated-docs/prd/prd.md` | Human & LLM |
+| Analyses — `generated-docs/analyse-inputs/**`, `generated-docs/analyse-requirements/**` | Human & LLM |
+| Reviews — `generated-docs/review-inputs/**`, `generated-docs/review-requirements/**` | Human & LLM |
 | Resolutions document — `documentation/<stem>-<date>.md` (`/resolve-review`) | Human & LLM |
 | Amendments document — `documentation/amendments-<date>.md` + the transient `## Amendments (pending re-merge)` section | Human & LLM |
-| Design system — `design-system/design-system-{light,dark}.html` | Human & LLM |
-| Application export — `export-application/requirements-application.md` | Human & LLM |
+| Design system — `generated-docs/design-system/design-system-{light,dark}.html` | Human & LLM |
+| Application export — `generated-docs/export-application/requirements-application.md` | Human & LLM |
 | Stadium assets — `documentation/<App>.stadium-assets/**` (`/ingest-stadium`) | LLM |
 | Visual-input descriptions — `documentation/*.converted.md` | LLM |
 | Blueprint — `blueprints/<scope-slug>/{blueprint.md, scope.json}` | LLM |
@@ -75,7 +77,7 @@
 
 ### System terminology (use the glossary)
 
-When extending, changing, or describing this system — writing plans, editing orchestrators/agents/skills/assets, or phrasing consultant-facing prompts — use the system's own terms exactly as defined in `framework/assets/glossary.md`. Consult the slim lookup `framework/assets/glossary.index.md` for the canonical term + one-line gloss, and Read the full `### Term` entry on demand only when you need the definition or a disambiguation. Do **not** coin synonyms for defined concepts (e.g. "page"/"view" for *surface*/*screen*, "styling" for *Design*, "stance" for *position*). The glossary defines **system** vocabulary only — the client application's domain vocabulary is produced separately by the GLOSSARY methodologies (`analyse-requirements/GLOSSARY/`, `analyse-inputs/GLOSSARY/`).
+When extending, changing, or describing this system — writing plans, editing orchestrators/agents/skills/assets, or phrasing consultant-facing prompts — use the system's own terms exactly as defined in `framework/assets/glossary.md`. Consult the slim lookup `framework/assets/glossary.index.md` for the canonical term + one-line gloss, and Read the full `### Term` entry on demand only when you need the definition or a disambiguation. Do **not** coin synonyms for defined concepts (e.g. "page"/"view" for *surface*/*screen*, "styling" for *Design*, "stance" for *position*). The glossary defines **system** vocabulary only — the client application's domain vocabulary is produced separately by the GLOSSARY methodologies (`generated-docs/analyse-requirements/GLOSSARY/`, `generated-docs/analyse-inputs/GLOSSARY/`).
 
 ### Markers in content
 
@@ -83,7 +85,7 @@ When extending, changing, or describing this system — writing plans, editing o
 
 | Marker | Means | Canonical in |
 |---|---|---|
-| `[SRC: C-NNN]` | Input-cited fact in the `/requirements` draft **and** final doc. Sidecar-backed by `requirements/draft-claims.ndjson`, the authoritative store of the verbatim source quotes (joined on the `C-NNN` tag). **Retained** by the merger as downstream provenance. | `framework/agents/requirements-merger.md` |
+| `[SRC: C-NNN]` | Input-cited fact in the `/requirements` draft **and** final doc. Sidecar-backed by `generated-docs/requirements/draft-claims.ndjson`, the authoritative store of the verbatim source quotes (joined on the `C-NNN` tag). **Retained** by the merger as downstream provenance. | `framework/agents/requirements-merger.md` |
 | `[SRC: <filename>]` | Filename-cited fact in `/analyse-inputs` and `/review-inputs` artefacts — the manifest row's `filename` payload. | `framework/skills/build-source-manifest.md` |
 | `[AI-SUGGESTED: AI-NNN \| blocking\|non-blocking]` | Drafter inference; resolver Q&A. Reserved for facts not traceable to inputs **and** not covered by `GR-NN` — never widen this set. | `framework/shared/refusal-registry.md` |
 | `[STANDARD-RULE: GR-NN]` | Deterministic; resolver skips. | `framework/shared/general-rules.md` |

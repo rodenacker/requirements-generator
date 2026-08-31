@@ -8,7 +8,7 @@
 
 ## 0. Highest-signal source: `computed-tokens.json`
 
-If `design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`. The CSS string remains the fallback for tokens not present in the computed payload.
+If `generated-docs/design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`. The CSS string remains the fallback for tokens not present in the computed payload.
 
 **Mapping from `computed-tokens.json` to colour tokens:**
 

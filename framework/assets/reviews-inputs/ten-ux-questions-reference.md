@@ -2,13 +2,13 @@
 
 # reviews-inputs/ten-ux-questions-reference.md
 
-**Purpose:** Methodology reference for the **10 UX Questions** review of the **raw consultant input set** — the material in `documentation/` enumerated by `requirements/source-manifest.json`. The reviewer follows this document literally and exhaustively. This is the inputs-side sibling of `framework/assets/reviews/ten-ux-questions-reference.md` (which runs the same lens against the merged `requirements/requirements.md`); the two are deliberately parallel so a consultant who knows one can read the other without re-learning the structure. It is also the UX-lens twin of `framework/assets/reviews-inputs/ten-ba-questions-reference.md` — the two inputs-side question reviews occupy mutually-exclusive lanes (see the filter's BA-lens-drop rule below).
+**Purpose:** Methodology reference for the **10 UX Questions** review of the **raw consultant input set** — the material in `documentation/` enumerated by `generated-docs/requirements/source-manifest.json`. The reviewer follows this document literally and exhaustively. This is the inputs-side sibling of `framework/assets/reviews/ten-ux-questions-reference.md` (which runs the same lens against the merged `generated-docs/requirements/requirements.md`); the two are deliberately parallel so a consultant who knows one can read the other without re-learning the structure. It is also the UX-lens twin of `framework/assets/reviews-inputs/ten-ba-questions-reference.md` — the two inputs-side question reviews occupy mutually-exclusive lanes (see the filter's BA-lens-drop rule below).
 
 **Used by:**
 
 - `framework/agents/reviews-inputs/ten-ux-questions-reviewer.md` — drives the agent's source-ingest, candidate-generation, filter, score-and-select, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — a self-contained HTML report listing the ten most pressing **unanswered** UX questions an experienced UX designer would ask after carefully reading the raw input corpus, each tagged `blocking | major | minor`, each carrying a source provenance (`[SRC: <filename>]` for material a consumed source partially touches, or `absent-from-corpus` when the whole topic is missing from every source), each with a 1–2 sentence rationale on the design impact of leaving the question unanswered. Selection is from a candidate pool of up to 50.
+**Output produced by the reviewer:** `generated-docs/review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — a self-contained HTML report listing the ten most pressing **unanswered** UX questions an experienced UX designer would ask after carefully reading the raw input corpus, each tagged `blocking | major | minor`, each carrying a source provenance (`[SRC: <filename>]` for material a consumed source partially touches, or `absent-from-corpus` when the whole topic is missing from every source), each with a 1–2 sentence rationale on the design impact of leaving the question unanswered. Selection is from a candidate pool of up to 50.
 
 The scaffold for the artefact is `framework/assets/reviews-inputs/template-ten-ux-questions.html`.
 
@@ -20,7 +20,7 @@ The discipline mirrors how an experienced UX designer reviews a pile of raw clie
 
 This methodology operationalises that practice as a deterministic, registry-driven review. The reviewer:
 
-1. Reads `requirements/source-manifest.json` and ingests every consumable source file (Step 2–3 of the agent workflow).
+1. Reads `generated-docs/requirements/source-manifest.json` and ingests every consumable source file (Step 2–3 of the agent workflow).
 2. Generates up to **50 candidate questions** across **8 UX gap categories** (Step 4).
 3. Filters the candidates against the framework's deterministic answer set and against the adjacent BA-questions lens (Step 5) — dropping any question whose answer is already encoded in the framework, whose topic is out of scope, or whose lens belongs to the 10 BA Questions methodology.
 4. Scores each surviving candidate by `(design-impact × answerability-gap)` and selects the **top 10** (Step 6).
@@ -73,7 +73,7 @@ The synthesis is the requirements-side reference's contribution; this file's con
 
 The reviewer reads **only** the following:
 
-- `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once at Step 2. This is the entry point to the critique target.
+- `generated-docs/requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once at Step 2. This is the entry point to the critique target.
 - The files the manifest enumerates — for each row where `tier != "Unsupported"`, the file selected by the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path` — only `Native-text` is read at `original_path`). For `Native-multimodal` / `Vector-renderable` rows the `converted_sibling` is a frozen textual description prepared by the input-handler — it already captures labels, field captions, table contents, status/error states, KPI values, and a structured breakdown; treat it as the canonical text source and do **not** re-interpret pixels. `Supported-via-MCP` rows read the markitdown sibling. Read once per row at Step 3. These are the critique target.
 - `framework/assets/characters/ten-ux-questions-inputs-review.md` — the character file. Read once at Step 1.
 - `framework/assets/reviews-inputs/ten-ux-questions-reference.md` — this document. Read once at Step 1.
@@ -85,9 +85,9 @@ The reviewer reads **only** the following:
 
 It does **not** consult:
 
-- `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — `/requirements`-pipeline artefacts. The review's contract is to critique **raw inputs**, not anything synthesised from them. Reviewing the inputs against a document drafted from those same inputs would conflate "what the corpus says" with "what the drafter inferred".
-- `analyse-requirements/*`, `analyse-inputs/<METHOD>/*` outputs — derived artefacts; each input-pipeline lens is independently grounded in the manifest.
-- `design-system/*` outputs — not relevant to a UX questions review.
+- `generated-docs/requirements/requirements.md`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims*.ndjson` — `/requirements`-pipeline artefacts. The review's contract is to critique **raw inputs**, not anything synthesised from them. Reviewing the inputs against a document drafted from those same inputs would conflate "what the corpus says" with "what the drafter inferred".
+- `generated-docs/analyse-requirements/*`, `generated-docs/analyse-inputs/<METHOD>/*` outputs — derived artefacts; each input-pipeline lens is independently grounded in the manifest.
+- `generated-docs/design-system/*` outputs — not relevant to a UX questions review.
 - `framework/state/*` — pipeline state is not a review input.
 - Any other file under `framework/shared/` (e.g. `refusal-registry.md`) — referenced by ID only, not read by this agent.
 
@@ -453,7 +453,7 @@ Eleven gates. All are hard. If any gate fails, the reviewer does **not** write t
 7. **No question is out-of-scope per `prototype-scope.md`.** Verified by re-running the Step-5 rule-3 check.
 8. **Category coverage: the 10 questions span ≥ 5 of the 8 UX categories.** Prevents the score-only ranking from collapsing the output into one or two categories.
 9. **No BA-lens overlap.** Verified by re-running the Step-5 rule-4 check against the selected ten. Any BA-categorised question is a defence-in-depth catch of a filter false-negative. This is the methodology's most distinctive guard — the orthogonality contract between the UX and BA lenses.
-10. **Manifest fingerprint recorded and consistent.** The artefact's `MANIFEST_FINGERPRINT` field is non-empty and equals the SHA-256 of `requirements/source-manifest.json` captured at Step 2 — so the artefact records exactly which manifest version it reviewed.
+10. **Manifest fingerprint recorded and consistent.** The artefact's `MANIFEST_FINGERPRINT` field is non-empty and equals the SHA-256 of `generated-docs/requirements/source-manifest.json` captured at Step 2 — so the artefact records exactly which manifest version it reviewed.
 11. **Source roster complete.** Every manifest row is accounted for: each `tier != "Unsupported"` row appears in the Source roster (Consumed) table, and each `tier == "Unsupported"` row appears in the Source roster (Skipped) table with its reason. No manifest row is silently dropped.
 
 ---
@@ -472,7 +472,7 @@ Eleven gates. All are hard. If any gate fails, the reviewer does **not** write t
 - **Padding the blocking count.** A corpus that genuinely covers the basics legitimately produces zero blockings. *"Make sure there's at least one blocking"* is not a quota; the priority distribution falls out of the corpus.
 - **Generic questions.** *"What about the user experience?"* is not a finding. Cite the source (or mark it absent-from-corpus); state the specific design decision the answer would unlock.
 - **Phantom sources.** A question citing `[SRC: ghost.docx]` when no manifest row consumed `ghost.docx` is a gate-5 failure. Use the Step-2/3 consumed-filename set to validate every citation. Cite filenames only — never line numbers (multimodal sources have no lines; `.converted.md` line numbers drift between markitdown runs).
-- **Reviewing against derivatives.** Do not consult `requirements/requirements.md` or `analyse-*` outputs to triangulate gaps. The review's contract is to read the **raw inputs** enumerated by the manifest as the source of truth.
+- **Reviewing against derivatives.** Do not consult `generated-docs/requirements/requirements.md` or `analyse-*` outputs to triangulate gaps. The review's contract is to read the **raw inputs** enumerated by the manifest as the source of truth.
 
 ---
 

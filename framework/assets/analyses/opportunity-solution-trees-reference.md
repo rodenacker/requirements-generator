@@ -2,14 +2,14 @@
 
 # analyses/opportunity-solution-trees-reference.md
 
-**Purpose:** Methodology reference for **Opportunity Solution Trees** (Teresa Torres, *Continuous Discovery Habits*, 2021; canonical exposition at `producttalk.org/opportunity-solution-trees/`). Torres designed OST for **forward discovery** — building a tree top-down from a desired Outcome through customer-interview-sourced Opportunities to candidate Solutions to Assumption Tests. The analyser does the **reverse**: it reads an already-merged `requirements/requirements.md` and ladders **upward** from features (Solutions) to needs (Opportunities) to goals (Outcomes), plus a best-effort fourth layer of Assumption Tests where the doc names risks or open questions. The reversal framing is the load-bearing methodological choice — it lets the analyser respect the framework-wide *extraction-not-authoring* discipline, and it makes the artefact a **structural audit** of the PRD rather than a fabricated discovery output.
+**Purpose:** Methodology reference for **Opportunity Solution Trees** (Teresa Torres, *Continuous Discovery Habits*, 2021; canonical exposition at `producttalk.org/opportunity-solution-trees/`). Torres designed OST for **forward discovery** — building a tree top-down from a desired Outcome through customer-interview-sourced Opportunities to candidate Solutions to Assumption Tests. The analyser does the **reverse**: it reads an already-merged `generated-docs/requirements/requirements.md` and ladders **upward** from features (Solutions) to needs (Opportunities) to goals (Outcomes), plus a best-effort fourth layer of Assumption Tests where the doc names risks or open questions. The reversal framing is the load-bearing methodological choice — it lets the analyser respect the framework-wide *extraction-not-authoring* discipline, and it makes the artefact a **structural audit** of the PRD rather than a fabricated discovery output.
 
 **Used by:**
 
 - `framework/agents/analyses/opportunity-solution-trees-analyser.md` — drives the agent's six-round process plus the quality-gate sweep.
 - `framework/skills/map-opportunity-solution-trees-to-ui.md` — uses the tree structure to derive primary-opportunity weighting + per-screen Core Content Priority signals (downstream consumer; stub).
 
-**Output produced by the analyser:** `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — self-contained HTML tree using `framework/assets/analyses/template-opportunity-solution-trees.html` as scaffold.
+**Output produced by the analyser:** `generated-docs/analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — self-contained HTML tree using `framework/assets/analyses/template-opportunity-solution-trees.html` as scaffold.
 
 ---
 
@@ -17,7 +17,7 @@
 
 Torres's original OST is **forward**: a product team starts with a single business or product Outcome, runs customer interviews to surface unmet Opportunities, brainstorms candidate Solutions for the most promising Opportunities, then designs Assumption Tests to falsify the riskiest assumptions before building. The tree is built top-down; it produces a *plan for discovery*.
 
-A merged `requirements/requirements.md` is the **output** of that process — its Solutions (features, user stories, acceptance criteria) have already been chosen, and the Opportunities behind them have been compressed into "so that …" tails of user stories, persona pains, and domain prose. To respect [[feedback_analyses_are_extraction_not_authoring]], the analyser cannot run interviews and cannot synthesise needs from thin air. It can only **surface** what the document's structure already exposes.
+A merged `generated-docs/requirements/requirements.md` is the **output** of that process — its Solutions (features, user stories, acceptance criteria) have already been chosen, and the Opportunities behind them have been compressed into "so that …" tails of user stories, persona pains, and domain prose. To respect [[feedback_analyses_are_extraction_not_authoring]], the analyser cannot run interviews and cannot synthesise needs from thin air. It can only **surface** what the document's structure already exposes.
 
 Therefore the analyser runs the tree **upward**:
 

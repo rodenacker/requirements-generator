@@ -9,7 +9,7 @@
 - `framework/agents/analyses/jtbd-analyser.md` — drives the agent's six-round process plus the quality-gate sweep.
 - `framework/skills/map-jtbd-to-ui.md` — uses the job-map structure to derive primary-task weighting + per-screen Core Content Priority signals (downstream consumer; stub).
 
-**Output produced by the analyser:** `analyse-requirements/JTBD/jtbd-job-map.html` — self-contained HTML job-card grid using `framework/assets/analyses/template-jtbd.html` as scaffold.
+**Output produced by the analyser:** `generated-docs/analyse-requirements/JTBD/jtbd-job-map.html` — self-contained HTML job-card grid using `framework/assets/analyses/template-jtbd.html` as scaffold.
 
 ---
 
@@ -33,7 +33,7 @@ Six rounds, executed in order. The analyser does not skip rounds and does not co
 
 ### Round 1 — Situations & Actors
 
-Read `requirements/requirements.md` in full. Extract every actor + every situation candidate.
+Read `generated-docs/requirements/requirements.md` in full. Extract every actor + every situation candidate.
 
 **Actor sources, in priority order:**
 

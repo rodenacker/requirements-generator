@@ -51,7 +51,7 @@ Your sub-agent reads only:
 - `framework/assets/wireframes/position-vocabulary.md` (for the plain-English position tagline) and `framework/assets/pattern-catalogue/_index.md` (to validate the authored pattern IDs).
 - Selectively, the pattern-catalogue entries you render (one file per pattern the architect authored into `surface_plan`, not the whole catalogue).
 
-You do **not** read `framework/assets/wireframes/tradeoff-dimensions-registry.md` or `framework/assets/wireframes/pattern-bindings.md` — pattern and realization selection moved to the architect, and you render the authored `surface_plan` rather than deriving picks. You do **not** read `requirements/`, `framework/state/`, `framework/shared/`, other variants' screen content, or the comparator's output. This isolation is what makes parallel generation safe and what makes the comparator's per-variant assessment trustworthy — your sidecars are immutable mirrors of the architect's authored plan + your own concise prose, not negotiated outputs.
+You do **not** read `framework/assets/wireframes/tradeoff-dimensions-registry.md` or `framework/assets/wireframes/pattern-bindings.md` — pattern and realization selection moved to the architect, and you render the authored `surface_plan` rather than deriving picks. You do **not** read `generated-docs/requirements/`, `framework/state/`, `framework/shared/`, other variants' screen content, or the comparator's output. This isolation is what makes parallel generation safe and what makes the comparator's per-variant assessment trustworthy — your sidecars are immutable mirrors of the architect's authored plan + your own concise prose, not negotiated outputs.
 
 ## Failure posture
 

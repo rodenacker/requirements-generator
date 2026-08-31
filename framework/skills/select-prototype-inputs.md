@@ -11,9 +11,9 @@ This skill is prototype-private. It borrows the print-and-parse + on-disk-presen
 - `analyses_registry_path` — default `"framework/assets/analyses/registry.md"` (source B).
 - `analyses_inputs_registry_path` — default `"framework/assets/analyses-inputs/registry.md"` (source C).
 - `wireframes_dir` — default `"wireframes/"`; the skill reads `<wireframes_dir><scope_slug>/variants.json` (source D).
-- `manifest_path` — default `"requirements/source-manifest.json"` (source E).
+- `manifest_path` — default `"generated-docs/requirements/source-manifest.json"` (source E).
 - `output_dir` — default `"prototypes/.specs/"`; the skill writes `<output_dir><name_slug>/supporting-inputs.json`.
-- `design_system_dir` — default `"design-system/"`. **Existence-only** (Glob); never read/parse any file here — parsing + theming is `framework/skills/extract-brand-theme.md`'s job at scaffold time. A `/design-system` run may have produced one mode or both, so glob `design-system/design-system-{light,dark}.html` plus the legacy unsuffixed `design-system/design-system.html` and record **all** matches (`ds_matched_paths`) and the modes they represent (`ds_modes`); set `ds_present` if any matched. Both are named in the Brand source line below. Counting the modes here is existence-only — it does not decide anything, it just tells the consultant in advance whether the colour-mode question is coming.
+- `design_system_dir` — default `"generated-docs/design-system/"`. **Existence-only** (Glob); never read/parse any file here — parsing + theming is `framework/skills/extract-brand-theme.md`'s job at scaffold time. A `/design-system` run may have produced one mode or both, so glob `generated-docs/design-system/design-system-{light,dark}.html` plus the legacy unsuffixed `generated-docs/design-system/design-system.html` and record **all** matches (`ds_matched_paths`) and the modes they represent (`ds_modes`); set `ds_present` if any matched. Both are named in the Brand source line below. Counting the modes here is existence-only — it does not decide anything, it just tells the consultant in advance whether the colour-mode question is coming.
 - `scaffold_marker_path` — default `"prototypes/.scaffold.json"`. **Existence-only** (Glob); its presence means the shared app's brand **and colour mode** were already locked at the first scaffold and are not re-applied this run.
 
 ## Outputs
@@ -101,7 +101,7 @@ Role semantics (the drafter threads these): `data-binding` → §8 Property usag
       "name_slug": "<name_slug>",
       "selected_at": "<ISO-8601>",
       "sources": {
-        "requirement": { "path": "requirements/requirements.md", "always": true },
+        "requirement": { "path": "generated-docs/requirements/requirements.md", "always": true },
         "analyse_requirement": [ { "name": "", "output_path": "", "format": "html|md", "sidecar_path": "", "sidecar_present": true, "prototype_roles": [] } ],
         "analyse_inputs": [ { "name": "", "output_path": "", "format": "html|md", "prototype_roles": [] } ],
         "wireframes": [ { "variant_id": "", "manifest_path": "", "variant_position_path": "", "primary_basis": false } ],

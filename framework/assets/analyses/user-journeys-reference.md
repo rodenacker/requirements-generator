@@ -1,10 +1,10 @@
-<!-- ROLE: asset (P2 analysis reference). Output convention aligned with OOUX/JTBD/USE-CASES MVPs — self-contained HTML under `analyse-requirements/<METHOD>/`, not markdown. -->
+<!-- ROLE: asset (P2 analysis reference). Output convention aligned with OOUX/JTBD/USE-CASES MVPs — self-contained HTML under `generated-docs/analyse-requirements/<METHOD>/`, not markdown. -->
 
 # User-Journeys analysis reference
 
 > **Method:** Per primary target-user persona, per top-level user goal, produce a temporal flow map showing where the user is, what they're doing, what they're thinking and feeling, and where the application could help most.
 
-**Output file:** `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` — a self-contained HTML artefact containing one journey card per (persona × top-level goal). Each card carries a tabular swimlane grid (phases × {actions, thoughts, emotions, touchpoints, pain-points, opportunities}) plus an inline-SVG emotion-curve visualisation. No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html` — a self-contained HTML artefact containing one journey card per (persona × top-level goal). Each card carries a tabular swimlane grid (phases × {actions, thoughts, emotions, touchpoints, pain-points, opportunities}) plus an inline-SVG emotion-curve visualisation. No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/user-journeys-analyser.md`
 
@@ -43,7 +43,7 @@ Stages are not screens. Multiple stages can share a screen; one stage can span m
 
 `−2` (frustrated / panicked) → `−1` (anxious / uncertain) → `0` (neutral) → `+1` (engaged / hopeful) → `+2` (delighted / confident).
 
-A **moment of truth** is any row where the emotion drops by ≥1 from the previous row, or where stakes are stated as high in `requirements/requirements.md > §4 User goals & stories > context`. Moments of truth get extra design attention — the opportunities column for those rows feeds directly into design-spec §Global design decisions.
+A **moment of truth** is any row where the emotion drops by ≥1 from the previous row, or where stakes are stated as high in `generated-docs/requirements/requirements.md > §4 User goals & stories > context`. Moments of truth get extra design attention — the opportunities column for those rows feeds directly into design-spec §Global design decisions.
 
 ---
 
@@ -51,7 +51,7 @@ A **moment of truth** is any row where the emotion drops by ≥1 from the previo
 
 - Every journey covers at least one full task from trigger to outcome (no truncation at "user lands on app").
 - Every pain point has a suggested opportunity. A pain point without an opportunity is a finding the analyser surfaces back to the consultant, not a journey row.
-- Every journey is anchored to one named target-user persona from `requirements/requirements.md > §3 Target users` and one top-level goal from `§4 User goals & stories` (or one task flow from `§5 Task flows`). No invented personas or goals.
+- Every journey is anchored to one named target-user persona from `generated-docs/requirements/requirements.md > §3 Target users` and one top-level goal from `§4 User goals & stories` (or one task flow from `§5 Task flows`). No invented personas or goals.
 - One journey per primary target-user persona × top-level goal. Cap at the highest-frequency or highest-stakes journeys for MVP — don't enumerate every permutation.
 
 ---
@@ -69,12 +69,12 @@ The analysis is complete when:
 
 ## Input-coverage asymmetry (v7b note)
 
-The journey-map's *stages, touchpoints, actions* derive cleanly from `requirements/requirements.md > §5 Task flows` + `§8 Source UI references`.
+The journey-map's *stages, touchpoints, actions* derive cleanly from `generated-docs/requirements/requirements.md > §5 Task flows` + `§8 Source UI references`.
 
 The *thoughts, emotions, pain points, opportunities* columns are typically **not** present in client briefs or PRDs — they come from user research (interview transcripts, survey results, contextual inquiries). When such research isn't in `/documentation/`:
 
 1. The analyser **infers** these columns from:
-   - Domain knowledge (`requirements/requirements.md > §1 Application context` + `§2 Domain model`).
+   - Domain knowledge (`generated-docs/requirements/requirements.md > §1 Application context` + `§2 Domain model`).
    - `§4 User goals & stories` (frequency / expertise / stakes as emotional proxies — high stakes → anxiety, rare event → confusion, high frequency → impatience with friction).
    - Existing-tool critique in `§8 Source UI references` (pain points reflect frustration with current tooling).
 2. Each inferred cell is flagged `[AI-SUGGESTED]`.
@@ -86,7 +86,7 @@ The *thoughts, emotions, pain points, opportunities* columns are typically **not
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. The analyser populates `framework/assets/analyses/template-user-journeys.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. The analyser populates `framework/assets/analyses/template-user-journeys.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 The first content section is the **In plain terms** lead (`<section id="plain-terms">` carrying `{{PLAIN_SUMMARY}}`), above the overview — a 2–5 sentence plain-English summary per `framework/shared/output-readability.md`, a faithful condensation introducing no journey, count, or claim not already present (methodology jargon glossed at first use; client domain terms not).
 
@@ -97,7 +97,7 @@ The first content section is the **In plain terms** lead (`<section id="plain-te
 | `{{TITLE}}` | *"User Journeys — `<domain>`"* if `§1` declares a domain, else *"User Journeys"*. |
 | `{{DOMAIN}}` | Verbatim from `§1 Application context > Domain`, else *"(not declared in requirements.md)"*. |
 | `{{GENERATED_AT}}` | ISO-8601 UTC, captured at render time. |
-| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `requirements/requirements.md` captured at Step 2. |
+| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `generated-docs/requirements/requirements.md` captured at Step 2. |
 | `{{JOURNEY_COUNT}}` | Number of `<section class="journey-card">` blocks rendered. |
 | `{{PERSONA_COUNT}}` | Distinct personas covered (each may anchor more than one journey). |
 | `{{PHASE_COUNT}}` | Total phases across all journeys. |

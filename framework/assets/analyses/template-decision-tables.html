@@ -2,7 +2,7 @@
   ROLE: asset (HTML template). Populated by framework/agents/analyses/decision-tables-analyser.md.
 
   Purpose: HTML/CSS skeleton for a Decision Tables / Business-Rules Catalogue (DMN)
-  artefact — one DMN decision table per decision found in requirements/requirements.md
+  artefact — one DMN decision table per decision found in generated-docs/requirements/requirements.md
   (condition columns -> a conclusion, with an explicit hit policy), plus a completeness
   register (unhandled condition-value combinations), a consistency register (overlapping
   rules with conflicting conclusions + hit-policy violations), and a flat business-rules
@@ -52,7 +52,7 @@
     {{DOMAIN}}                      — domain string (from requirements §1), or
                                       "(not declared in requirements.md)".
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp at render time.
-    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time.
+    {{REQUIREMENTS_SHA256}}         — sha256 of generated-docs/requirements/requirements.md at read time.
     {{DECISION_COUNT}}              — number of decision tables.
     {{RULE_COUNT}}                  — total rules across all tables.
     {{GAP_COUNT}}                   — total completeness-register rows.
@@ -89,7 +89,7 @@
   Verdict / gap signalling is always glyph + word — colour is never the sole signal.
   Only the documented {{placeholders}} are substituted; CSS, layout, and class names are fixed.
 
-  Output: analyse-requirements/DECISION-TABLES/decision-tables.html.
+  Output: generated-docs/analyse-requirements/DECISION-TABLES/decision-tables.html.
 -->
 <!doctype html>
 <html lang="en">

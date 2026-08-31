@@ -74,7 +74,7 @@ This repository is a **template**. You don't work in the shared copy — you cre
 
 **Take the assets onward**
 
-7. **The outputs are your deliverables.** Each command writes to its own folder — `requirements/`, `prd/`, `analyse-requirements/`, `design-system/`, `wireframes/`, `prototypes/`, and the rest. Hand them to a client, a designer, or the next stage (e.g. an application-build framework). Use **`/export-application`** for a clean, dependency-free handoff of the finished spec.
+7. **The outputs are your deliverables.** Each command writes to its own folder. The document outputs are grouped under **`generated-docs/`** — `generated-docs/requirements/`, `generated-docs/prd/`, `generated-docs/analyse-requirements/`, `generated-docs/design-system/`, and the rest; the visual ones sit at the top level in `wireframes/` and `prototypes/`. Hand them to a client, a designer, or the next stage (e.g. an application-build framework). Use **`/export-application`** for a clean, dependency-free handoff of the finished spec.
 8. **Leave the framework alone.** `framework/`, `.claude/`, `docs/`, and `CLAUDE.md` are the engine — your work belongs only in `documentation/` and the output folders. You're a consumer of the framework, not an editor of it.
 
 **Getting a newer version.** Your copy is a point-in-time snapshot of the framework. Updates aren't applied in place — when you start your **next** engagement, take a fresh copy (step 1 again) and you'll have the current version. There's nothing to upgrade mid-engagement.
@@ -129,7 +129,7 @@ Each app is processed once — a ledger records what's already been ingested, an
 
 A brand-token brief for a designer in one run — useful when the designer is blocked on visual direction and you need to send something concrete today. Two questions on launch: a required **Domain** (free text, e.g. `loan-origination-portal` — the token set is inferred per-run, no fixed lookup table) and an optional **Reference URL** (a real browser opens at desktop size and extracts the actual colours, typography, and effects from the live CSS; without one, every token is inferred from the domain string alone).
 
-**You get** `design-system/design-system-light.html` and/or `design-system/design-system-dark.html` — one self-contained, single-mode document per colour mode, each opened via `file://`: colour swatches, type specimens at their actual sizes, shadow/motion samples, and contrast-validation pairs, each token annotated with its provenance (*extracted from the URL* vs *inferred from the domain*). It also embeds a machine-readable token JSON block, so a downstream tool (Figma plugin, CSS generator, LLM pipeline) can consume the values directly.
+**You get** `generated-docs/design-system/design-system-light.html` and/or `generated-docs/design-system/design-system-dark.html` — one self-contained, single-mode document per colour mode, each opened via `file://`: colour swatches, type specimens at their actual sizes, shadow/motion samples, and contrast-validation pairs, each token annotated with its provenance (*extracted from the URL* vs *inferred from the domain*). It also embeds a machine-readable token JSON block, so a downstream tool (Figma plugin, CSS generator, LLM pipeline) can consume the values directly.
 
 You choose light-only, dark-only, or both — asked after the fetch, so the question can tell you which scheme the site actually ships. Whichever scheme was extracted is the **hue source**: it is always written and marked `primary`, and the other mode is *derived* from the same brand hues rather than fetched again. So pointing this at a dark-themed site and asking for light gives you both files — the dark one as the grounded record, the light one derived from it.
 
@@ -139,13 +139,13 @@ Choosing **both** is also what unlocks light/dark switching in `/prototype`: wit
 
 A strategic, human-audience PRD from the same client inputs — problem framing, success metrics, hypotheses, MVP phasing, risks, stakeholders. Run it when a sponsor needs the *why* (not the *what-the-FE-must-do* that `/requirements` produces). Fully independent of `/requirements` — run it before, after, or alongside, with no state collision.
 
-**You get** `prd/prd.md`. Citation IDs are namespaced (`PC-NNN` / `PAI-NNN`) so the PRD never visually collides with a requirements doc you run alongside it.
+**You get** `generated-docs/prd/prd.md`. Citation IDs are namespaced (`PC-NNN` / `PAI-NNN`) so the PRD never visually collides with a requirements doc you run alongside it.
 
 ### 4.5 `/requirements`
 
 Turn the loose pile of client material into a clean, structured requirements spec. Drop the files into `documentation/` first, then run it.
 
-**You get** `requirements/requirements.md` — a structured spec where every item is traceable either to something you provided or to a domain-default rule the framework applies (e.g. accessibility, security, error-handling). Anything the system can't confidently fill in is resolved through the Q&A, so the final doc reads as a clean, signed-off spec.
+**You get** `generated-docs/requirements/requirements.md` — a structured spec where every item is traceable either to something you provided or to a domain-default rule the framework applies (e.g. accessibility, security, error-handling). Anything the system can't confidently fill in is resolved through the Q&A, so the final doc reads as a clean, signed-off spec.
 
 **Re-running it once the spec is finished** offers you three choices instead of silently redrafting: **amend** the document (hands off to `/amend-requirements` — see below), **regenerate** it from the corpus (a full redraft, including the whole Q&A again), or **cancel**. An unfinished run still offers the usual resume.
 
@@ -177,7 +177,7 @@ Go deeper into the raw inputs *before* drafting: pick an analytical lens and the
 | The **actor and end-user goals** behind the request — stated and inferred — as a goal register with an AND/OR refinement tree, an actor map, and a conflicts table | `user-goal-analysis`          | _Goal-Oriented Requirements (GORE)_ |
 | The **enterprise motivation** behind the request — business problem → need → goal → problem-statement in one causal chain (the strategic *why*, not actor-level goals) | `business-context-definition` | _OMG BMM / BABOK business context_ |
 
-**You get** one artefact per run under `analyse-inputs/<METHOD>/`, mostly self-contained HTML that survives a markitdown HTML→MD round-trip (the embedded JSON / YAML / Mermaid bodies are the load-bearing re-ingestion contract).
+**You get** one artefact per run under `generated-docs/analyse-inputs/<METHOD>/`, mostly self-contained HTML that survives a markitdown HTML→MD round-trip (the embedded JSON / YAML / Mermaid bodies are the load-bearing re-ingestion contract).
 
 ### 4.8 `/review-inputs`
 
@@ -192,7 +192,7 @@ Find what's missing or wrong in the raw inputs *before* you draft — a punch-li
 | The **ten most consequential business-analysis questions** the raw inputs leave unanswered, ranked by business impact across eight BA gap categories, each sourced to a file or marked absent-from-corpus | `ten-ba-questions`    |
 | The **ten most consequential UX-discovery questions** the raw inputs leave unanswered, ranked by design impact across eight UX gap categories (users, context, goals, task flows, supporting data, errors, collaboration, trust) | `ten-ux-questions`    |
 
-**You get** one self-contained HTML artefact per run under `review-inputs/<METHOD>/`; `gap-analysis.html` additionally carries an inline-SVG coverage heatmap and is designed to be copied back into `documentation/` so `/requirements` picks up its shall-form Candidate Requirements on the next run.
+**You get** one self-contained HTML artefact per run under `generated-docs/review-inputs/<METHOD>/`; `gap-analysis.html` additionally carries an inline-SVG coverage heatmap and is designed to be copied back into `documentation/` so `/requirements` picks up its shall-form Candidate Requirements on the next run.
 
 ### 4.9 `/analyse-requirement`
 
@@ -216,7 +216,7 @@ Go deeper into what your requirements doc already contains: pick a lens and the 
 | `glossary`                      | _glossary_                      | An alphabetical, **citation-bound vocabulary inventory** before designing copy, labels, status pills, or role surfaces         |
 | `trade-off-dimension-analysis`  | _trade-off-dimension matrix_    | Each user goal scored against **UX trade-off dimensions** (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, …)   |
 
-**You get** one HTML artefact per run under `analyse-requirements/<METHOD>/` (e.g. `OOUX/ooux-object-map.html`, `FIVE-WHYS/five-whys.html`) — formatted to share directly with whoever needed the insight.
+**You get** one HTML artefact per run under `generated-docs/analyse-requirements/<METHOD>/` (e.g. `OOUX/ooux-object-map.html`, `FIVE-WHYS/five-whys.html`) — formatted to share directly with whoever needed the insight.
 
 ### 4.10 `/review-requirement`
 
@@ -232,7 +232,7 @@ Find what's missing or wrong in the spec *before* you hand it over — a second 
 | `requirements-quality` | Whether **every requirement is well-formed** against the ISO 29148 standard (singular, unambiguous, verifiable, conforming, complete) — a per-characteristic heatmap with EARS-form rewrites for the ambiguous and compound ones |
 | `requirements-traceability` | Which facts **trace to a real source** (or an accepted AI-suggestion) and which **trace to nothing** — orphans, broken citations, and dropped content that leaked through |
 
-**You get** one HTML artefact per run under `review-requirements/<METHOD>/` (e.g. `ADVERSARIAL/adversarial-review.html`). Treat it as a punch-list: fix the findings you accept in `requirements.md`, then re-run for a fresh pass.
+**You get** one HTML artefact per run under `generated-docs/review-requirements/<METHOD>/` (e.g. `ADVERSARIAL/adversarial-review.html`). Treat it as a punch-list: fix the findings you accept in `requirements.md`, then re-run for a fresh pass.
 
 ### 4.11 `/resolve-review`
 
@@ -262,7 +262,7 @@ Export the finished spec as an **application-audience document** you can hand to
 
 Anything the export **can't** cleanly re-project — a prototype-flavoured phrase inside a cited requirement, say — is left exactly as written and flagged, both in the provenance block and in a note under the affected section. You see it rather than having it quietly reworded, because rewording text that carries a citation would break the link back to the source quote that grounds it. Those flags are a signal to fix the wording in `requirements.md` and re-export — which is free, and is the only correction route: the gate is accept-or-reject, with no in-place editing.
 
-**You get** `export-application/requirements-application.md` — self-describing for external readers (a citation legend explains every traceability marker). Hand it over together with `requirements/draft-claims.ndjson`, which holds the verbatim source quotes behind the citation tags. Re-running after the spec changes offers a one-click regenerate; the prior export is checkpointed to git first.
+**You get** `generated-docs/export-application/requirements-application.md` — self-describing for external readers (a citation legend explains every traceability marker). Hand it over together with `generated-docs/requirements/draft-claims.ndjson`, which holds the verbatim source quotes behind the citation tags. Re-running after the spec changes offers a one-click regenerate; the prior export is checkpointed to git first.
 
 ## 5. Setup
 

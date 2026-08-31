@@ -11,7 +11,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Agent | Persona+workflow `.md` the LLM adopts to produce one content artefact. | `docs/maintenance.md > Separation of concerns` |
 | Amendment (AMD-NN) | Entry in the transient `## Amendments (pending re-merge)` section of `requirements.md` that supersedes the base text it names until the next re-merge; a cache, never the record. | `assets/resolve-review/template-addendum.md` |
 | Amendments document | Consultant-approved `/amend-requirements` output: a NEW dated `documentation/amendments-<date>.md` turning consultant-stated changes into corpus material (base-text-anchored, origin-marked, impact-flagged, `AM-NN` IDs). | `assets/amend-requirements/template-amendments.md` |
-| Analysis | Output of a lens-transform methodology on requirements/inputs (`analyse-*`). | registries |
+| Analysis | Output of a lens-transform methodology on generated-docs/requirements/inputs (`analyse-*`). | registries |
 | Anti-fabrication | Rule: no data-bound element may invent a property outside the closed set. | `blueprint-architect.md` |
 | Application character | The product's own copy voice (notifications/errors/validations/confirmations/empty states), recorded in `requirements.md` §1.8; not an agent Character. | `template-requirements.md` §1.8 |
 | App shell | Shared layout wrapping every prototype; the chrome sits outside the app under design (PI-08). | `prototypes/app-shell-spec.md` |
@@ -40,6 +40,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | colour-mode strategy | How a prototype's users switch light/dark (`toggle`/`system`/`none`/`custom`); asked once at `/prototype` Step B(4b) **only when both design-system mode files exist**, then locked in `.scaffold.json`. | `prototype-orch.md` Step B(4b) |
 | font substitution | Keeping an unobtainable **brand family** first in a token stack and adding a verified Google-hosted **loadable family** behind it (`'Gotham', 'Montserrat', sans-serif`); recorded in `meta.brand_fonts`, never a `prov` marker. | `font-availability-rules.md` |
 | General rule (GR-NN) | Deterministic reusable rule the resolver applies without asking. | `shared/general-rules.md` |
+| generated-docs | Repo-root parent of every consultant-facing **document** output, one subdir per pipeline; `wireframes/`, `prototypes/` and `blueprints/` stay outside it. | `docs/architecture.md > Top-level dirs` |
 | Grounding | The act of linking a claim to a real source; ungrounded facts fail validation. | — |
 | Handback gate | Orchestrator checkpoint accepting/re-invoking a finished agent. | orchestrators |
 | hue source | The design-system mode whose palette was actually extracted (or domain-inferred light); always written, `meta.primary: true`; the other mode is derived from it. | `cross-mode-derivation-rules.md` |

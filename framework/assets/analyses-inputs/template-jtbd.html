@@ -3,8 +3,8 @@
 
   Purpose: HTML/CSS skeleton for the canonical JTBD job-card grid + opportunity
   matrix, **input-analysis variant** — analyses raw consultant material
-  enumerated in `requirements/source-manifest.json` (not the synthesised
-  `requirements/requirements.md`). Self-contained (`<!doctype html>` + inlined
+  enumerated in `generated-docs/requirements/source-manifest.json` (not the synthesised
+  `generated-docs/requirements/requirements.md`). Self-contained (`<!doctype html>` + inlined
   `<style>` + `<body>`). No external CSS/JS dependencies; viewable by opening
   `file://` in a browser; shareable with clients without tooling.
 
@@ -17,7 +17,7 @@
       `§Personas` / `§Task flows` structure to mark off, so source citation is
       collapsed to one shape: the manifest row's `filename` field.
     - Meta-grid placeholders: `{{MANIFEST_FINGERPRINT}}` (sha256 of
-      `requirements/source-manifest.json`) replaces the sibling's
+      `generated-docs/requirements/source-manifest.json`) replaces the sibling's
       `{{REQUIREMENTS_SHA256}}`. New placeholders `{{SOURCE_COUNT}}` (consumed
       manifest rows) and `{{TIER_BREAKDOWN}}` (per-tier counts) replace
       domain-specific meta the sibling carries.
@@ -68,7 +68,7 @@
     {{TITLE}}                       — short title (e.g. "JTBD Job Map — Inputs — Project X")
     {{DOMAIN}}                      — domain string (best-effort: from manifest's `target` field, or from brief if discoverable)
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}        — sha256 of requirements/source-manifest.json at read time
+    {{MANIFEST_FINGERPRINT}}        — sha256 of generated-docs/requirements/source-manifest.json at read time
     {{SOURCE_COUNT}}                — count of consumed manifest rows (tier != "Unsupported")
     {{TIER_BREAKDOWN}}              — short string, e.g. "3 Native-text, 1 Native-multimodal, 1 Supported-via-MCP"
     {{JOB_COUNT}}                   — total jobs on the map
@@ -90,7 +90,7 @@
                                       `manifest_fingerprint=<sha256>`,
                                       `run_count=<int>`.
 
-  Output: analyse-inputs/JTBD/jtbd-job-map.html.
+  Output: generated-docs/analyse-inputs/JTBD/jtbd-job-map.html.
 
   JOB CARD SCHEMA — each card the analyser emits has the shape:
 
@@ -932,7 +932,7 @@
 
     <section id="overview">
       <h1>{{TITLE}}</h1>
-      <p class="subtitle">JTBD job map (input-analysis variant) — one card per job (WHEN · I WANT TO · SO I CAN · scoring · forces), grouped by cluster, sourced from raw consultant inputs enumerated in <code>requirements/source-manifest.json</code>.</p>
+      <p class="subtitle">JTBD job map (input-analysis variant) — one card per job (WHEN · I WANT TO · SO I CAN · scoring · forces), grouped by cluster, sourced from raw consultant inputs enumerated in <code>generated-docs/requirements/source-manifest.json</code>.</p>
 
       <dl class="meta-grid">
         <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
@@ -990,7 +990,7 @@
     <details class="downstream-toggle">
       <summary>For downstream use — re-ingesting this artefact into /requirements</summary>
       <div class="downstream-note">
-        <p>To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>documentation/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it to <code>requirements/source-manifest.json</code> as a new <code>Native-text</code> row. The drafter will then read this map's job-card content as candidate-requirement seeds, and the <code>[SRC: &lt;filename&gt;]</code> markers inside the map will preserve the audit trail back to the original briefs / interview notes / decks that justified each job.</p>
+        <p>To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>documentation/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it to <code>generated-docs/requirements/source-manifest.json</code> as a new <code>Native-text</code> row. The drafter will then read this map's job-card content as candidate-requirement seeds, and the <code>[SRC: &lt;filename&gt;]</code> markers inside the map will preserve the audit trail back to the original briefs / interview notes / decks that justified each job.</p>
       </div>
     </details>
 

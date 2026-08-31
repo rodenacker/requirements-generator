@@ -43,7 +43,7 @@
     {{DOMAIN}}                 — domain string (best-effort: from any source carrying a
                                  recognisable domain heading; otherwise "(not declared in inputs)")
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}   — sha256 of requirements/source-manifest.json at Step 2 read time
+    {{MANIFEST_FINGERPRINT}}   — sha256 of generated-docs/requirements/source-manifest.json at Step 2 read time
     {{TARGET}}                 — manifest's `target` value ("prototype" | "application" | "(unset)")
     {{REVIEWER_IDENTITY}}      — fixed string "Completeness Review (IEEE 29148 / IEEE 830 /
                                  Volere / BABOK / Wiegers / INCOSE, ten-dimension, inputs-side)"
@@ -72,7 +72,7 @@
     {{SOURCE_ROSTER_BLOCK}}    — pre-rendered roster tables per SOURCE ROSTER SCHEMA below
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: review-inputs/COMPLETENESS-REVIEW/completeness-review.html.
+  Output: generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html.
 
   COVERAGE MATRIX SCHEMA — the {{COVERAGE_MATRIX_TABLE}} is a single sticky-thead table:
 

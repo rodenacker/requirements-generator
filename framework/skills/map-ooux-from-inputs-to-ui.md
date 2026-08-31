@@ -2,11 +2,11 @@
 
 # map-ooux-from-inputs-to-ui.md
 
-**Purpose:** Translate an inputs-side OOUX object map (`analyse-inputs/OOUX/ooux-object-map.html`) into UI inventory entries: objects → screen-taxonomy elements + modifiers; CTAs → behaviour entries on appropriate atoms/molecules; relationships → navigation links between screens.
+**Purpose:** Translate an inputs-side OOUX object map (`generated-docs/analyse-inputs/OOUX/ooux-object-map.html`) into UI inventory entries: objects → screen-taxonomy elements + modifiers; CTAs → behaviour entries on appropriate atoms/molecules; relationships → navigation links between screens.
 
 **Sibling:** `framework/skills/map-ooux-to-ui.md` — the requirements-side OOUX map-skill. Both are phase-2 stubs; either may be the canonical implementation when authored (the inputs-side variant has the advantage of richer provenance via filename citations and synonym-merge metadata; the requirements-side variant has the advantage of canonicalised §2.1 names).
 
-**Inputs:** `analyse-inputs/OOUX/ooux-object-map.html` (specifically the embedded `<pre><code class="language-json" id="ooux-object-map-body">` block — survives markitdown round-trip and is the load-bearing machine-readable contract), `assets/taxonomy-screens.md`.
+**Inputs:** `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` (specifically the embedded `<pre><code class="language-json" id="ooux-object-map-body">` block — survives markitdown round-trip and is the load-bearing machine-readable contract), `assets/taxonomy-screens.md`.
 
 **Outputs:** UI inventory rows for the design spec.
 

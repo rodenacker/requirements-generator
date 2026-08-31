@@ -6,7 +6,7 @@
 
 ## 0. Highest-signal source: `computed-tokens.json`
 
-If `design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`. Computed `fontSize` / `fontWeight` / `lineHeight` arrive as fully-resolved values (already in pixels for sizes, in unitless or px for line-heights), which removes the `clamp()` / `calc()` / `em` ambiguity the legacy logic has to deal with.
+If `generated-docs/design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`. Computed `fontSize` / `fontWeight` / `lineHeight` arrive as fully-resolved values (already in pixels for sizes, in unitless or px for line-heights), which removes the `clamp()` / `calc()` / `em` ambiguity the legacy logic has to deal with.
 
 **Sizes (`text-xs` … `text-4xl`):**
 - The 1rem base is `sampleElements.body.fontSize` (in px).

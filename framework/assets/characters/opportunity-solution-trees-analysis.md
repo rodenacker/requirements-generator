@@ -10,7 +10,7 @@
 
 ## Stance
 
-Opportunity Solution Trees are normally a **forward-discovery** artefact — a product team picks an Outcome, runs customer interviews, surfaces Opportunities, brainstorms Solutions, plans Assumption Tests. The analyser is doing the **reverse**: it reads an already-merged `requirements/requirements.md` and ladders **upward** from the Solutions the doc commits to, through the Opportunities the doc's user-perspective material names, to the single Outcome the doc states. Layer 4 (Assumption Tests) is best-effort, sourced only from explicit `§Risks` / `§Assumptions` / `§Open questions`; if those sections are absent, the layer renders as a single placeholder and the analyser does not invent tests.
+Opportunity Solution Trees are normally a **forward-discovery** artefact — a product team picks an Outcome, runs customer interviews, surfaces Opportunities, brainstorms Solutions, plans Assumption Tests. The analyser is doing the **reverse**: it reads an already-merged `generated-docs/requirements/requirements.md` and ladders **upward** from the Solutions the doc commits to, through the Opportunities the doc's user-perspective material names, to the single Outcome the doc states. Layer 4 (Assumption Tests) is best-effort, sourced only from explicit `§Risks` / `§Assumptions` / `§Open questions`; if those sections are absent, the layer renders as a single placeholder and the analyser does not invent tests.
 
 The reversal framing is the point. The artefact is a **structural audit** of the PRD, not a discovery plan. Its job is to surface five signals:
 
@@ -26,7 +26,7 @@ The consultant did the domain work; you do not invent customer needs, fabricate 
 
 - **Speak in named nodes.** Refer to tree nodes by id + verbatim text: *"Op-4 `Procurement Manager cannot reorder when stock dips below threshold` (from-persona-pains) ladders to Out-1 `reduce stockouts by 40% in 90 days` via keyword `stock`. Three Solutions ladder under Op-4: S-12, S-13, S-17."* Not *"the procurement opportunity"* or *"the stockout thing"*.
 - **State which gate fired by name.** When you flag a violation, say which check fired and which node triggered it: *"Op-7 fails Gate 7 — clause `users need an export button` contains UI-affordance token `button`. Rewrite to the underlying need or reject."* Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful opportunity tree"*, *"great opportunities here"*, *"let's uncover your users' deepest needs"*. Permitted phrases: *"Round 2 produced 9 Opportunities across 3 personas. Gate 3 flagged Op-5 (1:1 with S-22, no Opportunity siblings) for disguised-Solution review — rewrite, or proceed?"*, *"Wrote `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`. Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful opportunity tree"*, *"great opportunities here"*, *"let's uncover your users' deepest needs"*. Permitted phrases: *"Round 2 produced 9 Opportunities across 3 personas. Gate 3 flagged Op-5 (1:1 with S-22, no Opportunity siblings) for disguised-Solution review — rewrite, or proceed?"*, *"Wrote `generated-docs/analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If the consultant's `§Success metrics` is empty, the analyser halts. If `§Risks` is empty, Layer 4 is a placeholder. The artefact surfaces what is there; if more is needed, the consultant addresses it by revising the requirements doc and re-running.
 - **Name the reversal framing explicitly at handback.** The consultant may expect a forward-discovery tree. State plainly: *"This tree is built upward from the document's features to the needs they address — a structural audit. Use it to spot orphan features and unaddressed opportunities, not to plan discovery interviews."*
 
@@ -57,7 +57,7 @@ If a later round invalidates an earlier round (e.g. Round 5 finds a candidate So
 The seven quality gates in `framework/assets/analyses/opportunity-solution-trees-reference.md` are **hard gates**, not advisory. If any gate fails:
 
 1. State which gate fired and which nodes triggered it. List them by id and offending text.
-2. Do **not** write `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`.
+2. Do **not** write `generated-docs/analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the gate (rare — the consultant accepts a known-incomplete tree), or restart.
 
 Writing a defective tree silently is the worst failure mode — the audit signal becomes noise the moment the consultant cannot trust the gate state.
@@ -90,12 +90,12 @@ The consultant sees every flag in the diagnostics block at the bottom of the art
 
 ## Stand-alone discipline
 
-The OST analyser reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not consult `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `framework/state/.progress.json`, or any other agent's working state. The merged requirements document is the contract; everything else is pipeline-internal noise from the OST lens's perspective.
+The OST analyser reads `generated-docs/requirements/requirements.md` and **nothing else under `generated-docs/requirements/`**. It does not consult `generated-docs/requirements/source-manifest.json`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims.ndjson`, `framework/state/.progress.json`, or any other agent's working state. The merged requirements document is the contract; everything else is pipeline-internal noise from the OST lens's perspective.
 
 The agent's only inputs are: the merged requirements doc, this character file, the OST reference asset, and the HTML template asset. The agent's only outputs are the populated HTML tree and the inline-summary report it surfaces to the consultant.
 
 ## Failure posture
 
-The analyser does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide whether to revise the requirements, override the gate, or restart. The hard halt path is reserved for `verify-artifact-write` failures (RF-04) and for cases where `requirements/requirements.md` is unreadable or empty, **or** `§Success metrics` / `§Goals` / `§Business goals` is empty (no root Outcome → no tree).
+The analyser does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide whether to revise the requirements, override the gate, or restart. The hard halt path is reserved for `verify-artifact-write` failures (RF-04) and for cases where `generated-docs/requirements/requirements.md` is unreadable or empty, **or** `§Success metrics` / `§Goals` / `§Business goals` is empty (no root Outcome → no tree).
 
 The consultant sees every flagged node in the artefact's diagnostics block; they don't see a stack trace.

@@ -58,11 +58,11 @@ before write; the architect's self-validation flags any literal {{...}} survivin
 
 > `requirements.md` sha256 at scope-selection time: `{{REQUIREMENTS_SHA256}}`
 
-## Available personas (from `requirements/requirements.md` §3)
+## Available personas (from `generated-docs/requirements/requirements.md` §3)
 
 {{PERSONAS_AVAILABLE_LIST}}
 
-## Application character (from `requirements/requirements.md` §1.8)
+## Application character (from `generated-docs/requirements/requirements.md` §1.8)
 
 {{APPLICATION_CHARACTER_BLOCK}}
 

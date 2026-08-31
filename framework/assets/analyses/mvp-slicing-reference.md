@@ -4,20 +4,20 @@
 
 **Purpose:** Methodology reference for **MVP slicing** — Jeff Patton's User-Story Mapping (backbone + a walking-skeleton release-slice line) crossed with the DSDM **MoSCoW** prioritisation board. The analyser follows this document literally and exhaustively.
 
-**The defining constraint of this lens: it reads the cut, it never makes it.** Priorities already exist in `requirements/requirements.md` (the `Priority` field on §6.1 / §6.4 / §4.2, set by `GR-24` at merge time). This methodology *visualises* them as a release slice and a board — it does not re-prioritise, score, or infer. There is no effort axis and no value axis to compute; every value on the artefact is read verbatim or routed deterministically. **This methodology emits zero `[AI-SUGGESTED]` markers** because it performs zero content inference: a card that cannot be sourced or linked is *routed* (to a Supporting column or an Unprioritised band), never invented.
+**The defining constraint of this lens: it reads the cut, it never makes it.** Priorities already exist in `generated-docs/requirements/requirements.md` (the `Priority` field on §6.1 / §6.4 / §4.2, set by `GR-24` at merge time). This methodology *visualises* them as a release slice and a board — it does not re-prioritise, score, or infer. There is no effort axis and no value axis to compute; every value on the artefact is read verbatim or routed deterministically. **This methodology emits zero `[AI-SUGGESTED]` markers** because it performs zero content inference: a card that cannot be sourced or linked is *routed* (to a Supporting column or an Unprioritised band), never invented.
 
 **Used by:**
 
 - `framework/agents/analyses/mvp-slicing-analyser.md` — drives the agent's five-round process plus the quality-check sweep.
 - `framework/skills/map-mvp-slicing-to-ui.md` — downstream consumer (stub).
 
-**Output produced by the analyser:** `analyse-requirements/MVP-SLICING/mvp-slicing.html` — a self-contained HTML artefact (story map + MoSCoW board) using `framework/assets/analyses/template-mvp-slicing.html` as scaffold, plus the structured sidecar `analyse-requirements/MVP-SLICING/mvp-slicing.sidecar.json`.
+**Output produced by the analyser:** `generated-docs/analyse-requirements/MVP-SLICING/mvp-slicing.html` — a self-contained HTML artefact (story map + MoSCoW board) using `framework/assets/analyses/template-mvp-slicing.html` as scaffold, plus the structured sidecar `generated-docs/analyse-requirements/MVP-SLICING/mvp-slicing.sidecar.json`.
 
 ---
 
 ## Upstream input contract
 
-MVP slicing is a **prioritisation lens onto the requirements the BA already prioritised** — never a re-prioritisation. The analyser reads the **clean merged** `requirements/requirements.md`: the `Priority` cell on each §6.1 F-NN row, §6.4 UI-NN row, and §4.2 story is a plain `Must` / `Should` / `Could` / `Won't` token (the `[STANDARD-RULE: GR-24]` / `[SRC: C-NNN]` markers were stripped at merge). The analyser takes that token as-authored.
+MVP slicing is a **prioritisation lens onto the requirements the BA already prioritised** — never a re-prioritisation. The analyser reads the **clean merged** `generated-docs/requirements/requirements.md`: the `Priority` cell on each §6.1 F-NN row, §6.4 UI-NN row, and §4.2 story is a plain `Must` / `Should` / `Could` / `Won't` token (the `[STANDARD-RULE: GR-24]` / `[SRC: C-NNN]` markers were stripped at merge). The analyser takes that token as-authored.
 
 `GR-24` is referenced **only** to (a) sanity-check whether each `Must` card is GR-24-consistent (a *soft* flag — the consultant may have hand-edited a priority, which GR-24 explicitly permits) and (b) phrase the human-readable rationale line. The analyser never recomputes a priority from the §1.5 buckets or §4 goal links.
 
@@ -100,7 +100,7 @@ Card markup is **shared** between the map and the board so a reader recognises t
 
 Each hard check is a gate. On any hard failure the analyser does **not** write the artefact — it surfaces a structured error and halts per `framework/agents/analyses/mvp-slicing-analyser.md > Step 8`.
 
-1. **Every card is sourced.** Every card's `data-src` (the `F-NN` / `UI-NN` token, or the `story:<persona>/«intent»` anchor) is a verbatim substring of `requirements/requirements.md`. No fabricated IDs. *(Most load-bearing.)*
+1. **Every card is sourced.** Every card's `data-src` (the `F-NN` / `UI-NN` token, or the `story:<persona>/«intent»` anchor) is a verbatim substring of `generated-docs/requirements/requirements.md`. No fabricated IDs. *(Most load-bearing.)*
 2. **Every card has a priority read verbatim.** `data-priority` ∈ {Must, Should, Could, Won't} equals the row's `Priority` cell byte-for-byte, or is `(unset)`. `unset` cards fail this check (forcing the prompt) — the analyser never guesses a priority.
 3. **Proposed MVP == Must set.** `MVP_ITEM_COUNT == MUST_COUNT`, and the set of cards in the MVP band equals the set of `data-priority="Must"` cards, equals the Must board column.
 4. **Every backbone activity is sourced.** Each backbone column's `data-src` resolves to a real §5 flow, a real §4.1 goal, or the `single-column` sentinel. No invented activities.

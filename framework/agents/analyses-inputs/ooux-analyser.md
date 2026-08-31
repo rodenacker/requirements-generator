@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **o
 
 ## Purpose
 
-Produce `analyse-inputs/OOUX/ooux-object-map.html` — a self-contained HTML5 OOUX object map of the raw consultant material enumerated in `requirements/source-manifest.json` — by applying Sophia Prater's ORCA process (`framework/assets/analyses-inputs/ooux-reference.md`) literally and exhaustively to every manifest row whose `tier != "Unsupported"`.
+Produce `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` — a self-contained HTML5 OOUX object map of the raw consultant material enumerated in `generated-docs/requirements/source-manifest.json` — by applying Sophia Prater's ORCA process (`framework/assets/analyses-inputs/ooux-reference.md`) literally and exhaustively to every manifest row whose `tier != "Unsupported"`.
 
 The artefact has **six visible surfaces** in DOM order (plus a colour-key legend bar directly beneath the TOC): a compact overview header with counts and the manifest fingerprint; the canonical OOUX sticky-note column-board under an `<h2>` heading (the object map — one column per object: CTAs, header, CCPs, metadata, nested refs; this is the "MUST contain a diagram" deliverable); a relationship matrix (tabular fallback); a `<pre><code class="language-json" id="ooux-object-map-body">` block carrying the full machine-readable object model (the load-bearing `/requirements` re-ingestion contract — survives markitdown HTML→MD as a fenced ```json code block); a source roster table (consumed + skipped manifest rows) placed below the object-map body as an audit trail; and a collapsed diagnostics block (synonym-merge log + 8 gate results + `irrelevant-to-domain` source rows + run history). The `<head>` also carries a small `<script type="application/json" id="ooux-object-map-meta">` block with counts and the manifest fingerprint for drift detection on subsequent runs (markitdown strips this block — it is not the round-trip carrier).
 
@@ -14,7 +14,7 @@ Every object, every CTA, every attribute, every relationship carries `[SRC: <fil
 
 ## Sibling
 
-`framework/agents/analyses/ooux-analyser.md` — the requirements-side OOUX analyser that operates on the synthesised `requirements/requirements.md`. The two analysers share the methodology (ORCA, six rounds, sticky-note column-board) but differ in input contract (manifest + enumerated files vs single merged document), citation grammar (`[SRC: <filename>]` vs `[SRC: C-NNN]`), provenance markers (`from-source-<filename>` / `synonym-merged-from-[<filenames>]` / `inferred-from-<filename>` vs `from-domain-model` / `derived-from-<section>`), output additions (source-roster + machine-readable JSON body block + 8th quality gate), and registry residence (`framework/assets/analyses-inputs/registry.md` vs `framework/assets/analyses/registry.md`).
+`framework/agents/analyses/ooux-analyser.md` — the requirements-side OOUX analyser that operates on the synthesised `generated-docs/requirements/requirements.md`. The two analysers share the methodology (ORCA, six rounds, sticky-note column-board) but differ in input contract (manifest + enumerated files vs single merged document), citation grammar (`[SRC: <filename>]` vs `[SRC: C-NNN]`), provenance markers (`from-source-<filename>` / `synonym-merged-from-[<filenames>]` / `inferred-from-<filename>` vs `from-domain-model` / `derived-from-<section>`), output additions (source-roster + machine-readable JSON body block + 8th quality gate), and registry residence (`framework/assets/analyses-inputs/registry.md` vs `framework/assets/analyses/registry.md`).
 
 ## Output section order
 
@@ -58,17 +58,17 @@ The in-memory `model` (objects + relationships + CTAs + attributes + CCPs + syno
 
 This agent reads:
 
-- `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
+- `generated-docs/requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
 - For each manifest row whose `tier != "Unsupported"`: the read path resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`.
-- `analyse-inputs/OOUX/ooux-object-map.html` (read once in Step 3 if present, for additive merge / drift detection).
+- `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` (read once in Step 3 if present, for additive merge / drift detection).
 - `framework/assets/characters/ooux-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/ooux-reference.md` (the methodology — read once in Step 1).
 - `framework/assets/analyses-inputs/template-ooux.html` (the HTML scaffold — read once at render time in Step 11).
 - `framework/skills/verify-artifact-write.md` (read once before invocation in Step 11 sub-step D).
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry and general-rule references in this file and in the reference are textual links, not file loads). It does not read other analyses' artefacts under `analyse-requirements/` or `analyse-inputs/<OTHER-METHOD>/`.
+The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry and general-rule references in this file and in the reference are textual links, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` or `generated-docs/analyse-inputs/<OTHER-METHOD>/`.
 
-The agent's only outputs are `analyse-inputs/OOUX/ooux-object-map.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -81,19 +81,19 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 - Read `framework/assets/characters/ooux-inputs-analysis.md` once.
 - Read `framework/assets/analyses-inputs/ooux-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
 - Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose, never gloss client domain terms (GLOSSARY territory), keep every `[SRC]`, and confine plain prose to the lead + glosses (the column-board, matrix, JSON, and diagnostics keep their concrete discipline).
-- State readiness in one short line: *"OOUX inputs-side analyser ready. Starting from `requirements/source-manifest.json`. Methodology: Sophia Prater's ORCA process adapted for raw consultant inputs — six rounds (Discovery → Objects → Relationships → CTAs → Attributes → CCPs); load-bearing synonym merge in Round 2; citations via `[SRC: <filename>]`; provenance markers `from-source-<filename>` / `synonym-merged-from-[<filenames>]` / `inferred-from-<filename>`; the artefact carries the canonical sticky-note column-board plus an embedded JSON body block for `/requirements` round-trip; 8 hard quality gates including the inputs-side-specific Gate 8 (every consumed row contributes ≥ 1 candidate noun OR is marked irrelevant-to-domain)."*
-- Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, and `framework/shared/` are not loaded."*
+- State readiness in one short line: *"OOUX inputs-side analyser ready. Starting from `generated-docs/requirements/source-manifest.json`. Methodology: Sophia Prater's ORCA process adapted for raw consultant inputs — six rounds (Discovery → Objects → Relationships → CTAs → Attributes → CCPs); load-bearing synonym merge in Round 2; citations via `[SRC: <filename>]`; provenance markers `from-source-<filename>` / `synonym-merged-from-[<filenames>]` / `inferred-from-<filename>`; the artefact carries the canonical sticky-note column-board plus an embedded JSON body block for `/requirements` round-trip; 8 hard quality gates including the inputs-side-specific Gate 8 (every consumed row contributes ≥ 1 candidate noun OR is marked irrelevant-to-domain)."*
+- Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `generated-docs/requirements/requirements.md`, `framework/state/`, and `framework/shared/` are not loaded."*
 
 ### Step 2 — Read manifest & per-tier file ingest
 
-- `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block, the body JSON, and the drift cursor.
+- `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block, the body JSON, and the drift cursor.
 - Parse the manifest. Capture `target` field if present (`prototype` | `application`); else default to `"(not declared in manifest)"`.
 - Iterate rows; for each row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already contains a faithful transcription plus a structured what/how breakdown that enumerates the OOUX-relevant items: objects, their attributes, relationships and cardinality, plus actors and CTAs. Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. **Visual sources can be high-leverage for OOUX** — ERD diagrams, domain model sketches, and whiteboard photos often carry explicit entity names and relationships that prose lacks, and the frozen description surfaces them as enumerated text.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
+- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
 - If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
@@ -101,11 +101,11 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
-- Attempt to `Read analyse-inputs/OOUX/ooux-object-map.html`. If absent, set `prior_run = null` and skip to Step 4.
+- Attempt to `Read generated-docs/analyse-inputs/OOUX/ooux-object-map.html`. If absent, set `prior_run = null` and skip to Step 4.
 - If present:
   - Locate the `<script type="application/json" id="ooux-object-map-meta">` block in `<head>`. Parse the JSON. Extract `manifest_sha256`, `run_count`, `object_count`, `relationship_count`, `synonym_merge_count`.
   - Validate the JSON metadata parses cleanly. If it does not, surface `AskUserQuestion`:
-    - Question: *"The prior `analyse-inputs/OOUX/ooux-object-map.html` has an unparseable ooux-object-map-meta JSON block (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
+    - Question: *"The prior `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` has an unparseable ooux-object-map-meta JSON block (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
     - Header: `Prior run`
     - Options: `Start fresh — ignore the unreadable prior file (Recommended)`, `Abort — let me inspect`.
   - On `Start fresh`: set `prior_run = null`; advance to Step 4.
@@ -113,7 +113,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - On successful parse: drift gate via `AskUserQuestion`:
     - **Hash equal** (current `manifest_sha256` == `prior_run.manifest_sha256`): set `drift_mode = "none"`; advance to Step 4. Re-runs against an unchanged manifest may still apply consultant revisions from the next Step 12 Revise loop.
     - **Hash different**: surface the prompt:
-      - Question: *"`requirements/source-manifest.json` has changed since the last OOUX run (prior fingerprint: `{prior.manifest_sha256[:12]}…`, current: `{current_fingerprint[:12]}…`). How should this run reconcile?"*
+      - Question: *"`generated-docs/requirements/source-manifest.json` has changed since the last OOUX run (prior fingerprint: `{prior.manifest_sha256[:12]}…`, current: `{current_fingerprint[:12]}…`). How should this run reconcile?"*
       - Header: `Drift`
       - Options:
         1. `Re-extract — re-run Rounds 1–6 from scratch on the current manifest (Recommended for OOUX — synonym merges should re-evaluate when sources change)`
@@ -348,11 +348,11 @@ Compose the full HTML in memory by substituting all placeholders into the templa
 
 **Sub-step D — Write + verify.**
 
-- Ensure the output directory exists. On POSIX shells: `Bash mkdir -p analyse-inputs/OOUX`. On Windows-only environments: `PowerShell New-Item -ItemType Directory -Force -Path analyse-inputs/OOUX`. The orchestrator's environment determines which shell.
-- `Write analyse-inputs/OOUX/ooux-object-map.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-inputs/OOUX/ooux-object-map.html`, `expected_sha256 = <Step 11 sha>`, `expected_min_bytes = 4096`. A minimum legal render (template scaffold + overview + source-roster with ≥ 1 consumed row + ≥ 1 column + relationship matrix + JSON body block + diagnostics + next-steps banner) clears 4 KB.
+- Ensure the output directory exists. On POSIX shells: `Bash mkdir -p generated-docs/analyse-inputs/OOUX`. On Windows-only environments: `PowerShell New-Item -ItemType Directory -Force -Path generated-docs/analyse-inputs/OOUX`. The orchestrator's environment determines which shell.
+- `Write generated-docs/analyse-inputs/OOUX/ooux-object-map.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/analyse-inputs/OOUX/ooux-object-map.html`, `expected_sha256 = <Step 11 sha>`, `expected_min_bytes = 4096`. A minimum legal render (template scaffold + overview + source-roster with ≥ 1 consumed row + ≥ 1 column + relationship matrix + JSON body block + diagnostics + next-steps banner) clears 4 KB.
 - **On `pass`:** advance to Step 12.
-- **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `analyse-inputs/OOUX/ooux-object-map.html` after one retry."* and fail handback.
+- **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` after one retry."* and fail handback.
 
 ### Step 12 — Handback (Accept / Revise / Restart)
 
@@ -360,7 +360,7 @@ Compose the full HTML in memory by substituting all placeholders into the templa
 
 Output one short, concrete line:
 
-> *"Wrote `analyse-inputs/OOUX/ooux-object-map.html` (run #{run_count}) — {object_count} objects ({n_from_source} from-source, {n_synonym_merged} synonym-merged, {n_inferred} inferred), {relationship_count} relationships, {cta_count} CTAs, {attribute_count} attributes ({ccp_count} CCPs), {synonym_merge_count} synonym merges, {irrelevant_row_count} irrelevant-to-domain rows. Quality gates: {n_pass}/8 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` (run #{run_count}) — {object_count} objects ({n_from_source} from-source, {n_synonym_merged} synonym-merged, {n_inferred} inferred), {relationship_count} relationships, {cta_count} CTAs, {attribute_count} attributes ({ccp_count} CCPs), {synonym_merge_count} synonym merges, {irrelevant_row_count} irrelevant-to-domain rows. Quality gates: {n_pass}/8 pass. Ready, or want changes?"*
 
 Variants:
 
@@ -370,7 +370,7 @@ Variants:
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–6 re-run from scratch on the current manifest; {n_preserved} prior canonical names preserved through re-extraction, {n_dropped} dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior objects preserved verbatim; only new content from new manifest rows was appended this run."*
 - If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to extend the object map."*
-- Always append: *"To re-ingest into `/requirements`, copy `analyse-inputs/OOUX/ooux-object-map.html` into `documentation/` and re-run `/requirements` — instructions are in the Next-steps banner of the artefact."*
+- Always append: *"To re-ingest into `/requirements`, copy `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` into `documentation/` and re-run `/requirements` — instructions are in the Next-steps banner of the artefact."*
 
 **B. Accept / Revise / Restart loop.**
 
@@ -396,7 +396,7 @@ Use `AskUserQuestion`:
   - **Add / remove / reorder CCPs**: update the in-memory CCP ordering; re-run gate 4; re-render; re-Write; re-verify; loop back to A.
   - **Mark a row as not irrelevant-to-domain** ("`entities.yaml` does describe the domain — re-scan"): re-run Round 1 + Round 2 against the specific file; update `nouns_contributed`; remove from `irrelevant_to_domain_rows`; re-run Gate 8; re-render; re-Write; re-verify; loop back to A.
   - **Add an Override note** for a previously-failed gate: append to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
-- **Restart** — re-enter Step 4 (Round 1). The previously-written `analyse-inputs/OOUX/ooux-object-map.html` is left in place; the next Step 11 will overwrite it.
+- **Restart** — re-enter Step 4 (Round 1). The previously-written `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` is left in place; the next Step 11 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 11).
 
@@ -408,9 +408,9 @@ Output the final handback line:
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the manifest. Read once in Step 2.
+- `generated-docs/requirements/source-manifest.json` — the manifest. Read once in Step 2.
 - Each manifest row's resolved read path per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`. Read in Step 2.
-- `analyse-inputs/OOUX/ooux-object-map.html` — prior run's artefact. Read once in Step 3 if present.
+- `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` — prior run's artefact. Read once in Step 3 if present.
 - `framework/assets/characters/ooux-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/ooux-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/analyses-inputs/template-ooux.html` — the HTML scaffold. Read once at render time in Step 11.
@@ -418,14 +418,14 @@ Output the final handback line:
 
 ## Output
 
-- `analyse-inputs/OOUX/ooux-object-map.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior objects / relationships / CTAs / attributes / CCPs preserved verbatim unless the consultant chose the `re-extract` drift branch).
+- `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior objects / relationships / CTAs / attributes / CCPs preserved verbatim unless the consultant chose the `re-extract` drift branch).
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file, and (if present) the prior OOUX artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
-- `Write` — write `analyse-inputs/OOUX/ooux-object-map.html`.
+- `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file, and (if present) the prior OOUX artefact. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
+- `Write` — write `generated-docs/analyse-inputs/OOUX/ooux-object-map.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not `Edit` the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyse-inputs/OOUX` (Step 11 setup). On Windows-only environments, use the PowerShell `New-Item` equivalent.
+- `Bash` — `mkdir -p generated-docs/analyse-inputs/OOUX` (Step 11 setup). On Windows-only environments, use the PowerShell `New-Item` equivalent.
 - `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta-block is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-gate failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
 
 **No MCP tools.** No Agent / Task delegation. Every step runs in the foreground in this thread.
@@ -434,7 +434,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyse-inputs/OOUX/ooux-object-map.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholder strings.
 - The artefact begins with `<!doctype html>`.
 - The artefact contains exactly one `<script type="application/json" id="ooux-object-map-meta">` block in `<head>`. Its `manifest_sha256` equals the Step 2 value; its `run_count` equals `prior.run_count + 1` (or `1` on first run); its `object_count`, `relationship_count`, `cta_count`, `attribute_count`, `ccp_count`, `consumed_row_count`, `skipped_row_count`, `synonym_merge_count`, `irrelevant_row_count` match the rendered content.
@@ -451,14 +451,14 @@ Before handing back, verify all of the following against the written artefact an
 - Every consultant-supplied string in HTML body content is HTML-escaped (`<` → `&lt;`, `&` → `&amp;`, etc.).
 - The synonym-merge log in diagnostics has exactly `{{SYNONYM_MERGE_COUNT}}` entries (or the empty-list placeholder). Every entry names a canonical, ≥ 2 literal terms (when not an `unresolved-merge-candidate`), ≥ 1 source filename, and a heuristic.
 - The irrelevant-to-domain log in diagnostics has exactly `{{IRRELEVANT_ROW_COUNT}}` entries (or the empty-list placeholder). Every entry names a filename matching a `consumed_rows[*].filename` and a one-line reason.
-- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
-- No file under `analyse-requirements/` was read (this is the inputs-side analyser; the requirements-side OOUX artefact is not an input).
+- No file under `generated-docs/analyse-requirements/` was read (this is the inputs-side analyser; the requirements-side OOUX artefact is not an input).
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
 
 ## Definition of Done
 
-- `analyse-inputs/OOUX/ooux-object-map.html` exists, has been verified, and contains a complete OOUX object map: overview, colour-key legend, object column-board (under its `<h2>` heading) with ≥ 1 column, relationship matrix, machine-readable JSON body block, source roster, collapsed diagnostics with synonym-merge log + 8 gate results + irrelevant-to-domain rows + run history, and the Next-steps banner.
+- `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` exists, has been verified, and contains a complete OOUX object map: overview, colour-key legend, object column-board (under its `<h2>` heading) with ≥ 1 column, relationship matrix, machine-readable JSON body block, source roster, collapsed diagnostics with synonym-merge log + 8 gate results + irrelevant-to-domain rows + run history, and the Next-steps banner.
 - Either all 8 hard quality gates passed (Gate 7 = pass), or the consultant explicitly chose Override and the Run-history bullet for this run records every violation.
 - DOM order is plain-terms → overview → toc → legend → diagrams → tables → object-map-body → source-roster → diagnostics → next-steps → downstream-toggle.
 - The `<pre><code class="language-json" id="ooux-object-map-body">` block parses as valid JSON and matches the reference's JSON schema (schema_version 1; objects with `provenance` + `ctas` + `ccps` + `attributes` + `citations`; relationships with `from` + `to` + `verb` + `cardinality` + `also_nested` + `citations`; synonym_merges with `canonical` + `merged_from` + `source_filenames` + `heuristic`; quality_gates 1–8; irrelevant_to_domain_rows).
@@ -468,7 +468,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Anti-Patterns
 
-- **Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files.** The stand-alone-ish constraint is the agent's most load-bearing invariant. The merged `requirements/requirements.md` is not an input to this analyser; the inputs-side OOUX operates on raw material, not synthesised requirements.
+- **Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files.** The stand-alone-ish constraint is the agent's most load-bearing invariant. The merged `generated-docs/requirements/requirements.md` is not an input to this analyser; the inputs-side OOUX operates on raw material, not synthesised requirements.
 - **Do not read `framework/state/` or `framework/shared/` for any purpose.** Pipeline state and shared rules are not inputs-side-OOUX inputs (refusal-registry / general-rule textual references are links, not file loads).
 - **Do not invent objects.** Every retained object has provenance traceable to ≥ 1 consumed source. `inferred-from-<filename>` is reserved for nouns *implied* by surrounding context in a *named* source — never for nouns the analyser hallucinated. Gate 6 enforces this.
 - **Do not silently merge synonyms.** Every merge lands in the synonym-merge log with literal terms, source filenames, and the heuristic used. Silent merges hide reasoning and break reviewability; they are the single most damaging failure mode on the inputs side because they propagate undocumented interpretive decisions into `/requirements` downstream.

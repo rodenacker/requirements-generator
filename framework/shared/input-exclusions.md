@@ -71,7 +71,7 @@ engagement) is **not read by the `/requirements` drafter**.
 
 **Unlike `IX-01`..`IX-04`, this is a pipeline-scoped, *consumer-side* exclusion, not a universal
 enumeration-side one.** The asset **stays a manifest row** — the input-handler still enumerates it (so the
-shared `requirements/source-manifest.json` is identical across pipelines, and `/generate-prd`,
+shared `generated-docs/requirements/source-manifest.json` is identical across pipelines, and `/generate-prd`,
 `/analyse-inputs`, `/review-inputs` still consume it). Only the `/requirements` drafter *skips reading* the
 row, per the pipeline-scoped clause of the Read-path resolution rule in
 `framework/skills/build-source-manifest.md`. The file is never deleted or moved (`IS-02`).

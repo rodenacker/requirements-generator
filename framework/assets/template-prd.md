@@ -9,7 +9,7 @@
 > - **No `GR-21` enforcement.** The PRD is human-audience; layout-vocab phrasing is acceptable in any section where it aids understanding (e.g., "the dashboard surfaces three KPI cards").
 >
 > Inferred content is marked inline with one of two markers per the drafter's decision tree (`framework/agents/prd-drafter.md > Classification`):
-> - `[SRC: PC-NNN]` — input-cited fact (PRD-namespaced; sidecar at `prd/draft-claims.ndjson`).
+> - `[SRC: PC-NNN]` — input-cited fact (PRD-namespaced; sidecar at `generated-docs/prd/draft-claims.ndjson`).
 > - `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]` — inferred fill; resolver Q&A's it; merger strips it.
 >
 > No `[STANDARD-RULE]`, `[OUT-OF-SCOPE]`, or `[REQ:]` markers are emitted by the PRD pipeline — see `framework/agents/prd-drafter.md > Classification` for the rationale.
@@ -31,8 +31,8 @@
 
 **Reading list (companion artefacts):**
 
-- {{companion_doc_1}} <!-- e.g. "requirements/requirements.md — the FE spec derived from this PRD" -->
-- {{companion_doc_2}} <!-- e.g. "design-system/design-system-light.html — the design tokens" -->
+- {{companion_doc_1}} <!-- e.g. "generated-docs/requirements/requirements.md — the FE spec derived from this PRD" -->
+- {{companion_doc_2}} <!-- e.g. "generated-docs/design-system/design-system-light.html — the design tokens" -->
 
 <!-- rev: run-N YYYY-MM-DD -->
 

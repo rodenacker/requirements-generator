@@ -2,13 +2,13 @@
 
 # reviews/ten-ux-questions-reference.md
 
-**Purpose:** Methodology reference for the **10 UX Questions** review of `requirements/requirements.md`. The reviewer follows this document literally and exhaustively.
+**Purpose:** Methodology reference for the **10 UX Questions** review of `generated-docs/requirements/requirements.md`. The reviewer follows this document literally and exhaustively.
 
 **Used by:**
 
 - `framework/agents/reviews/ten-ux-questions-reviewer.md` — drives the agent's candidate-generation, filter, score-and-select, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — a self-contained HTML report listing the ten most pressing unanswered UX questions an experienced UX designer would ask after reading `requirements/requirements.md`, each tagged `blocking | major | minor`, each anchored to a section or marked as a missing-section gap, each with a 1–2 sentence rationale on the design impact of leaving the question unanswered. Selection is from a candidate pool of up to 50.
+**Output produced by the reviewer:** `generated-docs/review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — a self-contained HTML report listing the ten most pressing unanswered UX questions an experienced UX designer would ask after reading `generated-docs/requirements/requirements.md`, each tagged `blocking | major | minor`, each anchored to a section or marked as a missing-section gap, each with a 1–2 sentence rationale on the design impact of leaving the question unanswered. Selection is from a candidate pool of up to 50.
 
 The scaffold for the artefact is `framework/assets/reviews/template-ten-ux-questions.html`.
 
@@ -44,7 +44,7 @@ The two numbers are not magic. They reflect three things:
 
 The reviewer reads **only** the following:
 
-- `requirements/requirements.md` — the merged requirements document. Read once at Step 2. This is the critique target.
+- `generated-docs/requirements/requirements.md` — the merged requirements document. Read once at Step 2. This is the critique target.
 - `framework/assets/characters/ten-ux-questions-review.md` — the character file. Read once at Step 1.
 - `framework/assets/reviews/ten-ux-questions-reference.md` — this document. Read once at Step 1.
 - `framework/assets/reviews/template-ten-ux-questions.html` — the HTML scaffold. Read once at Step 7 (render).
@@ -54,9 +54,9 @@ The reviewer reads **only** the following:
 
 It does **not** consult:
 
-- `requirements/requirements-draft.md`, `requirements/source-manifest.json`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — pipeline-internal.
-- `analyse-requirements/*` outputs — derived artefacts; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what an analyser inferred". The review's contract is to identify gaps in the source doc.
-- `design-system/*` outputs — not relevant to a UX questions review.
+- `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/source-manifest.json`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims*.ndjson` — pipeline-internal.
+- `generated-docs/analyse-requirements/*` outputs — derived artefacts; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what an analyser inferred". The review's contract is to identify gaps in the source doc.
+- `generated-docs/design-system/*` outputs — not relevant to a UX questions review.
 - `framework/state/*` — pipeline state is not a review input.
 
 The merged requirements document is the contract. If the doc doesn't say it, and no `GR-NN` / `PI-NN` answers it, and it's in-scope per `prototype-scope.md` — it is a candidate gap.
@@ -397,7 +397,7 @@ Eight gates. All are hard. If any gate fails, the reviewer does **not** write th
 - **Generic questions.** *"What about the user experience?"* is not a finding. Cite the section (or the missing section); state the specific decision the answer would unlock.
 - **Phantom anchors.** A question citing `§4.3.2` when the doc has no `§4.3.2` is a gate-5 failure. Use the Step-2 anchor index to validate every citation.
 - **Hidden quotas.** *"Make at least one blocking question"* is not a quota the reviewer enforces. The priority distribution falls out of the doc; a clean doc produces zero blockings legitimately.
-- **Reviewing against derivatives.** Do not consult `analyse-requirements/*` outputs to triangulate gaps. The review's contract is to read `requirements/requirements.md` as the source of truth.
+- **Reviewing against derivatives.** Do not consult `generated-docs/analyse-requirements/*` outputs to triangulate gaps. The review's contract is to read `generated-docs/requirements/requirements.md` as the source of truth.
 - **Inline `[SRC: ...]` markers.** Per project convention (`feedback_no_inline_provenance`), the merged requirements doc is clean of provenance markers; the review artefact is also clean. Questions cite by section number, not by `[SRC: ...]`.
 
 ---

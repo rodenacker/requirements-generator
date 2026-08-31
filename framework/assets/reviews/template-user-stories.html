@@ -34,7 +34,7 @@
                                       no downstream consumer. Per framework/shared/output-readability.md.
     {{DOMAIN}}                      — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
-    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
+    {{REQUIREMENTS_SHA256}}         — sha256 of generated-docs/requirements/requirements.md at read time
     {{REVIEWER_IDENTITY}}           — fixed string "User Stories Review (product-owner / BA lens; six-criterion story-quality audit)"
     {{TOTAL_STORIES}}               — total number of stories enumerated in §4.2
     {{PASS_COUNT}}                  — stories that passed all six criteria (no surviving issues)
@@ -50,7 +50,7 @@
     {{MINOR_FINDINGS_BLOCK}}        — pre-rendered finding cards for headline_priority = minor (or the empty-state line)
     {{DIAGNOSTICS_BLOCK}}           — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: review-requirements/USER-STORIES/user-stories-review.html.
+  Output: generated-docs/review-requirements/USER-STORIES/user-stories-review.html.
 
   READINESS SEMANTICS — a story with zero surviving issues is "ready" and lives only in the
   Diagnostics pass-count (not surfaced in the body). A story with ≥1 surviving issue is
@@ -596,7 +596,7 @@
     <strong>minor</strong> — refinement opportunity; a reasonable interpretation produces an acceptable story.
   </p>
   <p class="legend">
-    Source: <code>requirements/requirements.md &gt; §4.2 Stories by persona</code> only. Criteria: Meaningful · Implementable · Testable · Coherent · Appropriately scoped · Outcome-aligned. Ready stories are recorded in Diagnostics but not surfaced in the body.
+    Source: <code>generated-docs/requirements/requirements.md &gt; §4.2 Stories by persona</code> only. Criteria: Meaningful · Implementable · Testable · Coherent · Appropriately scoped · Outcome-aligned. Ready stories are recorded in Diagnostics but not surfaced in the body.
   </p>
 </section>
 

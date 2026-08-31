@@ -159,8 +159,8 @@ Conflict resolution is **not** auto-resolved by the architect — the conditiona
 
 Walk every surface's Properties cell and verify every entry resolves:
 
-- `Shape.Field` entries — `Shape` must be a header in `requirements/requirements.md > §7` (or §7.X Derivations) and `Field` must be a row in that shape's table. The architect may need to Read §7 selectively to confirm; the lookup is per-surface and is bounded by the surface's Sources list (the architect only checks shapes named in Sources or implied by the intent).
-- `F-NN:ParamName` entries — `F-NN` must be in the surface's Sources cell **and** `ParamName` must appear verbatim in the F-NN's prose in `requirements/requirements.md` §6.1. Use the requirement's exact name; do not normalise.
+- `Shape.Field` entries — `Shape` must be a header in `generated-docs/requirements/requirements.md > §7` (or §7.X Derivations) and `Field` must be a row in that shape's table. The architect may need to Read §7 selectively to confirm; the lookup is per-surface and is bounded by the surface's Sources list (the architect only checks shapes named in Sources or implied by the intent).
+- `F-NN:ParamName` entries — `F-NN` must be in the surface's Sources cell **and** `ParamName` must appear verbatim in the F-NN's prose in `generated-docs/requirements/requirements.md` §6.1. Use the requirement's exact name; do not normalise.
 - `none` is always valid; record `validation.properties.entries[<surface>] = []`.
 
 Fabricated entries (Shape doesn't exist, Field isn't in the shape, F-NN doesn't name the param) record into `validation.properties.fabricated_entries = [{surface_id, property, reason}]`.

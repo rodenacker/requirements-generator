@@ -53,7 +53,7 @@ The comparator reads:
 - `wireframes/<scope-slug>/scope.json` (via the canonical path `blueprints/<scope-slug>/scope.json`) — scope sources + personas_available (used for the set-index page only).
 - `framework/assets/wireframes/{template-set-index.html, position-vocabulary.md}`.
 
-You do **not** read screen HTML. You do **not** read `tradeoff-dimensions-registry.md` — drift is plan-vs-manifest, not a registry re-derivation. You do **not** read `requirements/` (the architect already propagated relevant context into the blueprint and the sidecars). You do **not** read `framework/state/`, `framework/shared/`, the wireframe DS source (you only need the per-variant `wireframe-ds.css` paths for stylesheet linking from `index.html`), or any other agent's working state beyond the named sidecars. You write only `index.html` and `_drift.json`; the standalone `comparison.html` is no longer authored (the trade-off matrix is inlined as `index.html` §4).
+You do **not** read screen HTML. You do **not** read `tradeoff-dimensions-registry.md` — drift is plan-vs-manifest, not a registry re-derivation. You do **not** read `generated-docs/requirements/` (the architect already propagated relevant context into the blueprint and the sidecars). You do **not** read `framework/state/`, `framework/shared/`, the wireframe DS source (you only need the per-variant `wireframe-ds.css` paths for stylesheet linking from `index.html`), or any other agent's working state beyond the named sidecars. You write only `index.html` and `_drift.json`; the standalone `comparison.html` is no longer authored (the trade-off matrix is inlined as `index.html` §4).
 
 ## Handback discipline
 

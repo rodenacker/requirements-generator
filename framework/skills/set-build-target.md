@@ -1,10 +1,10 @@
 # set-build-target.md
 
-**Purpose:** Set the root-level `target` field of `requirements/source-manifest.json` to the value the orchestrator's Step 1b supplies — always `"prototype"` in current pipeline use (`"application"` remains a legal value, present on legacy manifests and honoured by dormant downstream branches) — then verify the write. The target value governs whether the drafter's gap-pass emits `[OUT-OF-SCOPE: domain-default]` markers and whether the merger appends `framework/shared/prototype-invariants.md` to the final spec. This skill is the single mediator for that mutation — the orchestrator never Edits the manifest directly.
+**Purpose:** Set the root-level `target` field of `generated-docs/requirements/source-manifest.json` to the value the orchestrator's Step 1b supplies — always `"prototype"` in current pipeline use (`"application"` remains a legal value, present on legacy manifests and honoured by dormant downstream branches) — then verify the write. The target value governs whether the drafter's gap-pass emits `[OUT-OF-SCOPE: domain-default]` markers and whether the merger appends `framework/shared/prototype-invariants.md` to the final spec. This skill is the single mediator for that mutation — the orchestrator never Edits the manifest directly.
 
 **Inputs:**
 - `target` — exactly one of `"prototype"` or `"application"`. Any other value (including `null`) is a caller bug; this skill does not validate the choice set — the orchestrator's Step 1b passes the fixed literal `"prototype"` (the consultant prompt is retired).
-- `manifest_path` — repo-relative path of the manifest to mutate. Always `"requirements/source-manifest.json"` in current usage.
+- `manifest_path` — repo-relative path of the manifest to mutate. Always `"generated-docs/requirements/source-manifest.json"` in current usage.
 
 **Outputs:** exactly one of:
 - `pass` — the manifest on disk now carries `"target": <target>` and the write has been verified.

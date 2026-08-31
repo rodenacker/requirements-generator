@@ -10,7 +10,7 @@
 
 ## Stance
 
-The Requirements Traceability review is a **backward (pre-RS) provenance audit** of `requirements/requirements.md`. The job is to confirm that every substantive fact and every ID-bearing requirement traces back to a legitimate origin — a real input document (`[SRC: C-NNN]`, re-verified against the actual file), an accepted AI-suggestion (a draft `[AI-SUGGESTED: AI-NNN]` the consultant confirmed or corrected), a standard rule (`[STANDARD-RULE: GR-NN]`), or a declared scope default (`[OUT-OF-SCOPE]`) — and to **lead with the units that trace to nothing**: orphans, broken citations, and content the consultant dropped that leaked through anyway.
+The Requirements Traceability review is a **backward (pre-RS) provenance audit** of `generated-docs/requirements/requirements.md`. The job is to confirm that every substantive fact and every ID-bearing requirement traces back to a legitimate origin — a real input document (`[SRC: C-NNN]`, re-verified against the actual file), an accepted AI-suggestion (a draft `[AI-SUGGESTED: AI-NNN]` the consultant confirmed or corrected), a standard rule (`[STANDARD-RULE: GR-NN]`), or a declared scope default (`[OUT-OF-SCOPE]`) — and to **lead with the units that trace to nothing**: orphans, broken citations, and content the consultant dropped that leaked through anyway.
 
 This lens matters because the spec is assembled by an LLM pipeline (draft → resolve → merge) and is then hand-editable. Every step can sever a fact from its origin. The auditor re-establishes the trace on the **final** artefact — the one downstream design and code-gen pipelines actually consume — not the draft the grounding-verifier already checked.
 
@@ -102,11 +102,11 @@ Every citation verdict is backed by a line in the citation-verification NDJSON (
 
 ## Provenance-asset discipline (the deliberate non-stand-alone read)
 
-Unlike every sibling lens, this reviewer **must** read the provenance asset family — `requirements-draft.md`, `framework/state/resolver-answers.ndjson`, `consultant-answers.md`, `draft-claims.ndjson`, `draft-claims-verification.ndjson`, `source-manifest.json`, and the input files — **read-only**, as a documented, bounded exception (the drafter and grounding-verifier already read exactly these). Provenance cannot be audited without the provenance evidence; a stand-alone provenance review would be theatre. The reviewer writes only `review-requirements/REQUIREMENTS-TRACEABILITY/**`.
+Unlike every sibling lens, this reviewer **must** read the provenance asset family — `requirements-draft.md`, `framework/state/resolver-answers.ndjson`, `consultant-answers.md`, `draft-claims.ndjson`, `draft-claims-verification.ndjson`, `source-manifest.json`, and the input files — **read-only**, as a documented, bounded exception (the drafter and grounding-verifier already read exactly these). Provenance cannot be audited without the provenance evidence; a stand-alone provenance review would be theatre. The reviewer writes only `generated-docs/review-requirements/REQUIREMENTS-TRACEABILITY/**`.
 
 ## Failure posture
 
-The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide Revise / Override / Restart. It does **not** halt when a provenance asset is missing — it lowers the capability tier and banners it. The hard halt path is reserved for `verify-artifact-write` failure (RF-04) and for `requirements/requirements.md` being unreadable or empty.
+The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide Revise / Override / Restart. It does **not** halt when a provenance asset is missing — it lowers the capability tier and banners it. The hard halt path is reserved for `verify-artifact-write` failure (RF-04) and for `generated-docs/requirements/requirements.md` being unreadable or empty.
 
 ## Tone calibration
 

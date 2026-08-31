@@ -3,7 +3,7 @@
 
   Purpose: HTML/CSS skeleton for the Business Context Definition report, **input-analysis
   variant** — analyses raw consultant material enumerated in
-  `requirements/source-manifest.json` (not the synthesised `requirements/requirements.md`).
+  `generated-docs/requirements/source-manifest.json` (not the synthesised `generated-docs/requirements/requirements.md`).
   Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No external CSS/JS
   dependencies, NO Mermaid, NO CDN, NO `<script>`; viewable by opening `file://` in a
   browser; shareable with clients without tooling. Readability-optimised.
@@ -47,7 +47,7 @@
     {{TITLE}}                       — short title (e.g. "Business Context — Inputs — Project X")
     {{DOMAIN}}                      — domain string (best-effort: manifest `target`/brief)
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}        — sha256 of requirements/source-manifest.json at read time
+    {{MANIFEST_FINGERPRINT}}        — sha256 of generated-docs/requirements/source-manifest.json at read time
     {{SOURCE_COUNT}}                — count of consumed manifest rows (tier != "Unsupported")
     {{TIER_BREAKDOWN}}              — e.g. "3 Native-text, 1 Native-multimodal, 1 Supported-via-MCP"
     {{PROBLEM_COUNT}}               — count of business_problems
@@ -73,7 +73,7 @@
                                       carrying manifest_fingerprint=<sha256>, run_count=<int>.
                                       Step 3 prior-artefact detection parses the first match.
 
-  Output: analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html.
+  Output: generated-docs/analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html.
 
   ----------------------------------------------------------------------------------------------
   CAUSAL MAP SCHEMA — a single CSS grid of 7 tracks: 4 stage columns separated by 3 arrow columns
@@ -634,7 +634,7 @@
 
     <section id="overview">
       <h1>{{TITLE}}</h1>
-      <p class="subtitle">Business context report (input-analysis variant) — the enterprise motivation behind the request: a Business Needs Assessment, a Business Problem Statement, a Business Goals collection, and a human-centered Problem Statement, linked in a problem&rarr;need&rarr;goal causal chain. Sourced from raw consultant inputs enumerated in <code>requirements/source-manifest.json</code>. Explicit items are cited; inferred items are anchored, marked, and auditable. Enterprise altitude only — actor goals are <code>user-goal-analysis</code>'s lane.</p>
+      <p class="subtitle">Business context report (input-analysis variant) — the enterprise motivation behind the request: a Business Needs Assessment, a Business Problem Statement, a Business Goals collection, and a human-centered Problem Statement, linked in a problem&rarr;need&rarr;goal causal chain. Sourced from raw consultant inputs enumerated in <code>generated-docs/requirements/source-manifest.json</code>. Explicit items are cited; inferred items are anchored, marked, and auditable. Enterprise altitude only — actor goals are <code>user-goal-analysis</code>'s lane.</p>
 
       <dl class="meta-grid">
         <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>

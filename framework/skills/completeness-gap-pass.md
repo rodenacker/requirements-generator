@@ -4,7 +4,7 @@
 
 **Inputs:**
 - The in-memory populated draft (template-requirements.md filled top-to-bottom from inputs and domain defaults; **no `[AI-SUGGESTED]` markers yet**).
-- `target` — exactly one of `"prototype"` or `"application"`. Sourced from `requirements/source-manifest.json > target` (auto-set to `"prototype"` by the orchestrator's Step 1b; `"application"` occurs only on legacy manifests). Governs whether `[OUT-OF-SCOPE: domain-default]` markers are emitted (`prototype`) or suppressed (`application`) — nothing else. **Does not change the set of `[AI-SUGGESTED]` outputs** — the same fields are AI-SUGGESTED under both targets.
+- `target` — exactly one of `"prototype"` or `"application"`. Sourced from `generated-docs/requirements/source-manifest.json > target` (auto-set to `"prototype"` by the orchestrator's Step 1b; `"application"` occurs only on legacy manifests). Governs whether `[OUT-OF-SCOPE: domain-default]` markers are emitted (`prototype`) or suppressed (`application`) — nothing else. **Does not change the set of `[AI-SUGGESTED]` outputs** — the same fields are AI-SUGGESTED under both targets.
 - `framework/shared/prototype-scope.md` — in-scope vs out-of-scope predicate. Consulted under both targets to identify which fields are historically out-of-prototype-scope; the decision is then routed to "emit OOS marker" (prototype) or "fill with domain default, emit no marker" (application).
 - `framework/shared/general-rules.md` — catalogue of `GR-NN` deterministic rules.
 - `framework/assets/topics-requirements.md` — bijection invariants.

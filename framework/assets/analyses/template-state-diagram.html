@@ -50,7 +50,7 @@
     {{TITLE}}                  — short title (e.g. "State Diagrams — Project X").
     {{DOMAIN}}                 — domain string (from requirements §1 if present).
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
-    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{REQUIREMENTS_SHA256}}    — sha256 of generated-docs/requirements/requirements.md at read time.
     {{ENTITY_COUNT}}           — number of rows in the Entities table.
     {{STATE_COUNT}}            — number of rows in the States table (across all entities).
     {{TRANSITION_COUNT}}       — number of rows in the Transitions table (across all entities).
@@ -62,7 +62,7 @@
     {{SVG_DIAGRAMS_BLOCK}}     — pre-rendered Tier-2 <figure> blocks per STATE DIAGRAM SCHEMA below; one <figure> per selected entity. Empty selection renders an empty-state <p>.
     {{MERMAID_BLOCK}}          — pre-rendered <details> containing 0..N <pre> blocks (one Mermaid `stateDiagram-v2` source per selected entity). Empty if none selected.
 
-  Output: analyse-requirements/STATE-DIAGRAM/state-diagram.html.
+  Output: generated-docs/analyse-requirements/STATE-DIAGRAM/state-diagram.html.
 
   CATALOGUE SCHEMA — the analyser's {{CATALOGUE_BLOCK}} substitutes a
   single <section class="catalogue">. The inner section contains, in

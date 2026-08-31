@@ -2,9 +2,9 @@
 
 # Task Flows analysis reference
 
-> **Method:** Extract a **per-task catalogue** (tasks, subgoals/operations, plans, decision points, exception paths, cross-task operation matrix) from `requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered top-level tasks to add as inline-SVG figures — each selected task produces **two** diagrams: a **Hierarchical Task Analysis (HTA) tree** (goal → subgoals → operations) and a **Task-Flow Diagram (TFD)** (linear narrative, start → steps → exits). Same data, two views per task.
+> **Method:** Extract a **per-task catalogue** (tasks, subgoals/operations, plans, decision points, exception paths, cross-task operation matrix) from `generated-docs/requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered top-level tasks to add as inline-SVG figures — each selected task produces **two** diagrams: a **Hierarchical Task Analysis (HTA) tree** (goal → subgoals → operations) and a **Task-Flow Diagram (TFD)** (linear narrative, start → steps → exits). Same data, two views per task.
 
-**Output file:** `analyse-requirements/TASK-FLOWS/task-flows.html` — a self-contained HTML artefact containing the tabular catalogue (always) plus zero or more inline-SVG figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `generated-docs/analyse-requirements/TASK-FLOWS/task-flows.html` — a self-contained HTML artefact containing the tabular catalogue (always) plus zero or more inline-SVG figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/task-flows-analyser.md`
 
@@ -106,7 +106,7 @@ All HTA trees in a single render share a **`node_height`** (max label width × 1
 
 ## Source-of-truth hierarchy
 
-The analyser walks `requirements/requirements.md` in this order:
+The analyser walks `generated-docs/requirements/requirements.md` in this order:
 
 1. **`§5 Task flows`** — primary. Each top-level task-flow row in the template (`framework/assets/template-requirements.md:122–135`) carries six sub-cells: `Actor`, `Trigger`, `Steps`, `Decision points`, `Exception paths`, `Role-conditional behaviour`. Every methodology field maps to a sub-cell:
 
@@ -296,7 +296,7 @@ Richer inputs → richer catalogue. Methodology degrades gracefully: with thin `
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyse-requirements/TASK-FLOWS/task-flows.html`. The analyser populates `framework/assets/analyses/template-task-flows.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `generated-docs/analyse-requirements/TASK-FLOWS/task-flows.html`. The analyser populates `framework/assets/analyses/template-task-flows.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 
@@ -305,7 +305,7 @@ The artefact is a single self-contained HTML file at `analyse-requirements/TASK-
 | `{{TITLE}}` | *"Task Analysis & Task Flows — `<domain>`"* if `§1` declares a domain, else *"Task Analysis & Task Flows"*. |
 | `{{DOMAIN}}` | Verbatim from `§1 Application context > Domain` if present, else *"(not declared in requirements.md)"*. |
 | `{{GENERATED_AT}}` | ISO-8601 UTC, captured at render time. |
-| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `requirements/requirements.md` captured at Step 2. |
+| `{{REQUIREMENTS_SHA256}}` | SHA-256 of `generated-docs/requirements/requirements.md` captured at Step 2. |
 | `{{TASK_COUNT}}` | Number of rows in the Tasks table. |
 | `{{SUBGOAL_COUNT}}` | Number of rows in the Subgoals & operations table with `kind == subgoal`. |
 | `{{OPERATION_COUNT}}` | Number of rows in the Subgoals & operations table with `kind == operation`. |

@@ -23,7 +23,7 @@ that profile verbatim and never re-derives it.
   dimension applicability rules; §5 persona-trait → forbidden/soft dimension
   positions (`daily / high-volume`, `audit / compliance`, `occasional / first-time`).
   This file **references** those vocabularies and rules; it does not re-define them.
-- `requirements/requirements.md` §4 goals-catalogue columns (`Goal statement`,
+- `generated-docs/requirements/requirements.md` §4 goals-catalogue columns (`Goal statement`,
   `Quality signals`, `Goal kind`, `Layout pref`, `UX-pattern pref`) and §3 persona
   blocks (`Role`, `Expertise`, `Stakes`, `Frequency`, `Driving forces — wants/fears`).
 - `framework/assets/wireframes/realization-strategies.md` — the realization closed

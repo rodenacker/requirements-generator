@@ -35,7 +35,7 @@
                                  candidate source has a recognisable domain heading;
                                  otherwise "(not declared in inputs)")
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}   — sha256 of requirements/source-manifest.json at Step 2 read time
+    {{MANIFEST_FINGERPRINT}}   — sha256 of generated-docs/requirements/source-manifest.json at Step 2 read time
     {{REVIEWER_IDENTITY}}      — fixed string "Adversarial Review (BMAD-style, strict mode, inputs-side)"
     {{TOTAL_FINDINGS}}         — count of findings across all dimensions
     {{BLOCKER_COUNT}}          — count of Severity: Blocker
@@ -61,7 +61,7 @@
                                   Scope recalibration log, Override log, Corpus Shape,
                                   Source roster Consumed + Skipped tables)
 
-  Output: review-inputs/ADVERSARIAL/adversarial-review.html.
+  Output: generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html.
 
   FINDINGS TABLE SCHEMA — each row the reviewer emits has the shape:
 

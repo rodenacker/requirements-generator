@@ -20,7 +20,7 @@ The orchestrator itself does not edit PRD artefacts directly during the pipeline
 
 Run the four PRD agents (input-handler → prd-drafter → prd-resolver → prd-merger) in the prescribed order, gating each transition on an explicit handback from the agent that just ran, while logging progress to a PRD-specific progress file so a subsequent invocation can detect prior work and let the consultant either continue it or start fresh.
 
-The pipeline is **fully independent of `requirements/requirements.md`**. The PRD reads only the shared input manifest (`requirements/source-manifest.json`) and the files under `documentation/`. No cross-doc pointers into the requirements doc are emitted.
+The pipeline is **fully independent of `generated-docs/requirements/requirements.md`**. The PRD reads only the shared input manifest (`generated-docs/requirements/source-manifest.json`) and the files under `documentation/`. No cross-doc pointers into the requirements doc are emitted.
 
 ## Progress file
 
@@ -50,10 +50,10 @@ The pipeline is **fully independent of `requirements/requirements.md`**. The PRD
 - `pending_setup` is `null` unless `status = "setup-pending"`. Shape when populated: `{ "predicate": "RF-01", "advice_path": "framework/shared/setup-instructions/markitdown.md", "since": "<ISO-8601 UTC>" }`.
 - The orchestrator writes a `called` event immediately before invoking each agent and a `completed` event immediately after that agent's handback gate is met. No other component writes to this file, except the `input-handler` agent, which writes `status` and `pending_setup` on the `RF-01 continue-later` branch (because this orchestrator passes `progress_path: "framework/state/.prd-progress.json"` at Step 1).
 - An agent is considered **completed for the run** if and only if a `completed` event for that agent exists in `events` **and** its expected artefact exists on disk:
-    - `input-handler` → `requirements/source-manifest.json`
-    - `prd-drafter` → `prd/prd-draft.md`
-    - `prd-resolver` → `prd/consultant-answers.md`
-    - `prd-merger` → `prd/prd.md`
+    - `input-handler` → `generated-docs/requirements/source-manifest.json`
+    - `prd-drafter` → `generated-docs/prd/prd-draft.md`
+    - `prd-resolver` → `generated-docs/prd/consultant-answers.md`
+    - `prd-merger` → `generated-docs/prd/prd.md`
 - A `called` event without a matching `completed` event for the same agent indicates an interrupted step.
 
 This progress file is distinct from `framework/state/.progress.json` (which is owned by `/requirements`). Both pipelines can be in flight simultaneously without state collision.
@@ -86,7 +86,7 @@ This progress file is distinct from `framework/state/.progress.json` (which is o
 
 0a. **Input-ready prompt** — append a `consultant_prompted` event (stage=`orchestrator`, label=`wait-for-input-files`) to `framework/state/timing.ndjson`, then surface `AskUserQuestion` with header `Input ready?`, single-select (no multi-select, no "Other"), and the choice set `{ continue, cancel }`. The question text adapts to the state of `documentation/` (excluding `.gitkeep`): non-empty — *"I see {N} file(s) in `documentation/`: {comma-separated filenames, truncated to the first 5 with `…` if more}. What would you like to do?"*; empty — *"`documentation/` is empty. Drop any files you want me to work from there first, or cancel and re-invoke later. What would you like to do?"*. Option descriptions: `continue` — *"Everything is in `documentation/` — proceed to manifest authoring."*; `cancel` — *"Exit cleanly without invoking the input-handler. Re-run `/generate-prd` when ready."*. Immediately after the consultant's response, append a `consultant_responded` event. Then branch: **continue** — proceed to Step 1; **cancel** — do not invoke the input-handler, do not write any event to `framework/state/.prd-progress.json`, append a `run_end` event to `framework/state/timing.ndjson`, and exit cleanly. **Skip** this step entirely on a rerun where the input-handler already has a `completed` event — that is a UX-only optimisation (the consultant already confirmed input-ready earlier; re-asking is annoying). Step 1 itself still runs in that case (see the prior-progress `continue` branch's exception note); the input-handler's own step-0 freshness check is what catches input-folder drift on a rerun.
 
-1. **Input-handle** — runs on every invocation, regardless of any prior `completed` event for input-handler in `.prd-progress.json` (the agent owns the manifest-lifecycle decision; the `no-op` path is silent so always running it on a rerun catches input-folder drift cheaply). Write a `called` event for `input-handler` to `.prd-progress.json` and append a `stage_start` event (stage=`input-handler`) to `timing.ndjson`, then invoke `framework/agents/input-handler.md` in the foreground with `documentation_dir: "documentation/"`, `manifest_path: "requirements/source-manifest.json"`, and `progress_path: "framework/state/.prd-progress.json"`. The agent decides at its step 0 whether to **create** (manifest absent), **refresh** (present-and-stale, with consultant consent at its drift prompt), **no-op** (present-and-fresh, silent), or **halt** (present-but-corrupt) per its workflow. Wait until that agent reports handback per its Definition of Done. On handback, write a `completed` event for `input-handler` to `.prd-progress.json` and append a `stage_end` event to `timing.ndjson`. If the agent returns `mode: "refresh"`, additionally append a `{"t":"<iso>","type":"manifest_refreshed","stage":"input-handler","mode":"refresh"}` event to `framework/state/timing.ndjson` for observability (additive — does not replace the `stage_start` / `stage_end` pair). If the agent fails its handback via `RF-01 continue-later` (status set to `"setup-pending"`), `RF-03 abort`, step-0 `RF-04 manifest-corruption halt`, or step-0 `Cancel` at its drift prompt, do not write a `completed` event and do not append a `stage_end` event; append a `run_end` event to `timing.ndjson` and exit cleanly.
+1. **Input-handle** — runs on every invocation, regardless of any prior `completed` event for input-handler in `.prd-progress.json` (the agent owns the manifest-lifecycle decision; the `no-op` path is silent so always running it on a rerun catches input-folder drift cheaply). Write a `called` event for `input-handler` to `.prd-progress.json` and append a `stage_start` event (stage=`input-handler`) to `timing.ndjson`, then invoke `framework/agents/input-handler.md` in the foreground with `documentation_dir: "documentation/"`, `manifest_path: "generated-docs/requirements/source-manifest.json"`, and `progress_path: "framework/state/.prd-progress.json"`. The agent decides at its step 0 whether to **create** (manifest absent), **refresh** (present-and-stale, with consultant consent at its drift prompt), **no-op** (present-and-fresh, silent), or **halt** (present-but-corrupt) per its workflow. Wait until that agent reports handback per its Definition of Done. On handback, write a `completed` event for `input-handler` to `.prd-progress.json` and append a `stage_end` event to `timing.ndjson`. If the agent returns `mode: "refresh"`, additionally append a `{"t":"<iso>","type":"manifest_refreshed","stage":"input-handler","mode":"refresh"}` event to `framework/state/timing.ndjson` for observability (additive — does not replace the `stage_start` / `stage_end` pair). If the agent fails its handback via `RF-01 continue-later` (status set to `"setup-pending"`), `RF-03 abort`, step-0 `RF-04 manifest-corruption halt`, or step-0 `Cancel` at its drift prompt, do not write a `completed` event and do not append a `stage_end` event; append a `run_end` event to `timing.ndjson` and exit cleanly.
 
    **Note.** The PRD pipeline does **not** invoke `framework/skills/set-build-target.md` after the input-handler completes. The `target` field on the manifest is set by the `/requirements` orchestrator's Step 1b when that pipeline runs; the PRD pipeline reads the field as informational reference in §1 metadata but does not branch on it. If the manifest's `target` is `null` (the PRD pipeline runs before `/requirements` has set it, or runs in a workspace where `/requirements` will never run), the PRD drafter surfaces "to-be-determined" in §1 metadata's Build target reference field — this is normal and not a failure.
 
@@ -103,10 +103,10 @@ Each step is strictly sequential. Do not start a step until the previous step ha
 Run this once, at the very start of every invocation, before Step 1.
 
 1. **Inspect state.** Read `framework/state/.prd-progress.json` if it exists, and check for the existence of each of:
-    - `requirements/source-manifest.json`
-    - `prd/prd-draft.md`
-    - `prd/consultant-answers.md`
-    - `prd/prd.md`
+    - `generated-docs/requirements/source-manifest.json`
+    - `generated-docs/prd/prd-draft.md`
+    - `generated-docs/prd/consultant-answers.md`
+    - `generated-docs/prd/prd.md`
 2. **Classify.**
     - **No progress detected** — `framework/state/.prd-progress.json` is absent or has an empty `events` array, **and** none of the four artefacts above exists.
     - **Some progress detected** — anything else. If `status = "setup-pending"`, surface that state in the prompt text.
@@ -124,8 +124,8 @@ This procedure runs **only** when the consultant chose `start-fresh` **and** som
 
 Perform the steps in this order. If any step fails, stop and surface the failure to the consultant; do not proceed to the next step.
 
-1. **Git commit.** Stage and commit any current state of `prd/`, `framework/state/.prd-progress.json`, `framework/state/timing.ndjson`, and the three prd-resolver working-state sidecars under `framework/state/` (each "if it exists") so every artefact that subsequent steps will overwrite or delete is preserved in history before deletion.
-    - `git add prd/ framework/state/.prd-progress.json framework/state/timing.ndjson framework/state/prd-resolver-manifest.ndjson framework/state/prd-resolver-answers.ndjson framework/state/prd-resolver-cursor.json`
+1. **Git commit.** Stage and commit any current state of `generated-docs/prd/`, `framework/state/.prd-progress.json`, `framework/state/timing.ndjson`, and the three prd-resolver working-state sidecars under `framework/state/` (each "if it exists") so every artefact that subsequent steps will overwrite or delete is preserved in history before deletion.
+    - `git add generated-docs/prd/ framework/state/.prd-progress.json framework/state/timing.ndjson framework/state/prd-resolver-manifest.ndjson framework/state/prd-resolver-answers.ndjson framework/state/prd-resolver-cursor.json`
     - `git commit -m "checkpoint: prior generate-prd run before reset"` (use `--allow-empty` only if there are no staged changes).
     - Do not push, do not amend, do not bypass hooks.
     - The three explicit `framework/state/prd-resolver-*.{ndjson,json}` paths cover the sidecars deleted in step 4. Non-existent paths in this list cause `git add` to error in some shells; if a path is absent on disk, omit it from the invocation rather than letting the command fail — the prose lists the maximum set, not a required set.
@@ -136,13 +136,13 @@ Perform the steps in this order. If any step fails, stop and surface the failure
     ```
 
 3. **Delete generated PRD artefacts.** Delete each of the following files if it exists:
-    - `prd/prd-draft.md`
-    - `prd/draft-claims.ndjson`
-    - `prd/draft-claims-verification.ndjson`
-    - `prd/consultant-answers.md`
-    - `prd/prd.md`
+    - `generated-docs/prd/prd-draft.md`
+    - `generated-docs/prd/draft-claims.ndjson`
+    - `generated-docs/prd/draft-claims-verification.ndjson`
+    - `generated-docs/prd/consultant-answers.md`
+    - `generated-docs/prd/prd.md`
 
-   Do not delete anything else under `prd/` — only the five artefacts produced by the pipeline.
+   Do not delete anything else under `generated-docs/prd/` — only the five artefacts produced by the pipeline.
 
 4. **Delete agent working-state sidecars.** Delete each of the following files under `framework/state/` if it exists:
     - `framework/state/prd-resolver-manifest.ndjson`
@@ -155,48 +155,48 @@ Perform the steps in this order. If any step fails, stop and surface the failure
    - `framework/state/resolver-*.{ndjson,json}` are **not** touched (those belong to `/requirements`).
 
 5. **Do not delete shared inputs or other-pipeline state.** Specifically, do **not** delete:
-   - `requirements/source-manifest.json` — shared input manifest used by `/requirements`, `/analyse-inputs`, `/review-inputs`, and this pipeline. Deleting it would corrupt sibling pipelines.
+   - `generated-docs/requirements/source-manifest.json` — shared input manifest used by `/requirements`, `/analyse-inputs`, `/review-inputs`, and this pipeline. Deleting it would corrupt sibling pipelines.
    - `documentation/*.converted.md` siblings — produced by the input-handler from `Supported-via-MCP` originals; shared across all pipelines that invoke the input-handler. The `/requirements` orchestrator owns deletion of these on its own reset.
-   - `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `requirements/consultant-answers.md` — belong to `/requirements`.
+   - `generated-docs/requirements/requirements.md`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/draft-claims.ndjson`, `generated-docs/requirements/draft-claims-verification.ndjson`, `generated-docs/requirements/consultant-answers.md` — belong to `/requirements`.
 
 After the reset completes, the pipeline starts cleanly at Step 1.
 
 ## Handback gates
 
-- **After Input-handle:** the input-handler has handed control back when `requirements/source-manifest.json` exists, parses as JSON, contains at least one row with `tier ≠ "Unsupported"`, the agent's mode-specific self-validation has passed, and the manifest is in one of four accepted states:
+- **After Input-handle:** the input-handler has handed control back when `generated-docs/requirements/source-manifest.json` exists, parses as JSON, contains at least one row with `tier ≠ "Unsupported"`, the agent's mode-specific self-validation has passed, and the manifest is in one of four accepted states:
     - `mode = "create"` or `mode = "refresh"` — the manifest was just written, was verified via `framework/skills/verify-artifact-write.md`, and the consultant has accepted it via the agent's handback prompt;
     - `mode = "no-op"` — the manifest was already on disk and the freshness skill returned `fresh`; the consultant is not re-prompted (the manifest was accepted in the run that built it);
     - `mode = "proceed-stale"` — the manifest was stale and the consultant explicitly chose `Proceed with stale manifest` at the agent's step-0 drift prompt; no further acceptance prompt is required.
   If the agent fails its handback via `RF-01 continue-later`, `RF-03 abort`, step-0 `RF-04 manifest-corruption halt`, or step-0 `Cancel` at its drift prompt, do not write a `completed` event.
-- **After Draft:** the drafter has handed control back when `prd/prd-draft.md` exists, the drafter's self-validation has passed, the post-Write `verify-artifact-write` returned `pass`, `prd/draft-claims.ndjson` and `prd/draft-claims-verification.ndjson` both exist, the verification file's summary line shows `failed: 0`, and the consultant has accepted the draft. If the verification summary shows `failed: > 0`, refuse the gate and surface the FAIL list.
-- **After Resolve:** the resolver has handed control back when `prd/consultant-answers.md` exists with one entry per `[AI-SUGGESTED]` ID in the draft, the resolver's self-validation has passed, and either every question has been answered or the consultant has explicitly chosen accept-all-remaining for any residual.
-- **After Merge:** the merger has handed control back when `prd/prd.md` exists with zero `[AI-SUGGESTED]` markers, the merger's self-validation has passed, and the consultant has accepted the merged document. Only then write the `completed` event for `prd-merger`, set `status: "complete"`, append a `stage_end` event, and append a `run_end` event as the final action of the pipeline.
+- **After Draft:** the drafter has handed control back when `generated-docs/prd/prd-draft.md` exists, the drafter's self-validation has passed, the post-Write `verify-artifact-write` returned `pass`, `generated-docs/prd/draft-claims.ndjson` and `generated-docs/prd/draft-claims-verification.ndjson` both exist, the verification file's summary line shows `failed: 0`, and the consultant has accepted the draft. If the verification summary shows `failed: > 0`, refuse the gate and surface the FAIL list.
+- **After Resolve:** the resolver has handed control back when `generated-docs/prd/consultant-answers.md` exists with one entry per `[AI-SUGGESTED]` ID in the draft, the resolver's self-validation has passed, and either every question has been answered or the consultant has explicitly chosen accept-all-remaining for any residual.
+- **After Merge:** the merger has handed control back when `generated-docs/prd/prd.md` exists with zero `[AI-SUGGESTED]` markers, the merger's self-validation has passed, and the consultant has accepted the merged document. Only then write the `completed` event for `prd-merger`, set `status: "complete"`, append a `stage_end` event, and append a `run_end` event as the final action of the pipeline.
 
 If a gate is not met, do not advance and do not write a `completed` event. Surface the agent's report to the consultant and let that agent continue or be re-invoked.
 
 ## Inputs
 
-- `framework/agents/input-handler.md` — invoked at Step 1 with `documentation_dir: "documentation/"`, `manifest_path: "requirements/source-manifest.json"`, `progress_path: "framework/state/.prd-progress.json"`, **on every invocation** (the agent owns the create / refresh / no-op / halt decision; the orchestrator never branches on manifest state). Shared with `/requirements`, `/analyse-inputs`, `/review-inputs`.
+- `framework/agents/input-handler.md` — invoked at Step 1 with `documentation_dir: "documentation/"`, `manifest_path: "generated-docs/requirements/source-manifest.json"`, `progress_path: "framework/state/.prd-progress.json"`, **on every invocation** (the agent owns the create / refresh / no-op / halt decision; the orchestrator never branches on manifest state). Shared with `/requirements`, `/analyse-inputs`, `/review-inputs`.
 - `framework/agents/prd-drafter.md`
 - `framework/agents/prd-resolver.md`
 - `framework/agents/prd-merger.md`
 - `framework/shared/refusal-registry.md` — `RF-01`, `RF-03`, `RF-04` semantics surfaced by this orchestrator and by the input-handler.
 - `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on successful completion (end of step 4).
 - `framework/state/.prd-progress.json` (read at startup, written by this orchestrator across the run)
-- `requirements/source-manifest.json` (existence check at startup; otherwise managed by the input-handler)
+- `generated-docs/requirements/source-manifest.json` (existence check at startup; otherwise managed by the input-handler)
 
 ## Output
 
-- `prd/prd.md` — produced by the merger at the end of step 4.
+- `generated-docs/prd/prd.md` — produced by the merger at the end of step 4.
 - `framework/state/.prd-progress.json` — written by the orchestrator across the run.
 - `framework/state/timing.ndjson` — append-only timing log written by the orchestrator across the run (and by the drafter, resolver, and merger per their own contracts). The orchestrator produces no other artefact.
 
 ## Tools
 
-- Read — read `framework/state/.prd-progress.json` at startup; check for the existence of the four agent-handoff artefacts listed in **Startup: detect prior progress**; at the After-Draft handback gate, read `prd/draft-claims-verification.ndjson` to inspect its summary line for `failed: 0`.
+- Read — read `framework/state/.prd-progress.json` at startup; check for the existence of the four agent-handoff artefacts listed in **Startup: detect prior progress**; at the After-Draft handback gate, read `generated-docs/prd/draft-claims-verification.ndjson` to inspect its summary line for `failed: 0`.
 - Write — create `framework/state/.prd-progress.json` on first run and overwrite it during a start-fresh reset.
 - Edit — append `called` and `completed` events and update the `status` and `pending_setup` fields on `framework/state/.prd-progress.json` as the pipeline progresses.
-- Bash — run `git add` / `git commit` during the start-fresh reset, and delete the five generated artefacts (`prd/prd-draft.md`, `prd/draft-claims.ndjson`, `prd/draft-claims-verification.ndjson`, `prd/consultant-answers.md`, `prd/prd.md`), and the three resolver working-state sidecars (`framework/state/prd-resolver-manifest.ndjson`, `framework/state/prd-resolver-answers.ndjson`, `framework/state/prd-resolver-cursor.json`). Also used to append events to `framework/state/timing.ndjson` via the PowerShell `Add-Content` idiom documented in **Timing log** — append-only; never use Bash to read, edit, rewrite, or delete `timing.ndjson`. Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
+- Bash — run `git add` / `git commit` during the start-fresh reset, and delete the five generated artefacts (`generated-docs/prd/prd-draft.md`, `generated-docs/prd/draft-claims.ndjson`, `generated-docs/prd/draft-claims-verification.ndjson`, `generated-docs/prd/consultant-answers.md`, `generated-docs/prd/prd.md`), and the three resolver working-state sidecars (`framework/state/prd-resolver-manifest.ndjson`, `framework/state/prd-resolver-answers.ndjson`, `framework/state/prd-resolver-cursor.json`). Also used to append events to `framework/state/timing.ndjson` via the PowerShell `Add-Content` idiom documented in **Timing log** — append-only; never use Bash to read, edit, rewrite, or delete `timing.ndjson`. Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
 - AskUserQuestion — prompt the consultant at startup with the `{ start-fresh }` or `{ continue, start-fresh }` choice set; and at Step 0a with the `{ continue, cancel }` choice set.
 
 The orchestrator's tools are limited to the operations above.
@@ -211,15 +211,15 @@ The orchestrator's tools are limited to the operations above.
 - For each agent that ran in this invocation, `framework/state/.prd-progress.json` contains both a `called` event and a `completed` event in that order.
 - For each agent that ran in this invocation, `framework/state/timing.ndjson` contains a matching `stage_start` / `stage_end` pair in order. The current invocation begins with a `run_start` event (with `pipeline: "generate-prd"`) and ends with a `run_end` event.
 - For each agent whose work was reused via `continue`, the prior `completed` event was preserved untouched and the agent was not re-invoked.
-- `requirements/source-manifest.json`, `prd/prd-draft.md`, `prd/consultant-answers.md`, and `prd/prd.md` all exist.
-- `prd/prd.md` contains zero `[AI-SUGGESTED]` markers and zero `PAI-\d{3}` IDs.
-- `prd/prd.md` contains no `## Prototype invariants` heading and no `PI-\d{2}` token anywhere.
+- `generated-docs/requirements/source-manifest.json`, `generated-docs/prd/prd-draft.md`, `generated-docs/prd/consultant-answers.md`, and `generated-docs/prd/prd.md` all exist.
+- `generated-docs/prd/prd.md` contains zero `[AI-SUGGESTED]` markers and zero `PAI-\d{3}` IDs.
+- `generated-docs/prd/prd.md` contains no `## Prototype invariants` heading and no `PI-\d{2}` token anywhere.
 - `framework/state/.prd-progress.json > status` is `"complete"`.
 
 ## Definition of Done
 
 - All four agents have run (in this invocation, in a prior invocation that the consultant chose to continue, or some combination of the two), in order, each handing control back at its gate.
-- `prd/prd.md` exists and has been accepted by the consultant.
+- `generated-docs/prd/prd.md` exists and has been accepted by the consultant.
 - `framework/state/.prd-progress.json` records a `completed` event for every agent whose artefact is present, and `status` is `"complete"`.
 
 ## Anti-Patterns
@@ -227,18 +227,18 @@ The orchestrator's tools are limited to the operations above.
 - Do not perform any task other than the steps listed above.
 - Do not skip, reorder, parallelise, or merge the four pipeline steps.
 - Do not advance past a gate that has not been met.
-- Do not read, write, or edit any PRD artefact directly during the pipeline — every read/write of `prd/prd-draft.md`, `prd/draft-claims.ndjson`, `prd/draft-claims-verification.ndjson`, `prd/consultant-answers.md`, and `prd/prd.md` belongs to the invoked agent. The orchestrator's only direct reads of an agent-owned artefact are the drafter-handoff gate's read of `prd/draft-claims-verification.ndjson` and the existence checks listed in **Startup: detect prior progress**.
+- Do not read, write, or edit any PRD artefact directly during the pipeline — every read/write of `generated-docs/prd/prd-draft.md`, `generated-docs/prd/draft-claims.ndjson`, `generated-docs/prd/draft-claims-verification.ndjson`, `generated-docs/prd/consultant-answers.md`, and `generated-docs/prd/prd.md` belongs to the invoked agent. The orchestrator's only direct reads of an agent-owned artefact are the drafter-handoff gate's read of `generated-docs/prd/draft-claims-verification.ndjson` and the existence checks listed in **Startup: detect prior progress**.
 - Do not invoke `framework/skills/set-build-target.md`. The PRD pipeline does not branch on `manifest.target`.
-- Do not consult `requirements/requirements.md` or any `/requirements`-private artefact. The PRD pipeline is fully independent.
+- Do not consult `generated-docs/requirements/requirements.md` or any `/requirements`-private artefact. The PRD pipeline is fully independent.
 - Do not call any skill, asset, or tool not invoked transitively by the four named agents or listed in this orchestrator's **Tools** section.
 - Do not loop back to an earlier agent unless its gate explicitly fails — handback is one-way per run.
 - Do not run any of the four agents as a background / sub / async agent.
 - Do not skip Step 0. Every invocation must check for prior progress and prompt the consultant before Step 0a.
 - Do not skip Step 0a (input-ready prompt) on a fresh run, and do not run it on a rerun where the input-handler already has a `completed` event for this run.
 - Do not skip Step 1 (input-handler) on any path that proceeds past Step 0a. Step 1 runs on every invocation regardless of prior `completed` events — the input-handler's own step-0 freshness check is what catches input-folder drift on a `continue` rerun. Skipping based on a prior `completed` event re-introduces silent stale-blindness.
-- Do not branch Step 1 on whether `requirements/source-manifest.json` exists, parses, is fresh, or is stale. The orchestrator calls the input-handler uniformly; the agent owns the create / refresh / no-op / halt decision at its step 0. Re-introducing per-orchestrator branching here duplicates instructions the input-handler already owns.
+- Do not branch Step 1 on whether `generated-docs/requirements/source-manifest.json` exists, parses, is fresh, or is stale. The orchestrator calls the input-handler uniformly; the agent owns the create / refresh / no-op / halt decision at its step 0. Re-introducing per-orchestrator branching here duplicates instructions the input-handler already owns.
 - Do not run the reset procedure when no prior progress was detected, and do not run it when the consultant chose `continue`.
-- Do not delete `requirements/source-manifest.json`, `documentation/*.converted.md`, or anything under `requirements/` during a reset. Those belong to other pipelines.
+- Do not delete `generated-docs/requirements/source-manifest.json`, `documentation/*.converted.md`, or anything under `generated-docs/requirements/` during a reset. Those belong to other pipelines.
 - Do not delete anything in `framework/state/` other than the three named PRD resolver sidecars and the progress file overwrite. In particular, `framework/state/timing.ndjson`, `framework/state/.progress.json`, and `framework/state/resolver-*` are off-limits during a PRD reset.
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the reset checkpoint commit.
 - Do not write a `completed` event before the corresponding handback gate is met.

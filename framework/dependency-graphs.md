@@ -14,9 +14,9 @@ Ten transitive load/read/invoke trees, one per orchestrator. Source of truth for
 ## Shared conventions (apply to every graph unless a per-graph note overrides)
 
 - **No cycles** in any subtree.
-- **Pipeline output artefacts are produced, not loaded** → never drawn as edges (e.g. `requirements/requirements.md`, `prd/prd.md`, manifests, draft sidecars). A pipeline's own read target (e.g. analysers/reviewers reading `requirements/requirements.md`) is implicit, not drawn.
+- **Pipeline output artefacts are produced, not loaded** → never drawn as edges (e.g. `generated-docs/requirements/requirements.md`, `generated-docs/prd/prd.md`, manifests, draft sidecars). A pipeline's own read target (e.g. analysers/reviewers reading `generated-docs/requirements/requirements.md`) is implicit, not drawn.
 - **No `pattern-catalogue/` "see also" pointers** drawn — except graph 8, where `pattern-catalogue/_index.md` is a real direct read.
-- **Write isolation.** Each pipeline writes only its own output dir. Two documented cross-pipeline write exceptions, both inherited from shared agents: `input-handler.md` writes `requirements/source-manifest.json` + `documentation/*.converted.md` (create/refresh modes only); `blueprint-architect.md` writes `blueprints/<slug>/{scope.json, blueprint.md}`.
+- **Write isolation.** Each pipeline writes only its own output dir. Two documented cross-pipeline write exceptions, both inherited from shared agents: `input-handler.md` writes `generated-docs/requirements/source-manifest.json` + `documentation/*.converted.md` (create/refresh modes only); `blueprint-architect.md` writes `blueprints/<slug>/{scope.json, blueprint.md}`.
 - **context-hygiene.md** → emitted verbatim by each orchestrator at its successful-completion terminal (the non-blocking `/clear` tip; replaces the retired context-bloat preflight). Read-only; no writes.
 - **verify-artifact-write.md** → `refusal-registry.md`, called from every agent's write step. Shared across all orchestrators (one file on disk).
 - **artifact-preview.md / open-artifact.cjs** → **out-of-graph, deliberately undrawn.** The auto-open-in-browser affordance fires from a `PostToolUse` (matcher `Write`) hook in `.claude/settings.json`, so it has **no** call-site edge from any orchestrator, agent, or skill — in graphs 3, 4, 5, 6 (the analysis/review methodology artefacts), graph 2-adjacent `/design-system`, and graph 7 `/wireframe` (`index.html` only). Do not add an edge for it; a prompt-level invocation would double-open the artefact. Policy: `framework/shared/artifact-preview.md`.
@@ -103,12 +103,12 @@ preflight-mcp → refusal-registry
 - Deepest tree (depth 5). `step-05b-domain-inference` derives an inferred token set per-run from the `{{domain}}` string (status colours + tokens left unset after step-05).
 - **`step-05b` is interactive** — unusually for a non-`step-0x`-gate step. It classifies the extracted colour scheme, then asks the output-mode menu (`light-only` / `dark-only` / `both`) via `AskUserQuestion`. The question lives here rather than in `step-04b` because it must name the scheme actually found, which is unknown until after `step-05`. This is why the orchestrator's foreground-only justification lists four interactive surfaces, not three.
 - `data/cross-mode-derivation-rules.md` (step-05b only) holds the bidirectional light↔dark derivation rules. **The extracted scheme is the hue source; the other mode is derived from it** — so a dark-themed reference URL makes *light* the derived mode. step-05b uses this file twice: per-token during scheme-aware gap-fill (§B), and for the whole opposite-mode set (§F).
-- **`step-06` renders once per mode** in `{{files_to_write}}` (the consultant's choice ∪ the hue-source mode, so one file or two), hue-source file first and verified before the derived render begins. Output is `design-system/design-system-<mode>.html`; the unsuffixed path is retired. This is a loop over the same node set, not extra nodes.
+- **`step-06` renders once per mode** in `{{files_to_write}}` (the consultant's choice ∪ the hue-source mode, so one file or two), hue-source file first and verified before the derived render begins. Output is `generated-docs/design-system/design-system-<mode>.html`; the unsuffixed path is retired. This is a loop over the same node set, not extra nodes.
 - `template-design-system.html` shared by `step-06` (operative loader) and `prompt-templates/artifact-generation.md` (which tells step-06 to read it).
 - `data/component-catalogue.md` (step-06 only) owns the Components CSS + per-family `Live demo` / `States matrix` HTML; step-06 token-substitutes token refs into the template placeholders.
 - `data/font-availability-rules.md` is the only styler data file read by **two** steps: `step-05` (§4b classifies each extracted family's availability and picks a substitute) and `step-06` (§C's assertions check `param` against its §4.1 / §4.2 lists). The second read is deliberate duplication, not an oversight — §C is a fail-closed gate and must not depend on an earlier step's context surviving. It also owns the one **outbound network call outside `step-04`**: at most five single-family `fonts.googleapis.com` probes via `WebFetch` (up to two spelling candidates per family slot, plus one known-good control), reached only when the on-disk evidence and the curated tables are both inconclusive. A probe failure resolves to `unverified` and the run continues, so this path has **no `RF-NN`** — the same "convenience with a correct degraded outcome" reasoning as `artifact-preview.md`.
 - `design-system-standards.html` names `template-design-spec.md` only in prose → not an edge. (`.md` sibling is the human-edit SoT; styler reads only the `.html`.)
-- The styler subtree reaches nothing in `requirements/`, `state/`, or the shared policy files; the orchestrator no longer reads `requirements/` or `state/` either (the context-bloat preflight was retired).
+- The styler subtree reaches nothing in `generated-docs/requirements/`, `state/`, or the shared policy files; the orchestrator no longer reads `generated-docs/requirements/` or `state/` either (the context-bloat preflight was retired).
 
 ---
 
@@ -142,7 +142,7 @@ grounding-verifier → draft-claims, source-manifest, <input source files>  [Pas
 
 **Notes (unique):**
 - Two reviewers fan out parallel read-only workers merged deterministically: **adversarial** on a *task axis* (8 dimension workers, one lens each over the whole doc, step 3) and **first-principles** on a *data axis* (k subject-batch workers, the same Q1–Q6 over disjoint subject slices, step 4a; degrades to inline single-thread when N≤12). first-principles fans out **only** the per-subject Q1–Q6 pass — its Q7 coverage (step 5), CS1–CS5 cross-subject pass (step 5b), GR/PI filter (step 6), ranking, and render stay single-threaded in the parent (relational/whole-doc). The other five reviewers are single-pass, no fan-out.
-- requirements-traceability is the **only non-stand-alone reviewer** — it reads the provenance asset family (draft + draft-claims + draft-claims-verification + state/resolver-answers + consultant-answers + source-manifest + input files) **read-only**, because backward (pre-RS) provenance cannot be audited without the provenance evidence (the documented, bounded exception; mirrors the drafter's and grounding-verifier's read scope). Its Band-A citation integrity **reuses the `grounding-verifier` skill** against the **final** `requirements.md` (the skill's 2nd caller, run once not to convergence); `sidecar_entry_without_tag` is re-read as a DEAD-PROVENANCE warn rather than a fail. Capability-tier-guarded reads **degrade (TIER-2 → TIER-1b → TIER-1 → TIER-0) rather than halt** on missing assets. It writes only under `review-requirements/REQUIREMENTS-TRACEABILITY/**` (incl. a `.workspace/citation-verification.ndjson` scratch file). `state/resolver-answers.ndjson` is the only `framework/state/` read; it is never written.
+- requirements-traceability is the **only non-stand-alone reviewer** — it reads the provenance asset family (draft + draft-claims + draft-claims-verification + state/resolver-answers + consultant-answers + source-manifest + input files) **read-only**, because backward (pre-RS) provenance cannot be audited without the provenance evidence (the documented, bounded exception; mirrors the drafter's and grounding-verifier's read scope). Its Band-A citation integrity **reuses the `grounding-verifier` skill** against the **final** `requirements.md` (the skill's 2nd caller, run once not to convergence); `sidecar_entry_without_tag` is re-read as a DEAD-PROVENANCE warn rather than a fail. Capability-tier-guarded reads **degrade (TIER-2 → TIER-1b → TIER-1 → TIER-0) rather than halt** on missing assets. It writes only under `generated-docs/review-requirements/REQUIREMENTS-TRACEABILITY/**` (incl. a `.workspace/citation-verification.ndjson` scratch file). `state/resolver-answers.ndjson` is the only `framework/state/` read; it is never written.
 - requirements-quality is single-pass (nine-characteristic ISO 29148 scorecard); it is the only reviewer that reads the **conforming target** (`topics-requirements.md` + `template-requirements.md`, step 2) — to score the Conforming characteristic (C9) against the project's house style (GR-20/21/23). Its GR/PI step-6 read rescues only the judgment band (Necessary/Appropriate/Feasible); the five decidable characteristics are never rescued.
 - Shared-policy reads are **filter sources only** — reviewers drop candidate questions already answered by an active `GR-NN`/`PI-NN` or out-of-scope per `prototype-scope.md`. adversarial reads none of those (its task is defect-citation, not gap-filtering); it instead reads the `recalibrate-scope-severity` skill at step 3s, which **raises-and-recalibrates** (caps `backend-only` ratings, never drops) rather than filtering — a distinct mechanism from the GR/PI gap-drop the other reviewers use. The skill embeds the `prototype-scope.md` finding-scope-class glosses, so adversarial still reads no `framework/shared/` file directly.
 - ba→ux-reference is **one-way** (ux never reads ba) — orthogonality enforced by a filter-time read, not a circular dep.
@@ -216,7 +216,7 @@ deltas:
 
 **Notes (unique):**
 - 11 MVP input analysers; `glossary` is `mvp`. (The inputs-side `five-whys` stub was retired — the requirement-side `five-whys` is a separate MVP method in graph 4.)
-- input-handler create/refresh writes are the only writes outside `analyse-inputs/<METHOD>/`.
+- input-handler create/refresh writes are the only writes outside `generated-docs/analyse-inputs/<METHOD>/`.
 - map-skills are registry metadata → no edges (mirrors graph 4).
 - **Diagram rendering:** every diagram-emitting analyse-inputs analyser — `thematic-analysis`, `opportunity-solution-trees`, `affinity-mapping`, `swim-lane-process-mapping` — pre-renders its diagram as inline `<svg>`. No `mmdc`, no `mermaid-validator`, no `RF-07`. `thematic-analysis` + `opportunity-solution-trees` compute that `<svg>` via the shared `render-layered-tree-svg` skill (layered centred rows + vertical-S cubic edges in one `viewBox`; the theme-map is the 2–3-row Root→Themes→Codes case, the OST tree the 3–4-row case). `affinity-mapping` + `swim-lane-process-mapping` additionally run `svg-overlap-check` post-write (overlaps → diagnostics layout warnings, never a halt).
 - The `mindmap` / `flowchart TD` / `graph TD` Mermaid sources are export / re-ingestion adjuncts (collapsed `<details class="mermaid-block">`), embedded as unvalidated text — not the visible diagram (which is the inline SVG).
@@ -279,7 +279,7 @@ prd-merger  → characters/prd-finalising.md
 
 **Notes (unique):**
 - `.prd-progress.json` is distinct from `.progress.json` so `/requirements` and `/generate-prd` can run concurrently without state collision; resolver sidecars likewise PRD-namespaced (`prd-resolver-*`).
-- `source-manifest.json > target` is **informational only** (no decision branches; orch never invokes `set-build-target.md`). Pipeline is fully independent of `requirements/requirements.md` (never reads/writes it).
+- `source-manifest.json > target` is **informational only** (no decision branches; orch never invokes `set-build-target.md`). Pipeline is fully independent of `generated-docs/requirements/requirements.md` (never reads/writes it).
 - Emits exactly **2 markers**: `[SRC: PC-NNN]`, `[AI-SUGGESTED: PAI-NNN]`. No `STANDARD-RULE`/`OUT-OF-SCOPE`/`REQ`. drafter's only shared edge is `refusal-registry.md` (RF-04) — **no** general-rules / prototype-scope. resolver has **no** shared-policy edges (unlike the requirements resolver).
 - `completeness-gap-pass-prd.md` is a clone of `completeness-gap-pass.md` (smaller tree: no general-rules, no out-of-scope, no Tier C/D; Tier-A invariants B1–B10 are PRD-shaped). Cloned, not parameterised — bijection sets are pipeline-specific.
 - merger retains `[SRC: PC-NNN]`; **never** appends a Prototype-invariants block (no edge to `prototype-invariants.md`).
@@ -306,9 +306,9 @@ blueprint-architect → steps/step-01-activate … step-07-handback,
   step-01 → characters/blueprint-architect.md
   step-02 → analyses/sidecar-schema.md,
             [cond present] wireframes/<slug>/analyses-inputs.json,
-            [cond sidecar branch] analyse-requirements/<M>/<name>.sidecar.json,
-            [cond legacy ≤60KB, RF-09] analyse-requirements/<M>/*,
-            [cond legacy only] analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html
+            [cond sidecar branch] generated-docs/analyse-requirements/<M>/<name>.sidecar.json,
+            [cond legacy ≤60KB, RF-09] generated-docs/analyse-requirements/<M>/*,
+            [cond legacy only] generated-docs/analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html
   step-03 → wireframes/realization-strategies.md
   step-04 → check-pattern-coverage, templates/template-blueprint.md, verify-artifact-write
   step-05 → trade-off-dimensions.md, wireframes/tradeoff-dimensions-registry.md,
@@ -316,8 +316,8 @@ blueprint-architect → steps/step-01-activate … step-07-handback,
             wireframes/position-vocabulary.md, pattern-catalogue/_index.md,
             wireframes/realization-strategies.md,
             [cond posture non-null] wireframes/design-philosophies.md,
-            [cond deferred sidecar] analyse-requirements/<M>/<name>.sidecar.json,
-            [cond deferred legacy] analyse-requirements/<M>/*
+            [cond deferred sidecar] generated-docs/analyse-requirements/<M>/<name>.sidecar.json,
+            [cond deferred legacy] generated-docs/analyse-requirements/<M>/*
   step-06 → verify-artifact-write
 check-pattern-coverage → pattern-catalogue/_index.md
 
@@ -355,7 +355,7 @@ orch → scope-selector, select-prototype-inputs, context-hygiene,
 
 scope-selector → verify-artifact-write   [propose_divergence_axes:false → NO divergence-heuristics edge]
 select-prototype-inputs → analyses/registry.md, analyses-inputs/registry.md, analyses/sidecar-schema.md,
-       wireframes/<slug>/variants.json, requirements/source-manifest.json,
+       wireframes/<slug>/variants.json, generated-docs/requirements/source-manifest.json,
        verify-artifact-write,
        [writes] prototypes/.specs/<name-slug>/supporting-inputs.json
 blueprint-architect → (see graph 8; invoked with variants_output_path:null → blueprint-only, writes
@@ -372,7 +372,7 @@ prototype-spec-merger → characters/prototype-spec-finalising.md, prototype-inv
        [cond §9 completion] prototypes/{ux-baseline-checklist.md, visual-craft-standard.md}
 prototype-app-scaffolder → scaffold-prototype-app.md, extract-brand-theme.md,
        prototypes/scaffolding-instructions.md, prototypes/app-shell-spec.md, verify-artifact-write
-       [cond brand source a] design-system/design-system-{light,dark}.html
+       [cond brand source a] generated-docs/design-system/design-system-{light,dark}.html
        [writes, empty] prototypes/src/data/{prototype-registry.ts, nav/index.ts}
   scaffold-prototype-app → template/** (bulk copy on `copied`);
        template/src/components/ui/*.tsx (step-1b additive top-up on `already-scaffolded` /
@@ -383,7 +383,7 @@ prototype-generator → steps/step-01-activate … step-07-handback, steps/step-
        characters/prototype-generator.md, persona-llm.md, prototypes/shared-component-conventions.md,
        prototypes/ux-baseline-checklist.md, prototypes/visual-craft-standard.md,
        blueprints/<slug>/blueprint.md,
-       requirements/requirements.md (§6.5 RBAC + §3 + transient Amendments section — step-02 rule 1b),
+       generated-docs/requirements/requirements.md (§6.5 RBAC + §3 + transient Amendments section — step-02 rule 1b),
        verify-prototype-build.md
        [writes] prototypes/src/data/nav/{<slug>.ts, index.ts (additive)} — canonical nav table (step-03 rule 4b)
        [parallel sub-agent: 1 Agent call/surface, ceiling 8 → step-sub-render-surface;
@@ -416,44 +416,44 @@ prototype-landing-updater → wireframes/position-vocabulary.md, verify-artifact
 
 ```
 orch → export-application-exporter, context-hygiene, refusal-registry,
-       requirements/requirements.md [read: step-0 gate + step-0a sha256]
+       generated-docs/requirements/requirements.md [read: step-0 gate + step-0a sha256]
 export-application-exporter → characters/application-exporting.md, verify-artifact-write,
-       requirements/requirements.md [read: full, sole content input]
+       generated-docs/requirements/requirements.md [read: full, sole content input]
 ```
 
 **Notes (unique):**
 - Single-agent, stateless, **no progress file and no timing events** (standalone-pipeline precedent: design-system / analyse-requirement). Resumability = the step-0a freshness gate re-probing disk.
-- **Pure re-projection** of the finished `requirements/requirements.md` to the application audience: §6.10 fixtures → backend-contract pointers, §7 `prototype-fixture` → `backend-contract`, §0.1 `Target-mode applicability` → a fixed `## 0.1 Document scope` note, every `[PROTO-ONLY] … [/PROTO-ONLY]` scope span deleted whole, PI appendix removed (heading→EOF — a contract `/resolve-review` depends on for Amendments placement), header `Target` flipped, `## Export provenance` block inserted (10 rows: source sha256 + citation legend + known residue + gate outcome). **Marker-driven, not prose-driven:** spans are emitted by `requirements-drafter.md` (step 3), retained by `requirements-merger.md` like `[SRC:]`, and deleted here by one non-greedy regex; canonical definition `framework/shared/prototype-scope.md > Prototype-only content marking`. The five scope-note blockquotes are pinned byte-for-byte in `template-requirements.md`. §1.7 / §6.6.1 / §6.6.2 + the §6.1 `Rationale` column pass through with only their span removed — labels, content and run-specific tails byte-identical. The residue sweep is retained as the **under-marking canary** (the only check that can catch a drafter that failed to mark). **Step 1b normative-residue gate:** prototype-realization vocabulary inside a normative unit halts the run before any write (`normative-residue-halt` — a clean orchestrator terminal, zero writes, no gate opened); caught upstream by `completeness-gap-pass.md` rule `B8`. Both the span definition and the normative set/detector are canonically owned by `framework/shared/prototype-scope.md`, which the exporter now reads at activation. **Zero improvised content** — every net-new byte is mechanical or a fixed literal in the agent file.
+- **Pure re-projection** of the finished `generated-docs/requirements/requirements.md` to the application audience: §6.10 fixtures → backend-contract pointers, §7 `prototype-fixture` → `backend-contract`, §0.1 `Target-mode applicability` → a fixed `## 0.1 Document scope` note, every `[PROTO-ONLY] … [/PROTO-ONLY]` scope span deleted whole, PI appendix removed (heading→EOF — a contract `/resolve-review` depends on for Amendments placement), header `Target` flipped, `## Export provenance` block inserted (10 rows: source sha256 + citation legend + known residue + gate outcome). **Marker-driven, not prose-driven:** spans are emitted by `requirements-drafter.md` (step 3), retained by `requirements-merger.md` like `[SRC:]`, and deleted here by one non-greedy regex; canonical definition `framework/shared/prototype-scope.md > Prototype-only content marking`. The five scope-note blockquotes are pinned byte-for-byte in `template-requirements.md`. §1.7 / §6.6.1 / §6.6.2 + the §6.1 `Rationale` column pass through with only their span removed — labels, content and run-specific tails byte-identical. The residue sweep is retained as the **under-marking canary** (the only check that can catch a drafter that failed to mark). **Step 1b normative-residue gate:** prototype-realization vocabulary inside a normative unit halts the run before any write (`normative-residue-halt` — a clean orchestrator terminal, zero writes, no gate opened); caught upstream by `completeness-gap-pass.md` rule `B8`. Both the span definition and the normative set/detector are canonically owned by `framework/shared/prototype-scope.md`, which the exporter now reads at activation. **Zero improvised content** — every net-new byte is mechanical or a fixed literal in the agent file.
 - **Residue policy:** prototype framing the transforms cannot handle deterministically — outside the five blockquotes, or frozen by a `[SRC: …]` citation — passes through **verbatim** and is disclosed in place (section-local residue note + `Known residue` provenance row + gate warning). Never rewritten: rewriting under a retained citation falsifies provenance against `draft-claims.ndjson`. Residue is a *source* defect, fixed in `requirements.md` and re-exported.
 - **Gate is Accept/Reject** — no in-gate content editing; `requirements.md` is the authoritative document and re-export is free. Both terminals stamp the `Gate outcome` provenance row.
 - **Freshness anchor:** the export embeds the source's sha256 as a **bare-hash** provenance row; step 0a extracts it with a **backtick-tolerant** pattern (`^\| *Source sha256 *\| *`?([0-9a-fA-F]{64})`? *\|`), case-normalises, and recommends Keep (match) or Regenerate (mismatch / no row). The previous over-strict pattern matched no real export, silently degrading every re-run to the stale branch. `Keep` is withheld when `Gate outcome` reads `rejected`. Regenerate is checkpoint-then-delete.
 - Prerequisite gate exits when the source is missing/empty or already `Target: application`; non-final `Status` is a **soft** gate (the merger stamps `final` only on `accept`; pre-stamp documents read non-final without being unfinished).
-- `requirements/draft-claims.ndjson` is existence-probed only (never read) — the provenance legend tells external consumers to bundle it.
-- Write scope: `export-application/` only.
+- `generated-docs/requirements/draft-claims.ndjson` is existence-probed only (never read) — the provenance legend tells external consumers to bundle it.
+- Write scope: `generated-docs/export-application/` only.
 
 ## 11. resolve-review-orch.md · 13 nodes / 17 edges / depth 3
 
 ```
 orch → resolve-review-drafter, context-hygiene, refusal-registry,
-       review-inputs/*/*.html + review-requirements/*/*.html [Glob + byte sizes: step-0 artefact picker],
+       generated-docs/review-inputs/*/*.html + generated-docs/review-requirements/*/*.html [Glob + byte sizes: step-0 artefact picker],
        assets/resolve-review/methodology-map.md [read: step-0 map gate],
-       resolve-review/resolutions-draft.md [existence: step-1 stale-draft gate; rm -f on Discard],
+       generated-docs/resolve-review/resolutions-draft.md [existence: step-1 stale-draft gate; rm -f on Discard],
        documentation/*-resolutions-*.md [Glob + provenance-head read: step-0 resolved-status tag]
 resolve-review-drafter → characters/review-resolving.md,
        assets/resolve-review/methodology-map.md, assets/resolve-review/template-resolutions.md,
        verify-artifact-write,
        <chosen review .html> [read: full + sha256],
-       <fingerprint target per map row> [requirements/source-manifest.json (cond: exists) |
-           requirements/requirements.md (pre-flighted); sha256 only — drift warning],
+       <fingerprint target per map row> [generated-docs/requirements/source-manifest.json (cond: exists) |
+           generated-docs/requirements/requirements.md (pre-flighted); sha256 only — drift warning],
        apply-amendments-section [cond: Step 9b — requirements-doc rows, addendum opt-in],
-       requirements/requirements.md [cond: Step 5 — requirements-doc elicitation-with-options rows only, bounded content read of cited sections + Amendments section (source-manifest elicitation-with-options rows do NO Step-5 read); cond: Step 9b — full read, requirements-doc rows only; the section WRITE is performed by apply-amendments-section]
+       generated-docs/requirements/requirements.md [cond: Step 5 — requirements-doc elicitation-with-options rows only, bounded content read of cited sections + Amendments section (source-manifest elicitation-with-options rows do NO Step-5 read); cond: Step 9b — full read, requirements-doc rows only; the section WRITE is performed by apply-amendments-section]
 apply-amendments-section → assets/resolve-review/template-addendum.md, verify-artifact-write
 ```
 
 **Notes (unique):**
 - Single-agent, single-shot, **no progress file and no timing events** (export-application precedent). Interrupted-run recovery = the step-1 stale-draft gate; no other state survives a run.
-- **Methodology-agnostic by construction:** artefact discovery is a disk `Glob` over both review roots; consumability and every methodology-specific value (parse anchors, severity vocabulary, resolution semantics, output filename stem, fingerprint comparison target) resolve from the methodology map's row. New methodology = map-row append; zero agent/orch edits. `method_dir` keys: bare dir name for `review-inputs/` rows (legacy), root-qualified `review-requirements/<METHOD>` for review-requirements rows (same dir name can exist under both roots).
-- **Write scope:** `resolve-review/resolutions-draft.md` (transient staging, deleted on accept) + one NEW `documentation/<stem>-<date>[-N].md` per accepted run — the **additive-`documentation/` write exception** (`docs/maintenance.md > Stand-alone constraints (write isolation)`; shared with `/amend-requirements`), additive only, never overwriting an existing `documentation/` file. Plus, on review-requirements-sourced runs with the consultant's Step-9b opt-in, the **Amendments-section write exception**: `framework/skills/apply-amendments-section.md` inserts/extends the single `## Amendments (pending re-merge)` section in `requirements/requirements.md` (before the PI appendix; canonical shape `assets/resolve-review/template-addendum.md`), always after — and as a strict subset of — the verified `documentation/` write (pairing invariant). The section is a transient cache; the next `/requirements` re-merge regenerates the doc and the same content arrives via ingestion. The drafter no longer owns the placement/numbering/pairing mechanics — the skill does, and `/amend-requirements` calls the same one.
+- **Methodology-agnostic by construction:** artefact discovery is a disk `Glob` over both review roots; consumability and every methodology-specific value (parse anchors, severity vocabulary, resolution semantics, output filename stem, fingerprint comparison target) resolve from the methodology map's row. New methodology = map-row append; zero agent/orch edits. `method_dir` keys: bare dir name for `generated-docs/review-inputs/` rows (legacy), root-qualified `generated-docs/review-requirements/<METHOD>` for review-requirements rows (same dir name can exist under both roots).
+- **Write scope:** `generated-docs/resolve-review/resolutions-draft.md` (transient staging, deleted on accept) + one NEW `documentation/<stem>-<date>[-N].md` per accepted run — the **additive-`documentation/` write exception** (`docs/maintenance.md > Stand-alone constraints (write isolation)`; shared with `/amend-requirements`), additive only, never overwriting an existing `documentation/` file. Plus, on review-requirements-sourced runs with the consultant's Step-9b opt-in, the **Amendments-section write exception**: `framework/skills/apply-amendments-section.md` inserts/extends the single `## Amendments (pending re-merge)` section in `generated-docs/requirements/requirements.md` (before the PI appendix; canonical shape `assets/resolve-review/template-addendum.md`), always after — and as a strict subset of — the verified `documentation/` write (pairing invariant). The section is a transient cache; the next `/requirements` re-merge regenerates the doc and the same content arrives via ingestion. The drafter no longer owns the placement/numbering/pairing mechanics — the skill does, and `/amend-requirements` calls the same one.
 - **Anti-laundering contract:** every AI-inferred resolution is confirmed by an explicit consultant affirmative — per finding (`AskUserQuestion`, one finding per question, ≤4 per call) or the explicit "Accept all remaining as drafted" choice; never silently or by default. Origin markers `[CONSULTANT-STATED]` / `[AI-INFERRED, CONSULTANT-CONFIRMED]` + a mandatory per-resolution Supersedes line (canonical definitions: `assets/resolve-review/template-resolutions.md`).
 - **Step-0 resolved-status tag:** the orchestrator reads the provenance-table head of `documentation/*-resolutions-*.md` files (bounded, read-only) and tags each picker entry `resolved (date)` / `not yet resolved` by matching the recorded `Source review` path — its only `documentation/` read, persisting nothing (the pipeline stays stateless).
 - The input-handler is **never** invoked; the Step-2 fingerprint target is hashed (drift warning), never parsed. Pickup of the new `documentation/` file is the next manifest create/refresh's job.
@@ -479,7 +479,7 @@ stadium-ingestor → extract-stadium-app, preflight-cli, verify-artifact-write, 
 - **Standalone, single-agent, no progress file** (design-system / export-application precedent). Resumability = the processed-ledger's process-once contract: a re-run skips already-ingested apps; an interrupted extract leaves the app un-ledgered for a clean retry.
 - **The relocated Step S.** The `stadium-ingestor` agent is the former input-handler Step-S *extraction* logic, now first-class: detect Stadium units in `documentation/`, skip already-ledgered apps, preflight `python` (`preflight-cli`, `RF-01` → `setup-instructions/stadium.md`), invoke `extract-stadium-app` (→ `tools/extract_stadium_app.py`, `assets/stadium/*` via `--kb`), and write `state/.stadium-processed.json` keyed by `app_id` (+ the forensic `state/stadium/<app-id>/model.json` via the skill). It writes **no** source manifest — the produced `documentation/<AppName>.stadium-assets/*.md` assets are enumerated as ordinary `Native-text` rows by the next input-handler run.
 - **Re-ingest gate + reset (orchestrator-owned).** At startup the orch scans `documentation/*.stadium` + `documentation/*/administration.db`, reads the ledger, and for each already-ledgered app surfaces `{ Skip, Re-ingest, Cancel }`. On `Re-ingest` it git-checkpoints then deletes the app's `documentation/<AppName>.stadium-assets/` + `state/stadium/<app-id>/` + its ledger entry (re-written via `verify-artifact-write`), so the agent re-extracts it as new — the same "delete-so-the-agent-redoes-it" reset shape as design-system's overwrite.
-- **Write scope:** `documentation/<AppName>.stadium-assets/**`, `state/.stadium-processed.json`, `state/stadium/**`. Never `requirements/`. The input-handler's Step S separately excludes the raw app folder/pointer from manifest enumeration + the freshness check and nudges when a dropped app is un-ingested (see `@input-handler-subtree`).
+- **Write scope:** `documentation/<AppName>.stadium-assets/**`, `state/.stadium-processed.json`, `state/stadium/**`. Never `generated-docs/requirements/`. The input-handler's Step S separately excludes the raw app folder/pointer from manifest enumeration + the freshness check and nudges when a dropped app is un-ingested (see `@input-handler-subtree`).
 
 ---
 
@@ -487,22 +487,22 @@ stadium-ingestor → extract-stadium-app, preflight-cli, verify-artifact-write, 
 
 ```
 orch → amend-requirements-drafter, context-hygiene, refusal-registry,
-       requirements/requirements.md [Grep: step-0 header Status/Last-finalised-at + AMD-NN and "### Run " counts; existence + size],
-       amend-requirements/amendments-draft.md [existence: step-1 stale-draft gate; rm -f on Discard]
+       generated-docs/requirements/requirements.md [Grep: step-0 header Status/Last-finalised-at + AMD-NN and "### Run " counts; existence + size],
+       generated-docs/amend-requirements/amendments-draft.md [existence: step-1 stale-draft gate; rm -f on Discard]
 amend-requirements-drafter → characters/requirements-amending.md (+ its sibling characters/review-resolving.md),
        assets/amend-requirements/template-amendments.md, verify-artifact-write,
        apply-amendments-section [Step 9 — unconditional],
-       requirements/requirements.md [read: ONCE, full, Step 1 → doc_content for the run],
+       generated-docs/requirements/requirements.md [read: ONCE, full, Step 1 → doc_content for the run],
        blueprints/*/scope.json [Glob + requirements_sha256 field: Step-10 advisory],
-       export-application/requirements-application.md [Grep "Source sha256" row: Step-10 advisory]
+       generated-docs/export-application/requirements-application.md [Grep "Source sha256" row: Step-10 advisory]
 apply-amendments-section → assets/resolve-review/template-addendum.md, verify-artifact-write
 ```
 
 **Notes (unique):**
 - **Two entry points, one pipeline.** Reached by `/amend-requirements` directly, or as the `amend` branch of `requirements-orch.md` Step 0 (completed-run state only — the discriminator is the merger's `completed` event, **not** the presence of `requirements.md`, because the merger `cp`-seeds its output before its accept loop). Behaviour is identical on both paths; only the calling `/requirements` orchestrator appends the closing `run_end` event, since it opened the log entry.
 - **Single-agent, single-shot, no progress file and no timing events** (export-application / resolve-review precedent) — on **either** entry path. Interrupted-run recovery = the step-1 stale-draft gate.
-- **One full read, reused.** The drafter reads `requirements/requirements.md` exactly once (Step 1) and that single read serves the anchor index, base-text quoting, existing-`AMD-NN` reconciliation, impact derivation, and the `doc_content` parameter `apply-amendments-section` needs. This is a deliberate divergence from `resolve-review-drafter`'s hash-only → bounded → full ladder, which optimises for the case where the section is *not* applied; here it always is, so one read is strictly cheaper than three.
-- **Write scope:** `amend-requirements/amendments-draft.md` (transient staging, deleted on accept) + one NEW `documentation/amendments-<date>[-N].md` per accepted run (the **additive-`documentation/` write exception**, shared with `/resolve-review`) + the **Amendments-section write exception** via `apply-amendments-section` (unconditional here — no opt-in ask, because applying the projection is the pipeline's purpose; `no-question-when-the-outcome-is-determined`). Always after — and as a strict subset of — the verified `documentation/` write (pairing invariant). Never `framework/state/`.
+- **One full read, reused.** The drafter reads `generated-docs/requirements/requirements.md` exactly once (Step 1) and that single read serves the anchor index, base-text quoting, existing-`AMD-NN` reconciliation, impact derivation, and the `doc_content` parameter `apply-amendments-section` needs. This is a deliberate divergence from `resolve-review-drafter`'s hash-only → bounded → full ladder, which optimises for the case where the section is *not* applied; here it always is, so one read is strictly cheaper than three.
+- **Write scope:** `generated-docs/amend-requirements/amendments-draft.md` (transient staging, deleted on accept) + one NEW `documentation/amendments-<date>[-N].md` per accepted run (the **additive-`documentation/` write exception**, shared with `/resolve-review`) + the **Amendments-section write exception** via `apply-amendments-section` (unconditional here — no opt-in ask, because applying the projection is the pipeline's purpose; `no-question-when-the-outcome-is-determined`). Always after — and as a strict subset of — the verified `documentation/` write (pairing invariant). Never `framework/state/`.
 - **Anti-laundering contract:** every amendment traces to an explicit consultant statement or an **individual** candidate selection. There is deliberately **no** "accept all remaining" path (nothing is pre-drafted from a third party's payload, so bulk consent has nothing to attach to) — a documented divergence from `/resolve-review`. Origin markers and grounding tags are reused unchanged (canonical: `assets/resolve-review/template-resolutions.md`); `AM-NN` block IDs are document-local and independent of the host document's `AMD-NN` numbering (canonical: `assets/amend-requirements/template-amendments.md`).
 - **Impact flags are computed, never asked** — `closed-set-change` / `scope-change` / `amends-amendment`, derived against the Step-1 anchor index. A `closed-set-change` removal can orphan existing wireframe `data-prop` bindings, which is why Step 7 calls it out explicitly.
 - **Step-10 advisory is bounded and says so:** it compares `doc_sha256` against `blueprints/*/scope.json > requirements_sha256` and the export's `Source sha256` row only, and names analysis artefacts as *not* checked (they carry their own `REQUIREMENTS_SHA256` and their consumers drift-check via `RF-08`). Advisory only — no gate, consistent with `blueprint-architect` step-02, which likewise only warns on drift.

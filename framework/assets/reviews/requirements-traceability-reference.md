@@ -2,13 +2,13 @@
 
 # reviews/requirements-traceability-reference.md
 
-**Purpose:** Methodology reference for the **Requirements Traceability** review of `requirements/requirements.md`. The reviewer audits the **provenance integrity** of the merged spec: every substantive fact and every ID-bearing requirement should trace back to one of the system's legitimate provenance classes — a **real input source** (`[SRC: C-NNN]`, backed by a verbatim quote in `draft-claims.ndjson` and re-verified against the actual input file), an **accepted AI-suggestion** (a draft `[AI-SUGGESTED: AI-NNN]` the consultant confirmed/corrected in `resolver-answers.ndjson`), a **standard rule** (`[STANDARD-RULE: GR-NN]`), or an **out-of-scope domain default** (`[OUT-OF-SCOPE]`). Anything that traces to **nothing** — an **orphan**, a **broken citation**, or content that should have been **dropped** — is the headline result. The reviewer follows this document literally and exhaustively.
+**Purpose:** Methodology reference for the **Requirements Traceability** review of `generated-docs/requirements/requirements.md`. The reviewer audits the **provenance integrity** of the merged spec: every substantive fact and every ID-bearing requirement should trace back to one of the system's legitimate provenance classes — a **real input source** (`[SRC: C-NNN]`, backed by a verbatim quote in `draft-claims.ndjson` and re-verified against the actual input file), an **accepted AI-suggestion** (a draft `[AI-SUGGESTED: AI-NNN]` the consultant confirmed/corrected in `resolver-answers.ndjson`), a **standard rule** (`[STANDARD-RULE: GR-NN]`), or an **out-of-scope domain default** (`[OUT-OF-SCOPE]`). Anything that traces to **nothing** — an **orphan**, a **broken citation**, or content that should have been **dropped** — is the headline result. The reviewer follows this document literally and exhaustively.
 
 **Used by:**
 
 - `framework/agents/reviews/requirements-traceability-reviewer.md` — drives capability-tier detection, the citation-integrity band, the draft↔final alignment band, the Untraceable Set, coverage metrics, verdict, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `review-requirements/REQUIREMENTS-TRACEABILITY/requirements-traceability.html` — a self-contained HTML document that **leads with the untraceable result** — (a) a capability banner + verdict, (b) a **provenance-class distribution diagram** (the untraceable slice highlighted), (c) the **Untraceable Requirements block** (every orphan / broken-citation / dropped-but-present item, the main result), then (d) a **requirement × trace-target heatmap**, (e) the full **provenance ledger** (every traced fact + its class + its evidence), (f) a **drift & dead-provenance** fix list, and (g) a diagnostics block recording the capability tier, the citation-verification run, and the alignment confidence.
+**Output produced by the reviewer:** `generated-docs/review-requirements/REQUIREMENTS-TRACEABILITY/requirements-traceability.html` — a self-contained HTML document that **leads with the untraceable result** — (a) a capability banner + verdict, (b) a **provenance-class distribution diagram** (the untraceable slice highlighted), (c) the **Untraceable Requirements block** (every orphan / broken-citation / dropped-but-present item, the main result), then (d) a **requirement × trace-target heatmap**, (e) the full **provenance ledger** (every traced fact + its class + its evidence), (f) a **drift & dead-provenance** fix list, and (g) a diagnostics block recording the capability tier, the citation-verification run, and the alignment confidence.
 
 The scaffold for the artefact is `framework/assets/reviews/template-requirements-traceability.html`.
 
@@ -56,17 +56,17 @@ The synthesis is this reference's contribution: take the pre-RS traceability con
 
 ## The provenance asset set (the deliberate departure from stand-alone)
 
-Every other `/review-requirement` lens is **stand-alone** — it reads `requirements/requirements.md` and nothing else under `requirements/`. **This lens cannot be**: provenance cannot be audited without the provenance evidence, and a stand-alone provenance review would be theatre. The reviewer therefore reads the full provenance asset family, **read-only**, as a documented, bounded exception (the drafter and `grounding-verifier.md` already read exactly these files):
+Every other `/review-requirement` lens is **stand-alone** — it reads `generated-docs/requirements/requirements.md` and nothing else under `generated-docs/requirements/`. **This lens cannot be**: provenance cannot be audited without the provenance evidence, and a stand-alone provenance review would be theatre. The reviewer therefore reads the full provenance asset family, **read-only**, as a documented, bounded exception (the drafter and `grounding-verifier.md` already read exactly these files):
 
 | Asset | Role in the trace | Schema (canonical owner) |
 |---|---|---|
-| `requirements/requirements.md` | the audited final artefact | `framework/assets/template-requirements.md` |
-| `requirements/requirements-draft.md` | **the marker-bearing baseline** (the Rosetta Stone — retains every `[SRC]`, `[AI-SUGGESTED: AI-NNN]`, `[STANDARD-RULE: GR-NN]`, `[OUT-OF-SCOPE]`) | drafter |
-| `requirements/draft-claims.ndjson` | the `C-NNN` → verbatim-quote ledger | `{claim_id, draft_locator, claim_text, source_file, source_quote}` (grounding-verifier) |
-| `requirements/draft-claims-verification.ndjson` | the **draft-time** grounding result per claim | `{claim_id, status, reason}` (grounding-verifier) |
+| `generated-docs/requirements/requirements.md` | the audited final artefact | `framework/assets/template-requirements.md` |
+| `generated-docs/requirements/requirements-draft.md` | **the marker-bearing baseline** (the Rosetta Stone — retains every `[SRC]`, `[AI-SUGGESTED: AI-NNN]`, `[STANDARD-RULE: GR-NN]`, `[OUT-OF-SCOPE]`) | drafter |
+| `generated-docs/requirements/draft-claims.ndjson` | the `C-NNN` → verbatim-quote ledger | `{claim_id, draft_locator, claim_text, source_file, source_quote}` (grounding-verifier) |
+| `generated-docs/requirements/draft-claims-verification.ndjson` | the **draft-time** grounding result per claim | `{claim_id, status, reason}` (grounding-verifier) |
 | `framework/state/resolver-answers.ndjson` | how each `AI-NNN` was resolved (the consultant's answer) | `{id, status, resolved_value, reason}`, `status ∈ {confirmed, accepted-as-is, corrected, dropped}` (requirements-resolver) |
-| `requirements/consultant-answers.md` | human-readable corroboration of the resolutions | narrative (drafter/orchestrator) |
-| `requirements/source-manifest.json` | the allowlist of valid `source_file` paths + the original input files | input-handler |
+| `generated-docs/requirements/consultant-answers.md` | human-readable corroboration of the resolutions | narrative (drafter/orchestrator) |
+| `generated-docs/requirements/source-manifest.json` | the allowlist of valid `source_file` paths + the original input files | input-handler |
 | the input files (read per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `converted_sibling` when non-null, else `original_path`) | **the trace terminus** — the real document a quote must be found in | — |
 
 ### The trace chain terminates at the origin, not at an intermediate ledger
@@ -132,10 +132,10 @@ Sections §1 context, §2 domain, §3 personas, §5 task flows, §7 data shapes 
 
 The decidable citation half **is** the grounding-verifier engine, pointed at the final doc. Do not reinvent the substring matcher. Invoke `framework/skills/grounding-verifier.md` with:
 
-- `draft_path = requirements/requirements.md` (the **final** doc — its retained `[SRC: C-NNN]` tags are the body under audit),
-- `claims_path = requirements/draft-claims.ndjson`,
-- `manifest_path = requirements/source-manifest.json`,
-- `verification_path = review-requirements/REQUIREMENTS-TRACEABILITY/.workspace/citation-verification.ndjson`.
+- `draft_path = generated-docs/requirements/requirements.md` (the **final** doc — its retained `[SRC: C-NNN]` tags are the body under audit),
+- `claims_path = generated-docs/requirements/draft-claims.ndjson`,
+- `manifest_path = generated-docs/requirements/source-manifest.json`,
+- `verification_path = generated-docs/review-requirements/REQUIREMENTS-TRACEABILITY/.workspace/citation-verification.ndjson`.
 
 Consume its NDJSON output and the summary line. Map its reasons to verdicts, **re-interpreting Pass 2 for the final-doc context**:
 
@@ -224,14 +224,14 @@ Run before writing. Each is `pass | fail` (gate 8 has a `warn` variant). On any 
 6. **Alignment-anti-fabrication** — no ACCEPTED-INFERENCE / STANDARD-RULE / OUT-OF-SCOPE-DEFAULT verdict without a named draft antecedent (a `[SRC]` anchor or a `§`-anchor + draft marker + resolver `id`); uncertain alignments are NOT-ALIGNABLE, never a manufactured antecedent; no verdict text uses the word "fabricated" of any unit.
 7. **Capability-banner-present** — the artefact states the `capability_tier` and its confidence ceiling; the verdict respects the TIER-0 cap.
 8. **Fenced-judgment** — ORPHAN / NOT-ALIGNABLE / DRIFTED / UNATTRIBUTED render as moderate-confidence bands with an observation, never a hard "this is fabricated/wrong." *(warn variant: a trace layer is `not-applicable` at this tier — documented in diagnostics.)*
-9. **SHA match** — `REQUIREMENTS_SHA256` equals the Step-2 SHA-256 of `requirements/requirements.md`.
+9. **SHA match** — `REQUIREMENTS_SHA256` equals the Step-2 SHA-256 of `generated-docs/requirements/requirements.md`.
 10. **Verdict consistency** — recompute the verdict from the untraceable counts + the TIER-0 cap; assert it equals the rendered value.
 
 ---
 
 ## Worked examples (the build-time decidability fixture)
 
-A by-hand fixture (there is no live `requirements/requirements.md` in this generator repo). Real ID shapes; a mix of clean traces and seeded defects. Reference material, never a runtime input. Assume TIER-2.
+A by-hand fixture (there is no live `generated-docs/requirements/requirements.md` in this generator repo). Real ID shapes; a mix of clean traces and seeded defects. Reference material, never a runtime input. Assume TIER-2.
 
 | Unit | Final-doc value (abridged) | Draft antecedent | Ledger lookup | Verdict |
 |---|---|---|---|---|

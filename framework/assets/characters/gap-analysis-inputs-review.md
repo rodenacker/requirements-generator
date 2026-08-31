@@ -163,7 +163,7 @@ Per the `/review-inputs` convention: citations live in the Evidence column only;
 
 The Gap Analysis reviewer reads:
 
-- `requirements/source-manifest.json` (once, at Step 2 — to enumerate consumable sources and read the `target` field).
+- `generated-docs/requirements/source-manifest.json` (once, at Step 2 — to enumerate consumable sources and read the `target` field).
 - For each manifest row where `tier != "Unsupported"`: the file at `converted_sibling` when non-null, else `original_path` (only `Native-text`) — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`; once per row at Step 2.
 - This character file and the reference (`gap-analysis-reference.md`) at activation (Step 1).
 - `framework/assets/topics-requirements.md` — once at Step 3. Source of the canonical topic list, the `Dimension` column (per-topic classification, SPoT), and the Tier A/B/C/D bijection rules (for the Confidence-honesty rule).
@@ -172,13 +172,13 @@ The Gap Analysis reviewer reads:
 
 It does **not** read:
 
-- `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts.
-- `review-inputs/COMPLETENESS-REVIEW/completeness-review.html`, `review-inputs/ADVERSARIAL/adversarial-review.html`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — sibling reviewers are independently grounded in the manifest; cross-reading would conflate methodologies.
-- `analyse-requirements/*`, `analyse-inputs/*` — derived; each lens reads the manifest independently.
-- `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md` (except as textual references).
+- `generated-docs/requirements/requirements.md`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims*.ndjson` — derivative artefacts.
+- `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html`, `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html`, `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — sibling reviewers are independently grounded in the manifest; cross-reading would conflate methodologies.
+- `generated-docs/analyse-requirements/*`, `generated-docs/analyse-inputs/*` — derived; each lens reads the manifest independently.
+- `generated-docs/design-system/*`, `generated-docs/review-requirements/*`, `framework/state/*`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md` (except as textual references).
 - `framework/skills/completeness-gap-pass.md` — that skill is `/requirements`-private; the conceptual decision tree it embodies is shared inspiration, but the implementations are independent because input artefacts differ.
 
-The reviewer's only outputs are `review-inputs/GAP-ANALYSIS/gap-analysis.html` and the inline summary it surfaces to the consultant at handback.
+The reviewer's only outputs are `generated-docs/review-inputs/GAP-ANALYSIS/gap-analysis.html` and the inline summary it surfaces to the consultant at handback.
 
 ## Single-threaded discipline (no parallel workers)
 
@@ -196,7 +196,7 @@ The agent does **not** use the `Agent` / `Task` tool at any step.
 The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide whether to revise the gap set, override the gate, or restart. Hard halt paths are reserved for:
 
 - `verify-artifact-write` failures at the write step (RF-04).
-- `requirements/source-manifest.json` absent or empty at Step 2 (the orchestrator guarantees presence, but the agent defends in depth).
+- `generated-docs/requirements/source-manifest.json` absent or empty at Step 2 (the orchestrator guarantees presence, but the agent defends in depth).
 - Every manifest row has `tier: Unsupported` (zero consumable sources) at Step 2.
 - A topic in `topics-requirements.md` carries no `Dimension` value (schema violation — the fix is upstream, not in the reviewer).
 
@@ -237,7 +237,7 @@ The artefact's `manifest_sha256` and `topics_requirements_sha256` fields enable 
 - Inventing a dimension instead of reading from `topics-requirements.md`'s `Dimension` column. Halt and surface the schema violation if the column is missing for any topic.
 - Collapsing the six-state coverage vocabulary into a smaller set (e.g. just Missing vs Present). The six states map directly onto the drafter's marker namespaces (`[AI-SUGGESTED]` / `[STANDARD-RULE]` / `[OUT-OF-SCOPE]` / no-marker / no-emission); collapsing loses the pre-classification value.
 - Writing `[AI-SUGGESTED]` markers in the artefact. That namespace belongs to the drafter. The reviewer's output namespace is `GAP-NN`, `topic_ref`, `dimension`, `coverage`, `moscow`, and shall-form Candidate Requirements.
-- Reading sibling reviewer artefacts (`review-inputs/COMPLETENESS-REVIEW/*`, `review-inputs/ADVERSARIAL/*`, `review-inputs/AMBIGUITY-REVIEW/*`). Each input-pipeline lens is independently grounded; cross-reading conflates methodologies and produces correlated noise.
+- Reading sibling reviewer artefacts (`generated-docs/review-inputs/COMPLETENESS-REVIEW/*`, `generated-docs/review-inputs/ADVERSARIAL/*`, `generated-docs/review-inputs/AMBIGUITY-REVIEW/*`). Each input-pipeline lens is independently grounded; cross-reading conflates methodologies and produces correlated noise.
 - Using `Agent` / `Task` tool. Sequential single-threaded by design.
 - Performing additive merge across runs. Full-overwrite per run; the orchestrator's prior-artefact gate has already taken the consultant's decision.
 - Citing line numbers in Evidence. Citation is `[SRC: <filename>]` only — basename plus extension, manifest's `filename` field.

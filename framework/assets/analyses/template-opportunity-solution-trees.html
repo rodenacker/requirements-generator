@@ -47,7 +47,7 @@
     {{TITLE}}                       — short title (e.g. "Opportunity Solution Tree — Project X")
     {{DOMAIN}}                      — domain string (from requirements §1 if present)
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
-    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
+    {{REQUIREMENTS_SHA256}}         — sha256 of generated-docs/requirements/requirements.md at read time
     {{OUTCOME_CLASS}}               — "business-outcome" | "product-outcome" | "traction-metric"
     {{OPPORTUNITY_COUNT}}           — total Opportunities on the tree
     {{SOLUTION_COUNT}}              — total Solutions on the tree
@@ -910,7 +910,7 @@
     <details id="how-to-read" class="how-to-read">
       <summary>How to read this tree</summary>
       <div class="how-to-read-body">
-        <p><strong>This is not a discovery plan — it is a structural audit.</strong> Teresa Torres's Opportunity Solution Trees are normally built top-down from a desired Outcome, through customer-interview-sourced Opportunities, to candidate Solutions and Assumption Tests. This artefact does the reverse: it reads the merged <code>requirements/requirements.md</code> and ladders upward from the document's features (Solutions) to the customer needs they address (Opportunities) to the single business or product goal they serve (Outcome).</p>
+        <p><strong>This is not a discovery plan — it is a structural audit.</strong> Teresa Torres's Opportunity Solution Trees are normally built top-down from a desired Outcome, through customer-interview-sourced Opportunities, to candidate Solutions and Assumption Tests. This artefact does the reverse: it reads the merged <code>generated-docs/requirements/requirements.md</code> and ladders upward from the document's features (Solutions) to the customer needs they address (Opportunities) to the single business or product goal they serve (Outcome).</p>
         <p><strong>What to look for.</strong> Orphan Solutions (features with no underlying customer need stated) and unaddressed Opportunities (pains the doc names but commits no Solution against) are the headline findings — they signal under-justified scope and gaps in scope respectively. Vertical-only branches (one Opportunity, one Solution, no siblings) signal premature commitment; Torres specifically warns against them. Weakly-anchored Opportunities have no keyword overlap with the Outcome's measurement clause.</p>
         <p><strong>Layer 4 (Assumption Tests)</strong> is sourced only from <code>§Risks</code>, <code>§Assumptions</code>, and <code>§Open questions</code>. Most written PRDs do not contain explicit assumptions or experiments — when those sections are absent, the layer renders a placeholder rather than fabricating tests. The absence is information, not a defect.</p>
         <p><strong>Provenance dots</strong> on each card show where the node was sourced from. Green = canonical source (the section type Torres or the framework's reference contract names first). Amber = derived from supplementary prose (used when the canonical source was sparse). The diagnostics block at the bottom lists every flag and gate result.</p>

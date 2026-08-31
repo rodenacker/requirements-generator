@@ -40,7 +40,7 @@
     {{DOMAIN}}                 — domain string (best-effort: from any source carrying a
                                  recognisable domain heading; otherwise "(not declared in inputs)")
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}   — sha256 of requirements/source-manifest.json at Step 2 read time
+    {{MANIFEST_FINGERPRINT}}   — sha256 of generated-docs/requirements/source-manifest.json at Step 2 read time
     {{REVIEWER_IDENTITY}}      — fixed string "Ambiguity Review (Berry/Kamsties + Femmer,
                                  seven-dimension, inputs-side)"
     {{SOURCES_CONSUMED_COUNT}} — count of manifest rows with tier != Unsupported
@@ -67,7 +67,7 @@
     {{SOURCE_ROSTER_BLOCK}}    — pre-rendered roster tables per SOURCE ROSTER SCHEMA below
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html.
+  Output: generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html.
 
   AMBIGUITY REGISTER SCHEMA — each row the reviewer emits has the shape:
 

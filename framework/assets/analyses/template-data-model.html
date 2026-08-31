@@ -47,7 +47,7 @@
     {{TITLE}}                  — short title (e.g. "Data Model — Project X").
     {{DOMAIN}}                 — domain string (from requirements §1 if present).
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
-    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{REQUIREMENTS_SHA256}}    — sha256 of generated-docs/requirements/requirements.md at read time.
     {{ENTITY_COUNT}}           — number of rows in the Entities table.
     {{ATTRIBUTE_COUNT}}        — number of rows in the Attributes table.
     {{RELATIONSHIP_COUNT}}     — number of rows in the Relationships table.
@@ -69,7 +69,7 @@
                                  classDiagram for UML; no Mermaid for
                                  Chen). Empty if neither selected.
 
-  Output: analyse-requirements/DATA-MODEL/data-model.html.
+  Output: generated-docs/analyse-requirements/DATA-MODEL/data-model.html.
 
   DATA MODEL SCHEMA — the analyser's {{DATA_MODEL_BLOCK}} substitutes a
   single <section class="data-model">. The inner section contains, in

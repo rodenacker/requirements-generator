@@ -22,14 +22,14 @@ JSON-parse the contents. Capture into in-memory state:
 ## 2.2 Read the requirements doc
 
 ```
-Read tool: requirements/requirements.md
+Read tool: generated-docs/requirements/requirements.md
 ```
 
 Full read; the orchestrator's prerequisite gate guaranteed it exists and is non-empty.
 
 **Amendments supersession:** if the document carries an `## Amendments (pending re-merge)` section (inserted by `/resolve-review`; canonical shape in `framework/assets/resolve-review/template-addendum.md`), apply its `AMD-NN` entries to every extraction this step and step 3 perform — amendments supersede the base text they name, including the §7 / F-NN property extraction the Properties closed set is derived from (additions extend, removals shrink, renames replace). Note the applied amendments in the in-thread announcement.
 
-**Drift check:** compute the sha256 of the bytes just read. If it does not match `scope.requirements_sha256`, the requirements doc has changed since scope-selection. Surface a structured warning in the architect's in-thread announcement (do **not** fail; the consultant may have intentionally edited the doc): *"⚠ `requirements/requirements.md` has changed since scope-selection (new sha256 `{{actual_sha256}}` vs scope.json `{{scope.requirements_sha256}}`). Proceeding with current requirements; any scope sources no longer present will surface as bijection violations in step 3."*
+**Drift check:** compute the sha256 of the bytes just read. If it does not match `scope.requirements_sha256`, the requirements doc has changed since scope-selection. Surface a structured warning in the architect's in-thread announcement (do **not** fail; the consultant may have intentionally edited the doc): *"⚠ `generated-docs/requirements/requirements.md` has changed since scope-selection (new sha256 `{{actual_sha256}}` vs scope.json `{{scope.requirements_sha256}}`). Proceeding with current requirements; any scope sources no longer present will surface as bijection violations in step 3."*
 
 ## 2.3 Locate scope-restricted slices
 
@@ -163,7 +163,7 @@ When `analyses_inputs_path` is null, OR the file is absent on disk, skip block 2
 
 ## 2.7 (Legacy fallback) Read trade-off matrix
 
-Only when block 2.6 produced no entry for `trade-off-dimension-analysis` in `cached_projections["variant-dimension-applicability"]` AND no entry in `cached_legacy_full_reads` AND no entry in `pending_step5_selections[]` for the same name (because `analyses_inputs_path` was null/absent OR the consultant did not select trade-off-dimensions at Stage 1b): test whether `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` exists on disk. If yes, `Read` it (the file is HTML; extract the per-goal × dimension scoring from its `<table>` body). Use the scoring at step 5 to inform the dimension-applicability filter — goals scoring near the poles on a given dimension reinforce that dimension's applicability. Absent → skip silently; the architect falls back to the heuristic rules in `tradeoff-dimensions-registry.md > Section 2`.
+Only when block 2.6 produced no entry for `trade-off-dimension-analysis` in `cached_projections["variant-dimension-applicability"]` AND no entry in `cached_legacy_full_reads` AND no entry in `pending_step5_selections[]` for the same name (because `analyses_inputs_path` was null/absent OR the consultant did not select trade-off-dimensions at Stage 1b): test whether `generated-docs/analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` exists on disk. If yes, `Read` it (the file is HTML; extract the per-goal × dimension scoring from its `<table>` body). Use the scoring at step 5 to inform the dimension-applicability filter — goals scoring near the poles on a given dimension reinforce that dimension's applicability. Absent → skip silently; the architect falls back to the heuristic rules in `tradeoff-dimensions-registry.md > Section 2`.
 
 When block 2.6 produced a `trade-off-dimension-analysis` selection (in any of the cache slots above), **skip block 2.7 entirely** — the consultant's explicit selection takes precedence over the legacy existence-conditional read.
 

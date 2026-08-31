@@ -10,7 +10,7 @@
 
 ## Stance
 
-The Requirements Quality review is a **fixed-rubric conformance audit of every ID-bearing requirement** in `requirements/requirements.md` — goals (G-NN), functional requirements (F-NN), business rules (BR-NN), UI feature needs (UI-NN), reporting (RPT-NN), notifications (NT-NN). The job is to apply the same nine ISO/IEC/IEEE 29148 well-formedness checks to each requirement the same way, every time, so the result is reproducible: the same document scored twice yields the same scorecard.
+The Requirements Quality review is a **fixed-rubric conformance audit of every ID-bearing requirement** in `generated-docs/requirements/requirements.md` — goals (G-NN), functional requirements (F-NN), business rules (BR-NN), UI feature needs (UI-NN), reporting (RPT-NN), notifications (NT-NN). The job is to apply the same nine ISO/IEC/IEEE 29148 well-formedness checks to each requirement the same way, every time, so the result is reproducible: the same document scored twice yields the same scorecard.
 
 The auditor's defining discipline is **confidence honesty**. Five of the nine characteristics — Singular, Unambiguous, Conforming, Verifiable, Complete-structural — are decidable from the requirement text alone, by a closed dictionary / a clause count / a house-style grep / a measurable-anchor test. The auditor scores these pass/fail at high confidence, and every fail carries a rule code and a verbatim offending quote. The other four — Necessary, Appropriate, Correct, Feasible — genuinely need domain or stakeholder knowledge; the literature reports only fair-to-moderate inter-rater agreement on them. The auditor **never fakes a hard verdict** on these: they render in a separate, muted band as `likely-pass | concern | not-doc-decidable`, at moderate confidence, anchored to a doc-internal observation or marked not-decidable. A standards auditor who scored "Feasible: fail" from a requirements document alone would be inventing authority they do not have.
 
@@ -98,11 +98,11 @@ Every decidable fail carries a verbatim offending quote (exists in the Step-2 qu
 
 ## Stand-alone discipline
 
-The Requirements Quality reviewer reads `requirements/requirements.md` and **nothing else under `requirements/`** (no `source-manifest.json`, no `requirements-draft.md`, no `consultant-answers.md`, no draft-claims sidecars, no `framework/state/`, no `analyse-requirements/`, no `design-system/`). It reads the **conforming-target** files (`framework/assets/topics-requirements.md`, `framework/assets/template-requirements.md`) to score Conforming, and reads two shared-policy files **as filter sources only** at the late rescue step (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`). These are the agent's only reads outside its own asset set + the merged requirements doc. The deliberate omissions are documented in the reference and the agent's Tools section.
+The Requirements Quality reviewer reads `generated-docs/requirements/requirements.md` and **nothing else under `generated-docs/requirements/`** (no `source-manifest.json`, no `requirements-draft.md`, no `consultant-answers.md`, no draft-claims sidecars, no `framework/state/`, no `generated-docs/analyse-requirements/`, no `generated-docs/design-system/`). It reads the **conforming-target** files (`framework/assets/topics-requirements.md`, `framework/assets/template-requirements.md`) to score Conforming, and reads two shared-policy files **as filter sources only** at the late rescue step (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`). These are the agent's only reads outside its own asset set + the merged requirements doc. The deliberate omissions are documented in the reference and the agent's Tools section.
 
 ## Failure posture
 
-The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide Revise / Override / Restart. The hard halt path is reserved for `verify-artifact-write` failure (RF-04) and for `requirements/requirements.md` being unreadable, empty, or carrying no ID-bearing requirement.
+The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide Revise / Override / Restart. The hard halt path is reserved for `verify-artifact-write` failure (RF-04) and for `generated-docs/requirements/requirements.md` being unreadable, empty, or carrying no ID-bearing requirement.
 
 ## Tone calibration
 

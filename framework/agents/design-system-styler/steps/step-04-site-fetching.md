@@ -2,7 +2,7 @@
 name: step-04-site-fetching
 description: 'Playwright-driven site fetching: resize → navigate → settle → aggregate stylesheets + computed :root + sample elements. Falls back to two-pass WebFetch only when the consultant elects it at the preflight prompt. Skipped entirely when reference_url is null.'
 # Variables referenced (inherited from agent):
-# workspace_path: 'design-system/.workspace'
+# workspace_path: 'generated-docs/design-system/.workspace'
 # Variables read for the WebFetch fallback path only:
 # prompt_site_fetching: 'framework/agents/design-system-styler/prompt-templates/site-fetching.md'
 # prompt_css_identification: 'framework/agents/design-system-styler/prompt-templates/css-identification.md'
@@ -242,9 +242,9 @@ Concatenate the synthetic `:root` block (from §4.A.6) with `{{eval_payload}}.ra
 
 ### 4.A.9 Workspace write
 
-1. Create the workspace directory if absent: `Bash mkdir -p design-system/.workspace`
-2. Write `design-system/.workspace/css-content.txt` — the full `{{primary_css_content}}` (synthetic `:root` block + concatenated CSS, post-truncation).
-3. Write `design-system/.workspace/computed-tokens.json`:
+1. Create the workspace directory if absent: `Bash mkdir -p generated-docs/design-system/.workspace`
+2. Write `generated-docs/design-system/.workspace/css-content.txt` — the full `{{primary_css_content}}` (synthetic `:root` block + concatenated CSS, post-truncation).
+3. Write `generated-docs/design-system/.workspace/computed-tokens.json`:
    ```json
    {
      "customProperties": { ... },
@@ -256,7 +256,7 @@ Concatenate the synthetic `:root` block (from §4.A.6) with `{{eval_payload}}.ra
      "sources": [ ... ]
    }
    ```
-4. Write `design-system/.workspace/metadata.json`:
+4. Write `generated-docs/design-system/.workspace/metadata.json`:
    ```json
    {
      "extraction_method": "playwright",
@@ -365,10 +365,10 @@ If `{{primary_css_content}}` exceeds approximately 100,000 characters:
 
 Persist state to disk for inter-step access:
 
-1. Create the workspace directory: `Bash mkdir -p design-system/.workspace`
-2. Write `design-system/.workspace/css-content.txt` — the full `{{primary_css_content}}`.
-3. **Do NOT write `design-system/.workspace/computed-tokens.json` on this path.** Step-05's rules files detect its absence and use legacy text-pattern matching exclusively.
-4. Write `design-system/.workspace/metadata.json`:
+1. Create the workspace directory: `Bash mkdir -p generated-docs/design-system/.workspace`
+2. Write `generated-docs/design-system/.workspace/css-content.txt` — the full `{{primary_css_content}}`.
+3. **Do NOT write `generated-docs/design-system/.workspace/computed-tokens.json` on this path.** Step-05's rules files detect its absence and use legacy text-pattern matching exclusively.
+4. Write `generated-docs/design-system/.workspace/metadata.json`:
    ```json
    {
        "extraction_method": "webfetch-fallback",

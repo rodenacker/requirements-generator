@@ -10,11 +10,11 @@ Character: `framework/assets/characters/prd-drafting.md`.
 
 Turn unstructured input documents into a structured, **self-contained** PRD draft. The draft is the sole source of truth for the resolver and merger agents downstream. Every fact, decision, metric, hypothesis, and risk lives inside the draft itself — citing an input as the *source* of a fact is allowed; pointing to an input *instead of* including the fact is forbidden.
 
-The PRD pipeline is **fully independent of `requirements/requirements.md`**. This agent reads only `requirements/source-manifest.json` and the input files it points to. Cross-doc pointers into the requirements doc are not emitted.
+The PRD pipeline is **fully independent of `generated-docs/requirements/requirements.md`**. This agent reads only `generated-docs/requirements/source-manifest.json` and the input files it points to. Cross-doc pointers into the requirements doc are not emitted.
 
 ## Workflow
 
-1. *(Timing — emit standalone `substep_start[read-inputs]` before this step's first action; see **Timing log (sub-steps)**.)* Read `requirements/source-manifest.json`. Read each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md`:
+1. *(Timing — emit standalone `substep_start[read-inputs]` before this step's first action; see **Timing log (sub-steps)**.)* Read `generated-docs/requirements/source-manifest.json`. Read each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md`:
     - `Native-text` — `Read` `original_path` once into context (it carries no `converted_sibling`).
     - `Native-multimodal`, `Vector-renderable`, `Supported-via-MCP` — `Read` `converted_sibling` once into context. Do not read the original; the sibling (frozen vision description for the two visual tiers, markitdown rendering for `Supported-via-MCP`) is the drafter-facing surface.
     - `Unsupported` — skip. The row is a forensic record only.
@@ -28,11 +28,11 @@ The PRD pipeline is **fully independent of `requirements/requirements.md`**. Thi
 
 5. *(Timing — emit batched `substep_end[populate-template]` + `substep_start[gap-pass]` in one tool call before invoking the skill.)* **Gap pass.** Run the `framework/skills/completeness-gap-pass-prd.md` skill against the in-memory populated draft. For each gap tuple emitted by the skill, walk the decision tree in **Classification** below and apply the `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]` marker per the tuple's `marker_kind`. Fabricate missing elements (metrics, hypotheses, falsification conditions, risks, mitigations, phase rows, stakeholder sign-off domains, etc.) as the gap pass directs. PAI-NNN IDs are unique within the draft and assigned monotonically.
 
-6. *(Timing — emit batched `substep_end[gap-pass]` + `substep_start[write-draft]` in one tool call before Self-validation begins. On `RF-04 trigger`, do **not** emit `substep_end[write-draft]` — the orphan start is the halt signal.)* Run **Self-validation**; fix and re-run until it passes; Write the draft. Immediately after the Write, call `framework/skills/verify-artifact-write.md` with `path: "prd/prd-draft.md"`, `expected_sha256: <hash of the rendered draft bytes>`, `expected_min_bytes: <byte length of the rendered draft>`. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04`; do not advance.
+6. *(Timing — emit batched `substep_end[gap-pass]` + `substep_start[write-draft]` in one tool call before Self-validation begins. On `RF-04 trigger`, do **not** emit `substep_end[write-draft]` — the orphan start is the halt signal.)* Run **Self-validation**; fix and re-run until it passes; Write the draft. Immediately after the Write, call `framework/skills/verify-artifact-write.md` with `path: "generated-docs/prd/prd-draft.md"`, `expected_sha256: <hash of the rendered draft bytes>`, `expected_min_bytes: <byte length of the rendered draft>`. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04`; do not advance.
 
-6a. *(Timing — emit batched `substep_end[write-draft]` + `substep_start[write-claims-sidecar]` in one tool call before the sidecar Write. On a Write failure, do **not** emit `substep_end[write-claims-sidecar]`.)* **Emit the claims sidecar.** Write `prd/draft-claims.ndjson` — one NDJSON line per `[SRC: PC-NNN]` tag in the just-written draft, with shape `{claim_id, draft_locator, claim_text, source_file, source_quote}` per the **Claims sidecar** section below. **No post-Write `verify-artifact-write` is run on the sidecar.** The grounding-verifier at step 6b deterministically reads the sidecar in the immediate next sub-step and reports `ndjson_parse_error` on any line that fails to parse (per `framework/skills/grounding-verifier.md > Self-validation`), so the verifier IS the substantive corruption check — a separate hash roundtrip here would only duplicate that check. The draft itself **does** keep its post-Write `verify-artifact-write` at step 6 because no downstream parser catches a truncated draft.
+6a. *(Timing — emit batched `substep_end[write-draft]` + `substep_start[write-claims-sidecar]` in one tool call before the sidecar Write. On a Write failure, do **not** emit `substep_end[write-claims-sidecar]`.)* **Emit the claims sidecar.** Write `generated-docs/prd/draft-claims.ndjson` — one NDJSON line per `[SRC: PC-NNN]` tag in the just-written draft, with shape `{claim_id, draft_locator, claim_text, source_file, source_quote}` per the **Claims sidecar** section below. **No post-Write `verify-artifact-write` is run on the sidecar.** The grounding-verifier at step 6b deterministically reads the sidecar in the immediate next sub-step and reports `ndjson_parse_error` on any line that fails to parse (per `framework/skills/grounding-verifier.md > Self-validation`), so the verifier IS the substantive corruption check — a separate hash roundtrip here would only duplicate that check. The draft itself **does** keep its post-Write `verify-artifact-write` at step 6 because no downstream parser catches a truncated draft.
 
-6b. *(Timing — emit batched `substep_end[write-claims-sidecar]` + `substep_start[grounding-verify]` in one tool call before the first verifier invocation. The pair wraps the **entire** FAIL+remediate loop — re-Edits and re-Writes inside the loop are part of `grounding-verify` and do **not** re-open `write-draft` or `write-claims-sidecar`. After the verifier reports `failed: 0`, emit standalone `substep_end[grounding-verify]` as the drafter's final timing emission before handback.)* **Run grounding-verifier.** Call `framework/skills/grounding-verifier.md` with `claims_path: "prd/draft-claims.ndjson"`, `manifest_path: "requirements/source-manifest.json"`, `draft_path: "prd/prd-draft.md"`, `verification_path: "prd/draft-claims-verification.ndjson"`. On `failed: 0`, hand back to the orchestrator. On `failed: > 0`, walk the verifier's NDJSON output and remediate each FAIL line per the **Grounding remediation** section below — for each failing claim, **either** edit the draft + sidecar to substitute a citation whose `source_quote` is a real verbatim substring of the cited file, **or** convert the field's value in the draft to carry an `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]` marker (replacing its `[SRC: PC-NNN]` tag) and remove the matching line from the sidecar. After remediation, re-Write whatever changed, re-`verify-artifact-write` for the draft only (no longer for the sidecar — the verifier's next pass is the sidecar's substantive corruption check), and re-run the verifier. Loop until `failed: 0`. This step must complete cleanly **before** handback.
+6b. *(Timing — emit batched `substep_end[write-claims-sidecar]` + `substep_start[grounding-verify]` in one tool call before the first verifier invocation. The pair wraps the **entire** FAIL+remediate loop — re-Edits and re-Writes inside the loop are part of `grounding-verify` and do **not** re-open `write-draft` or `write-claims-sidecar`. After the verifier reports `failed: 0`, emit standalone `substep_end[grounding-verify]` as the drafter's final timing emission before handback.)* **Run grounding-verifier.** Call `framework/skills/grounding-verifier.md` with `claims_path: "generated-docs/prd/draft-claims.ndjson"`, `manifest_path: "generated-docs/requirements/source-manifest.json"`, `draft_path: "generated-docs/prd/prd-draft.md"`, `verification_path: "generated-docs/prd/draft-claims-verification.ndjson"`. On `failed: 0`, hand back to the orchestrator. On `failed: > 0`, walk the verifier's NDJSON output and remediate each FAIL line per the **Grounding remediation** section below — for each failing claim, **either** edit the draft + sidecar to substitute a citation whose `source_quote` is a real verbatim substring of the cited file, **or** convert the field's value in the draft to carry an `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]` marker (replacing its `[SRC: PC-NNN]` tag) and remove the matching line from the sidecar. After remediation, re-Write whatever changed, re-`verify-artifact-write` for the draft only (no longer for the sidecar — the verifier's next pass is the sidecar's substantive corruption check), and re-run the verifier. Loop until `failed: 0`. This step must complete cleanly **before** handback.
 
 If any single input exceeds ~30k tokens, segment it section-by-section but still read each segment only once.
 
@@ -56,11 +56,11 @@ This agent writes its own `substep_start` / `substep_end` events to `framework/s
 
     | `substep` | Workflow step(s) | Start boundary | End boundary |
     |---|---|---|---|
-    | `read-inputs` | Step 1 | before reading `requirements/source-manifest.json` | after every manifest-registered file has been Read into context per the **Read-path resolution** rule (`Native-text` via `original_path`; `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` via `converted_sibling`) |
+    | `read-inputs` | Step 1 | before reading `generated-docs/requirements/source-manifest.json` | after every manifest-registered file has been Read into context per the **Read-path resolution** rule (`Native-text` via `original_path`; `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` via `converted_sibling`) |
     | `populate-template` | Steps 2–3 | immediately after `read-inputs`'s `substep_end` | after the top-to-bottom template population pass completes, before `gap-pass` begins |
     | `gap-pass` | Step 5 | before invoking `framework/skills/completeness-gap-pass-prd.md` | after every gap-pass tuple has been applied (markers + fabricated elements written into the in-memory draft) |
-    | `write-draft` | Step 6 | before running Self-validation for the first time on the draft Write | after `verify-artifact-write` for `prd/prd-draft.md` returns `pass` |
-    | `write-claims-sidecar` | Step 6a | before writing `prd/draft-claims.ndjson` | after the Write of `prd/draft-claims.ndjson` returns (no `verify-artifact-write` on the sidecar — `grounding-verify` at step 6b is the substantive corruption check) |
+    | `write-draft` | Step 6 | before running Self-validation for the first time on the draft Write | after `verify-artifact-write` for `generated-docs/prd/prd-draft.md` returns `pass` |
+    | `write-claims-sidecar` | Step 6a | before writing `generated-docs/prd/draft-claims.ndjson` | after the Write of `generated-docs/prd/draft-claims.ndjson` returns (no `verify-artifact-write` on the sidecar — `grounding-verify` at step 6b is the substantive corruption check) |
     | `grounding-verify` | Step 6b (entire remediation loop) | before the first invocation of `framework/skills/grounding-verifier.md` | after the verifier reports `failed: 0` (any intermediate FAIL+remediate iterations are inside the substep, not separately instrumented) |
 
 - **Pairing rule + halt semantics.** Every `substep_start` must be followed by exactly one `substep_end` with the same `substep` name on clean completion of the substep. For substeps that contain a remediation loop (`grounding-verify`), the pair wraps the **entire** loop. If this agent halts inside a substep (e.g., `RF-04 trigger`), do **not** write the `substep_end` — the orphan `substep_start` is the halt signal per the orchestrator's **Halt-signal contract**.
@@ -99,7 +99,7 @@ Two markers, two semantics:
 
 The PRD pipeline emits **no `[STANDARD-RULE]` and no `[OUT-OF-SCOPE]` markers**. The `GR-NN` rules in `framework/shared/general-rules.md` govern UI behaviour and are not consulted at PRD-draft time. The PRD's §10 *is* the out-of-scope discussion; a marker inside §10 saying "out of scope" would be self-referential.
 
-The PRD pipeline emits **no `[REQ:]` cross-doc pointers**. This agent reads only `requirements/source-manifest.json` and the input files; `requirements/requirements.md` is not consulted at any step.
+The PRD pipeline emits **no `[REQ:]` cross-doc pointers**. This agent reads only `generated-docs/requirements/source-manifest.json` and the input files; `generated-docs/requirements/requirements.md` is not consulted at any step.
 
 The blocking / non-blocking sub-rule applies to every `[AI-SUGGESTED]` marker. Only the drafter knows *why* the guess was made, so classification belongs here. The resolver may later escalate non-blocking → blocking during Q&A.
 
@@ -119,7 +119,7 @@ The blocking / non-blocking sub-rule applies to every `[AI-SUGGESTED]` marker. O
 
 Marked fields (`[AI-SUGGESTED]`) carry no `[SRC:]` tag — the marker is the field's classification, the tag is mutually exclusive. No field carries both.
 
-## Claims sidecar (`prd/draft-claims.ndjson`)
+## Claims sidecar (`generated-docs/prd/draft-claims.ndjson`)
 
 One JSON object per non-empty line, in `claim_id` order, written by step 6a after the draft is on disk. Schema:
 
@@ -130,7 +130,7 @@ One JSON object per non-empty line, in `claim_id` order, written by step 6a afte
 - `claim_id` — must match the `[SRC: PC-NNN]` tag at the same locator in the draft body. Unique within the file. **PRD-namespaced (`PC-`)** to avoid visual collision with requirements-pipeline `C-NNN` IDs.
 - `draft_locator` — §-path to the field (e.g., `§5.2.metric[M-03].baseline`, `§7.1.persona[Underwriter].day_summary`).
 - `claim_text` — the field value as it appears in the draft body, **excluding** the trailing `[SRC: PC-NNN]` tag.
-- `source_file` — must be a path listed in `requirements/source-manifest.json`: the row's `converted_sibling` when non-null, else its `original_path` (per the **Read-path resolution** rule — i.e. `original_path` only for `Native-text`).
+- `source_file` — must be a path listed in `generated-docs/requirements/source-manifest.json`: the row's `converted_sibling` when non-null, else its `original_path` (per the **Read-path resolution** rule — i.e. `original_path` only for `Native-text`).
 - `source_quote` — a **verbatim substring** of `source_file`'s contents. The grounding-verifier matches this as literal bytes; whitespace, punctuation, and casing are not normalised. For a visual input this substring is drawn from the frozen description text in the `converted_sibling` — so visual-derived claims now carry verifiable text quotes.
 
 If a field cannot be grounded with a verbatim substring of any manifest-listed source, it MUST instead carry an `[AI-SUGGESTED]` marker — there is no third path. This is the load-bearing fall-through that keeps the citation system closed.
@@ -148,7 +148,7 @@ The grounding-verifier emits one or more NDJSON lines per FAIL. Reasons and reme
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null — `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`; else `original_path` — `Native-text`) and skips Unsupported rows.
+- `generated-docs/requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null — `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`; else `original_path` — `Native-text`) and skips Unsupported rows.
 - The files registered in the manifest, under `documentation/`.
 - `framework/assets/template-prd.md` — the canonical structure to populate.
 - `framework/assets/topics-prd.md` — bijection invariants (used by the gap-pass skill).
@@ -161,16 +161,16 @@ This agent does **not** read `framework/shared/general-rules.md` or `framework/s
 
 ## Output
 
-- `prd/prd-draft.md` — the populated PRD draft with `[SRC: PC-NNN]` and `[AI-SUGGESTED: PAI-NNN]` markers in place.
-- `prd/draft-claims.ndjson` — the claims sidecar emitted at **Workflow** step 6a; the verifier and the orchestrator's drafter-handoff gate consume it. The merger does **not** consume it; the sidecar is forensic only beyond step 6b.
-- `prd/draft-claims-verification.ndjson` — the verifier's NDJSON output, written at **Workflow** step 6b. The summary line on stdout (`grounding-verifier: total=… passed=… failed=…`) is the orchestrator's handoff signal; `failed: 0` is required to advance.
+- `generated-docs/prd/prd-draft.md` — the populated PRD draft with `[SRC: PC-NNN]` and `[AI-SUGGESTED: PAI-NNN]` markers in place.
+- `generated-docs/prd/draft-claims.ndjson` — the claims sidecar emitted at **Workflow** step 6a; the verifier and the orchestrator's drafter-handoff gate consume it. The merger does **not** consume it; the sidecar is forensic only beyond step 6b.
+- `generated-docs/prd/draft-claims-verification.ndjson` — the verifier's NDJSON output, written at **Workflow** step 6b. The summary line on stdout (`grounding-verifier: total=… passed=… failed=…`) is the orchestrator's handoff signal; `failed: 0` is required to advance.
 - `framework/state/timing.ndjson` — append-only timing log. This agent appends `substep_start` / `substep_end` events for each of the six instrumented sub-steps in its workflow per **Timing log (sub-steps)**, nested between the orchestrator's `stage_start` (stage=`prd-drafter`) / `stage_end` (stage=`prd-drafter`) pair. The log is observability only — never read by this agent, never gated on.
 
 ## Tools
 
-- Read — read `requirements/source-manifest.json`, the manifest-registered input files (per the **Read-path resolution** rule: `original_path` for `Native-text`, the `*.converted.md` sibling for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`), the template, `framework/skills/completeness-gap-pass-prd.md`, the just-written draft for the post-Write verification, and `prd/draft-claims-verification.ndjson` to consume the grounding-verifier's output at step 6b.
+- Read — read `generated-docs/requirements/source-manifest.json`, the manifest-registered input files (per the **Read-path resolution** rule: `original_path` for `Native-text`, the `*.converted.md` sibling for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`), the template, `framework/skills/completeness-gap-pass-prd.md`, the just-written draft for the post-Write verification, and `generated-docs/prd/draft-claims-verification.ndjson` to consume the grounding-verifier's output at step 6b.
 - Grep — cross-check the populated draft, including the `\[SRC: PC-\d{3}\]` tag enumeration used by the grounding-verifier and by self-validation, and the post-Write `GR-20` blocklist Grep over §8 only.
-- Write — emit `prd/prd-draft.md` and `prd/draft-claims.ndjson`.
+- Write — emit `generated-docs/prd/prd-draft.md` and `generated-docs/prd/draft-claims.ndjson`.
 - Edit — apply gap-pass tuples to the populated draft (insert markers, fabricated elements) at **Workflow** step 5, and at **Workflow** step 6b apply remediations to the draft and the sidecar (substitute citations or convert fields to `[AI-SUGGESTED]`) so the rest of the draft does not need to be rewritten.
 - Bash — compute sha256 of the rendered draft bytes for the `verify-artifact-write` call at step 6 (the sidecar at step 6a is written without a hash roundtrip — `grounding-verify` at step 6b is its corruption check); and append `substep_start` / `substep_end` events to `framework/state/timing.ndjson` via the PowerShell `Add-Content` idiom documented in **Timing log (sub-steps)** (single events or paired-adjacent batched pairs in a single PowerShell invocation — append-only; never use Bash to read, edit, rewrite, or delete `timing.ndjson`). The one authorised Read of `timing.ndjson` is the `run_id` fallback recovery documented in **Timing log (sub-steps) > `run_id` propagation**, invoked only when in-thread context recovery fails. No other Bash usage is permitted.
 
@@ -180,12 +180,12 @@ If any check fails, fix the draft (or sidecar, where indicated) and re-run.
 
 Most bullets are checked **before** the Write at **Workflow** step 6 — they assert in-memory invariants of the draft. A small number reference post-Write artefacts (the claims sidecar at step 6a, the verifier output at step 6b) and are satisfied at the workflow step indicated in the bullet itself.
 
-- `requirements/source-manifest.json` was read; every row was read per the **Read-path resolution** rule (`Native-text` via `original_path`; `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` via `converted_sibling`); every row with `tier = "Unsupported"` was skipped. No file under `documentation/` was Read except via the manifest.
+- `generated-docs/requirements/source-manifest.json` was read; every row was read per the **Read-path resolution** rule (`Native-text` via `original_path`; `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` via `converted_sibling`); every row with `tier = "Unsupported"` was skipped. No file under `documentation/` was Read except via the manifest.
 - Template structure preserved; no `{{placeholders}}` remain; every field populated.
 - Every inferred value carries exactly one `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]` marker with a unique PAI-NNN ID and a single classification from `{blocking, non-blocking}`. Stated-from-input values carry no marker. **Stated-from-input values in the **Citation scope** carry exactly one trailing `[SRC: PC-NNN]` tag with a unique, monotonically assigned id; no field carries both a marker and a `[SRC:]` tag.**
 - **No forbidden markers.** Grep over the draft body for `\[STANDARD-RULE:|\[OUT-OF-SCOPE:|\[REQ:` returns zero matches. The PRD pipeline does not emit those marker classes.
-- **Grounding (sidecar exists and parses)** — satisfied at **Workflow** step 6a: `prd/draft-claims.ndjson` exists, every non-empty line parses as a single JSON object with the keys `{claim_id, draft_locator, claim_text, source_file, source_quote}`, and `claim_id` values are unique within the file.
-- **Grounding (bidirectional cross-check + verbatim substring)** — satisfied at **Workflow** step 6b: every `source_file` is a path listed in `requirements/source-manifest.json` (the row's `converted_sibling` when non-null, else its `original_path`, per the **Read-path resolution** rule); every `source_quote` is a verbatim substring of its `source_file`'s contents; every `[SRC: PC-NNN]` tag in the draft body has exactly one matching `claim_id` in the sidecar and vice-versa. The canonical assertion is `framework/skills/grounding-verifier.md` returning a summary line with `failed: 0` on its last invocation. If a verbatim substring cannot be produced for a field, that field MUST instead carry an `[AI-SUGGESTED]` marker (and no `[SRC:]` tag).
+- **Grounding (sidecar exists and parses)** — satisfied at **Workflow** step 6a: `generated-docs/prd/draft-claims.ndjson` exists, every non-empty line parses as a single JSON object with the keys `{claim_id, draft_locator, claim_text, source_file, source_quote}`, and `claim_id` values are unique within the file.
+- **Grounding (bidirectional cross-check + verbatim substring)** — satisfied at **Workflow** step 6b: every `source_file` is a path listed in `generated-docs/requirements/source-manifest.json` (the row's `converted_sibling` when non-null, else its `original_path`, per the **Read-path resolution** rule); every `source_quote` is a verbatim substring of its `source_file`'s contents; every `[SRC: PC-NNN]` tag in the draft body has exactly one matching `claim_id` in the sidecar and vice-versa. The canonical assertion is `framework/skills/grounding-verifier.md` returning a summary line with `failed: 0` on its last invocation. If a verbatim substring cannot be produced for a field, that field MUST instead carry an `[AI-SUGGESTED]` marker (and no `[SRC:]` tag).
 - **Bijection invariants (Tier A from `topics-prd.md`):**
     - **B1** Every §5.2 M-NN cites at least one §2 problem or §6 hypothesis.
     - **B2** Every §6.1 H-NN row's `Falsification condition` cell is non-empty.
@@ -200,20 +200,20 @@ Most bullets are checked **before** the Write at **Workflow** step 6 — they as
 - **`GR-20` selective enforcement on §8 only.** A single Grep over the §8 Solution overview content using the blocklist alternation in `framework/shared/general-rules.md > GR-20` returns zero matches. A single hit in §8 is a hard validation FAIL — rephrase the offending cell in capability-category terms and re-run. Other sections (§3 Competitive context, §11 Risks, §12 Dependencies in particular) are **exempt** — they legitimately name vendors, competitors, and tools, and the post-Write Grep does not run against them.
 - **No "Open questions" residual section.** The PRD has no Open questions section by design. Grep for `^## Open questions$` or `^### Open questions$` returns zero matches.
 - **No `## Prototype invariants` section.** The PRD pipeline never appends prototype-build invariants. Grep for `^## Prototype invariants$` returns zero matches (this is verified again by the merger, but the drafter never emits it either).
-- **No cross-doc pointers into `requirements.md`.** Grep for `requirements/requirements.md` or `requirements\.md §` returns zero matches in field cells. Mentions in §1 reading-list rows are permitted (the row IS a pointer), but no inline cell value should be a pointer into requirements.md.
+- **No cross-doc pointers into `requirements.md`.** Grep for `generated-docs/requirements/requirements.md` or `requirements\.md §` returns zero matches in field cells. Mentions in §1 reading-list rows are permitted (the row IS a pointer), but no inline cell value should be a pointer into requirements.md.
 - The draft is self-contained: no field defers to an input by reference (e.g., "see `brief.md` §3"). The only permitted form of in-body provenance is the structured `[SRC: PC-NNN]` tag system on field values per **Citation scope**.
 - No two fields contradict each other; no field is ambiguous or incoherent in context.
 
 ## Definition of Done
 
-- `prd/prd-draft.md` exists and reflects the inputs accurately, with conflicts reconciled.
-- `prd/draft-claims.ndjson` exists with one line per `[SRC: PC-NNN]` tag in the draft body, and each line's `source_quote` is a verbatim substring of its `source_file`.
-- `prd/draft-claims-verification.ndjson` exists and its summary line shows `failed: 0`.
+- `generated-docs/prd/prd-draft.md` exists and reflects the inputs accurately, with conflicts reconciled.
+- `generated-docs/prd/draft-claims.ndjson` exists with one line per `[SRC: PC-NNN]` tag in the draft body, and each line's `source_quote` is a verbatim substring of its `source_file`.
+- `generated-docs/prd/draft-claims-verification.ndjson` exists and its summary line shows `failed: 0`.
 - All self-validation checks pass.
 
 ## Anti-Patterns
 
-- Do not Glob `documentation/` directly. Read only the files registered in `requirements/source-manifest.json`, per the **Read-path resolution** rule.
+- Do not Glob `documentation/` directly. Read only the files registered in `generated-docs/requirements/source-manifest.json`, per the **Read-path resolution** rule.
 - Do not Read the original of ANY row that carries a non-null `converted_sibling`. The `*.converted.md` sibling is the drafter-facing surface; re-interpreting an image's or vector's pixels when its frozen description sibling exists defeats the single-interpretation contract.
 - Do not skip `framework/skills/verify-artifact-write.md` after writing the draft at step 6. A truncated draft that schema-validates against itself in memory will fail the resolver in confusing ways far from the failure site. (The sidecar at step 6a does **not** get a `verify-artifact-write` — the grounding-verifier at step 6b reads the sidecar deterministically in the immediate next sub-step and reports `ndjson_parse_error` on corruption, so the verifier is the substantive sidecar check.)
 - Do not change the structure of the PRD template.
@@ -223,7 +223,7 @@ Most bullets are checked **before** the Write at **Workflow** step 6 — they as
 - Do not emit `[REQ: §X.Y]` cross-doc pointers. The pipeline is fully independent of `requirements.md`.
 - Do not consult `framework/shared/general-rules.md` at draft time. `GR-20` is enforced post-Write as a single Grep over §8 only.
 - Do not consult `framework/shared/prototype-scope.md`. The PRD has no prototype-scope concern.
-- Do not consult `requirements/requirements.md`. The pipeline does not read it at any step.
+- Do not consult `generated-docs/requirements/requirements.md`. The pipeline does not read it at any step.
 - Do not skip **Workflow** step 5 (`completeness-gap-pass-prd`) — the draft is incomplete without it.
 - Do not skip **Workflow** steps 6a (sidecar emission) or 6b (`grounding-verifier`). The drafter-handoff gate refuses to advance until `failed: 0`. The sidecar at 6a is written without a hash roundtrip; the verifier at 6b is its substantive corruption check.
 - Do not name a framework, library, vendor, product, or version string in §8 Solution overview cells. `GR-20` enforces this with a Grep blocklist over §8 only; a single hit is a hard FAIL with no retry loop. Other sections are exempt.
@@ -233,7 +233,7 @@ Most bullets are checked **before** the Write at **Workflow** step 6 — they as
 - Do not emit a `[SRC:]` tag on a marked field, and do not emit a marker on a `[SRC:]`-tagged field. Tags and markers are mutually exclusive on a per-field basis.
 - Do not invent PAI-NNN IDs that have been used in a prior run; assign monotonically from PAI-001 within this run.
 - Do not collide with requirements-pipeline IDs: PRD uses `PAI-` and `PC-` prefixes; requirements uses `AI-` and `C-`. Grep for `AI-\d{3}` (without `P` prefix) or `(?<!P)C-\d{3}` in the draft should return zero matches.
-- Do not modify `prd/draft-claims-verification.ndjson` directly. It is the verifier's output; remediate by editing the draft and the sidecar, then re-run the verifier.
+- Do not modify `generated-docs/prd/draft-claims-verification.ndjson` directly. It is the verifier's output; remediate by editing the draft and the sidecar, then re-run the verifier.
 - Do not read, rewrite, truncate, or delete `framework/state/timing.ndjson`. The only authorised operations on this file are (a) append-only writes via the PowerShell `Add-Content` idiom, and (b) the single read-only `run_id` fallback recovery documented in **Timing log (sub-steps) > `run_id` propagation**.
 - Do not omit `substep_end` on clean completion of a sub-step. The only legitimate orphan is `substep_start` without `substep_end` when this agent halts inside the sub-step (e.g., on `RF-04 trigger`) — that orphan is the load-bearing halt signal.
 - Do not batch `substep_start` / `substep_end` events across non-adjacent sub-step boundaries. Paired-adjacent batching is the only authorised batching idiom.

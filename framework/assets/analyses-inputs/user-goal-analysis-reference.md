@@ -1,16 +1,16 @@
-<!-- ROLE: asset (analysis reference). Methodology definition for the User Goal Analysis input-analyser. Industry framing: a pragmatic synthesis of Goal-Oriented Requirements Engineering (van Lamsweerde / KAOS goal refinement; Yu / i* actor dependencies) + Cooper's three goal types + the hard/soft (functional/quality) goal split (Chung et al. NFR framework) + means-end laddering (Gutman) and Five-Whys for inferring unstated goals, adapted for raw consultant inputs enumerated via `requirements/source-manifest.json`. -->
+<!-- ROLE: asset (analysis reference). Methodology definition for the User Goal Analysis input-analyser. Industry framing: a pragmatic synthesis of Goal-Oriented Requirements Engineering (van Lamsweerde / KAOS goal refinement; Yu / i* actor dependencies) + Cooper's three goal types + the hard/soft (functional/quality) goal split (Chung et al. NFR framework) + means-end laddering (Gutman) and Five-Whys for inferring unstated goals, adapted for raw consultant inputs enumerated via `generated-docs/requirements/source-manifest.json`. -->
 
 # User Goal Analysis reference (input-analysis variant)
 
-> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`; inventory the actors who hold goals (Pass 1); harvest every **explicitly stated** goal from input prose, deck text, and the frozen visual descriptions (Pass 2); derive **inferred** goals by laddering UP from stated solutions / pain-points / quality-adjectives via one named technique — anchored to a source, never from world knowledge (Pass 3); classify each goal by Cooper type + hardness + actor (Pass 4); arrange goals into a KAOS-style AND/OR refinement hierarchy and attach them to actors (Pass 5); write canonical *"`<Actor>` wants to `<outcome>` so that `<higher-level goal>`."* statements, run the SMART-ish quality gate, and surface goal conflicts (Pass 6). Every **explicit** goal carries `[SRC: <filename>]`. Every **inferred** goal carries `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` PLUS the anchor `[SRC: <filename>]` it was laddered from PLUS the named technique used. Hard goals without an anchorable measure carry `(no-metric-in-inputs)`; soft goals without a threshold carry `(no-satisficing-criterion-in-inputs)`. Across re-runs the artefact is **additive**: prior goal cards, the hierarchy, and the actor map are preserved; new manifest content extends them.
+> **Method:** Walk every consumable source enumerated in `generated-docs/requirements/source-manifest.json`; inventory the actors who hold goals (Pass 1); harvest every **explicitly stated** goal from input prose, deck text, and the frozen visual descriptions (Pass 2); derive **inferred** goals by laddering UP from stated solutions / pain-points / quality-adjectives via one named technique — anchored to a source, never from world knowledge (Pass 3); classify each goal by Cooper type + hardness + actor (Pass 4); arrange goals into a KAOS-style AND/OR refinement hierarchy and attach them to actors (Pass 5); write canonical *"`<Actor>` wants to `<outcome>` so that `<higher-level goal>`."* statements, run the SMART-ish quality gate, and surface goal conflicts (Pass 6). Every **explicit** goal carries `[SRC: <filename>]`. Every **inferred** goal carries `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` PLUS the anchor `[SRC: <filename>]` it was laddered from PLUS the named technique used. Hard goals without an anchorable measure carry `(no-metric-in-inputs)`; soft goals without a threshold carry `(no-satisficing-criterion-in-inputs)`. Across re-runs the artefact is **additive**: prior goal cards, the hierarchy, and the actor map are preserved; new manifest content extends them.
 
-**Output file:** `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` — a self-contained, readability-optimised HTML goal register using `framework/assets/analyses-inputs/template-user-goal-analysis.html` as scaffold.
+**Output file:** `generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` — a self-contained, readability-optimised HTML goal register using `framework/assets/analyses-inputs/template-user-goal-analysis.html` as scaffold.
 
 **Analyser agent:** `framework/agents/analyses-inputs/user-goal-analysis-analyser.md`
 
 **Character:** `framework/assets/characters/user-goal-analysis-inputs-analysis.md`
 
-**No `/analyse-requirement` sibling.** Unlike JTBD or OOUX, User Goal Analysis ships only on the inputs side. The synthesised `requirements/requirements.md` has already normalised consultant phrasing into *"the system shall …"* clauses — by then the *latent* goals the inputs implied have been collapsed into features. Surfacing goals **before** synthesis (and feeding the register back into `/requirements`) is the entire value; a requirements-doc-lensing variant would surface only the goals the normaliser preserved, which is the gap this method exists to close.
+**No `/analyse-requirement` sibling.** Unlike JTBD or OOUX, User Goal Analysis ships only on the inputs side. The synthesised `generated-docs/requirements/requirements.md` has already normalised consultant phrasing into *"the system shall …"* clauses — by then the *latent* goals the inputs implied have been collapsed into features. Surfacing goals **before** synthesis (and feeding the register back into `/requirements`) is the entire value; a requirements-doc-lensing variant would surface only the goals the normaliser preserved, which is the gap this method exists to close.
 
 ---
 
@@ -237,7 +237,7 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 | `Supported-via-MCP` | `converted_sibling` | `Read` the `.converted.md` (markitdown's output, produced by input-handler) |
 | `Unsupported` | — | Skipped; recorded in Diagnostics > Source roster > Skipped |
 
-The analyser **never** reads: any path under `requirements/` other than `requirements/source-manifest.json` (not `requirements.md`, not `requirements-draft.md`, not `consultant-answers.md`, not `draft-claims*.ndjson`); any path under `framework/state/`; any path under `framework/shared/` (RF-/GR- references are textual links, not file loads); other analyses' artefacts under `analyse-requirements/` or `analyse-inputs/<OTHER-METHOD>/`; any pattern-catalogue or design-system file.
+The analyser **never** reads: any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` (not `requirements.md`, not `requirements-draft.md`, not `consultant-answers.md`, not `draft-claims*.ndjson`); any path under `framework/state/`; any path under `framework/shared/` (RF-/GR- references are textual links, not file loads); other analyses' artefacts under `generated-docs/analyse-requirements/` or `generated-docs/analyse-inputs/<OTHER-METHOD>/`; any pattern-catalogue or design-system file.
 
 ---
 
@@ -252,7 +252,7 @@ The analyser **never** reads: any path under `requirements/` other than `require
 - **Padding sparse Cooper categories.** If the inputs carry no life or experience goals, mark `no-life-signal-in-inputs` / `no-experience-signal-in-inputs`. Sparsity on data-management CRUD inputs is expected and is a signal, not a defect.
 - **Collapsing passes.** Do not harvest, infer, classify, and refine in one sweep. Pass-by-pass structure is what makes the register reviewable.
 - **Resolving conflicts.** Surface goal tensions; do not pick a winner. Resolution is a consultant trade-off decision (often deferred to `/requirements`).
-- **Reading `requirements/requirements.md`.** The source contract is `requirements/source-manifest.json` + the per-tier rows. There is no requirements-doc sibling for this method.
+- **Reading `generated-docs/requirements/requirements.md`.** The source contract is `generated-docs/requirements/source-manifest.json` + the per-tier rows. There is no requirements-doc sibling for this method.
 - **Re-invoking `markitdown-mcp`.** Conversions are the input-handler's job; the manifest's `converted_sibling` path is the contract.
 - **Bundling external JS / CSS / Mermaid.** The artefact is self-contained, dependency-free HTML. No `<script>`, no external links, no font URLs, no Mermaid — the template's inlined `<style>` and the CSS-only nested tree are the only rendering machinery.
 
@@ -328,7 +328,7 @@ Emitted into `<pre><code class="language-json" id="user-goal-analysis-body">`. S
 
 The User Goal Analysis register is **re-ingestible by `/requirements`** as a fresh source. The contract:
 
-1. Consultant copies `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` into `documentation/` (file copy; the orchestrator does not automate this).
+1. Consultant copies `generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` into `documentation/` (file copy; the orchestrator does not automate this).
 2. Consultant re-invokes `/requirements` (or `/analyse-inputs`, `/review-inputs`, `/generate-prd`).
 3. The shared `framework/agents/input-handler.md` detects the new file, surfaces the manifest-refresh prompt, classifies it via `framework/skills/classify-input-tier.md` as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff), and adds it as a manifest row.
 4. The `/requirements` drafter reads the register:
@@ -347,7 +347,7 @@ The analysis is complete when:
 
 - `final_goals` is non-empty (or the consultant Override'd a zero-goal run with a recorded reason in Run-history).
 - All 7 hard gates pass, or the consultant chose Override and the failures are recorded in Diagnostics.
-- `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` has been written and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the Step 12 handback loop.
 
 ---

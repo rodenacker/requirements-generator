@@ -2,9 +2,9 @@
 
 # Five Whys analysis reference
 
-> **Method:** Auto-extract the **5 highest-priority candidate requirements for rationale analysis** from `requirements/requirements.md > §6 Requirements`, scored by Five-Whys-fitness category match (business goal / operational capability / workflow constraint / policy-driven behaviour) plus secondary signals (workflow anchors, modal strength, depth, implementation-detail penalty). Present the 5 to the consultant as a `multiSelect: true` prompt; let the consultant add additional requirements via the built-in Other input; anchor each consultant-stated requirement back to its `§6` source clause before analysing. For every requirement in the final analysis set, build a why-chain that interrogates **"why does this requirement exist?"** — drilling level by level toward the underlying user goal, business driver, or external mandate.
+> **Method:** Auto-extract the **5 highest-priority candidate requirements for rationale analysis** from `generated-docs/requirements/requirements.md > §6 Requirements`, scored by Five-Whys-fitness category match (business goal / operational capability / workflow constraint / policy-driven behaviour) plus secondary signals (workflow anchors, modal strength, depth, implementation-detail penalty). Present the 5 to the consultant as a `multiSelect: true` prompt; let the consultant add additional requirements via the built-in Other input; anchor each consultant-stated requirement back to its `§6` source clause before analysing. For every requirement in the final analysis set, build a why-chain that interrogates **"why does this requirement exist?"** — drilling level by level toward the underlying user goal, business driver, or external mandate.
 
-**Output file:** `analyse-requirements/FIVE-WHYS/five-whys.html` — a self-contained HTML document (`<!doctype html>` + ONE inline `<style>`; no external CSS/JS, no CDN, no `<script>`, no Mermaid runtime) containing a `#diagrams` section of pre-rendered inline-SVG why-chain figures (one per requirement, rendered first), the scoring table, per-requirement drill-down blocks (why-chains, coverage checks), and diagnostics. **Template scaffold:** `framework/assets/analyses/template-five-whys.html` — the analyser substitutes its `{{PLACEHOLDER}}` slots; the why-chain diagrams are baked into inline SVG markup with explicit coordinates (no Mermaid, no script). Five-whys is not re-ingested (the blueprint-architect treats it as `upstream-only`), so the artefact carries no machine-readable JSON body.
+**Output file:** `generated-docs/analyse-requirements/FIVE-WHYS/five-whys.html` — a self-contained HTML document (`<!doctype html>` + ONE inline `<style>`; no external CSS/JS, no CDN, no `<script>`, no Mermaid runtime) containing a `#diagrams` section of pre-rendered inline-SVG why-chain figures (one per requirement, rendered first), the scoring table, per-requirement drill-down blocks (why-chains, coverage checks), and diagnostics. **Template scaffold:** `framework/assets/analyses/template-five-whys.html` — the analyser substitutes its `{{PLACEHOLDER}}` slots; the why-chain diagrams are baked into inline SVG markup with explicit coordinates (no Mermaid, no script). Five-whys is not re-ingested (the blueprint-architect treats it as `upstream-only`), so the artefact carries no machine-readable JSON body.
 
 **Analyser agent:** `framework/agents/analyses/five-whys-analyser.md`
 
@@ -67,7 +67,7 @@ The artefact has a fixed top-to-bottom shape. No tier-1 / tier-2 split (single t
 
 ## Source-of-truth hierarchy
 
-The analyser walks `requirements/requirements.md` in this order:
+The analyser walks `generated-docs/requirements/requirements.md` in this order:
 
 1. **`§6 Requirements`** — primary. Every top-level clause is a candidate for Round 1 scoring. The clause's full text drives Five-Whys-fitness category detection.
 2. **`§5 Task flows`** — workflow-relevance signal. Anchor counts feed the secondary score; chain construction uses `§5` *Steps* and *Decision points* as evidence sources for derived why-answers.
@@ -173,7 +173,7 @@ State the scoring aloud in one line per selected candidate so the consultant can
 
 Surface a single `AskUserQuestion` with `multiSelect: true`:
 
-- **Question:** *"The 5 highest-priority candidate requirements for rationale analysis are listed below. Five Whys works best on **business goals, operational capabilities, workflow constraints, and policy-driven behaviour** — each candidate is tagged with its detected category. Implementation-detail requirements (UI labels, error-message text, exact layouts) have been deprioritised. Pick any subset to analyse. You can also choose Other to state another requirement (in your own words or as a verbatim quote) — the analyser will locate it in `requirements/requirements.md` and analyse it from there. Empty selection plus no Other is valid and produces a scoring-summary-only output."*
+- **Question:** *"The 5 highest-priority candidate requirements for rationale analysis are listed below. Five Whys works best on **business goals, operational capabilities, workflow constraints, and policy-driven behaviour** — each candidate is tagged with its detected category. Implementation-detail requirements (UI labels, error-message text, exact layouts) have been deprioritised. Pick any subset to analyse. You can also choose Other to state another requirement (in your own words or as a verbatim quote) — the analyser will locate it in `generated-docs/requirements/requirements.md` and analyse it from there. Empty selection plus no Other is valid and produces a scoring-summary-only output."*
 - **Header:** `Requirements`
 - **multiSelect:** `true`
 - **Options:** one per extracted candidate, labelled `{short_title} — §6.N [{PRIMARY-CATEGORY}] (score {S})`. First option suffixed `(Recommended)` if it has the highest score.
@@ -186,7 +186,7 @@ Empty selection (no extracted + no Other) is valid; the artefact will contain Su
 
 ## Round 3 — Anchor consultant-stated requirements
 
-For each entry in `stated_by_consultant`, locate it in `requirements/requirements.md`. The anchoring is a **requirement-document-only** operation — the analyser refuses to analyse a consultant-stated requirement that cannot be anchored.
+For each entry in `stated_by_consultant`, locate it in `generated-docs/requirements/requirements.md`. The anchoring is a **requirement-document-only** operation — the analyser refuses to analyse a consultant-stated requirement that cannot be anchored.
 
 ### Anchoring procedure
 
@@ -217,7 +217,7 @@ For each entry in `stated_by_consultant`, locate it in `requirements/requirement
 
 `AskUserQuestion`:
 
-- **Question:** *"`{consultant_text}` does not appear in `requirements/requirements.md`. Analyses extract from the requirements doc — they cannot interrogate requirements that aren't in the document. Options: refine the statement to match an existing requirement, specify the §6.N section manually if the analyser missed a match, or drop this requirement from the run."*
+- **Question:** *"`{consultant_text}` does not appear in `generated-docs/requirements/requirements.md`. Analyses extract from the requirements doc — they cannot interrogate requirements that aren't in the document. Options: refine the statement to match an existing requirement, specify the §6.N section manually if the analyser missed a match, or drop this requirement from the run."*
 - **Header:** `Not in requirements`
 - **Options:** `Refine — let me restate`, `Specify §6.N manually`, `Drop — exclude from this run`.
 
@@ -225,7 +225,7 @@ For each entry in `stated_by_consultant`, locate it in `requirements/requirement
 
 On `Use this section` (or successful manual `§6.N` specification): record `{statement: <anchored clause verbatim>, source: §6.N, consultant_stated: true, overlap_pct: {pct}}` and add to the analysis set.
 
-**Never analyse an un-anchored consultant-stated requirement.** This invariant preserves the stand-alone-ish constraint (analyses read only `requirements/requirements.md`) and the SHA-256 traceability claim.
+**Never analyse an un-anchored consultant-stated requirement.** This invariant preserves the stand-alone-ish constraint (analyses read only `generated-docs/requirements/requirements.md`) and the SHA-256 traceability claim.
 
 ---
 
@@ -346,13 +346,13 @@ Run after Round 7. All hard checks operate on the in-memory analysis set — the
 
 ### Soft check (warning, not gate)
 
-- **AI-suggested density.** Compute `density = ai_suggested_rows / total_why_rows` across all chains. If `density > 0.40`, emit a `density-warning` line in diagnostics and in the handback summary: *"Justification chains are largely inferred — `requirements/requirements.md` does not establish the why-structure. Enrich `§1 Application context` with explicit business drivers and `§4 User goals & stories` with explicit objectives, then re-run for higher-confidence chains."* Non-blocking.
+- **AI-suggested density.** Compute `density = ai_suggested_rows / total_why_rows` across all chains. If `density > 0.40`, emit a `density-warning` line in diagnostics and in the handback summary: *"Justification chains are largely inferred — `generated-docs/requirements/requirements.md` does not establish the why-structure. Enrich `§1 Application context` with explicit business drivers and `§4 User goals & stories` with explicit objectives, then re-run for higher-confidence chains."* Non-blocking.
 
 ### Failure handling
 
 On any hard-check failure: do **not** write the artefact. Surface `AskUserQuestion` with three options:
 
-1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`
+1. `Revise requirements — exit so the consultant can edit generated-docs/requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`
 2. `Override — proceed and write a known-incomplete artefact (the diagnostics block will record every violation)`
 3. `Restart — re-run from Round 1 with a fresh extraction`
 
@@ -389,7 +389,7 @@ Richer inputs (rationale-rich `§1`, explicit *Objective* clauses in `§4`, regu
 
 ## Output shape (logical content)
 
-The artefact is a single self-contained HTML file at `analyse-requirements/FIVE-WHYS/five-whys.html`, produced by substituting `framework/assets/analyses/template-five-whys.html`. The sketches below describe the **logical content** of each section (the data the analyser carries and the order it renders in); the canonical HTML structure — the `{{PLACEHOLDER}}` slots, the inline-SVG CHAIN-SVG / SCORING / REQUIREMENT-BLOCK / DIAGNOSTICS schemas, and the CSS — lives in the template's header comment and is the source of truth for markup. The analyser HTML-escapes every requirements-derived string before substitution and emits the `#diagrams` SVG figures **first**, above the textual drill-down. Top-to-bottom section order is fixed (Overview → Diagrams → Scoring → Drill-down → Diagnostics).
+The artefact is a single self-contained HTML file at `generated-docs/analyse-requirements/FIVE-WHYS/five-whys.html`, produced by substituting `framework/assets/analyses/template-five-whys.html`. The sketches below describe the **logical content** of each section (the data the analyser carries and the order it renders in); the canonical HTML structure — the `{{PLACEHOLDER}}` slots, the inline-SVG CHAIN-SVG / SCORING / REQUIREMENT-BLOCK / DIAGNOSTICS schemas, and the CSS — lives in the template's header comment and is the source of truth for markup. The analyser HTML-escapes every requirements-derived string before substitution and emits the `#diagrams` SVG figures **first**, above the textual drill-down. Top-to-bottom section order is fixed (Overview → Diagrams → Scoring → Drill-down → Diagnostics).
 
 ### Header / Overview block
 
@@ -397,7 +397,7 @@ The artefact is a single self-contained HTML file at `analyse-requirements/FIVE-
 # Five Whys Justification Analysis — {domain}
 
 Generated: {ISO-8601 UTC}
-Requirements SHA-256: {sha256 of requirements/requirements.md}
+Requirements SHA-256: {sha256 of generated-docs/requirements/requirements.md}
 ```
 
 `{domain}` is verbatim from `§1 Application context > Domain` if present, else *"(not declared in requirements.md)"*.

@@ -153,18 +153,18 @@ Per the `/analyse-inputs` and parallel `/review-inputs` adversarial conventions:
 
 The Ambiguity inputs-side reviewer reads:
 
-- `requirements/source-manifest.json` (once, at Step 2).
+- `generated-docs/requirements/source-manifest.json` (once, at Step 2).
 - For each manifest row where `tier != "Unsupported"`: the file at `converted_sibling` when non-null, else `original_path` (only `Native-text`) — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`; once per row at Step 3.
 - This character file and the reference (`ambiguity-reference.md`) at activation.
 
 It does **not** read:
 
-- `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts.
-- `review-inputs/ADVERSARIAL/adversarial-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading conflates adversarial's defect taxonomy with this reviewer's linguistic taxonomy.
-- `analyse-requirements/*` or `analyse-inputs/*` outputs — each lens is independently grounded.
-- `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/*` (except as textual references in the reference doc).
+- `generated-docs/requirements/requirements.md`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims*.ndjson` — derivative artefacts.
+- `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading conflates adversarial's defect taxonomy with this reviewer's linguistic taxonomy.
+- `generated-docs/analyse-requirements/*` or `generated-docs/analyse-inputs/*` outputs — each lens is independently grounded.
+- `generated-docs/design-system/*`, `generated-docs/review-requirements/*`, `framework/state/*`, `framework/shared/*` (except as textual references in the reference doc).
 
-The reviewer agent's only outputs are `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` and the inline-summary it surfaces to the consultant at handback.
+The reviewer agent's only outputs are `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` and the inline-summary it surfaces to the consultant at handback.
 
 ## Single-threaded discipline (no parallel workers)
 
@@ -181,7 +181,7 @@ The agent does **not** use the `Agent` / `Task` tool at any step. Its Tools list
 The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide whether to revise the findings, override the gate, or restart. The hard halt paths are reserved for:
 
 - `verify-artifact-write` failures at the write step (RF-04).
-- `requirements/source-manifest.json` absent or empty at Step 2 (analogous to RF-03 — the orchestrator guarantees presence, but the agent defends in depth).
+- `generated-docs/requirements/source-manifest.json` absent or empty at Step 2 (analogous to RF-03 — the orchestrator guarantees presence, but the agent defends in depth).
 - Every manifest row has `tier: Unsupported` (zero consumable sources) at Step 3 (RF-03 analogue — nothing to ambiguity-check).
 
 The consultant sees every flagged item in the artefact's diagnostic-summary block.
@@ -207,4 +207,4 @@ If a candidate finding cannot satisfy all three, drop it.
 
 Each run produces a **fresh** punch-list reflecting the **current** input set. No additive merge, no manifest-fingerprint cursor across runs, no `Run history` section. A finding tied to a removed input disappears on the next run; new findings from added inputs surface clean. This differs from the `/analyse-inputs` analysers (which use additive merge to grow understanding across runs) — ambiguity-review's purpose is a punch-list that **changes** as the input set changes.
 
-The orchestrator's prior-artefact gate (`review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.
+The orchestrator's prior-artefact gate (`generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.

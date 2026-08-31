@@ -4,7 +4,7 @@ kind: template
 
 Populate-top-to-bottom skeleton for the /resolve-review resolutions document,
 written by framework/agents/resolve-review-drafter.md (staged at
-resolve-review/resolutions-draft.md, finalised as a NEW dated file under documentation/).
+generated-docs/resolve-review/resolutions-draft.md, finalised as a NEW dated file under documentation/).
 
 This file is the CANONICAL DEFINITION of:
   - the two origin markers: [CONSULTANT-STATED] and [AI-INFERRED, CONSULTANT-CONFIRMED]
@@ -77,7 +77,7 @@ Marker legend (canonical):
 | Source review | `{{REVIEW_PATH}}` |
 | Source review sha256 | `{{REVIEW_SHA256}}` |
 | Review's source fingerprint | {{`REVIEW_SOURCE_FINGERPRINT` | (not recorded in the review)}} |
-| Fingerprint target ({{`requirements/source-manifest.json` | `requirements/requirements.md`}}) at resolution time | {{`CURRENT_FINGERPRINT` | (no manifest on disk)}} |
+| Fingerprint target ({{`generated-docs/requirements/source-manifest.json` | `generated-docs/requirements/requirements.md`}}) at resolution time | {{`CURRENT_FINGERPRINT` | (no manifest on disk)}} |
 | Source drift | {{none | DRIFT — the review predates the current {{corpus | requirements document}} | (not compared — no manifest)}} |
 | Methodology | `{{method_slug}}` |
 | Resolution date | {{YYYY-MM-DD}} |

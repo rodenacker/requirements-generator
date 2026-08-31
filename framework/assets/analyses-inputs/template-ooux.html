@@ -70,7 +70,7 @@
     {{DOMAIN}}                 — domain string (from manifest meta if declared, else
                                  "(not declared in manifest)").
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
-    {{MANIFEST_SHA256}}        — sha256 of requirements/source-manifest.json at read time.
+    {{MANIFEST_SHA256}}        — sha256 of generated-docs/requirements/source-manifest.json at read time.
     {{RUN_COUNT}}              — integer ≥ 1, increments per run.
     {{TARGET}}                 — "prototype" | "application" | "(not declared in manifest)".
     {{OBJECT_COUNT}}           — total objects on the map.
@@ -97,7 +97,7 @@
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered <section class="diagnostics"> per
                                  DIAGNOSTICS SCHEMA.
 
-  Output: analyse-inputs/OOUX/ooux-object-map.html.
+  Output: generated-docs/analyse-inputs/OOUX/ooux-object-map.html.
 
   OBJECT COLUMN SCHEMA — identical to the requirements-side template's schema
   (framework/assets/analyses/template-ooux.html). The five-stack column shape

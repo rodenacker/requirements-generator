@@ -43,7 +43,7 @@ Every brand family token that survives `font-rules.md` §1 gets exactly one stat
 
 Run in order per family; stop at the first tier that resolves. A typical run resolves at E1 or E2 and makes **zero** network calls.
 
-**E1 — the site's own font delivery.** Free: the evidence is already on disk from step-04. Read `design-system/.workspace/computed-tokens.json` → `sources` (every stylesheet href the page loaded) and `design-system/.workspace/css-content.txt` (the aggregated CSS, including cross-origin sheets that step-04 §4.A.3 re-fetched).
+**E1 — the site's own font delivery.** Free: the evidence is already on disk from step-04. Read `generated-docs/design-system/.workspace/computed-tokens.json` → `sources` (every stylesheet href the page loaded) and `generated-docs/design-system/.workspace/css-content.txt` (the aggregated CSS, including cross-origin sheets that step-04 §4.A.3 re-fetched).
 
 - A `sources` href on `fonts.googleapis.com` whose `family=` segment names this family ⇒ **`google-native`**, and its `family=` segment is the **canonical spelling** — prefer it over §2's derived spelling, because the site has told us what Google calls the face.
 - An `@font-face` block in `css-content.txt` whose `font-family` is this family and whose `src: url(...)` points at the site's own origin/CDN, `use.typekit.net`, `p.typekit.net`, `fonts.net`, `fast.fonts.com`, `cloud.typography.com`, `api.fontshare.com` or `cdn.fontshare.com` ⇒ **suspect licensed/self-hosted — continue to E2.**

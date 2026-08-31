@@ -48,7 +48,7 @@
     {{SCOPE_SUMMARY}}          — one-line summary of §1.5 In bucket
     {{TARGET}}                 — "application" or "prototype" (from requirements preamble)
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered
-    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time
+    {{REQUIREMENTS_SHA256}}    — sha256 of generated-docs/requirements/requirements.md at read time
     {{GOAL_COUNT}}             — number of rows in the matrix (= goals in §4.1)
     {{DIMENSION_KEPT_COUNT}}   — number of dimensions kept (= columns in matrix)
     {{DIMENSION_DROPPED_COUNT}}— dropped during Stage A
@@ -67,7 +67,7 @@
     {{TRADE_OFF_JSON}}         — pre-serialised JSON payload for downstream
                                   map skill consumption (no surrounding tags).
 
-  Output: analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html.
+  Output: generated-docs/analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html.
 
   MATRIX SCHEMA — the analyser's {{MATRIX_BLOCK}} substitutes a single
   <table class="trade-off-matrix"> with the shape:

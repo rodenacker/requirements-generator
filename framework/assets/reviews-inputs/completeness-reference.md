@@ -2,13 +2,13 @@
 
 # reviews-inputs/completeness-reference.md
 
-**Purpose:** Methodology reference for Completeness Review of the **raw consultant input set** enumerated by `requirements/source-manifest.json`. The reviewer follows this document literally and exhaustively.
+**Purpose:** Methodology reference for Completeness Review of the **raw consultant input set** enumerated by `generated-docs/requirements/source-manifest.json`. The reviewer follows this document literally and exhaustively.
 
 **Used by:**
 
 - `framework/agents/reviews-inputs/completeness-reviewer.md` — drives the agent's ten-dimension sequential sweep, disposition assignment, coverage-matrix construction, and quality-gate sweep.
 
-**Output produced by the reviewer:** `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — a self-contained HTML gap register of cited, severity-and-disposition-graded findings, plus a coverage matrix (10 dimensions × N consumed sources, rendered as a sticky-thead HTML table) and a per-source elicitation-question list scoped to `Needs-Clarification`-disposition findings. The reviewer renders it by substituting into the scaffold `framework/assets/reviews-inputs/template-completeness.html`.
+**Output produced by the reviewer:** `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — a self-contained HTML gap register of cited, severity-and-disposition-graded findings, plus a coverage matrix (10 dimensions × N consumed sources, rendered as a sticky-thead HTML table) and a per-source elicitation-question list scoped to `Needs-Clarification`-disposition findings. The reviewer renders it by substituting into the scaffold `framework/assets/reviews-inputs/template-completeness.html`.
 
 **Sibling lenses under `/review-inputs`:**
 
@@ -47,7 +47,7 @@ This three-way classification is the methodology's load-bearing pipeline contrib
 
 The reviewer reads:
 
-- `requirements/source-manifest.json` (the manifest enumerating consumable input files; read once at the reviewer's Step 2). The `target` field (`prototype` | `application` | `null`) governs which scope predicate applies at the disposition step.
+- `generated-docs/requirements/source-manifest.json` (the manifest enumerating consumable input files; read once at the reviewer's Step 2). The `target` field (`prototype` | `application` | `null`) governs which scope predicate applies at the disposition step.
 - For each manifest row whose `tier != "Unsupported"`, the file selected by the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path` — only `Native-text` is read at `original_path`). For `Native-multimodal` / `Vector-renderable` rows the `converted_sibling` is a frozen textual description prepared by the input-handler — it already captures labels, field captions, table contents, status/error states, KPI values, and a structured breakdown; treat it as the canonical text source and do **not** re-interpret pixels. `Supported-via-MCP` rows read the markitdown sibling. Read once by the reviewer at Step 3.
 - `framework/assets/characters/completeness-inputs-review.md` (the character — loaded once at activation).
 - `framework/assets/reviews-inputs/completeness-reference.md` (this file — loaded once at activation).
@@ -56,10 +56,10 @@ The reviewer reads:
 
 The reviewer does **not** read:
 
-- `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts; the review's contract is to critique the raw inputs themselves.
-- `review-inputs/ADVERSARIAL/adversarial-review.html`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies and produce correlated noise.
-- `analyse-requirements/*`, `analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
-- `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md` (except as textual references in this document and the agent file) — out of scope.
+- `generated-docs/requirements/requirements.md`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims*.ndjson` — derivative artefacts; the review's contract is to critique the raw inputs themselves.
+- `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html`, `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies and produce correlated noise.
+- `generated-docs/analyse-requirements/*`, `generated-docs/analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
+- `generated-docs/design-system/*`, `generated-docs/review-requirements/*`, `framework/state/*`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md` (except as textual references in this document and the agent file) — out of scope.
 - `framework/skills/completeness-gap-pass.md` — **explicitly not loaded.** That skill is `/requirements`-private (it walks a synthesised draft against `topics-requirements.md` bijection invariants); this reviewer walks raw inputs against IEEE/Volere/BABOK dimension checklists. The conceptual decision-tree (Stated → Rule → Scope → Default) is shared inspiration but the implementations are independent.
 
 ---
@@ -755,7 +755,7 @@ Twelve gates. All are hard. If any gate fails, the reviewer does **not** write t
 7. **Every finding's Authority field contains at least one canonical authority reference matching the dimension's `Authority:` header (IEEE / Volere / Wiegers / BABOK / INCOSE / ISO 25010).** Authority lookups missing the canonical-source prefix are a gate failure.
 8. **Every dimension reports ≥1 finding or a non-empty Justification block ≥3 sentences citing specific evidence and naming at least one filename from the corpus.** Silent zero-finding dimensions are a methodology violation.
 9. **The Findings Table row count equals the sum of per-primary-dimension finding counts.** Multi-tag findings count once, against their primary dimension. Drift is a render bug.
-10. **The artefact's `MANIFEST_FINGERPRINT` field equals the SHA-256 of `requirements/source-manifest.json` captured at Step 2, AND every Source-roster (Consumed) `sha256[:8]` matches its manifest row's `sha256` field.** Mismatch means the artefact reviewed one version of the input set and reports against another.
+10. **The artefact's `MANIFEST_FINGERPRINT` field equals the SHA-256 of `generated-docs/requirements/source-manifest.json` captured at Step 2, AND every Source-roster (Consumed) `sha256[:8]` matches its manifest row's `sha256` field.** Mismatch means the artefact reviewed one version of the input set and reports against another.
 11. **Every `Needs-Clarification`-disposition finding has a non-sentinel Elicitation question ending with `?`. For `Location: <filename>` findings, the question contains the filename as a substring; for `Location: corpus-wide` findings, the question contains at least one consumed-source filename as a substring.** Every `Standard-Rule-Applies` finding has the literal sentinel `(not applicable — disposition resolves via standard rule)`. Every `Out-of-Scope` finding has the literal sentinel `(not applicable — explicit out-of-scope)`.
 12. **Every `Standard-Rule-Applies`-disposition finding cites at least one existing `GR-NN` id from `framework/shared/general-rules.md` in its Authority field, and the cited id exists as a heading in that file.** The reviewer does not invent `GR-NN` ids.
 
@@ -785,7 +785,7 @@ The coverage matrix is a 10-row × N-column grid (where N = number of consumed s
 The artefact renders as a self-contained HTML report (the reviewer substitutes pre-escaped values + pre-rendered HTML fragments into `framework/assets/reviews-inputs/template-completeness.html`; one inline `<style>`, no external CSS/JS/fonts, no diagram/heatmap — coverage is the HTML table). The per-block HTML schemas (coverage-matrix table, triage table, findings table, per-dimension finding `<article>`s, elicitation groups, source roster, diagnostics `<details>`) live in the template's leading comment. The fixed section ordering is:
 
 0. **In plain terms** — the `{{PLAIN_SUMMARY}}` lead block: 2–5 plain-English sentences answering what this review is, what it found, and what to do next. A faithful condensation of the findings below — introduces no finding, count, or claim not already in the punch-list. Rendered as `<section id="plain-terms">` immediately before the Executive Summary; listed first in the TOC. See `framework/shared/output-readability.md` and the `## Reader & plain language` section of `framework/assets/characters/completeness-inputs-review.md`.
-1. **Header (Overview)** — title (`<h1 id="top">` + `<title>`) + a `dl.meta-grid` metadata block: `Domain`, `Generated` (ISO-8601 UTC), `Manifest SHA-256` (SHA-256 of `requirements/source-manifest.json`), `Target` (the manifest's `target` field, or `(unset)`), `Reviewer` (fixed string *"Completeness Review (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE, ten-dimension, inputs-side)"*), `Sources consumed` (count), `Sources skipped` (count).
+1. **Header (Overview)** — title (`<h1 id="top">` + `<title>`) + a `dl.meta-grid` metadata block: `Domain`, `Generated` (ISO-8601 UTC), `Manifest SHA-256` (SHA-256 of `generated-docs/requirements/source-manifest.json`), `Target` (the manifest's `target` field, or `(unset)`), `Reviewer` (fixed string *"Completeness Review (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE, ten-dimension, inputs-side)"*), `Sources consumed` (count), `Sources skipped` (count).
 2. **Executive Summary** — total findings, severity tally (Blocker / Major / Minor), disposition tally (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope), per-dimension counts, single-sentence verdict per the verdict-mapping table.
 3. **Verdict** — exactly one of `BLOCKED` / `NEEDS-ELICITATION` / `ACCEPTED-WITH-GAPS`, rendered in the Executive Summary as a `<span class="verdict verdict-{VERDICT}">` banner (the token also drives the banner's colour class). It carries no other prose.
 4. **Coverage matrix** — a sticky-thead HTML table (10 rows × N consumed-source columns; see construction rules above; no heatmap/SVG). Provides the executive bird's-eye view; the consultant should read this section in under thirty seconds.
@@ -826,8 +826,8 @@ The artefact is a gap register + action list, not a narrative. Prose between fin
 - **Citing line numbers in Location.** The Location field is `corpus-wide` or a `filename`. Multimodal sources have no lines; `.converted.md` line numbers drift between markitdown runs.
 - **Using inline `[SRC: <filename>]` markers inside Problem, Authority, Elicitation-question fields.** The Evidence + Location pair is the citation; do not duplicate it in prose.
 - **Skipping cross-dimension consolidation.** A topic tripping dimensions 1 and 3 (no first-hand voice, no key fields) on the same entity must emit one consolidated finding with `Dimensions: [1, 3]`, not two separate findings. Step 14 of the agent handles this; bypassing it produces double-counting in gate 9.
-- **Reviewing against the synthesised requirements doc.** Do not consult `requirements/requirements.md` or any other `/requirements`-pipeline derivative. The review's contract is to critique the **raw inputs**.
-- **Reviewing against parallel reviews.** Do not consult `review-inputs/ADVERSARIAL/adversarial-review.html` or `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` to triangulate findings. Each input-pipeline lens is independently grounded in the manifest.
+- **Reviewing against the synthesised requirements doc.** Do not consult `generated-docs/requirements/requirements.md` or any other `/requirements`-pipeline derivative. The review's contract is to critique the **raw inputs**.
+- **Reviewing against parallel reviews.** Do not consult `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html` or `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` to triangulate findings. Each input-pipeline lens is independently grounded in the manifest.
 - **Skipping the strict-Justification rule.** A dimension with zero findings requires a non-empty Justification block ≥3 sentences citing specific evidence and naming at least one filename. *"Clean"* is not a Justification.
 
 ---

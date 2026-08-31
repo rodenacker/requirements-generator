@@ -34,7 +34,7 @@
     {{TITLE}}                    — short title (e.g. "10 UX Questions — Project X")
     {{DOMAIN}}                   — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
     {{GENERATED_AT}}             — ISO-8601 UTC timestamp the artefact was rendered
-    {{REQUIREMENTS_SHA256}}      — sha256 of requirements/requirements.md at read time
+    {{REQUIREMENTS_SHA256}}      — sha256 of generated-docs/requirements/requirements.md at read time
     {{REVIEWER_IDENTITY}}        — fixed string "10 UX Questions Review (experienced UX designer lens)"
     {{TOTAL_QUESTIONS}}          — always 10 (gate-enforced; placeholder retained for visibility)
     {{BLOCKING_COUNT}}           — count of questions with priority = blocking
@@ -55,7 +55,7 @@
     {{QUESTION_10_BLOCK}}
     {{DIAGNOSTICS_BLOCK}}        — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html.
+  Output: generated-docs/review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html.
 
   TRIAGE BLOCK SCHEMA — {{TRIAGE_BLOCK}} is the <tbody> rows (the <thead> is in the
   scaffold) listing every selected question in rank order (UXQ-01 first, UXQ-10 last):
@@ -546,7 +546,7 @@
     <strong>minor</strong> — answer affects refinement only; a reasonable default produces an acceptable design.
   </p>
   <p class="legend">
-    Source: <code>requirements/requirements.md</code> only. Categories: C1 Users &amp; segmentation · C2 Context of use · C3 Goals &amp; success signals · C4 Tasks, flows, decision points · C5 Data &amp; content for decisions · C6 Errors, edge cases, recovery · C7 Collaboration &amp; concurrency · C8 Trust, transparency, audit.
+    Source: <code>generated-docs/requirements/requirements.md</code> only. Categories: C1 Users &amp; segmentation · C2 Context of use · C3 Goals &amp; success signals · C4 Tasks, flows, decision points · C5 Data &amp; content for decisions · C6 Errors, edge cases, recovery · C7 Collaboration &amp; concurrency · C8 Trust, transparency, audit.
   </p>
 </section>
 

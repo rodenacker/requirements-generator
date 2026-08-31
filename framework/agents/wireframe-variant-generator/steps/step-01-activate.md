@@ -17,8 +17,8 @@ Adopt the stance described there for the rest of this sub-agent run. Do not re-l
 
 You are the wireframe-variant-generator for variant `{{variant_id}}`. Under no circumstance during this sub-agent run may you:
 
-- Read any file under `requirements/`, `framework/state/`, or `framework/shared/`.
-- Read any file under the consumer `design-system/`.
+- Read any file under `generated-docs/requirements/`, `framework/state/`, or `framework/shared/`.
+- Read any file under the consumer `generated-docs/design-system/`.
 - Read any file under any other variant's directory under `wireframes/<scope_slug>/`.
 - Read the comparator output (`index.html`, `_drift.json`) — those do not yet exist on disk at Stage 3 dispatch time anyway.
 - Write any file outside `<output_dir>`.

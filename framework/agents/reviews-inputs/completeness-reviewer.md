@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **c
 
 ## Purpose
 
-Produce `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — a self-contained HTML gap register of cited, severity-and-disposition-graded findings, with a coverage matrix (10 dimensions × N consumed sources, rendered as a sticky-thead HTML table) and a per-source elicitation-question list (scoped to `Needs-Clarification`-disposition findings) — by applying the ten-dimension completeness methodology (`framework/assets/reviews-inputs/completeness-reference.md`) literally and exhaustively to the **raw consultant input set** enumerated by `requirements/source-manifest.json`. The artefact is rendered by substituting pre-escaped values + pre-rendered HTML fragments into the scaffold `framework/assets/reviews-inputs/template-completeness.html` (one inline `<style>`, no external CSS/JS/fonts; opens via `file://` and prints to PDF). Every finding carries an `Authority` field citing a canonical RE source (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010, or `GR-NN` for rule-resolved findings), a Location (`corpus-wide` for absences or a manifest filename for partial-coverage/exclusion quotes), an Evidence value (verbatim quote OR the sentinel `(no mention in consumed corpus)`), and a Disposition (`Needs-Clarification` / `Standard-Rule-Applies` / `Out-of-Scope`) that maps onto the `/requirements` drafter's marker vocabulary downstream.
+Produce `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — a self-contained HTML gap register of cited, severity-and-disposition-graded findings, with a coverage matrix (10 dimensions × N consumed sources, rendered as a sticky-thead HTML table) and a per-source elicitation-question list (scoped to `Needs-Clarification`-disposition findings) — by applying the ten-dimension completeness methodology (`framework/assets/reviews-inputs/completeness-reference.md`) literally and exhaustively to the **raw consultant input set** enumerated by `generated-docs/requirements/source-manifest.json`. The artefact is rendered by substituting pre-escaped values + pre-rendered HTML fragments into the scaffold `framework/assets/reviews-inputs/template-completeness.html` (one inline `<style>`, no external CSS/JS/fonts; opens via `file://` and prints to PDF). Every finding carries an `Authority` field citing a canonical RE source (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010, or `GR-NN` for rule-resolved findings), a Location (`corpus-wide` for absences or a manifest filename for partial-coverage/exclusion quotes), an Evidence value (verbatim quote OR the sentinel `(no mention in consumed corpus)`), and a Disposition (`Needs-Clarification` / `Standard-Rule-Applies` / `Out-of-Scope`) that maps onto the `/requirements` drafter's marker vocabulary downstream.
 
 The ten dimensions are swept **sequentially** in Steps 4–13 (one dimension per step). Sequential dispatch is deliberate: cross-dimension consolidation at Step 14 collapses same-topic multi-dimension hits into a single multi-tag finding rather than emitting duplicates; disposition assignment at Step 15 requires visibility into the full candidate set so cross-finding rule-resolutions are not missed; parallel workers would re-read the same multimodal-heavy input set N times. This contrasts with the parallel-worker pattern in `adversarial-reviewer.md`, and matches the sequential-phase pattern in `ambiguity-reviewer.md`, `analyses-inputs/thematic-analysis-analyser.md`, and `analyses-inputs/opportunity-solution-trees-analyser.md`.
 
@@ -16,7 +16,7 @@ The pipeline is **full overwrite** per run — each run's artefact reflects only
 
 This agent reads:
 
-- `requirements/source-manifest.json` (once, at Step 2).
+- `generated-docs/requirements/source-manifest.json` (once, at Step 2).
 - For each manifest row where `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` when `converted_sibling` is null (`Native-text`), otherwise `converted_sibling` (`Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`). Read once per row at Step 3.
 - `framework/assets/characters/completeness-inputs-review.md` (the character — loaded at activation).
 - `framework/assets/reviews-inputs/completeness-reference.md` (the methodology — loaded at activation).
@@ -24,9 +24,9 @@ This agent reads:
 - `framework/shared/general-rules.md` — loaded **read-only** at Step 15 (disposition assignment) to map `Standard-Rule-Applies` findings. Authoritative source of `GR-NN` ids.
 - `framework/shared/prototype-scope.md` — loaded **read-only** at Step 15 (disposition assignment) **only** when the manifest's `target == "prototype"`. When `target == "application"` or `target == null`, the file is not loaded.
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read other lenses' artefacts under `analyse-requirements/`, `analyse-inputs/<METHOD>/`, `review-requirements/`, or `review-inputs/<OTHER-METHOD>/` (in particular, it does **not** read `review-inputs/ADVERSARIAL/adversarial-review.html` or `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — each input-pipeline lens is independently grounded in the manifest, and cross-reading sibling reviewers' findings would conflate the methodologies and produce correlated noise). It does **not** read `framework/skills/completeness-gap-pass.md` (that skill is `/requirements`-private; the conceptual decision tree it embodies is shared inspiration, but the implementations are independent).
+The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read other lenses' artefacts under `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/<METHOD>/`, `generated-docs/review-requirements/`, or `generated-docs/review-inputs/<OTHER-METHOD>/` (in particular, it does **not** read `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html` or `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — each input-pipeline lens is independently grounded in the manifest, and cross-reading sibling reviewers' findings would conflate the methodologies and produce correlated noise). It does **not** read `framework/skills/completeness-gap-pass.md` (that skill is `/requirements`-private; the conceptual decision tree it embodies is shared inspiration, but the implementations are independent).
 
-The agent's only outputs are `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` and the inline summary it surfaces to the consultant.
 
 There are **no sub-agents**. All ten dimension sweeps and the disposition assignment run in this thread. The agent does **not** use the `Agent` / `Task` tool at any step — this is enforced by the Tools section below.
 
@@ -40,16 +40,16 @@ Twenty steps in order. Do not skip steps; do not collapse steps. Each step's suc
 - Read `framework/assets/reviews-inputs/completeness-reference.md` once. The reference defines the ten dimensions, the finding schema, the severity rubric, the disposition rubric, the absent-vs-out-of-scope test, the cross-dimension consolidation rule, the elicitation-question authoring rules, the coverage-matrix construction rules, and the twelve quality gates; treat it as authoritative. Keep its full content in memory.
 - Read `framework/assets/reviews-inputs/template-completeness.html` once. This is the self-contained HTML scaffold the artefact is rendered into at Step 18 (one inline `<style>`; placeholders + per-block schemas documented in the leading comment). Keep its full content in memory; never edit the scaffold structure — only substitute placeholder values.
 - Apply the human-readability standard from the character's *Reader & plain language* block (canonical source: `framework/shared/output-readability.md`, restated in `framework/assets/characters/completeness-inputs-review.md` so no `framework/shared/` read is needed here). The standard is additive — it relaxes no gate, no severity, and no finding-schema discipline. Concretely: write the `{{PLAIN_SUMMARY}}` lead preserving severity verbatim (a Blocker / BLOCKED verdict is stated unsoftened), gloss review jargon at first use (severity, disposition, dimension, verdict, coverage threshold, elicitation question), never gloss client domain terms, and keep punch-list discipline below the lead.
-- State readiness in one short line: *"Completeness inputs-side reviewer ready. Starting from `requirements/source-manifest.json`. Methodology: ten-dimension IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010 completeness sweep over the raw consultant input set — every finding carries a citation Authority, a Disposition (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope), and (for Needs-Clarification only) a one-sentence stakeholder elicitation question."*
-- Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/source-manifest.json` plus the files it enumerates, plus `framework/shared/general-rules.md` (always) and `framework/shared/prototype-scope.md` (only when manifest target is prototype) at the disposition step — no other pipeline state is consulted. `requirements/requirements.md`, analyses, design-system, reviews-of-requirements, sibling input-reviews, and pipeline state are not loaded."*
+- State readiness in one short line: *"Completeness inputs-side reviewer ready. Starting from `generated-docs/requirements/source-manifest.json`. Methodology: ten-dimension IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010 completeness sweep over the raw consultant input set — every finding carries a citation Authority, a Disposition (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope), and (for Needs-Clarification only) a one-sentence stakeholder elicitation question."*
+- Restate the stand-alone-ish constraint in-thread: *"This run reads `generated-docs/requirements/source-manifest.json` plus the files it enumerates, plus `framework/shared/general-rules.md` (always) and `framework/shared/prototype-scope.md` (only when manifest target is prototype) at the disposition step — no other pipeline state is consulted. `generated-docs/requirements/requirements.md`, analyses, design-system, reviews-of-requirements, sibling input-reviews, and pipeline state are not loaded."*
 - Restate the absent-vs-out-of-scope test in one line so the consultant sees it: *"Every finding satisfies the absent-vs-out-of-scope test — corpus silent on the topic, no explicit exclusion quote, no `GR-NN` rule covering the gap, before defaulting to Needs-Clarification. Findings resolved by `Standard-Rule-Applies` or `Out-of-Scope` are surfaced (not dropped) so the drafter knows which marker namespace to render downstream."*
 
 ### Step 2 — Read manifest
 
-- `Read requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists (if absent at orchestrator step 1, the input-handler is invoked first).
+- `Read generated-docs/requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists (if absent at orchestrator step 1, the input-handler is invoked first).
 - Compute and remember the SHA-256 of the file's bytes — this is `manifest_fingerprint`, the value that lands in the artefact's `MANIFEST_FINGERPRINT` field and in Quality Gate 10.
 - Capture the manifest's `target` field into in-memory variable `build_target`. Expected values: `"prototype"`, `"application"`, or `null`. Other values are treated as `null` with a Diagnostics-block note.
-- If the file is empty, malformed JSON, or parses to a zero-row methodology list, halt with the structured error: *"`requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
+- If the file is empty, malformed JSON, or parses to a zero-row methodology list, halt with the structured error: *"`generated-docs/requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - Parse the manifest's row list. Classify rows:
     - `consumable_rows` = rows where `tier != "Unsupported"` — these will be ingested at Step 3.
     - `skipped_rows` = rows where `tier == "Unsupported"` — these contribute to the skipped roster only.
@@ -455,7 +455,7 @@ Render the artefact by populating the in-memory copy of `framework/assets/review
 - `{{TITLE}}` — short title (e.g. *"Completeness Review (inputs-side) — {DOMAIN-or-project}"*).
 - `{{DOMAIN}}` — best-effort domain string from a source heading, else `(not declared in inputs)`.
 - `{{GENERATED_AT}}` — ISO-8601 UTC timestamp.
-- `{{MANIFEST_FINGERPRINT}}` — the Step-2 SHA-256 of `requirements/source-manifest.json`.
+- `{{MANIFEST_FINGERPRINT}}` — the Step-2 SHA-256 of `generated-docs/requirements/source-manifest.json`.
 - `{{TARGET}}` — the manifest's `target` field (`prototype` / `application` / `(unset)` when `null`).
 - `{{REVIEWER_IDENTITY}}` — fixed string *"Completeness Review (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE, ten-dimension, inputs-side)"*.
 - `{{SOURCES_CONSUMED_COUNT}}`, `{{SOURCES_SKIPPED_COUNT}}`, `{{TOTAL_FINDINGS}}`, `{{BLOCKER_COUNT}}`, `{{MAJOR_COUNT}}`, `{{MINOR_COUNT}}`, `{{NC_COUNT}}`, `{{SRA_COUNT}}`, `{{OOS_COUNT}}` — the corresponding counts.
@@ -475,17 +475,17 @@ After substitution, confirm the rendered string contains **zero** literal `{{...
 
 ### Step 19 — Write
 
-- Ensure the output directory exists. On Windows / PowerShell environments use `Bash New-Item -ItemType Directory -Force review-inputs/COMPLETENESS-REVIEW`; on POSIX environments use `Bash mkdir -p review-inputs/COMPLETENESS-REVIEW`.
-- `Write review-inputs/COMPLETENESS-REVIEW/completeness-review.html` with the in-memory rendered HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-inputs/COMPLETENESS-REVIEW/completeness-review.html`, `expected_sha256 = <step-18 sha>`, `expected_min_bytes = 5000`.
+- Ensure the output directory exists. On Windows / PowerShell environments use `Bash New-Item -ItemType Directory -Force generated-docs/review-inputs/COMPLETENESS-REVIEW`; on POSIX environments use `Bash mkdir -p generated-docs/review-inputs/COMPLETENESS-REVIEW`.
+- `Write generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` with the in-memory rendered HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html`, `expected_sha256 = <step-18 sha>`, `expected_min_bytes = 5000`.
 - On `pass`: advance to Step 20.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` after one retry."* and fail the handback.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` after one retry."* and fail the handback.
 
 ### Step 20 — Handback
 
 **A. Summary in Unicorn voice.**
 
-> *"Wrote `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — `{TOTAL_FINDINGS}` findings across 10 dimensions (Blocker: `{BLOCKER_COUNT}`, Major: `{MAJOR_COUNT}`, Minor: `{MINOR_COUNT}`) with disposition breakdown (Needs-Clarification: `{NC_COUNT}`, Standard-Rule-Applies: `{SRA_COUNT}`, Out-of-Scope: `{OOS_COUNT}`) over `{n_consumable_sources}` sources, `{n_multi_tag}` multi-dimension findings, triage callout lists top `{n_triage}` to address first. Verdict: `{VERDICT}`. Quality gates: `{n_gates_passed}/12` pass. `{n_elicitation_questions}` elicitation questions ready to paste, grouped by source file. Open it in a browser (or print to PDF). Ready, or want changes?"*
+> *"Wrote `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — `{TOTAL_FINDINGS}` findings across 10 dimensions (Blocker: `{BLOCKER_COUNT}`, Major: `{MAJOR_COUNT}`, Minor: `{MINOR_COUNT}`) with disposition breakdown (Needs-Clarification: `{NC_COUNT}`, Standard-Rule-Applies: `{SRA_COUNT}`, Out-of-Scope: `{OOS_COUNT}`) over `{n_consumable_sources}` sources, `{n_multi_tag}` multi-dimension findings, triage callout lists top `{n_triage}` to address first. Verdict: `{VERDICT}`. Quality gates: `{n_gates_passed}/12` pass. `{n_elicitation_questions}` elicitation questions ready to paste, grouped by source file. Open it in a browser (or print to PDF). Ready, or want changes?"*
 
 Variants:
 
@@ -523,7 +523,7 @@ Use `AskUserQuestion`:
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the manifest enumerating consumable input files and carrying the `target` field. Read once in Step 2. The orchestrator's Step 1 manifest preflight guarantees existence.
+- `generated-docs/requirements/source-manifest.json` — the manifest enumerating consumable input files and carrying the `target` field. Read once in Step 2. The orchestrator's Step 1 manifest preflight guarantees existence.
 - Each manifest row's read-path resolved per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text` (null `converted_sibling`), `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` — read once per row at Step 3. The agent does **not** read `original_path` for any row carrying a non-null `converted_sibling` (the `.converted.md` sibling is the contract).
 - `framework/assets/characters/completeness-inputs-review.md` — the reviewer's stance. Loaded once at Step 1.
 - `framework/assets/reviews-inputs/completeness-reference.md` — the ten-dimension methodology reference. Loaded once at Step 1.
@@ -533,14 +533,14 @@ Use `AskUserQuestion`:
 
 ## Output
 
-- `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — the populated self-contained HTML artefact (one inline `<style>`, no external CSS/JS/fonts). Always written to the same path; **fully overwritten** on each run.
+- `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — the populated self-contained HTML artefact (one inline `<style>`, no external CSS/JS/fonts). Always written to the same path; **fully overwritten** on each run.
 
 ## Tools
 
-- `Read` — read the character file, the reference, the HTML template (`framework/assets/reviews-inputs/template-completeness.html`), the manifest, each manifest-enumerated source file, `framework/shared/general-rules.md`, and (conditionally) `framework/shared/prototype-scope.md`. **Read is not authorised against any other path:** not against `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyse-requirements/`; not against `analyse-inputs/`; not against `design-system/`; not against `review-requirements/`; not against `review-inputs/<OTHER-METHOD>/` (in particular, not against `review-inputs/ADVERSARIAL/` or `review-inputs/AMBIGUITY-REVIEW/`); not against `framework/state/`; not against `framework/shared/prototype-invariants.md` or `framework/shared/refusal-registry.md` or any other `framework/shared/` file beyond the two declared above; not against `framework/skills/completeness-gap-pass.md`. The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `review-inputs/COMPLETENESS-REVIEW/completeness-review.html`.
+- `Read` — read the character file, the reference, the HTML template (`framework/assets/reviews-inputs/template-completeness.html`), the manifest, each manifest-enumerated source file, `framework/shared/general-rules.md`, and (conditionally) `framework/shared/prototype-scope.md`. **Read is not authorised against any other path:** not against `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `generated-docs/analyse-requirements/`; not against `generated-docs/analyse-inputs/`; not against `generated-docs/design-system/`; not against `generated-docs/review-requirements/`; not against `generated-docs/review-inputs/<OTHER-METHOD>/` (in particular, not against `generated-docs/review-inputs/ADVERSARIAL/` or `generated-docs/review-inputs/AMBIGUITY-REVIEW/`); not against `framework/state/`; not against `framework/shared/prototype-invariants.md` or `framework/shared/refusal-registry.md` or any other `framework/shared/` file beyond the two declared above; not against `framework/skills/completeness-gap-pass.md`. The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 18's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders the HTML and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` / `PowerShell` — `mkdir -p review-inputs/COMPLETENESS-REVIEW` (POSIX) or `New-Item -ItemType Directory -Force review-inputs/COMPLETENESS-REVIEW` (Windows) at Step 19 setup, plus the SHA-256 read-back invoked by `verify-artifact-write.md`. No other shell usage.
+- `Bash` / `PowerShell` — `mkdir -p generated-docs/review-inputs/COMPLETENESS-REVIEW` (POSIX) or `New-Item -ItemType Directory -Force generated-docs/review-inputs/COMPLETENESS-REVIEW` (Windows) at Step 19 setup, plus the SHA-256 read-back invoked by `verify-artifact-write.md`. No other shell usage.
 - `AskUserQuestion` — surface the Step 17 quality-gate failure prompt (Revise / Override / Restart) and the Step 20 Accept / Revise / Restart prompt.
 
 **`Agent` is not in this list.** Completeness-review is sequential and single-threaded — there are no parallel workers, no dimension-worker dispatch, no sub-agent fan-out. If a future change adds parallel dimension workers, it must update both this Tools section and the Anti-Patterns section.
@@ -552,7 +552,7 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains exactly one `<section id="plain-terms">` and it is the first content `<section>` after `<nav class="toc">` (before `<section id="executive-summary">`). Its `<p>` is non-empty.
 - The `{{PLAIN_SUMMARY}}` lead introduces no finding, count, or claim not already in the punch-list, glosses no client domain terms, and does not soften any Blocker / BLOCKED verdict.
 - The first `<li>` in the TOC `<ol>` links to `#plain-terms`.
-- `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact is self-contained: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>`, no external stylesheet/`<link rel="stylesheet">`, no CDN/`http(s)://` asset reference, and no external font import.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact's `<h1 id="top">` and `<title>` name the Completeness Review (inputs-side).
@@ -578,15 +578,15 @@ Before handing back, verify all of the following against the written artefact an
 - The Triage callout contains at most 10 entries, includes every `Blocker + Needs-Clarification`, and never lists a `Standard-Rule-Applies` / `Out-of-Scope` / Minor finding. If zero `Needs-Clarification` findings, the Triage callout renders the documented "no stakeholder questions" line.
 - The "Suggested elicitation questions" section contains one subsection per consumed filename that contributed ≥1 `Needs-Clarification` finding; every elicitation question listed there matches a finding's `Elicitation question` field verbatim. If zero `Needs-Clarification` findings, the section renders the documented "No stakeholder questions to send" line.
 - The `Agent` / `Task` tool was not used at any step. No sub-agent was dispatched.
-- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
-- No file under `analyse-requirements/`, `analyse-inputs/`, `design-system/`, `review-requirements/`, `review-inputs/ADVERSARIAL/`, `review-inputs/AMBIGUITY-REVIEW/`, `framework/state/` was read during this run.
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
+- No file under `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/`, `generated-docs/design-system/`, `generated-docs/review-requirements/`, `generated-docs/review-inputs/ADVERSARIAL/`, `generated-docs/review-inputs/AMBIGUITY-REVIEW/`, `framework/state/` was read during this run.
 - `framework/shared/general-rules.md` was read exactly once at Step 15.
 - `framework/shared/prototype-scope.md` was read exactly once at Step 15 if `build_target == "prototype"`, and **not read** otherwise.
 - The consultant has chosen Accept in Step 20 (or the Step 17 Override path was taken, in which case Accept is still required in Step 20 to declare done).
 
 ## Definition of Done
 
-- `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` exists, is self-contained (one inline `<style>`, no `<script>`/CDN/external asset), has been verified, and contains a complete ten-dimension review.
+- `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` exists, is self-contained (one inline `<style>`, no `<script>`/CDN/external asset), has been verified, and contains a complete ten-dimension review.
 - The artefact's first content section is `<section id="plain-terms">` with a non-empty `{{PLAIN_SUMMARY}}` paragraph; the first TOC `<li>` links to `#plain-terms`.
 - The `COMP-NN` ID sequence is contiguous, assigned by primary-dimension order then within-dimension order.
 - Either all twelve quality gates passed, or the consultant explicitly chose Override at Step 17 and the diagnostics block records every violation.
@@ -600,10 +600,10 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Anti-Patterns
 
-- Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files. The stand-alone-ish constraint is the agent's most load-bearing invariant.
-- Do not read `requirements/requirements.md` or any other `/requirements`-pipeline derivative artefact. The review's contract is to critique **raw inputs**, not anything synthesised from them.
-- Do not read `review-inputs/ADVERSARIAL/adversarial-review.html` or `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present. Each input-pipeline lens is independently grounded in the manifest; cross-reading another reviewer's findings would conflate the methodologies and produce correlated noise.
-- Do not read `analyse-requirements/`, `analyse-inputs/`, `design-system/`, `review-requirements/`, `framework/state/`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md`, or `framework/skills/completeness-gap-pass.md`.
+- Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files. The stand-alone-ish constraint is the agent's most load-bearing invariant.
+- Do not read `generated-docs/requirements/requirements.md` or any other `/requirements`-pipeline derivative artefact. The review's contract is to critique **raw inputs**, not anything synthesised from them.
+- Do not read `generated-docs/review-inputs/ADVERSARIAL/adversarial-review.html` or `generated-docs/review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present. Each input-pipeline lens is independently grounded in the manifest; cross-reading another reviewer's findings would conflate the methodologies and produce correlated noise.
+- Do not read `generated-docs/analyse-requirements/`, `generated-docs/analyse-inputs/`, `generated-docs/design-system/`, `generated-docs/review-requirements/`, `framework/state/`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md`, or `framework/skills/completeness-gap-pass.md`.
 - Do not read `framework/shared/prototype-scope.md` when `build_target != "prototype"`. The prototype-scope domain-default filter does not apply on application builds (or when target is unset).
 - Do not re-invoke `markitdown-mcp`. Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract.
 - Do not skip the absent-vs-out-of-scope test. Every finding must be classified via the three-step decision tree (explicit-exclusion quote → `GR-NN` rule → domain-default scope filter → default Needs-Clarification). Bypassing the test produces mis-classified dispositions, and the drafter renders the wrong marker namespace downstream.

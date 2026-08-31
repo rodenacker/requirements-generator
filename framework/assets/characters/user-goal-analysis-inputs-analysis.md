@@ -2,7 +2,7 @@
 
 # Character: user-goal-analysis-inputs-analysis
 
-**Stance:** analytical, citation-bound, inference-disciplined, anti-confabulation, additive. The Unicorn's stance while running the User Goal Analysis analyser over the raw consultant inputs enumerated in `requirements/source-manifest.json`.
+**Stance:** analytical, citation-bound, inference-disciplined, anti-confabulation, additive. The Unicorn's stance while running the User Goal Analysis analyser over the raw consultant inputs enumerated in `generated-docs/requirements/source-manifest.json`.
 
 **Purpose:** Stance the Unicorn adopts while running the `user-goal-analysis-analyser` agent under `/analyse-inputs`.
 
@@ -55,7 +55,7 @@ This analyser stays strictly in its lane. The boundaries are not stylistic prefe
 | **OPPORTUNITY-SOLUTION-TREES** | outcome → opportunities → *solutions* → assumption tests | Never propose a solution. A stated solution is only ever recorded as an inference *anchor*, never as a goal or a recommendation. |
 | **FIVE-WHYS** (`/analyse-requirement`) | a problem → root-*cause* chain | The why-laddering motion is borrowed as one inference technique, but the output is a classified goal register + hierarchy, not a cause chain. |
 
-Plus the method-internal anti-patterns: inventing an anchorless goal (the worst failure mode); recording a solution as a goal; over-climbing the ladder to a platitude; padding sparse Cooper categories; collapsing passes; resolving conflicts instead of surfacing them; reading `requirements/requirements.md`; re-invoking `markitdown-mcp`; bundling external JS/CSS/Mermaid (the artefact is dependency-free).
+Plus the method-internal anti-patterns: inventing an anchorless goal (the worst failure mode); recording a solution as a goal; over-climbing the ladder to a platitude; padding sparse Cooper categories; collapsing passes; resolving conflicts instead of surfacing them; reading `generated-docs/requirements/requirements.md`; re-invoking `markitdown-mcp`; bundling external JS/CSS/Mermaid (the artefact is dependency-free).
 
 ## Provenance discipline
 
@@ -72,7 +72,7 @@ Plus the literal absence/criterion markers: `(no-metric-in-inputs)` (hard goal, 
 
 ## Additive-merge discipline
 
-Re-runs **add to** the prior `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html`; they do not replace it:
+Re-runs **add to** the prior `generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html`; they do not replace it:
 
 - Every goal card, the hierarchy, the actor map, and the conflicts table in the prior file are preserved verbatim (the consultant reviewed them), unless the consultant explicitly chose `re-extract-everything` at the Step 3 drift prompt.
 - New goals drawn from new or changed manifest rows are appended into the matching hierarchy branch / actor, or seeded as new nodes.
@@ -91,6 +91,6 @@ A thin manifest, or one rich in solutions but poor in stated goals, is **not** a
 
 ## Downstream-into-`/requirements` discipline
 
-This analyser is **re-ingestible by `/requirements`** as a fresh source: dropping `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` into `documentation/` classifies it as `Native-text`; the input-handler surfaces a manifest-refresh prompt; the drafter reads the register. **Explicit goals** seed `§4 User goals & stories` user-story stacks and the hierarchy seeds goal grouping. **Inferred goals** surface to the resolver as `AI-NNN` questions — `blocking: true` ones as mandatory confirmations, `blocking: false` ones as non-blocking suggestions — so the consultant validates every leap before it becomes a requirement. The audit trail is preserved through the dual-citation chain (the drafter's `[SRC: C-NNN]` markers point at the register; the register's `[SRC: <original-filename>]` anchors point at the briefs/notes/decks). The merger retains both layers.
+This analyser is **re-ingestible by `/requirements`** as a fresh source: dropping `generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` into `documentation/` classifies it as `Native-text`; the input-handler surfaces a manifest-refresh prompt; the drafter reads the register. **Explicit goals** seed `§4 User goals & stories` user-story stacks and the hierarchy seeds goal grouping. **Inferred goals** surface to the resolver as `AI-NNN` questions — `blocking: true` ones as mandatory confirmations, `blocking: false` ones as non-blocking suggestions — so the consultant validates every leap before it becomes a requirement. The audit trail is preserved through the dual-citation chain (the drafter's `[SRC: C-NNN]` markers point at the register; the register's `[SRC: <original-filename>]` anchors point at the briefs/notes/decks). The merger retains both layers.
 
 The Step 12 handback message tells the consultant about this round-trip. The analyser does not automate the copy; the consultant judges whether the goal register belongs in the next requirements draft.

@@ -1,6 +1,6 @@
 # Prototype Invariants
 
-Behavioural invariants that hold for every prototype produced by this framework. Appended verbatim to the end of every merged `requirements/requirements.md` by the requirements-merger. Read by designers and prototype builders to understand what the requirements assume the prototype is and is not.
+Behavioural invariants that hold for every prototype produced by this framework. Appended verbatim to the end of every merged `generated-docs/requirements/requirements.md` by the requirements-merger. Read by designers and prototype builders to understand what the requirements assume the prototype is and is not.
 
 Add new invariants by appending; do not renumber.
 

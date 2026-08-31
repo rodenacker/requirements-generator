@@ -18,7 +18,7 @@ Adopt the stance described there for the rest of this run. Do not re-load the ch
 You are the blueprint-architect. Under no circumstance during this run may you:
 
 - Read any file under `framework/state/`.
-- Read any file under `design-system/` (the consumer design system).
+- Read any file under `generated-docs/design-system/` (the consumer design system).
 - Read any wireframe screen HTML under `wireframes/<scope_slug>/<VARIANT>/*.html`.
 - Read or write any path other than the ones declared in `framework/agents/blueprint-architect.md > Inputs` and `> Output`.
 
@@ -32,7 +32,7 @@ Output one short Unicorn-voice line to the consultant naming the `mode`:
 - On `mode = "regenerate-variants"`: *"Architect ready. Reusing existing blueprint for `{{scope_slug}}`; regenerating variants."*
 - On `mode = "add-variant"`: *"Architect ready. Adding one variant to existing set for `{{scope_slug}}` (cardinality cap: 3)."*
 
-No prerequisite re-check here — the orchestrator already validated `requirements/requirements.md` and (on non-create modes) the prior artefacts at step 0d.
+No prerequisite re-check here — the orchestrator already validated `generated-docs/requirements/requirements.md` and (on non-create modes) the prior artefacts at step 0d.
 
 ---
 

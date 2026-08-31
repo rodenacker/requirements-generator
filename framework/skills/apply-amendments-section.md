@@ -1,11 +1,11 @@
 # apply-amendments-section.md
 
-**Purpose:** Insert or extend the single transient `## Amendments (pending re-merge)` section in `requirements/requirements.md` from a set of consultant-approved amendment entries held in memory, and verify the write. Owns the mechanics that must not diverge between callers: the placement rule, `AMD-NN` continuation numbering, the byte-isolation guarantee, the pairing assertion against the paired `documentation/` document, and the write-verify. The **shape** of the section and of each `AMD-NN` block is not defined here — it is canonical in `framework/assets/resolve-review/template-addendum.md`, which this skill reads.
+**Purpose:** Insert or extend the single transient `## Amendments (pending re-merge)` section in `generated-docs/requirements/requirements.md` from a set of consultant-approved amendment entries held in memory, and verify the write. Owns the mechanics that must not diverge between callers: the placement rule, `AMD-NN` continuation numbering, the byte-isolation guarantee, the pairing assertion against the paired `documentation/` document, and the write-verify. The **shape** of the section and of each `AMD-NN` block is not defined here — it is canonical in `framework/assets/resolve-review/template-addendum.md`, which this skill reads.
 
 Extracted from `framework/agents/resolve-review-drafter.md` Step 9b (items 2–6) when a second caller appeared; the caller-specific parts — deciding *whether* to apply the section, and composing the entry content — deliberately stay with the callers.
 
 **Inputs:**
-- `doc_path` — the host document. Always `requirements/requirements.md` in current usage.
+- `doc_path` — the host document. Always `generated-docs/requirements/requirements.md` in current usage.
 - `doc_content` — the **full current text** of `doc_path`, as the caller read it in this run. Passed in rather than re-read so the caller's existing read is reused (both callers already hold the full document at the point they invoke this skill). The caller must not have written `doc_path` between its read and this invocation.
 - `entries[]` — ordered amendment entries, one per accepted amendment, each an object:
     - `one_liner` — the block heading text (the one-line problem or change).

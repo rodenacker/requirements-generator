@@ -6,7 +6,7 @@
 
 ## 0. Highest-signal source: `computed-tokens.json`
 
-If `design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`.
+If `generated-docs/design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`.
 
 | Token             | Preferred source from `computed-tokens.json`                                                                                                  |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |

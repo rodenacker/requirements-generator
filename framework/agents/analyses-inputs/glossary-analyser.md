@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **g
 
 ## Purpose
 
-Produce `analyse-inputs/GLOSSARY/glossary.html` — a self-contained, readability-optimised HTML **glossary** using `framework/assets/analyses-inputs/template-glossary.html` as scaffold, that **establishes one agreed vocabulary** (the project's ubiquitous language) for the system's specification and design, drawn from the raw consultant inputs enumerated in `requirements/source-manifest.json`. It carries:
+Produce `generated-docs/analyse-inputs/GLOSSARY/glossary.html` — a self-contained, readability-optimised HTML **glossary** using `framework/assets/analyses-inputs/template-glossary.html` as scaffold, that **establishes one agreed vocabulary** (the project's ubiquitous language) for the system's specification and design, drawn from the raw consultant inputs enumerated in `generated-docs/requirements/source-manifest.json`. It carries:
 
 - An **Overview block** (title, subtitle, meta-grid: domain, generated timestamp, manifest fingerprint, source count + tier breakdown, total/domain/application term counts, maturity histogram L0–L4, settled/proposed/disputed tallies, proposal count, and the five open-item counts).
 - A **`glossary-meta` HTML comment line** carrying the additive-merge cursor (`manifest_fingerprint`, `run_count`).
@@ -68,16 +68,16 @@ The five analytical rounds map onto twelve workflow steps (the five rounds plus 
 
 This agent reads:
 
-- `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
+- `generated-docs/requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
 - For each manifest row whose `tier != "Unsupported"`: the read path resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`.
-- `analyse-inputs/GLOSSARY/glossary.html` (read once in Step 3 if present, for additive merge).
+- `generated-docs/analyse-inputs/GLOSSARY/glossary.html` (read once in Step 3 if present, for additive merge).
 - `framework/assets/characters/glossary-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/glossary-reference.md` (the methodology — read once in Step 1).
 - `framework/assets/analyses-inputs/template-glossary.html` (the template — read once in Step 1 or lazily in Step 10 sub-step B).
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references are textual, not file loads). It does not read other analyses' artefacts under `analyse-requirements/` or `analyse-inputs/<OTHER-METHOD>/` — **including, explicitly, `analyse-requirements/GLOSSARY/glossary.html`** (the requirements-side sibling) **and `framework/assets/glossary.md`** (the cross-agent vocabulary reference). The two GLOSSARY methods never load each other; conflating them risks circular-reasoning failures.
+The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references are textual, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` or `generated-docs/analyse-inputs/<OTHER-METHOD>/` — **including, explicitly, `generated-docs/analyse-requirements/GLOSSARY/glossary.html`** (the requirements-side sibling) **and `framework/assets/glossary.md`** (the cross-agent vocabulary reference). The two GLOSSARY methods never load each other; conflating them risks circular-reasoning failures.
 
-The agent's only outputs are `analyse-inputs/GLOSSARY/glossary.html` and the inline summary it surfaces to the consultant. This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
+The agent's only outputs are `generated-docs/analyse-inputs/GLOSSARY/glossary.html` and the inline summary it surfaces to the consultant. This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
 ## Workflow
 
@@ -89,36 +89,36 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 - Read `framework/assets/analyses-inputs/glossary-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
 - (Optional, may defer to Step 10) Read `framework/assets/analyses-inputs/template-glossary.html` once for substitution.
 - Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead explaining *what this glossary is* (the agreed vocabulary for the project's domain, term/undefined counts, confirm-or-correct instruction), gloss methodology jargon at first use in human-readable prose (e.g. "used-but-undefined", "alias/synonym", "provenance", "definition source"), **never gloss client domain terms** (defining them is the whole job of this artefact — the no-domain-gloss rule is critical here), keep every `[SRC]`, and confine plain prose to the lead + glosses (the term cards, open-item registers, JSON body, and diagnostics keep their concrete, telegraphic, citation-bound discipline).
-- State readiness in one short line: *"Glossary analyser (input-analysis variant) ready. Starting from `requirements/source-manifest.json`. Purpose: establish one agreed vocabulary (ubiquitous language) for the spec and design — surface significant terms, classify domain vs application, define from the inputs (cited), rate shared-understanding maturity 0–4, and drive convergence by PROPOSING definitions/refinements/canonical resolutions where the inputs leave a term undefined, weak, synonymous, or conflicting. Methodology: DDD ubiquitous language + ISO 704 definition principles + Berry & Kamsties ambiguity + termhood/unithood extraction adapted for small heterogeneous corpora. Cited definitions are verbatim `[SRC: <filename>]`; proposals carry `[AI-SUGGESTED: AI-NNN | blocking]` with a named technique and a source anchor — never anchorless, never on a settled term. Five rounds; ten hard gates; no definition fabricated from world knowledge."*
-- Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, `framework/shared/`, `framework/assets/glossary.md`, and the requirements-side `analyse-requirements/GLOSSARY/glossary.html` are not loaded."*
+- State readiness in one short line: *"Glossary analyser (input-analysis variant) ready. Starting from `generated-docs/requirements/source-manifest.json`. Purpose: establish one agreed vocabulary (ubiquitous language) for the spec and design — surface significant terms, classify domain vs application, define from the inputs (cited), rate shared-understanding maturity 0–4, and drive convergence by PROPOSING definitions/refinements/canonical resolutions where the inputs leave a term undefined, weak, synonymous, or conflicting. Methodology: DDD ubiquitous language + ISO 704 definition principles + Berry & Kamsties ambiguity + termhood/unithood extraction adapted for small heterogeneous corpora. Cited definitions are verbatim `[SRC: <filename>]`; proposals carry `[AI-SUGGESTED: AI-NNN | blocking]` with a named technique and a source anchor — never anchorless, never on a settled term. Five rounds; ten hard gates; no definition fabricated from world knowledge."*
+- Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `generated-docs/requirements/requirements.md`, `framework/state/`, `framework/shared/`, `framework/assets/glossary.md`, and the requirements-side `generated-docs/analyse-requirements/GLOSSARY/glossary.html` are not loaded."*
 
 ### Step 2 — Read manifest & per-tier file ingest
 
-- `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's meta-comment and the cursor field.
+- `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's meta-comment and the cursor field.
 - Parse the manifest. Iterate rows; for each, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already transcribes the visible text and enumerates the glossary-relevant material it depicts (glossary slides, definition tables, org charts, screenshot annotations are transcribed verbatim and structured). Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no rows at all), halt with: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
+- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no rows at all), halt with: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
 - If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud, e.g.: *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 3 consumable rows: `brief.docx` (Supported-via-MCP, reading `documentation/brief.docx.converted.md`), `discovery-notes.md` (Native-text), `domain-glossary.png` (Native-multimodal). 1 skipped: `pricing.xlsx` (Unsupported, reason: `markitdown: spreadsheet not configured`)."*
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
-- Attempt to `Read analyse-inputs/GLOSSARY/glossary.html`. If absent, set `prior_run = null` and skip to Step 4.
+- Attempt to `Read generated-docs/analyse-inputs/GLOSSARY/glossary.html`. If absent, set `prior_run = null` and skip to Step 4.
 - If present:
   - Parse the first `<!-- glossary-meta: ... -->` HTML comment line. Extract `manifest_fingerprint` (hex) and `run_count` (integer ≥ 1).
   - Walk the body to enumerate every `term-card`, every open-register row, and every proposal, with full per-entry byte ranges so the merge can preserve them verbatim. Record the highest `AI-NN` id in use and which terms carry a consultant-confirmed (settled) agreement.
   - If the meta values do not parse cleanly, surface `AskUserQuestion`:
-    - Question: *"The prior `analyse-inputs/GLOSSARY/glossary.html` has an unparseable `glossary-meta` header (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
+    - Question: *"The prior `generated-docs/analyse-inputs/GLOSSARY/glossary.html` has an unparseable `glossary-meta` header (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
     - Header: `Prior run`
     - Options: `Start fresh — ignore the unreadable prior file (Recommended)`, `Abort — let me inspect`.
     - On `Start fresh`: set `prior_run = null`; advance to Step 4. On `Abort`: hand back with `failed-handback`.
   - On successful parse: drift gate via `AskUserQuestion`:
     - **Hash equal** (current `manifest_fingerprint` == prior): no prompt; set `drift_mode = "none"`; advance to Step 4.
     - **Hash different**: surface the prompt:
-      - Question: *"`requirements/source-manifest.json` has changed since the last Glossary run (prior: `{prior[:12]}…`, current: `{current[:12]}…`). How should this run reconcile?"*
+      - Question: *"`generated-docs/requirements/source-manifest.json` has changed since the last Glossary run (prior: `{prior[:12]}…`, current: `{current[:12]}…`). How should this run reconcile?"*
       - Header: `Drift`
       - Options:
         1. `Append new terms only — preserve every prior term, confirmed agreement, and resolution verbatim; add new terms from new manifest rows (Recommended)`
@@ -249,7 +249,7 @@ On **Revise**: hand back with `failed-handback`. On **Override**: record each fa
 | `{{TITLE}}` | `Glossary — Inputs — <domain or "Untitled">` |
 | `{{DOMAIN}}` | manifest's `target` field if present, else `(domain not specified)` |
 | `{{GENERATED_AT}}` | ISO-8601 UTC timestamp (the agent's render time) |
-| `{{MANIFEST_FINGERPRINT}}` | sha256 of `requirements/source-manifest.json` from Step 2 |
+| `{{MANIFEST_FINGERPRINT}}` | sha256 of `generated-docs/requirements/source-manifest.json` from Step 2 |
 | `{{SOURCE_COUNT}}` | `len(consumed_rows)` |
 | `{{TIER_BREAKDOWN}}` | e.g. `2 Supported-via-MCP, 1 Native-text` |
 | `{{TOTAL_TERM_COUNT}}` / `{{DOMAIN_COUNT}}` / `{{APPLICATION_COUNT}}` | core-glossary counts |
@@ -305,17 +305,17 @@ If any self-check fails: do **not** advance to Step 11. Surface *"Step 10 sub-C 
 
 ### Step 11 — Write + verify-artifact-write
 
-- Ensure the output directory exists: PowerShell `New-Item -ItemType Directory -Force analyse-inputs/GLOSSARY` (or POSIX `mkdir -p analyse-inputs/GLOSSARY`). Use whichever the environment provides.
-- `Write analyse-inputs/GLOSSARY/glossary.html` with the in-memory composed string.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-inputs/GLOSSARY/glossary.html`, `expected_sha256 = <Step 10 sha>`, `expected_min_bytes = 4096`. The template scaffold alone clears 4 KB before substitution.
+- Ensure the output directory exists: PowerShell `New-Item -ItemType Directory -Force generated-docs/analyse-inputs/GLOSSARY` (or POSIX `mkdir -p generated-docs/analyse-inputs/GLOSSARY`). Use whichever the environment provides.
+- `Write generated-docs/analyse-inputs/GLOSSARY/glossary.html` with the in-memory composed string.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/analyse-inputs/GLOSSARY/glossary.html`, `expected_sha256 = <Step 10 sha>`, `expected_min_bytes = 4096`. The template scaffold alone clears 4 KB before substitution.
 - **On `pass`:** advance to Step 12.
-- **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `analyse-inputs/GLOSSARY/glossary.html` after one retry."* and fail handback.
+- **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/analyse-inputs/GLOSSARY/glossary.html` after one retry."* and fail handback.
 
 ### Step 12 — Handback (curation gate: Accept / Revise / Restart)
 
 **A. Summary in Unicorn voice.** Output one short, concrete line:
 
-> *"Wrote `analyse-inputs/GLOSSARY/glossary.html` (run #{run_count}) — {total_term_count} core terms ({domain_count} domain, {application_count} application). Maturity L0:{a} L1:{b} L2:{c} L3:{d} L4:{e}; {settled_count} settled, {proposed_count} proposed, {disputed_count} disputed. {proposal_count} convergence proposals ({by-kind breakdown}), all anchored. Open items: {needs_definition} needs-definition, {to_refine} to-refine, {to_reconcile} to-reconcile, {to_resolve} to-resolve, {ambiguous_general} ambiguous-general. Quality gates: 10/10 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/GLOSSARY/glossary.html` (run #{run_count}) — {total_term_count} core terms ({domain_count} domain, {application_count} application). Maturity L0:{a} L1:{b} L2:{c} L3:{d} L4:{e}; {settled_count} settled, {proposed_count} proposed, {disputed_count} disputed. {proposal_count} convergence proposals ({by-kind breakdown}), all anchored. Open items: {needs_definition} needs-definition, {to_refine} to-refine, {to_reconcile} to-reconcile, {to_resolve} to-resolve, {ambiguous_general} ambiguous-general. Quality gates: 10/10 pass. Ready, or want changes?"*
 
 Variants:
 - If Step 10 was Override'd, prepend: *"Quality-gate violations were accepted as known — the Run-history bullet records every flagged item."*
@@ -328,7 +328,7 @@ Variants:
 
 **B. Round-trip instruction (always emitted).**
 
-> *"To feed this glossary into a subsequent `/requirements` run, copy `analyse-inputs/GLOSSARY/glossary.html` into `documentation/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it. Settled definitions become the project's canonical vocabulary — the drafter uses one agreed term per concept and seeds `§2 Domain model` / `§7 Data entities` from them. Every `[AI-SUGGESTED: AI-NNN | blocking]` proposal surfaces to the resolver as a mandatory confirmation, so you agree each proposed meaning and each canonical-term choice before it anchors a requirement. The `[SRC: <filename>]` markers preserve the audit trail back to the original briefs / notes / decks."*
+> *"To feed this glossary into a subsequent `/requirements` run, copy `generated-docs/analyse-inputs/GLOSSARY/glossary.html` into `documentation/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it. Settled definitions become the project's canonical vocabulary — the drafter uses one agreed term per concept and seeds `§2 Domain model` / `§7 Data entities` from them. Every `[AI-SUGGESTED: AI-NNN | blocking]` proposal surfaces to the resolver as a mandatory confirmation, so you agree each proposed meaning and each canonical-term choice before it anchors a requirement. The `[SRC: <filename>]` markers preserve the audit trail back to the original briefs / notes / decks."*
 
 **C. Accept / Revise / Restart loop.** Use `AskUserQuestion`:
 
@@ -358,23 +358,23 @@ The loop continues until the consultant chooses Accept (or hand-back fails on a 
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2.
+- `generated-docs/requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2.
 - Each manifest row's resolved read path per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`. Read in Step 2.
-- `analyse-inputs/GLOSSARY/glossary.html` — the prior run's artefact. Read once in Step 3 if present.
+- `generated-docs/analyse-inputs/GLOSSARY/glossary.html` — the prior run's artefact. Read once in Step 3 if present.
 - `framework/assets/characters/glossary-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/glossary-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/analyses-inputs/template-glossary.html` — the HTML template. Read once in Step 1 (or lazily in Step 10 sub-step B).
 
 ## Output
 
-- `analyse-inputs/GLOSSARY/glossary.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior terms, confirmed agreements, and resolutions preserved verbatim unless the consultant chose the `re-extract-everything` drift branch).
+- `generated-docs/analyse-inputs/GLOSSARY/glossary.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior terms, confirmed agreements, and resolutions preserved verbatim unless the consultant chose the `re-extract-everything` drift branch).
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template, the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against `framework/assets/glossary.md`; not against `analyse-requirements/GLOSSARY/glossary.html` or any other analysis artefact.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyse-inputs/GLOSSARY/glossary.html`.
+- `Read` — read the character file, the reference asset, the template, the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior artefact. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against `framework/assets/glossary.md`; not against `generated-docs/analyse-requirements/GLOSSARY/glossary.html` or any other analysis artefact.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `generated-docs/analyse-inputs/GLOSSARY/glossary.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyse-inputs/GLOSSARY` (or PowerShell `New-Item -ItemType Directory -Force` — Step 11 setup). No other Bash usage.
+- `Bash` — `mkdir -p generated-docs/analyse-inputs/GLOSSARY` (or PowerShell `New-Item -ItemType Directory -Force` — Step 11 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 3 prior-run reconciliation / drift prompt; the Step 10 quality-gate failure prompt (Revise / Override / Restart); the Step 12 Accept / Revise / Restart prompt.
 
 **No MCP tools.** No Agent / Task delegation. The analyser composes HTML and validates citations / counts / proposal anchors / classification / maturity in-thread.
@@ -383,7 +383,7 @@ The loop continues until the consultant chooses Accept (or hand-back fails on a 
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyse-inputs/GLOSSARY/glossary.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/analyse-inputs/GLOSSARY/glossary.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholder strings.
 - The artefact begins with `<!doctype html>` and is well-formed self-contained HTML with **no `<script>` tag, no external `href`/`src` URL, and no Mermaid block**.
 - The artefact contains exactly one `<!-- glossary-meta: ... -->` line. Its `manifest_fingerprint` equals the Step 2 value; its `run_count` equals `prior.run_count + 1` (or `1` on first run).
@@ -399,12 +399,12 @@ Before handing back, verify all of the following against the written artefact an
 - The Diagnostics block contains the summary, proposal-by-kind, and technique `<p>`s; the discard log; the Consumed + Skipped source rosters; the 10-gate `<ul>`; and the Run history `<ul>` with `run_count` bullets.
 - Empty registers are reported via honest empty-state copy and are **not** padded with invented entries.
 - Every consumed manifest row is reflected in the Consumed roster (with term counts or an `irrelevant-to-glossary` reason); every skipped row is in the Skipped roster (G9).
-- No file under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files was read. No file under `framework/state/` or `framework/shared/`, not `framework/assets/glossary.md`, and not `analyse-requirements/GLOSSARY/glossary.html`, was read.
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files was read. No file under `framework/state/` or `framework/shared/`, not `framework/assets/glossary.md`, and not `generated-docs/analyse-requirements/GLOSSARY/glossary.html`, was read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, with Accept still required to declare done).
 
 ## Definition of Done
 
-- `analyse-inputs/GLOSSARY/glossary.html` exists, has been verified, and contains a complete glossary: In plain terms lead (first; non-empty; no `[SRC]`; no domain-term glosses), Overview, TOC (plain-terms first), Domain terms, Application terms, the five open-item registers, JSON body block, downstream-toggle (collapsed; round-trip re-ingestion guidance), Diagnostics (classification split + maturity histogram + proposal audit + discard log + Source roster + 10 gate results + Run history), and the `glossary-meta` cursor line. DOM order: `plain-terms` → `overview` → rest.
+- `generated-docs/analyse-inputs/GLOSSARY/glossary.html` exists, has been verified, and contains a complete glossary: In plain terms lead (first; non-empty; no `[SRC]`; no domain-term glosses), Overview, TOC (plain-terms first), Domain terms, Application terms, the five open-item registers, JSON body block, downstream-toggle (collapsed; round-trip re-ingestion guidance), Diagnostics (classification split + maturity histogram + proposal audit + discard log + Source roster + 10 gate results + Run history), and the `glossary-meta` cursor line. DOM order: `plain-terms` → `overview` → rest.
 - Every core term is classified domain/application, `[SRC]`-sourced, and rated 0–4. Every shown definition is a cited verbatim quote. Every proposal carries `[AI-SUGGESTED: AI-NNN | blocking]` + a named technique + ≥1 anchor `[SRC]`, sits in a fenced block, and is never on an L3 term. No definition authored from world knowledge outside the proposal channel.
 - Every synonym cluster resolves to one canonical term; every L4 conflict carries a proposed resolution; the canonical/alias map is consistent (G7).
 - Either all 10 hard gates passed, or the consultant explicitly chose Override and the Run-history bullet records every violation.
@@ -420,8 +420,8 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not pad the glossary with general vocabulary.** Discard non-risky general English (logged in Diagnostics); route vague qualifiers to the ambiguous-general register; never coerce a term into a bucket to fill the page. (G4.)
 - **Do not inflate a maturity level to dodge a finding.** A weak definition is L2 with the ISO-704 violation recorded; a contradiction is L4. Sparsity and conflict are signals, not defects.
 - **Do not collapse two referents into one canonical term without evidence, or split one concept into two canonical entries.** Synonym/conflict resolution is a *proposal* the consultant confirms. (G7.)
-- **Do not read `framework/assets/glossary.md` or `analyse-requirements/GLOSSARY/glossary.html`.** This method is input-grounded and stand-alone; loading either conflates artefacts and risks circular reasoning.
-- **Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files.** There is no requirements-doc sibling for this method.
+- **Do not read `framework/assets/glossary.md` or `generated-docs/analyse-requirements/GLOSSARY/glossary.html`.** This method is input-grounded and stand-alone; loading either conflates artefacts and risks circular reasoning.
+- **Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files.** There is no requirements-doc sibling for this method.
 - **Do not read `framework/state/` or `framework/shared/`.** Other agents' state and shared rules are not glossary inputs.
 - **Do not re-invoke `markitdown-mcp`.** Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract.
 - **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective glossary becomes the canonical vocabulary and propagates fabricated/unanchored meaning into requirements.

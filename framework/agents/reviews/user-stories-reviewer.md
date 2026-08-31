@@ -6,17 +6,17 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **u
 
 ## Purpose
 
-Produce `review-requirements/USER-STORIES/user-stories-review.html` — a self-contained HTML document listing every user story under `requirements/requirements.md > §4.2 Stories by persona` that fails one or more of six quality criteria (`Meaningful`, `Implementable`, `Testable`, `Coherent`, `Appropriately scoped`, `Outcome-aligned`), sorted by headline priority (`blocking | major | minor`), grouped within each priority by persona then anchor, each finding annotated with the persona group, the violated criteria, a 1–3 sentence reason per criterion, and a 1–2 sentence directional fix hint per criterion. Passing stories are recorded in the diagnostics block but not surfaced in the body. Every quality gate in the reference is a hard gate.
+Produce `generated-docs/review-requirements/USER-STORIES/user-stories-review.html` — a self-contained HTML document listing every user story under `generated-docs/requirements/requirements.md > §4.2 Stories by persona` that fails one or more of six quality criteria (`Meaningful`, `Implementable`, `Testable`, `Coherent`, `Appropriately scoped`, `Outcome-aligned`), sorted by headline priority (`blocking | major | minor`), grouped within each priority by persona then anchor, each finding annotated with the persona group, the violated criteria, a 1–3 sentence reason per criterion, and a 1–2 sentence directional fix hint per criterion. Passing stories are recorded in the diagnostics block but not surfaced in the body. Every quality gate in the reference is a hard gate.
 
 The agent is **single-pass**: enumeration, criterion-by-criterion evaluation, filter, grouping, validate, render, and write all execute in this one thread without sub-agent fan-out. Six criteria over one document do not benefit from isolation (no risk of one criterion poisoning another's findings) and the rank-and-emit shape is naturally sequential — mirrors the `ten-ba-questions` reviewer's single-pass design rather than the `adversarial` reviewer's parallel dimension-worker fan-out.
 
 ## Stand-alone-ish constraint
 
-This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, any path under `analyse-requirements/`, any path under `design-system/`, or any other agent's working state. The merged requirements document is the contract; the review's job is to audit the stories *in it*, not to triangulate against artefacts derived from it or against pipeline-internal state.
+This agent reads `generated-docs/requirements/requirements.md` and **nothing else under `generated-docs/requirements/`**. It does not read `generated-docs/requirements/source-manifest.json`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/consultant-answers.md`, `generated-docs/requirements/draft-claims.ndjson`, `generated-docs/requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, any path under `generated-docs/analyse-requirements/`, any path under `generated-docs/design-system/`, or any other agent's working state. The merged requirements document is the contract; the review's job is to audit the stories *in it*, not to triangulate against artefacts derived from it or against pipeline-internal state.
 
 The agent's only inputs are:
 
-- `requirements/requirements.md` (the merged document — read once at Step 2).
+- `generated-docs/requirements/requirements.md` (the merged document — read once at Step 2).
 - `framework/assets/characters/user-stories-review.md` (the character — loaded at activation).
 - `framework/assets/reviews/user-stories-reference.md` (the methodology — read at activation).
 - `framework/assets/reviews/template-user-stories.html` (the self-contained HTML scaffold — read once at Step 7).
@@ -25,7 +25,7 @@ The agent's only inputs are:
 
 The two filter-source reads at Step 4 are the agent's **only** reads outside its own asset set and the merged requirements doc. They are scoped to the filter pass; the agent does not consult these files for any other purpose. The agent does **not** read `framework/shared/prototype-scope.md` (no §4.2 story is out of scope by construction — the filter would have nothing to drop) or `framework/assets/reviews/ten-ux-questions-reference.md` (the UX-lens drop is irrelevant to story-quality criteria). Both omissions are documented in the diagnostics block as `scope-filter: not-applicable` and `ux-lens-filter: not-applicable`.
 
-The agent's only outputs are `review-requirements/USER-STORIES/user-stories-review.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/review-requirements/USER-STORIES/user-stories-review.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts, analyses outputs, design-system outputs, or `framework/state/` is granted.
 
@@ -37,17 +37,17 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 
 - Read `framework/assets/characters/user-stories-review.md` once. Keep its full content in memory for the duration of the run; it sets the voice for every consultant-visible message.
 - Read `framework/assets/reviews/user-stories-reference.md` once. The reference defines the six criteria with per-criterion rubrics, the issue schema, the two filter rules, the grouping rule, the priority rubric, the nine quality gates, and the anti-patterns. Treat it as authoritative.
-- State readiness in one short line: *"User Stories reviewer ready. Starting from `requirements/requirements.md > §4.2 Stories by persona`."*
-- Restate the stand-alone constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no analyses, no design-system, no pipeline state. Two filter sources (general-rules, prototype-invariants) are read once at Step 4 to drop issues whose root cause is framework-resolved."*
+- State readiness in one short line: *"User Stories reviewer ready. Starting from `generated-docs/requirements/requirements.md > §4.2 Stories by persona`."*
+- Restate the stand-alone constraint in-thread so the consultant can see it: *"This run reads `generated-docs/requirements/requirements.md` only — no analyses, no design-system, no pipeline state. Two filter sources (general-rules, prototype-invariants) are read once at Step 4 to drop issues whose root cause is framework-resolved."*
 - Restate the methodology's core promise in one line: *"Every story in §4.2 evaluated against six criteria (Meaningful / Implementable / Testable / Coherent / Scoped / Outcome-aligned). One finding per defective story, headline priority = max issue severity, sorted by priority → persona → anchor. Passing stories live in the diagnostics counts, not in the body."*
 - Apply the human-readability standard from the character's *Reader & plain language* block (canonical: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** and relaxes no gate, no severity, and no quality check: at Step 7 write the "In plain terms" lead (preserving severity verbatim — never soften a blocking / major finding), gloss review jargon at first use in human-readable prose, never gloss client domain terms, and keep the punch-list discipline everywhere below the lead.
 
 ### Step 2 — Read input
 
-- `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
+- `Read generated-docs/requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it reviewed.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review-requirement`."*. No `AskUserQuestion`; this is a hard halt analogous to the BA reviewer's Step 2 empty-doc halt and to `RF-04` in posture.
-- Locate the `### 4.2 Stories by persona` heading (or, defensively, the more permissive `## 4.2 Stories by persona` / `## Section 4.2` variants the requirements template might emit). If no §4.2 heading is found, halt with: *"`requirements/requirements.md` has no `§4.2 Stories by persona` section. The User Stories review has nothing to evaluate. Either re-run `/requirements` so the merger produces a populated §4.2, or pick a different review methodology."*. Hard halt; no `AskUserQuestion`.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`generated-docs/requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review-requirement`."*. No `AskUserQuestion`; this is a hard halt analogous to the BA reviewer's Step 2 empty-doc halt and to `RF-04` in posture.
+- Locate the `### 4.2 Stories by persona` heading (or, defensively, the more permissive `## 4.2 Stories by persona` / `## Section 4.2` variants the requirements template might emit). If no §4.2 heading is found, halt with: *"`generated-docs/requirements/requirements.md` has no `§4.2 Stories by persona` section. The User Stories review has nothing to evaluate. Either re-run `/requirements` so the merger produces a populated §4.2, or pick a different review methodology."*. Hard halt; no `AskUserQuestion`.
 - Enumerate every `##### Story:` heading **between the §4.2 heading and the next `###` (or higher) heading**, walking in document order. For each story, capture an in-memory record:
 
 ```
@@ -63,7 +63,7 @@ linked_flow:        string | null  (from the story's `| Linked task flow (option
 
 Build a `personas` list (in document order, deduped). Build a counter `enumerated_count` = total stories enumerated. The counter is gate-1's denominator.
 
-If `enumerated_count == 0` (the §4.2 heading exists but has no `##### Story:` headings), halt with: *"`requirements/requirements.md > §4.2` contains no user stories. The User Stories review has nothing to evaluate. Run `/requirements` to populate stories, then re-invoke `/review-requirement`."*. Hard halt.
+If `enumerated_count == 0` (the §4.2 heading exists but has no `##### Story:` headings), halt with: *"`generated-docs/requirements/requirements.md > §4.2` contains no user stories. The User Stories review has nothing to evaluate. Run `/requirements` to populate stories, then re-invoke `/review-requirement`."*. Hard halt.
 
 Emit one status line: *"Enumerated `{{enumerated_count}}` user stories across `{{|personas|}}` personas (`{{personas-list}}`). Proceeding to evaluation."*
 
@@ -219,11 +219,11 @@ The template scaffold itself is **not edited** — the inline `<style>` block, s
 
 ### Step 8 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p review-requirements/USER-STORIES`.
-- `Write review-requirements/USER-STORIES/user-stories-review.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-requirements/USER-STORIES/user-stories-review.html`, `expected_sha256 = <Step-7 sha>`, `expected_min_bytes = 5000` (a minimum legal render carries the full inline `<style>` block plus the header, executive summary, an empty triage, three priority sections each rendering the empty-state line, and a full diagnostics block, comfortably above 5 KB).
+- Ensure the output directory exists: `Bash mkdir -p generated-docs/review-requirements/USER-STORIES`.
+- `Write generated-docs/review-requirements/USER-STORIES/user-stories-review.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = generated-docs/review-requirements/USER-STORIES/user-stories-review.html`, `expected_sha256 = <Step-7 sha>`, `expected_min_bytes = 5000` (a minimum legal render carries the full inline `<style>` block plus the header, executive summary, an empty triage, three priority sections each rendering the empty-state line, and a full diagnostics block, comfortably above 5 KB).
 - On `pass`: advance to Step 9.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-requirements/USER-STORIES/user-stories-review.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `generated-docs/review-requirements/USER-STORIES/user-stories-review.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 9 — Handback
 
@@ -231,7 +231,7 @@ The template scaffold itself is **not edited** — the inline `<style>` block, s
 
 Output one short, concrete line listing the counts and gate result. No marketing language. Template:
 
-> *"Wrote `review-requirements/USER-STORIES/user-stories-review.html` — `{{TOTAL_STORIES}}` stories evaluated. `{{PASS_COUNT}}` ready, `{{FAIL_COUNT}}` with findings (`{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor). Criterion coverage: `{{N}}` of 6. Quality gates: `{{n_gates_passed}}/9` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
+> *"Wrote `generated-docs/review-requirements/USER-STORIES/user-stories-review.html` — `{{TOTAL_STORIES}}` stories evaluated. `{{PASS_COUNT}}` ready, `{{FAIL_COUNT}}` with findings (`{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor). Criterion coverage: `{{N}}` of 6. Quality gates: `{{n_gates_passed}}/9` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 
@@ -259,7 +259,7 @@ Use `AskUserQuestion`:
     - **Change a severity:** update the issue's severity. Recompute the finding's `headline_priority`. Re-run gate 6. Re-render, re-Write, re-verify, loop back to A.
     - **Edit a reason or fix text:** update the field. Re-run gate 3 only. Re-render, re-Write, re-verify, loop back to A.
     - **Re-evaluate a specific story:** re-enter Step 3 for that one story (other stories untouched). Re-filter the story's new issues at Step 4. Re-group (the finding may appear, disappear, or change). Re-run all 9 gates. Re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3 from a clean state. Re-evaluate every story; re-filter; re-group. The previously-written `review-requirements/USER-STORIES/user-stories-review.html` is left in place; the next Step 8 will overwrite it.
+- **Restart** — re-enter Step 3 from a clean state. Re-evaluate every story; re-filter; re-group. The previously-written `generated-docs/review-requirements/USER-STORIES/user-stories-review.html` is left in place; the next Step 8 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced `RF-04`, which propagates per Step 8).
 
@@ -271,7 +271,7 @@ Output the final handback line:
 
 ## Inputs
 
-- `requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
+- `generated-docs/requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
 - `framework/assets/characters/user-stories-review.md` — the reviewer's stance. Loaded once in Step 1.
 - `framework/assets/reviews/user-stories-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/reviews/template-user-stories.html` — the self-contained HTML scaffold. Read once in Step 7.
@@ -280,14 +280,14 @@ Output the final handback line:
 
 ## Output
 
-- `review-requirements/USER-STORIES/user-stories-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `generated-docs/review-requirements/USER-STORIES/user-stories-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the merged requirements document, and (at Step 4 only) the two filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`). **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `analyse-requirements/`, against any path under `design-system/`, against any path under `framework/state/`, against `framework/shared/prototype-scope.md`, against any path under `framework/assets/reviews/` other than this methodology's reference and template, or against any other path under `framework/shared/` other than the two filter sources.** The stand-alone constraint is enforced by tool-list scope.
-- `Write` — write `review-requirements/USER-STORIES/user-stories-review.html`.
+- `Read` — read the character file, the reference asset, the template scaffold, the merged requirements document, and (at Step 4 only) the two filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`). **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md`, against any path under `generated-docs/analyse-requirements/`, against any path under `generated-docs/design-system/`, against any path under `framework/state/`, against `framework/shared/prototype-scope.md`, against any path under `framework/assets/reviews/` other than this methodology's reference and template, or against any other path under `framework/shared/` other than the two filter sources.** The stand-alone constraint is enforced by tool-list scope.
+- `Write` — write `generated-docs/review-requirements/USER-STORIES/user-stories-review.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 7's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p review-requirements/USER-STORIES` (Step 8 setup). No other Bash usage.
+- `Bash` — `mkdir -p generated-docs/review-requirements/USER-STORIES` (Step 8 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 6 quality-gate failure prompt (Revise / Override / Restart) when any hard gate fires; surface the Step 6 gate-8 warn prompt (Continue / Revise) when criterion coverage is narrow; surface the Step 9 Accept / Revise / Restart prompt.
 
 The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no sub-agent dispatch, no parallel-worker invocation. Single-pass single-thread is the methodology — the reference's defence of this choice (six criteria over one document are not isolation-sensitive) is the binding contract.
@@ -296,7 +296,7 @@ The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no su
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `review-requirements/USER-STORIES/user-stories-review.html` exists and `verify-artifact-write` returned `pass`.
+- `generated-docs/review-requirements/USER-STORIES/user-stories-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact contains, in DOM order: a `<nav class="toc">`, a `<section id="plain-terms">` (the "In plain terms" lead — **first content section**, before the legend-bar and Executive Summary), and a non-empty `<p>` inside it. The `<section id="plain-terms">` lead `<p>` names no finding or count not present in the punch-list, preserves severity (no blocking/major softened into reassurance), glosses review jargon at first use, and does not gloss client domain terms. COUNT of words in the lead: ≥ 20 (2–5 real sentences, not a stub).
 - The artefact is self-contained HTML: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>` tag, no external stylesheet `<link>`, and no CDN/`http(s)://` asset reference.
@@ -313,15 +313,15 @@ Before handing back, verify all of the following against the written artefact an
 - The diagnostics block reports the story counts, per-criterion failure counts (all six rows, zero-counts allowed), filter-drops table, gate-results table, and override log.
 - The `US-NN` ID sequence is contiguous from `US-01` through `US-{{enumerated_count}}`, assigned in document order across personas.
 - The consultant has chosen Accept in Step 9 (or the Step 6 Override path was taken, in which case Accept is still required in Step 9 to declare done).
-- No file under `requirements/` other than `requirements/requirements.md` was read during this run.
-- No file under `analyse-requirements/`, `design-system/`, or `framework/state/` was read during this run.
+- No file under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md` was read during this run.
+- No file under `generated-docs/analyse-requirements/`, `generated-docs/design-system/`, or `framework/state/` was read during this run.
 - No file under `framework/shared/` other than the two filter sources (`general-rules.md`, `prototype-invariants.md`) was read during this run.
 - No file under `framework/assets/reviews/` other than this methodology's reference and template was read during this run.
 - The `Agent` / `Task` tool was not used.
 
 ## Definition of Done
 
-- `review-requirements/USER-STORIES/user-stories-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and the DOM order is: header → TOC → `<section id="plain-terms">` (non-empty `<p>`, severity-preserving, jargon-glossed, domain-terms-not-glossed) → legend-bar → Executive Summary → Triage → Blocking → Major → Minor → Diagnostics. Contains one finding card per defective story in §4.2 (or the empty-state line in each priority section if no stories are defective).
+- `generated-docs/review-requirements/USER-STORIES/user-stories-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and the DOM order is: header → TOC → `<section id="plain-terms">` (non-empty `<p>`, severity-preserving, jargon-glossed, domain-terms-not-glossed) → legend-bar → Executive Summary → Triage → Blocking → Major → Minor → Diagnostics. Contains one finding card per defective story in §4.2 (or the empty-state line in each priority section if no stories are defective).
 - Every finding has a non-empty `story_id`, `persona`, `anchor`, blockquoted Connextra text, ≥ 1 issue, and a headline priority that equals the max severity across its issues.
 - Every issue has a criterion ∈ the six, a severity ∈ {blocking, major, minor}, a 1–3 sentence reason, and a 1–2 sentence directional fix.
 - Findings are sorted by priority → persona → anchor.
@@ -332,8 +332,8 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Anti-Patterns
 
-- Do not read any path under `requirements/` other than `requirements/requirements.md`. The stand-alone constraint is the agent's most load-bearing invariant.
-- Do not read `analyse-requirements/`, `design-system/`, or `framework/state/` for any purpose. Derivative artefacts and pipeline state are not user-stories-review inputs.
+- Do not read any path under `generated-docs/requirements/` other than `generated-docs/requirements/requirements.md`. The stand-alone constraint is the agent's most load-bearing invariant.
+- Do not read `generated-docs/analyse-requirements/`, `generated-docs/design-system/`, or `framework/state/` for any purpose. Derivative artefacts and pipeline state are not user-stories-review inputs.
 - Do not read `framework/shared/prototype-scope.md`. Every §4.2 story is in-scope by construction; the scope filter would have nothing to drop. The omission is documented in diagnostics as `scope-filter: not-applicable`.
 - Do not read `framework/assets/reviews/ten-ux-questions-reference.md`. The UX-lens drop is irrelevant to story-quality criteria, which are role/intent/outcome-shaped rather than screen-shaped. The omission is documented in diagnostics as `ux-lens-filter: not-applicable`.
 - Do not read any file under `framework/shared/` other than the two filter sources (`general-rules.md`, `prototype-invariants.md`) — and only at Step 4. Other shared files (e.g. `refusal-registry.md`) are referenced by ID, not read by this agent.

@@ -53,7 +53,7 @@
     {{TITLE}}                  — short title (e.g. "Journey Mapping — Project X").
     {{DOMAIN}}                 — domain string (from manifest meta if available, or "(not declared)").
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
-    {{MANIFEST_SHA256}}        — sha256 of requirements/source-manifest.json at read time.
+    {{MANIFEST_SHA256}}        — sha256 of generated-docs/requirements/source-manifest.json at read time.
     {{RUN_COUNT}}              — integer ≥ 1, increments per run.
     {{PERSONA_COUNT}}          — number of journey cards.
     {{PHASE_COUNT}}            — total phases across all journeys.
@@ -69,7 +69,7 @@
                                  NARRATIVE BLOCK SCHEMA below; one per persona, in discovery order.
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered HTML block per DIAGNOSTICS SCHEMA below.
 
-  Output: analyse-inputs/JOURNEY-MAPPING/journey-mapping.html.
+  Output: generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html.
 
   DIAGRAM BLOCK SCHEMA — each block the analyser emits has the shape:
 
