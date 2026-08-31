@@ -111,15 +111,15 @@ Use `AskUserQuestion`:
 - Question — pick the phrasing that matches the run:
   - **Extraction produced a palette** (`{{hue_source}}` is `extracted-light` or `extracted-dark`): *"`{{reference_url}}`'s palette is **{{extracted_scheme}}**. Which colour mode(s) should the design system ship in? The {{extracted_scheme}} palette is the hue source — the other mode is derived from the same brand hues, not extracted separately."*
   - **No extracted palette** (`{{hue_source}}` is `domain-inferred-light`): *"Every token was inferred from `{{domain}}` as a light palette. Which colour mode(s) should the design system ship in? A dark palette would be derived from the same brand hues."*
-- Options — **list the extracted scheme first and mark it Recommended**, since it is the grounded one:
-  1. `{{extracted_scheme}} only` *(Recommended)* — ship just the grounded palette.
-  2. `{{other_mode}} only` — ship the derived palette. *(Note in the option description that the {{extracted_scheme}} file is still written, as the grounded record.)*
-  3. `Both` — ship both; the {{extracted_scheme}} file is primary.
+- Options — **list `Both` first and mark it Recommended**. Both is the default because a design system that ships only one mode leaves every downstream consumer (`/prototype`'s scaffold in particular) with no palette for the other mode, and the derived set costs nothing beyond §F. The single-mode options follow, extracted scheme before derived, since the extracted one is the grounded palette:
+  1. `Both` *(Recommended)* — ship both files. The {{extracted_scheme}} file is primary (the palette actually extracted); the {{other_mode}} file is derived from the same brand hues.
+  2. `{{extracted_scheme}} only` — ship just the grounded palette.
+  3. `{{other_mode}} only` — ship the derived palette. *(Note in the option description that the {{extracted_scheme}} file is still written, as the grounded record.)*
 
 Resolve the answer:
 
-- Consultant picked an option → set `{{mode_choice}}` to `light-only`, `dark-only`, or `both` accordingly. (Option 1 maps to `<extracted_scheme>-only`; option 2 to `<other_mode>-only`.)
-- Consultant typed `Other` free-text → coerce it to the nearest of the three (e.g. "just dark" → `dark-only`, "light + dark" → `both`). If it cannot be read as one of the three, re-ask **once**; if still unclear, default to `{{extracted_scheme}}-only` and say so.
+- Consultant picked an option → set `{{mode_choice}}` to `both`, `light-only`, or `dark-only` accordingly. (Option 1 maps to `both`; option 2 to `<extracted_scheme>-only`; option 3 to `<other_mode>-only`.)
+- Consultant typed `Other` free-text → coerce it to the nearest of the three (e.g. "just dark" → `dark-only`, "light + dark" → `both`). If it cannot be read as one of the three, re-ask **once**; if still unclear, default to `both` — the recommended option — and say so.
 
 Then derive:
 
