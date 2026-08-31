@@ -30,7 +30,7 @@ Adding a new topic ships its `Dimension` value with the row; consumers read the 
 
 | § | Topic | Emit predicate | Dimension |
 | --- | --- | --- | --- |
-| 0.1 | Target-mode applicability reference | always | Scope |
+| — | **In plain terms** (summary — *first* section of the finished document) | always, **merger-authored** — the drafter emits no such section; `requirements-merger` inserts it after the header once every resolution is applied | Scope |
 | 1 | Application context | always | Scope |
 | 1.5 | Scope (in / out / deferred) | always | Scope |
 | 1.6 | Assumptions & dependencies | conditional — ≥1 assumption / dependency stated or domain-implied (no filler rows) | Scope |
@@ -64,11 +64,16 @@ Adding a new topic ships its `Dimension` value with the row; consumers read the 
 | 8 | Source UI references | conditional — ≥1 consultant-supplied screenshot / wireframe / existing-tool screen | Scope |
 | 9 | Key terminology | conditional — ≥1 inconsistency flag / alternate-term usage (full glossary lives in the GLOSSARY analysis) | Domain |
 | 10 | Volumes | always | Non-functional |
+| — | **For downstream use** (foot section — framework-internal reference, out of the human reading path) | always | Scope |
+| 0.1 | Target-mode applicability reference (**inside** `## For downstream use`, at the foot; heading text unchanged) | always | Scope |
 
 Sections retired vs. prior versions: **§6.6.3 Availability** (backend concern; lives in sibling backend doc). The §6.3 slot — previously retired as `Data` (subsumed into §7 + §6.4) — is now **reinstated** as **Validation rules** (visible field-level UI validation; backend invariants remain in §6.2 / sibling backend doc).
 
 ## Pre-authoring invariants (preserve when filling in)
 
+- **Human-audience phrasing binds this document in its entirety.** `requirements/requirements.md` is read by the consultant as well as by every downstream agent, so `framework/shared/output-readability.md` governs every cell — one idea per sentence at 30 words maximum, active voice with the actor named, conclusion first, no hedges from the closed list.
+- **Every pointer carries a quotation of its referent.** A cross-reference a human reads is written `→ §4.1 G-03 "Reach a decision on every uploaded record"` — at most 8 words, **verbatim** from the referent's own title or first clause. Never a restatement. Exempt: a pointer that already names its referent (`→ §2.1 Order`, `→ §5 Flow: <name>`), the referent's own definition row, repeats inside one table cell, and `[SRC:]` tags. This binds §4.2 `Goal`, §1.7 `Driving requirement(s)`, §6.1 `Rationale` `Supports → §4.1 G-NN` cells, §6.3 `business-rule-ref`, and every other bare-ID cross-reference in a cell.
+- **The document opens with `## In plain terms` and ends with `## For downstream use`.** The summary is two labelled groups — **What we found** / **What it means for you** — 2–5 sentences total, condensing cited body content, minting no `[SRC:]`, and naming `/amend-requirements` as the way to change the document. The foot section carries §0.1 Target-mode applicability (heading text unchanged) out of the human reading path while keeping it verbatim for downstream consumers. Section order in the template mirrors this: summary first, §1 next, §0.1 last.
 - §1.8 Application character defines the voice of the application's **own user-facing copy** (notifications, errors, validation, confirmations, empty states) — tone and phrasing only, never structure / behaviour / layout. It has a Selected character (name + one-line statement), 3–5 tone attributes, and five copy-surface rows (Notifications / Errors / Validation / Confirmations / Empty states) each with Guidance + Example. Input-stated character cites `[SRC: C-NNN]`; inferred character carries exactly one `[AI-SUGGESTED | blocking]` on the Selected character field (A16). Character names are generic voice personas, never brand / vendor names (`GR-20`). Emitted prose stays token-clean — no `GR-NN` / `PI-NN` / marker tokens beyond the one resolution marker.
 - §4 is split into **§4.1 Goals catalogue** (flat list, stable G-NN IDs, outcome-level — quality signals + goal kind live here) and **§4.2 Stories by persona** (Connextra-triple stories grouped by persona, each referencing a goal ID from §4.1). M:N: a single goal may be referenced by stories under multiple personas.
 - Every persona in §3 **MUST** have ≥1 user story in §4.2.

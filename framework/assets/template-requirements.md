@@ -1,4 +1,4 @@
-<!-- ROLE: asset. Section order matches `framework/assets/topics-requirements.md` one-to-one. Audience is LLM-only (no human stakeholder consumption). -->
+<!-- ROLE: asset. Section order matches `framework/assets/topics-requirements.md` one-to-one. Audience is the consultant (human) **and** every downstream agent — the produced document is bound in its entirety by `framework/shared/output-readability.md`. -->
 
 # Requirements: {{application_name}}
 
@@ -13,7 +13,9 @@
 > - `[STANDARD-RULE: GR-NN]` — deterministic answer from `framework/shared/general-rules.md`; resolver skips.
 > - `[OUT-OF-SCOPE: domain-default]` — required by template but outside prototype scope per `framework/shared/prototype-scope.md`; emitted under `target = prototype` only; resolver skips, consultant can scan-review.
 >
-> Citation: input-grounded cells carry a trailing `[SRC: C-NNN]` tag in the draft, backed by `requirements/draft-claims.ndjson`. The merger **retains** `[SRC:]` tags in the final doc (LLM-only audience) and strips the three resolution markers above.
+> Citation: input-grounded cells carry a trailing `[SRC: C-NNN]` tag in the draft, backed by `requirements/draft-claims.ndjson`. The merger **retains** `[SRC:]` tags in the final doc and strips the three resolution markers above. A `[SRC:]` tag is a traceability marker, not a reading pointer — every sentence must still read correctly if the tag were deleted.
+>
+> **Pointer format (`framework/shared/output-readability.md` rule 4).** Every cross-reference a human reads carries a quotation of what it points at: `→ §4.1 G-03 "Reach a decision on every uploaded record"` — **at most 8 words, verbatim** from the referent's own title or first clause, in quotation marks. Never a fresh restatement; a quotation is not a paraphrase. Exempt: a pointer that already names its referent (`→ §2.1 Order`, `→ §5 Flow: Approve shipment`), the referent's own definition row, and repeats inside one table cell. Inside a table cell, truncate a quotation before any `|`.
 >
 > Prototype-only content is wrapped in a paired **scope** span — a square-bracketed `PROTO-ONLY` delimiter opens it and a square-bracketed `/PROTO-ONLY` delimiter closes it — marking text that is true of the prototype and false or meaningless for the application build. This is a *different axis* from the three markers above (which answer "where did this value come from?"), so a span may contain a `[SRC: C-NNN]` tag and may sit alongside a resolution marker. The merger **retains** spans; `/export-application` deletes each one whole, which is what keeps that export a mechanical transform. A span never crosses a markdown block boundary, and never wraps a normative requirement — only a realization note about one. Canonical definition: `framework/shared/prototype-scope.md > Prototype-only content marking`.
 >
@@ -21,26 +23,20 @@
 
 ---
 
-## 0.1 Target-mode applicability
+## In plain terms
 
-<!-- format: table[4-col: section, prototype, application, mode-conditional?]; one row per mode-conditional section -->
+<!-- format: two labelled bullet groups; 2–5 sentences TOTAL across both groups -->
+<!-- emit: MERGER-AUTHORED. The drafter does NOT emit this section — `requirements/requirements-draft.md` has no `## In plain terms`. `framework/agents/requirements-merger.md` inserts it immediately after the header line once every resolution has been applied, because only then is there a settled document to condense. -->
+<!-- Faithful condensation of cited body content: introduces no new fact, and is NOT itself a citation source (no `[SRC:]` tag is minted here). Phrasing per `framework/shared/output-readability.md` rule 1. -->
 
-> The `target` field on the source manifest is `prototype` (every pipeline run; auto-set at the orchestrator's Step 1b) or `application` (legacy manifests only — the drafter no longer has a consultant-chosen application emit mode). The `application` column below therefore describes the **exported** document produced by `/export-application` from the finished pipeline doc, plus the dormant legacy-manifest behaviour. (This §0.1 section itself does **not** survive the export — `/export-application` replaces it with a short `## 0.1 Document scope` note, since manifests and the merger are framework-internal concepts for an external audience. The scope-note blockquotes below carry their prototype-scoping sentence inside a paired `PROTO-ONLY` scope span, which the export deletes whole; each is additionally pinned by a `<!-- verbatim: -->` directive, so the drafter must copy it byte-for-byte. Changing one here changes what the drafter emits — there is no separate predicate in the exporter to keep in sync any more, but the drafter's pinned-scope-note self-validation compares against **this** file.) Rows marked *scope-noted* are emitted in **every** pipeline doc with an application-build-guidance blockquote ("not a prototype design input"). Rows marked *content-conditional* are omitted when they have no content under either target.
+**What we found**
 
-| Section | `prototype` | `application` | Mode-conditional? |
-| --- | --- | --- | --- |
-| §1.6 Assumptions & dependencies | omitted when no assumption/dependency applies | emitted | yes — content-conditional |
-| §1.7 Architectural implications | emitted (drafter-derived; scope-noted) | carried through at export | no — scope-noted |
-| §1.8 Application character | emitted (voice for the app's own user-facing copy; input-stated or consultant-resolved) | carried through at export | no |
-| §6.1 `Rationale` column | column emitted (optional, per-cell) | same | no |
-| §6.6.1 Session UX | emitted (scope-noted) | carried through at export | no — scope-noted |
-| §6.6.2 FE performance budgets | emitted (scope-noted) | carried through at export | no — scope-noted |
-| §6.10 Consumed backend contracts | fixture references | pointers into the sibling backend requirements document — produced at export or under a legacy application manifest | yes — sub-block content differs |
-| §7 Data shapes consumed by FE | shape sourced from fixtures | shape sourced from backend contracts | provenance label only |
-| §8 Source UI references | omitted when no consultant-supplied reference exists | same | yes — content-conditional |
-| §9 Key terminology | omitted unless ≥1 inconsistency flag or alternate-term usage exists (full domain glossary lives in the GLOSSARY analysis, not here) | same | yes — content-conditional |
-| `## Prototype invariants` appendix | appended (PI-01..PI-08) | omitted | yes — merger conditional |
-| (all other sections) | identical | identical | no |
+- {{one_to_three_sentences_condensing_the_document}}
+
+**What it means for you**
+
+- {{one_to_two_sentences_on_what_to_do_next}}
+- To change anything in this document, run `/amend-requirements`.
 
 ---
 
@@ -106,7 +102,7 @@
 
 | Capability category | Driving requirement(s) | Recommendation (optional) |
 | --- | --- | --- |
-| {{capability}} <!-- e.g. "Client-side full-text search at ≤10⁴ records" --> | → §6.1 F-{{nn}} / §10 row / §6.7 RPT-{{nn}} | {{soft_recommendation}} <!-- e.g. "in-memory index acceptable given volume"; blank when no deterministic guidance --> |
+| {{capability}} <!-- e.g. "Client-side full-text search at ≤10⁴ records" --> | → §6.1 F-{{nn}} "{{≤8_word_verbatim}}" / → §10 "{{metric}}" / → §6.7 RPT-{{nn}} "{{≤8_word_verbatim}}" <!-- every pointer carries its referent quotation, output-readability rule 4 --> | {{soft_recommendation}} <!-- e.g. "in-memory index acceptable given volume"; blank when no deterministic guidance --> |
 
 <!-- repeat per active category -->
 
@@ -251,7 +247,7 @@ classDiagram
 
 | Field                                    | Value                                                                                      |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Goal                                     | → §4.1 G-{{nn}}                                                                            |
+| Goal                                     | → §4.1 G-{{nn}} "{{≤8_word_verbatim_goal_statement}}" <!-- pointer quotation, output-readability rule 4 --> |
 | Priority                                 | Must / Should / Could / Won't <!-- MoSCoW; default per GR-24 carries [STANDARD-RULE: GR-24]; input-stated carries [SRC] --> |
 | Objective                                | {{objective}} <!-- behavioural objective for this story; the outcome lives on the goal --> |
 | Context (frequency / expertise / stakes) | {{context}}                                                                                |
@@ -292,7 +288,7 @@ classDiagram
 
 | ID       | Priority | Statement              | Acceptance criteria (EARS — GR-23)                                       | Source                   | Rationale (optional) |
 | -------- | -------- | ---------------------- | ------------------------------------------------------------------------ | ------------------------ | -------------------- |
-| F-{{nn}} | Must / Should / Could / Won't <!-- GR-24 --> | {{functional_requirement}} | {{ears_acceptance_criterion}} <!-- "When <trigger>, the system shall <response>." etc. — GR-23; ≤3 preconditions; Tier B5 auto-fabricates --> | stated / → §X / inferred | {{rationale_cell}} <!-- stated [SRC: C-NNN] / "Supports → §4.1 G-NN" \| "Enables → §5 Flow: <name>" \| "Enforces → §2.3 <invariant>" \| "Serves → §3 <persona>" [AI-SUGGESTED \| non-blocking] / blank --> |
+| F-{{nn}} | Must / Should / Could / Won't <!-- GR-24 --> | {{functional_requirement}} | {{ears_acceptance_criterion}} <!-- "When <trigger>, the system shall <response>." etc. — GR-23; ≤3 preconditions; Tier B5 auto-fabricates --> | stated / → §X / inferred | {{rationale_cell}} <!-- stated [SRC: C-NNN] / `Supports → §4.1 G-NN "<≤8-word verbatim goal statement>"` \| `Enables → §5 Flow: <name>` \| `Enforces → §2.3 <invariant>` \| `Serves → §3 <persona>` [AI-SUGGESTED \| non-blocking] / blank. Only the first form points at a bare ID and therefore carries a quotation (output-readability rule 4); the other three already name their referent. --> |
 
 <!-- repeat per functional requirement -->
 
@@ -546,3 +542,33 @@ classDiagram
 <!-- volumes are commonly absent in client briefs — flag [AI-SUGGESTED] when inferred from domain heuristics -->
 
 ---
+
+## For downstream use
+
+<!-- format: framework-internal reference; not a requirement. Kept at the foot, out of the human reading path, because downstream consumers read it. -->
+
+> Nothing below this heading is a requirement. This section is framework-internal reference material retained for the agents that read this document.
+
+## 0.1 Target-mode applicability
+
+<!-- format: table[4-col: section, prototype, application, mode-conditional?]; one row per mode-conditional section -->
+
+> The `target` field on the source manifest is `prototype` (every pipeline run; auto-set at the orchestrator's Step 1b) or `application` (legacy manifests only — the drafter no longer has a consultant-chosen application emit mode). The `application` column below therefore describes the **exported** document produced by `/export-application` from the finished pipeline doc, plus the dormant legacy-manifest behaviour. (This §0.1 section itself does **not** survive the export — `/export-application` replaces it with a short `## 0.1 Document scope` note, since manifests and the merger are framework-internal concepts for an external audience. The scope-note blockquotes below carry their prototype-scoping sentence inside a paired `PROTO-ONLY` scope span, which the export deletes whole; each is additionally pinned by a `<!-- verbatim: -->` directive, so the drafter must copy it byte-for-byte. Changing one here changes what the drafter emits — there is no separate predicate in the exporter to keep in sync any more, but the drafter's pinned-scope-note self-validation compares against **this** file.) Rows marked *scope-noted* are emitted in **every** pipeline doc with an application-build-guidance blockquote ("not a prototype design input"). Rows marked *content-conditional* are omitted when they have no content under either target.
+
+| Section | `prototype` | `application` | Mode-conditional? |
+| --- | --- | --- | --- |
+| §1.6 Assumptions & dependencies | omitted when no assumption/dependency applies | emitted | yes — content-conditional |
+| §1.7 Architectural implications | emitted (drafter-derived; scope-noted) | carried through at export | no — scope-noted |
+| §1.8 Application character | emitted (voice for the app's own user-facing copy; input-stated or consultant-resolved) | carried through at export | no |
+| §6.1 `Rationale` column | column emitted (optional, per-cell) | same | no |
+| §6.6.1 Session UX | emitted (scope-noted) | carried through at export | no — scope-noted |
+| §6.6.2 FE performance budgets | emitted (scope-noted) | carried through at export | no — scope-noted |
+| §6.10 Consumed backend contracts | fixture references | pointers into the sibling backend requirements document — produced at export or under a legacy application manifest | yes — sub-block content differs |
+| §7 Data shapes consumed by FE | shape sourced from fixtures | shape sourced from backend contracts | provenance label only |
+| §8 Source UI references | omitted when no consultant-supplied reference exists | same | yes — content-conditional |
+| §9 Key terminology | omitted unless ≥1 inconsistency flag or alternate-term usage exists (full domain glossary lives in the GLOSSARY analysis, not here) | same | yes — content-conditional |
+| `## Prototype invariants` appendix | appended (PI-01..PI-08) | omitted | yes — merger conditional |
+| (all other sections) | identical | identical | no |
+
+---
+

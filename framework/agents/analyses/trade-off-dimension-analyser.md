@@ -48,7 +48,7 @@ Thirteen steps in order. Do not skip steps; do not collapse steps. Each step's s
 
 Extract from `requirements/requirements.md`:
 
-- **Target** (`prototype` or `application`) — parse the preamble line `**Target:** <value>` that appears under the H1 (between the title and §0.1). Default `application` only if the preamble line is missing AND the H1 is present (record the default in diagnostics).
+- **Target** (`prototype` or `application`) — parse the preamble line `**Target:** <value>` that appears under the H1 (between the title and the `## In plain terms` summary; §0.1 now sits at the foot under `## For downstream use`). Default `application` only if the preamble line is missing AND the H1 is present (record the default in diagnostics).
 - **Domain** — verbatim from `§1` *"Domain:"* line.
 - **Business goal** — verbatim from `§1` *"Business goal:"* line (if present) OR *"Purpose / business value:"* line.
 - **Scope (In, Out, Deferred)** — parse the §1.5 table; collect every row text per bucket.

@@ -24,11 +24,16 @@ This file is the CANONICAL DEFINITION of:
   - the section's placement and lifecycle rules (restated for fail-closed resilience
     in framework/skills/apply-amendments-section.md and in each caller's Self-validation)
 
-Placement rule:
-  - Insert the whole section immediately BEFORE the "## Prototype invariants" heading
+Placement rule (first match wins):
+  - Insert the whole section immediately BEFORE the "## For downstream use" heading
+    when it exists. That foot section is framework-internal reference material and
+    opens by saying nothing below it is a requirement — amendments placed after it
+    would read as non-binding. It also sits above "## Prototype invariants", so this
+    placement satisfies the export constraint below as well.
+  - Otherwise insert immediately BEFORE the "## Prototype invariants" heading
     when that appendix exists (the /export-application exporter strips PI-heading→EOF;
-    anything after PI would be silently deleted at export). When no PI appendix exists
-    (application-target docs), append at EOF.
+    anything after PI would be silently deleted at export). When neither heading exists
+    (application-target docs, legacy docs), append at EOF.
   - If a "## Amendments (pending re-merge)" section already exists, do not insert a
     second section — append a new "### Run …" sub-block inside the existing section,
     continuing the AMD-NN numbering from the highest existing entry.
