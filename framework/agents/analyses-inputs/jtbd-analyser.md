@@ -367,7 +367,7 @@ If any self-check fails: do **not** advance to Step 11. Surface a structured err
 
 Output one short, concrete line listing the run's counts, the quality-check result, the scoring distribution, and the force-naming shape. Template:
 
-> *"Wrote `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` (run #{run_count}) — {job_count} jobs ({functional_count} functional, {emotional_count} emotional, {social_count} social) in {cluster_count} clusters from {source_count} consumed sources. Opportunity bands: {high_count} P1, {med_count} P2, {low_count} P3. Outcomes: {measurable_count} measurable, {no_metric_count} marked `(no-metric-in-inputs)`. Scoring: {imp_default_count} Importance + {sat_default_count} Satisfaction defaults marked `consultant-assigned-no-signal`. Forces: {forces_named}/{4 * cluster_count} named ({n_push} Push, {n_pull} Pull, {n_anxiety} Anxiety, {n_habit} Habit). Quality checks: 7/7 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` (run #{run_count}) — {job_count} jobs ({functional_count} functional, {emotional_count} emotional, {social_count} social) in {cluster_count} clusters from {source_count} consumed sources. Opportunity bands: {high_count} P1, {med_count} P2, {low_count} P3. Outcomes: {measurable_count} measurable, {no_metric_count} marked `(no-metric-in-inputs)`. Scoring: {imp_default_count} Importance + {sat_default_count} Satisfaction defaults marked `consultant-assigned-no-signal`. Forces: {forces_named}/{4 * cluster_count} named ({n_push} Push, {n_pull} Pull, {n_anxiety} Anxiety, {n_habit} Habit). Quality checks: 7/7 pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

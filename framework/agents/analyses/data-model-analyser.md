@@ -297,7 +297,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts, the quality-check result, and the `[AI-SUGGESTED]` density figure. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/DATA-MODEL/data-model.html` — `{{ENTITY_COUNT}}` entities, `{{ATTRIBUTE_COUNT}}` attributes, `{{RELATIONSHIP_COUNT}}` relationships, `{{BUSINESS_RULE_COUNT}}` business rules. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (relationship density `{{relationship_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. ERD views: `{{NOTATIONS_SELECTED}}`. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/DATA-MODEL/data-model.html` — `{{ENTITY_COUNT}}` entities, `{{ATTRIBUTE_COUNT}}` attributes, `{{RELATIONSHIP_COUNT}}` relationships, `{{BUSINESS_RULE_COUNT}}` business rules. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (relationship density `{{relationship_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. ERD views: `{{NOTATIONS_SELECTED}}`. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

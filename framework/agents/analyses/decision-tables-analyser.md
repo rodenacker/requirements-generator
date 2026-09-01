@@ -143,7 +143,7 @@ Per `framework/assets/analyses/template-decision-tables.html`:
 
 **A. Summary (Unicorn voice).** One concrete line:
 
-> *"Wrote `generated-docs/analyse-requirements/DECISION-TABLES/decision-tables.html` — `{{DECISION_COUNT}}` decisions, `{{RULE_COUNT}}` rules. Completeness: `{{GAP_COUNT}}` gaps (`{{BLOCKING_GAP_COUNT}}` blocking). Consistency: `{{CONFLICT_COUNT}}` conflicts. Quality checks: `{{n_checks_passed}}/7` pass. Re-droppable into `documentation/` for `/requirements`. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/DECISION-TABLES/decision-tables.html` — `{{DECISION_COUNT}}` decisions, `{{RULE_COUNT}}` rules. Completeness: `{{GAP_COUNT}}` gaps (`{{BLOCKING_GAP_COUNT}}` blocking). Consistency: `{{CONFLICT_COUNT}}` conflicts. Quality checks: `{{n_checks_passed}}/7` pass. Re-droppable into `documentation/` for `/requirements`. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants: prepend the Override note if Step 7 was Override'd; append the density warning if it fired; append *"`<n>` status-transition guards excluded → see STATE-DIAGRAM."* when applicable; append *"`<n>` decisions flagged oversized (completeness not enumerated)."* when applicable; append a one-line sidecar-failed note if the sidecar write failed verification.
 

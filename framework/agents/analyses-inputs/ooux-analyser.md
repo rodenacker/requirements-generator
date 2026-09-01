@@ -360,7 +360,7 @@ Compose the full HTML in memory by substituting all placeholders into the templa
 
 Output one short, concrete line:
 
-> *"Wrote `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` (run #{run_count}) — {object_count} objects ({n_from_source} from-source, {n_synonym_merged} synonym-merged, {n_inferred} inferred), {relationship_count} relationships, {cta_count} CTAs, {attribute_count} attributes ({ccp_count} CCPs), {synonym_merge_count} synonym merges, {irrelevant_row_count} irrelevant-to-domain rows. Quality gates: {n_pass}/8 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` (run #{run_count}) — {object_count} objects ({n_from_source} from-source, {n_synonym_merged} synonym-merged, {n_inferred} inferred), {relationship_count} relationships, {cta_count} CTAs, {attribute_count} attributes ({ccp_count} CCPs), {synonym_merge_count} synonym merges, {irrelevant_row_count} irrelevant-to-domain rows. Quality gates: {n_pass}/8 pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

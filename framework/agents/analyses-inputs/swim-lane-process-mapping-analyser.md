@@ -457,7 +457,7 @@ Compose the full HTML in memory (with all substitutions applied and Mermaid vali
 
 Output one short, concrete line:
 
-> *"Wrote `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` (run #{run_count}) — {process_count} processes, {actor_count} actors, {step_count} steps, {handoff_count} handoffs, {disconnect_count} disconnects ({dc_clean} clean / {follow_up_count} need follow-up). Disconnect categories: {dc_clean} clean, {dc_ambiguous_trigger} ambiguous-trigger, {dc_missing_actor} missing-actor, {dc_unstated_exception} unstated-exception, {dc_conflicting_source} conflicting-source. Inferred nodes: {inferred_count} ({blocking_gap_count} blocking, {non_blocking_gap_count} non-blocking). Quality gates: {n_pass}/9 pass. Diagrams: {process_count} inline-SVG swim-lanes ({n_overlap_clean}/{process_count} overlap-clean). Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` (run #{run_count}) — {process_count} processes, {actor_count} actors, {step_count} steps, {handoff_count} handoffs, {disconnect_count} disconnects ({dc_clean} clean / {follow_up_count} need follow-up). Disconnect categories: {dc_clean} clean, {dc_ambiguous_trigger} ambiguous-trigger, {dc_missing_actor} missing-actor, {dc_unstated_exception} unstated-exception, {dc_conflicting_source} conflicting-source. Inferred nodes: {inferred_count} ({blocking_gap_count} blocking, {non_blocking_gap_count} non-blocking). Quality gates: {n_pass}/9 pass. Diagrams: {process_count} inline-SVG swim-lanes ({n_overlap_clean}/{process_count} overlap-clean). Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

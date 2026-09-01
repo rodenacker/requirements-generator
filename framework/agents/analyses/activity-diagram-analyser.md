@@ -325,7 +325,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts, the quality-check result, and the `[AI-SUGGESTED]` density figure. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` — `{{FLOW_COUNT}}` flows, `{{SWIMLANE_COUNT}}` swimlanes, `{{ACTION_COUNT}}` actions, `{{CONTROL_NODE_COUNT}}` control nodes, `{{EDGE_COUNT}}` edges. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (action density `{{action_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{FLOWS_RENDERED}}`. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` — `{{FLOW_COUNT}}` flows, `{{SWIMLANE_COUNT}}` swimlanes, `{{ACTION_COUNT}}` actions, `{{CONTROL_NODE_COUNT}}` control nodes, `{{EDGE_COUNT}}` edges. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (action density `{{action_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{FLOWS_RENDERED}}`. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

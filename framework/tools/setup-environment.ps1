@@ -22,7 +22,15 @@
     drawio                   draw.io Desktop + the `drawio` PATH shim  (the shim fix)
     node | python            language runtimes
     playwright               warm the @playwright/mcp npx cache
+    preview                  the artefact auto-open hook -- WORKSPACE-scoped, not machine-scoped
     inkscape | libreoffice   on-demand vector renderers (NOT part of `all`)
+
+  Every component except `preview` is machine-scoped: install once, every workspace benefits.
+  `preview` is a property of THIS workspace copy (a repo-tracked helper plus a repo-tracked
+  hook in .claude/settings.json), so it must be re-checked in every copy of the framework. A
+  workspace copied before the affordance existed has neither, and because the hook fails open
+  the absence is silent -- which is exactly why this check exists. See
+  framework/shared/artifact-preview.md > Per-workspace installation.
 
 .PARAMETER Probe
   Detect-only. Report status, install nothing. Used for the post-restart confirmation pass
@@ -40,7 +48,7 @@
 #>
 [CmdletBinding()]
 param(
-  [ValidateSet('all','core','markitdown','drawio','node','python','playwright','inkscape','libreoffice')]
+  [ValidateSet('all','core','markitdown','drawio','node','python','playwright','preview','inkscape','libreoffice')]
   [string]$Component = 'all',
   [switch]$Probe
 )
@@ -279,12 +287,70 @@ function Setup-LibreOffice {
   }
 }
 
+# Workspace-scoped, unlike every other component: checks that THIS copy of the framework has
+# the artefact-preview affordance wired, so a freshly-written HTML artefact opens in the
+# browser before its accept gate.
+#
+# Detect-only in every mode, -Probe or not: the repair writes .claude/settings.json, a repo
+# file, and this script never writes repo files. /setup offers the repair behind a consultant
+# gate instead. Canonical policy: framework/shared/artifact-preview.md.
+function Setup-Preview {
+  $gates    = 'HTML artefacts auto-open before the accept gate'
+  $repo     = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+  $helper   = Join-Path $repo 'framework\tools\open-artifact.cjs'
+  $settings = Join-Path $repo '.claude\settings.json'
+
+  # The common failure: a workspace copied before the affordance landed. It cannot repair
+  # itself -- --wire lives in the very file that is missing -- so the detail names the copy.
+  if (-not (Test-Path $helper)) {
+    Add-Result 'preview' 'failed' 'open-artifact.cjs absent -- this workspace predates the affordance; copy framework/tools/open-artifact.cjs in from the current framework, then re-run -Component preview' $gates
+    return
+  }
+
+  $registered = $false
+  if (Test-Path $settings) {
+    try {
+      $json = Get-Content $settings -Raw | ConvertFrom-Json
+      foreach ($g in @($json.hooks.PostToolUse)) {
+        if ($g -and $g.matcher -is [string] -and $g.matcher.Contains('Write')) {
+          foreach ($h in @($g.hooks)) {
+            if ($h -and $h.command -is [string] -and $h.command.Contains('open-artifact')) { $registered = $true }
+          }
+        }
+      }
+    } catch {
+      Add-Result 'preview' 'failed' "cannot parse .claude/settings.json -- $($_.Exception.Message)" $gates
+      return
+    }
+  }
+  if (-not $registered) {
+    Add-Result 'preview' 'failed' 'helper present but hook NOT registered in .claude/settings.json -- repair: node framework/tools/open-artifact.cjs --wire (then restart Claude Code)' $gates
+    return
+  }
+
+  if (-not (Test-Cmd 'node')) {
+    Add-Result 'preview' 'failed' 'node not on PATH -- run -Component node first, then re-check' $gates
+    return
+  }
+
+  # --selftest is the only check that exercises the transport. A registered command a shell
+  # mangles exits 0 with node never running, so "registered" alone proves nothing.
+  $out = (& node $helper --selftest 2>&1 | Out-String)
+  if ($LASTEXITCODE -eq 0) {
+    Add-Result 'preview' 'ready' 'hook registered; selftest PASS under every probed shell' $gates
+  } else {
+    $line = ($out -split "`r?`n" | Where-Object { $_ -match '^\s*FAIL' } | Select-Object -First 1)
+    if (-not $line) { $line = 'selftest returned non-zero' }
+    Add-Result 'preview' 'failed' ("selftest -- " + $line.Trim()) $gates
+  }
+}
+
 # ---------- dispatch ----------
 
 $plan = if ($Component -eq 'all') {
-  @('python', 'markitdown', 'node', 'drawio', 'playwright')
+  @('python', 'markitdown', 'node', 'drawio', 'playwright', 'preview')
 } elseif ($Component -eq 'core') {
-  @('python', 'markitdown', 'node', 'playwright')   # `all` minus drawio + on-demand renderers
+  @('python', 'markitdown', 'node', 'playwright', 'preview')   # `all` minus drawio + on-demand renderers
 } else {
   @($Component)
 }
@@ -300,6 +366,7 @@ foreach ($c in $plan) {
     'node'        { Setup-Node }
     'drawio'      { Setup-Drawio }
     'playwright'  { Setup-Playwright }
+    'preview'     { Setup-Preview }
     'inkscape'    { Setup-Inkscape }
     'libreoffice' { Setup-LibreOffice }
   }

@@ -493,7 +493,7 @@ The SHA-256 captured at the end of Sub-step B is final. Carry it into Step 11.
 
 Output one short, concrete line:
 
-> *"Wrote `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` (run #{run_count}) — {persona_count} personas, {phase_total} phases, {step_total} steps, {pain_count} pain points, {opportunity_count} opportunities, {moments_of_truth} moments of truth. Quality gates: {n_pass}/8 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` (run #{run_count}) — {persona_count} personas, {phase_total} phases, {step_total} steps, {pain_count} pain points, {opportunity_count} opportunities, {moments_of_truth} moments of truth. Quality gates: {n_pass}/8 pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

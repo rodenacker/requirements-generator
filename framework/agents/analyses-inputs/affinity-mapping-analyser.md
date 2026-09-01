@@ -494,7 +494,7 @@ Compute SHA-256 of the in-memory bytes after final composition.
 
 Output one short, concrete line:
 
-> *"Wrote `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` (run #{run_count}) — {note_count} notes, {cluster_count} L2 clusters in {super_theme_count} L3 super-themes, {orphan_count} orphans, {tension_count} tensions. Anti-anchoring: {drifted_note_count} notes drifted (J<0.5) on the sub-agent Pass-2 re-cluster. Quality gates: {n_pass}/10 pass. Diagram: inline SVG, {gate_9_status}. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html` (run #{run_count}) — {note_count} notes, {cluster_count} L2 clusters in {super_theme_count} L3 super-themes, {orphan_count} orphans, {tension_count} tensions. Anti-anchoring: {drifted_note_count} notes drifted (J<0.5) on the sub-agent Pass-2 re-cluster. Quality gates: {n_pass}/10 pass. Diagram: inline SVG, {gate_9_status}. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

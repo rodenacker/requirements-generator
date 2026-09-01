@@ -485,7 +485,7 @@ After substitution, confirm the rendered string contains **zero** literal `{{...
 
 **A. Summary in Unicorn voice.**
 
-> *"Wrote `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — `{TOTAL_FINDINGS}` findings across 10 dimensions (Blocker: `{BLOCKER_COUNT}`, Major: `{MAJOR_COUNT}`, Minor: `{MINOR_COUNT}`) with disposition breakdown (Needs-Clarification: `{NC_COUNT}`, Standard-Rule-Applies: `{SRA_COUNT}`, Out-of-Scope: `{OOS_COUNT}`) over `{n_consumable_sources}` sources, `{n_multi_tag}` multi-dimension findings, triage callout lists top `{n_triage}` to address first. Verdict: `{VERDICT}`. Quality gates: `{n_gates_passed}/12` pass. `{n_elicitation_questions}` elicitation questions ready to paste, grouped by source file. Open it in a browser (or print to PDF). Ready, or want changes?"*
+> *"Wrote `generated-docs/review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — `{TOTAL_FINDINGS}` findings across 10 dimensions (Blocker: `{BLOCKER_COUNT}`, Major: `{MAJOR_COUNT}`, Minor: `{MINOR_COUNT}`) with disposition breakdown (Needs-Clarification: `{NC_COUNT}`, Standard-Rule-Applies: `{SRA_COUNT}`, Out-of-Scope: `{OOS_COUNT}`) over `{n_consumable_sources}` sources, `{n_multi_tag}` multi-dimension findings, triage callout lists top `{n_triage}` to address first. Verdict: `{VERDICT}`. Quality gates: `{n_gates_passed}/12` pass. `{n_elicitation_questions}` elicitation questions ready to paste, grouped by source file. Open it in a browser (or print to PDF). Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

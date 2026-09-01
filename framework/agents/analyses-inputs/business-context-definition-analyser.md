@@ -337,7 +337,7 @@ If any self-check fails: do **not** advance to Step 11. Surface *"Step 10 sub-C 
 
 **A. Summary in Unicorn voice.** Output one short, concrete line:
 
-> *"Wrote `generated-docs/analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` (run #{run_count}) — {problem_count} problems, {need_count} needs ({problem_driven}/{opportunity_driven}), {goal_count} goals, {objective_count} objectives, {problem_statement_count} problem statements ({explicit_count} explicit, {inferred_count} inferred). Causal chains: {chain_count}. {tension_count} tensions surfaced. Inference: {technique breakdown}, all anchored. Quality checks: 7/7 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` (run #{run_count}) — {problem_count} problems, {need_count} needs ({problem_driven}/{opportunity_driven}), {goal_count} goals, {objective_count} objectives, {problem_statement_count} problem statements ({explicit_count} explicit, {inferred_count} inferred). Causal chains: {chain_count}. {tension_count} tensions surfaced. Inference: {technique breakdown}, all anchored. Quality checks: 7/7 pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

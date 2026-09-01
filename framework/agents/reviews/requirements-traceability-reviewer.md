@@ -163,7 +163,7 @@ The template scaffold itself is **not edited** — inline `<style>`, section ord
 
 **A. Summary in Unicorn voice.** One short, concrete line; no marketing language. Template:
 
-> *"Wrote `generated-docs/review-requirements/REQUIREMENTS-TRACEABILITY/requirements-traceability.html` — `{{TRACED_COUNT}}/{{TOTAL_UNITS}}` units trace. Capability: `{{CAPABILITY_TIER}}`. Untraceable: `{{UNTRACED_COUNT}}` — Broken-citation `{{n_broken}}` · Dropped-but-present `{{n_dropped}}` · Orphan `{{n_orphan}}` · Not-alignable `{{n_na}}`{{unattributed-if-tier1}}. Traced: Sourced `{{n_sourced}}` · Accepted-inference `{{n_accepted}}` · Standard-rule `{{n_rule}}` · Out-of-scope `{{n_oos}}`. Warns: Drift `{{n_drift}}` · Dead-provenance `{{n_dead}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/10` pass. The untraceable units lead the report — open it in a browser. Ready, or want changes?"*
+> *"Wrote `generated-docs/review-requirements/REQUIREMENTS-TRACEABILITY/requirements-traceability.html` — `{{TRACED_COUNT}}/{{TOTAL_UNITS}}` units trace. Capability: `{{CAPABILITY_TIER}}`. Untraceable: `{{UNTRACED_COUNT}}` — Broken-citation `{{n_broken}}` · Dropped-but-present `{{n_dropped}}` · Orphan `{{n_orphan}}` · Not-alignable `{{n_na}}`{{unattributed-if-tier1}}. Traced: Sourced `{{n_sourced}}` · Accepted-inference `{{n_accepted}}` · Standard-rule `{{n_rule}}` · Out-of-scope `{{n_oos}}`. Warns: Drift `{{n_drift}}` · Dead-provenance `{{n_dead}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/10` pass. The untraceable units lead the report — open it in a browser. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

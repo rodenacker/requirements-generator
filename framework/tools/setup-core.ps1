@@ -1,8 +1,9 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-  One-command consultant bootstrap for the CORE machine dependencies (items 1-5):
-  Python, Node.js, markitdown (converters + MCP), and the @playwright/mcp npx cache.
+  One-command consultant bootstrap for the CORE set: the machine dependencies (Python,
+  Node.js, markitdown converters + MCP, the @playwright/mcp npx cache) plus the one
+  WORKSPACE-scoped check, `preview`.
 
 .DESCRIPTION
   A thin, canonical-source-respecting wrapper. It contains NO install commands of its own --
@@ -10,10 +11,17 @@
   home for every dependency install command), then renders a clean consolidated status table
   and the Windows restart / MCP guidance the raw installer cannot infer.
 
-  Scope is deliberately narrow -- exactly the five core dependencies. It does NOT install the
-  vector renderers (draw.io / Inkscape / LibreOffice), the /prototype smoke browser, or the
+  Scope is deliberately narrow -- exactly the core set. It does NOT install the vector
+  renderers (draw.io / Inkscape / LibreOffice), the /prototype smoke browser, or the
   per-project `template/node_modules` tree. Run the canonical script directly for those:
   `& framework/tools/setup-environment.ps1 -Component all|drawio|inkscape|libreoffice`.
+
+  One row is not a machine dependency: `preview` checks that THIS workspace copy has the
+  artefact auto-open affordance wired (`framework/shared/artifact-preview.md`). It is in the
+  core set precisely because a fresh copy of the framework is when it must be re-checked --
+  a machine that passed yesterday says nothing about the workspace you copied today. It is
+  detect-only here; the repair is `node framework/tools/open-artifact.cjs --wire`, offered
+  behind a consultant gate by `/setup` inside Claude Code.
 
   The one npm dependency in this set is installed MACHINE-GLOBALLY and is therefore
   available to every future project/clone: @playwright/mcp via the global npx
@@ -41,7 +49,7 @@ if (-not (Test-Path $installer)) {
 
 Write-Host ''
 Write-Host ('=' * 72)
-Write-Host (" requirements-generator - core dependency check (items 1-5){0}" -f $(if ($Probe) { '  [probe]' } else { '' }))
+Write-Host (" requirements-generator - core check (machine dependencies + workspace preview){0}" -f $(if ($Probe) { '  [probe]' } else { '' }))
 Write-Host ('=' * 72)
 if (-not $Probe) {
   Write-Host ' Running core setup via setup-environment.ps1 -Component core.'
@@ -87,7 +95,7 @@ $glyph = @{
 }
 Write-Host ''
 Write-Host ('-' * 72)
-Write-Host ' Core dependency status'
+Write-Host ' Core status  (machine dependencies + workspace preview)'
 Write-Host ('-' * 72)
 foreach ($r in $rows) {
   $tag = if ($glyph.ContainsKey($r.status)) { $glyph[$r.status] } else { "?   [$($r.status)]" }
@@ -100,7 +108,7 @@ Write-Host ('-' * 72)
 $failed = @($rows | Where-Object { $_.status -eq 'failed' })
 if ($failed.Count -gt 0) {
   Write-Host ''
-  Write-Host ' FAILED components (consult the named setup-instructions doc):' -ForegroundColor Red
+  Write-Host ' FAILED components (the detail names the repair, or the setup-instructions doc to consult):' -ForegroundColor Red
   foreach ($f in $failed) { Write-Host ("   - {0}: {1}" -f $f.component, $f.detail) -ForegroundColor Red }
 }
 

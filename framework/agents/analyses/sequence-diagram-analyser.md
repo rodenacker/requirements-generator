@@ -302,7 +302,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts, the quality-check result, and the `[AI-SUGGESTED]` density figure. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html` — `{{SCENARIO_COUNT}}` scenarios, `{{PARTICIPANT_COUNT}}` participants, `{{MESSAGE_COUNT}}` messages, `{{FRAGMENT_COUNT}}` fragments. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (message density `{{message_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{SCENARIOS_RENDERED}}`. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html` — `{{SCENARIO_COUNT}}` scenarios, `{{PARTICIPANT_COUNT}}` participants, `{{MESSAGE_COUNT}}` messages, `{{FRAGMENT_COUNT}}` fragments. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (message density `{{message_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{SCENARIOS_RENDERED}}`. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

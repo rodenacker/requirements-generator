@@ -167,7 +167,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts and the quality-check result. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/OOUX/ooux-object-map.html` — `{{OBJECT_COUNT}}` objects (`{{n_from_domain_model}}` from `§2.1`, `{{n_derived}}` derived), `{{RELATIONSHIP_COUNT}}` relationships, `{{CTA_COUNT}}` CTAs, `{{ATTRIBUTE_COUNT}}` attributes (`{{CCP_COUNT}}` CCPs). Quality checks: `{{n_checks_passed}}/7` pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/OOUX/ooux-object-map.html` — `{{OBJECT_COUNT}}` objects (`{{n_from_domain_model}}` from `§2.1`, `{{n_derived}}` derived), `{{RELATIONSHIP_COUNT}}` relationships, `{{CTA_COUNT}}` CTAs, `{{ATTRIBUTE_COUNT}}` attributes (`{{CCP_COUNT}}` CCPs). Quality checks: `{{n_checks_passed}}/7` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variant:
 

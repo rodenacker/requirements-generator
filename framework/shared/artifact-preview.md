@@ -18,6 +18,22 @@ Because it is a hook it is not permission-gated, so it needs no `permissions.all
 
 A preview that does not fire has exactly **two** causes, and they are distinguished by different actions: **deferred registration** (the settings were edited mid-session → restart Claude Code) or a **command form the shell mangled** (→ run `--selftest`, see *Testing the wiring*). Do not infer the first from a direct invocation of the helper working: invoking it by hand exercises the helper, not the transport, so it succeeds under a mangled command string too. That inference is what turns this into an unbounded restart loop.
 
+## Per-workspace installation (canonical)
+
+**The affordance is a property of a workspace copy, not of a machine.** It is two repo-tracked things: `framework/tools/open-artifact.cjs` and the hook block in `.claude/settings.json`. Both travel with the tree, so a fresh clone of current `main` has it and works immediately.
+
+**A workspace copied from a tree that predates this affordance has neither, and never says so.** That is the dominant real-world failure mode, and it is invisible for the same reason the design is safe: the hook path fails open, so "not installed" and "nothing to open" look identical from the consultant's chair. It is not a bug in the mechanism — the mechanism is fine wherever it is present.
+
+| Symptom | State | Repair |
+|---|---|---|
+| No tab, ever, in this workspace | `open-artifact.cjs` **absent** | Copy the file in from a current framework checkout, then re-run `/setup preview`. The workspace cannot repair itself — `--wire` lives inside the missing file. |
+| No tab, helper present | hook **not registered** | `node framework/tools/open-artifact.cjs --wire`, then restart Claude Code. |
+| No tab, both present | command form mangled by the shell | `--selftest` (see *Testing the wiring*). |
+
+**The check.** `/setup`'s `preview` component (`framework/tools/setup-environment.ps1 > Setup-Preview`) tests all three in order — helper present → hook registered → `--selftest` exit 0 — and is included in both the `all` and `core` plans, because a fresh workspace copy is exactly when it must be re-checked. It is **detect-only in every mode**: the script never writes repo files.
+
+**The repair.** `--wire` registers the canonical hook block in `.claude/settings.json`, merging into an existing `Write`-matcher group rather than adding a second one (two matching groups would open every artefact twice). It is idempotent — an already-wired file is left byte-identical — and it refuses rather than overwrites when the settings file will not parse. The command string it writes comes from the single `HOOK_COMMAND` constant in the helper, so the shell-agnostic form documented under *Command form* cannot drift. `/setup` runs it only behind an explicit consultant gate; that write is a deliberate, documented exception to `/setup`'s "user-scoped tools only" constraint, recorded in `.claude/commands/setup.md > Constraints`.
+
 ## Path allowlist (canonical)
 
 Repo-relative, forward-slashed. **Allowlist-only** — anything unmatched is skipped, so there is no deny list to keep in sync.
@@ -81,6 +97,12 @@ Every failure path exits 0. A missing file, an unreadable payload, an absent bro
 Consequently, **consultant-facing prose must never assert that a tab exists.** The correct phrasing names the path as a fallback:
 
 > Opened in your browser — if it didn't open, open `<path>` via `file://`.
+
+In a gate summary the sentence is fixed, and is used **verbatim** immediately before the gate's closing question:
+
+> `Opened in your browser (if not, open it via `file://`). `
+
+**This is an obligation, not a convention.** It is enforced as rule 13 of `framework/shared/output-readability.md` (whose Scope table already binds *every consultant-facing question, batch, and gate summary*), and every one of the 41 gate-bearing artefact agents carries it. The reason is diagnostic, not cosmetic: a gate that says nothing about the preview cannot be contradicted by a preview that did not happen, so a workspace where the affordance was never installed (see *Per-workspace installation*) stays broken indefinitely. A gate that names it turns that into a same-day report. A new artefact-producing agent inherits the obligation from rule 13.
 
 ## Opt-out
 

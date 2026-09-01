@@ -272,7 +272,7 @@ Items rendered with a `derived-*` marker (preconditions, success guarantees, min
 
 Output one short, concrete line listing the per-round counts and the quality-gate result. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` — `{{UC_COUNT}}` use cases across `{{ACTOR_COUNT}}` primary actors (`{{LEVEL_SUMMARY_COUNT}}` summary, `{{LEVEL_USER_GOAL_COUNT}}` user-goal, `{{LEVEL_SUBFUNCTION_COUNT}}` subfunction), `{{EXTENSION_COUNT}}` extensions. Quality gates: `{{n_gates_passed}}/7` pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/USE-CASES/use-cases-map.html` — `{{UC_COUNT}}` use cases across `{{ACTOR_COUNT}}` primary actors (`{{LEVEL_SUMMARY_COUNT}}` summary, `{{LEVEL_USER_GOAL_COUNT}}` user-goal, `{{LEVEL_SUBFUNCTION_COUNT}}` subfunction), `{{EXTENSION_COUNT}}` extensions. Quality gates: `{{n_gates_passed}}/7` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

@@ -241,7 +241,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the counts and the quality-check result. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` — `{{GOAL_COUNT}}` goals × `{{DIMENSION_KEPT_COUNT}}` kept dimensions (`{{DIMENSION_DROPPED_COUNT}}` dropped in Stage A, `{{DIMENSION_PRUNED_COUNT}}` pruned post-pass), `{{NONZERO_CELL_COUNT}}` non-zero cells (`{{NOSIGNAL_CELL_COUNT}}` no-signal, `{{BALANCED_CELL_COUNT}}` balanced). Quality checks: `{{n_checks_passed}}/7` pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` — `{{GOAL_COUNT}}` goals × `{{DIMENSION_KEPT_COUNT}}` kept dimensions (`{{DIMENSION_DROPPED_COUNT}}` dropped in Stage A, `{{DIMENSION_PRUNED_COUNT}}` pruned post-pass), `{{NONZERO_CELL_COUNT}}` non-zero cells (`{{NOSIGNAL_CELL_COUNT}}` no-signal, `{{BALANCED_CELL_COUNT}}` balanced). Quality checks: `{{n_checks_passed}}/7` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

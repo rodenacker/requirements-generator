@@ -148,7 +148,7 @@ Per `framework/assets/analyses/template-crud-coverage.html`:
 
 **A. Summary (Unicorn voice).** One concrete line:
 
-> *"Wrote `generated-docs/analyse-requirements/CRUD-COVERAGE/crud-matrix.html` — `{{ENTITY_COUNT}}` entities × 4 ops = `{{CELL_COUNT}}` cells: delivered `{{DELIVERED_COUNT}}`, intentional `{{INTENTIONAL_COUNT}}`, forgotten `{{FORGOTTEN_COUNT}}`, granted-not-delivered `{{GRANTED_COUNT}}`. Hole register: `{{HOLE_COUNT}}` rows. Quality checks: `{{n_checks_passed}}/6` pass. Role view: `<rendered grid | single-actor note>`. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/CRUD-COVERAGE/crud-matrix.html` — `{{ENTITY_COUNT}}` entities × 4 ops = `{{CELL_COUNT}}` cells: delivered `{{DELIVERED_COUNT}}`, intentional `{{INTENTIONAL_COUNT}}`, forgotten `{{FORGOTTEN_COUNT}}`, granted-not-delivered `{{GRANTED_COUNT}}`. Hole register: `{{HOLE_COUNT}}` rows. Quality checks: `{{n_checks_passed}}/6` pass. Role view: `<rendered grid | single-actor note>`. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants: prepend the Override note if Step 7 was Override'd; append the density warning if it fired; append *"§6.5 absent — granted-not-delivered verdict disabled; matrix is delivery-only."* when applicable; append a one-line sidecar-failed note if the sidecar write failed verification.
 

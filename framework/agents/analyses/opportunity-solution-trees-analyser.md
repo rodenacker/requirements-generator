@@ -282,7 +282,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-layer counts and the quality-gate result. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — 1 Outcome (`{{OUTCOME_CLASS}}`), `{{OPPORTUNITY_COUNT}}` Opportunities, `{{SOLUTION_COUNT}}` Solutions, `{{ASSUMPTION_TEST_COUNT}}` Assumption Tests. Flags: `{{ORPHAN_SOLUTION_COUNT}}` orphan Solutions, `{{UNADDRESSED_OPPORTUNITY_COUNT}}` unaddressed Opportunities. Quality gates: `{{n_gates_passed}}/7` pass (Gate 4 warn-only). This tree is a structural audit of the requirements doc, not a discovery plan — orphan and unaddressed flags are the headline findings. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — 1 Outcome (`{{OUTCOME_CLASS}}`), `{{OPPORTUNITY_COUNT}}` Opportunities, `{{SOLUTION_COUNT}}` Solutions, `{{ASSUMPTION_TEST_COUNT}}` Assumption Tests. Flags: `{{ORPHAN_SOLUTION_COUNT}}` orphan Solutions, `{{UNADDRESSED_OPPORTUNITY_COUNT}}` unaddressed Opportunities. Quality gates: `{{n_gates_passed}}/7` pass (Gate 4 warn-only). This tree is a structural audit of the requirements doc, not a discovery plan — orphan and unaddressed flags are the headline findings. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

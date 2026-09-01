@@ -178,7 +178,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts, the quality-check result, and the `[AI-SUGGESTED]` density figure. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html` — `{{JOURNEY_COUNT}}` journeys across `{{PERSONA_COUNT}}` personas, `{{PHASE_COUNT}}` phases, `{{ACTION_COUNT}}` actions, `{{PAIN_POINT_COUNT}}` pain points, `{{OPPORTUNITY_COUNT}}` opportunities. AI-SUGGESTED density: `{{ai_suggested_density_pct}}`%. Quality checks: `{{n_checks_passed}}/8` pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html` — `{{JOURNEY_COUNT}}` journeys across `{{PERSONA_COUNT}}` personas, `{{PHASE_COUNT}}` phases, `{{ACTION_COUNT}}` actions, `{{PAIN_POINT_COUNT}}` pain points, `{{OPPORTUNITY_COUNT}}` opportunities. AI-SUGGESTED density: `{{ai_suggested_density_pct}}`%. Quality checks: `{{n_checks_passed}}/8` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

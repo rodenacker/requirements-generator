@@ -308,7 +308,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts, the quality-check result, and the `[AI-SUGGESTED]` density figure. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/TASK-FLOWS/task-flows.html` — `{{TASK_COUNT}}` tasks, `{{SUBGOAL_COUNT}}` subgoals, `{{OPERATION_COUNT}}` operations, `{{PLAN_COUNT}}` plans, `{{DECISION_COUNT}}` decisions, `{{EXCEPTION_COUNT}}` exceptions. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (operation density `{{operation_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{TASKS_RENDERED}}`. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/TASK-FLOWS/task-flows.html` — `{{TASK_COUNT}}` tasks, `{{SUBGOAL_COUNT}}` subgoals, `{{OPERATION_COUNT}}` operations, `{{PLAN_COUNT}}` plans, `{{DECISION_COUNT}}` decisions, `{{EXCEPTION_COUNT}}` exceptions. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (operation density `{{operation_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{TASKS_RENDERED}}`. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

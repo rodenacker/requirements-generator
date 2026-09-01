@@ -32,6 +32,15 @@
  *   → runs the registered PostToolUse:Write command(s) under every discoverable
  *     shell with a {"__selftest":true} payload on stdin and prints
  *     "PASS <shell>: <command>" or "FAIL <shell>: <diagnosis>".
+ *
+ * Wire (register the hook in this workspace's .claude/settings.json):
+ *   node framework/tools/open-artifact.cjs --wire
+ *   → prints "WIRED", "ALREADY-WIRED" or "FAIL <reason>". Idempotent. The
+ *     affordance is per-workspace: a workspace copied before it existed has
+ *     neither this file nor the hook, and because the hook path fails open the
+ *     absence is silent. /setup's `preview` component is the check; this is the
+ *     repair. See framework/shared/artifact-preview.md > Per-workspace
+ *     installation.
  */
 
 'use strict';
@@ -167,9 +176,23 @@ const SELFTEST_MARKER = 'open-artifact: selftest ok';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
+const SETTINGS_FILE = path.join(REPO_ROOT, '.claude', 'settings.json');
+
+// The one place the registered hook command string is spelled out. --wire emits
+// this; --selftest spawns whatever is actually registered and compares against
+// reality, so the two can never quietly disagree about the *form*.
+//
+// Bare `node`, repo-relative, forward-slashed: no `cmd /c` wrapper and no
+// %VAR%/$VAR interpolation, because a hook command must survive both Git Bash
+// and cmd.exe. Rationale is canonical in framework/shared/artifact-preview.md >
+// Command form. Do not "improve" this string.
+const HOOK_COMMAND = 'node framework/tools/open-artifact.cjs';
+const HOOK_TIMEOUT = 5000;
+const HOOK_MATCHER = 'Write';
+
 // The command(s) the harness would actually run for a Write.
 function registeredWriteCommands() {
-  const settings = path.join(REPO_ROOT, '.claude', 'settings.json');
+  const settings = SETTINGS_FILE;
   let parsed;
   try {
     parsed = JSON.parse(fs.readFileSync(settings, 'utf8'));
@@ -326,6 +349,82 @@ function selfTest(argv) {
   return failures === 0 ? 0 : 1;
 }
 
+// ── Wire ───────────────────────────────────────────────────────────────────
+// Register the PostToolUse:Write hook in this workspace's .claude/settings.json.
+//
+// Why this exists: the affordance is per-workspace (a repo-tracked helper plus a
+// repo-tracked hook), consultants work in *copies* of the framework, and a copy
+// forked before the affordance landed has neither. The hook path fails open, so
+// that workspace previews nothing and never says so. /setup's `preview`
+// component detects it; this repairs it.
+//
+// Chicken-and-egg: if THIS file is the thing missing from a workspace, --wire
+// cannot run there. That case is a manual copy, handled as prose in /setup.
+//
+// Idempotent by not writing at all when a hook is already registered, so a
+// re-run leaves the file byte-identical.
+function wire() {
+  if (!fs.existsSync(path.dirname(SETTINGS_FILE))) {
+    process.stdout.write(`FAIL no .claude directory at ${path.dirname(SETTINGS_FILE)} — is this a framework workspace?\n`);
+    return 1;
+  }
+
+  let parsed = {};
+  if (fs.existsSync(SETTINGS_FILE)) {
+    try {
+      parsed = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+    } catch (err) {
+      // Never overwrite a settings file we could not parse — that would discard
+      // the consultant's permissions allowlist.
+      process.stdout.write(`FAIL cannot parse ${SETTINGS_FILE}: ${err.message} — fix the JSON, then re-run\n`);
+      return 1;
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      process.stdout.write(`FAIL ${SETTINGS_FILE} is not a JSON object\n`);
+      return 1;
+    }
+  }
+
+  if (!parsed.hooks || typeof parsed.hooks !== 'object' || Array.isArray(parsed.hooks)) parsed.hooks = {};
+  if (!Array.isArray(parsed.hooks.PostToolUse)) parsed.hooks.PostToolUse = [];
+
+  const groups = parsed.hooks.PostToolUse;
+  const writeGroups = groups.filter(
+    (g) => g && typeof g.matcher === 'string' && g.matcher.includes(HOOK_MATCHER)
+  );
+
+  const already = writeGroups.some((g) =>
+    (g.hooks || []).some(
+      (h) => h && h.type === 'command' && typeof h.command === 'string' && h.command.includes('open-artifact')
+    )
+  );
+  if (already) {
+    process.stdout.write('ALREADY-WIRED no change made\n');
+    return 0;
+  }
+
+  const entry = { type: 'command', command: HOOK_COMMAND, timeout: HOOK_TIMEOUT };
+  // Merge into an existing Write group rather than adding a second one: two
+  // groups matching Write would both fire and open every artefact twice.
+  if (writeGroups.length > 0) {
+    if (!Array.isArray(writeGroups[0].hooks)) writeGroups[0].hooks = [];
+    writeGroups[0].hooks.push(entry);
+  } else {
+    groups.push({ matcher: HOOK_MATCHER, hooks: [entry] });
+  }
+
+  try {
+    fs.writeFileSync(SETTINGS_FILE, `${JSON.stringify(parsed, null, 2)}\n`, 'utf8');
+  } catch (err) {
+    process.stdout.write(`FAIL cannot write ${SETTINGS_FILE}: ${err.message}\n`);
+    return 1;
+  }
+
+  process.stdout.write(`WIRED ${HOOK_COMMAND} registered on PostToolUse:${HOOK_MATCHER}\n`);
+  process.stdout.write('      Restart Claude Code — settings hooks are read at process start.\n');
+  return 0;
+}
+
 function readStdin() {
   try {
     return fs.readFileSync(0, 'utf8');
@@ -342,6 +441,9 @@ function main() {
   }
   if (argv[0] === '--selftest') {
     process.exit(selfTest(argv.slice(1)));
+  }
+  if (argv[0] === '--wire') {
+    process.exit(wire());
   }
 
   if (optedOut()) process.exit(0);

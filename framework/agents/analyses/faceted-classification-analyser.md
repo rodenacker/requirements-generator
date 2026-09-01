@@ -137,7 +137,7 @@ Per `framework/assets/analyses/template-faceted-classification.html`:
 
 **A. Summary (Unicorn voice).** One concrete line:
 
-> *"Wrote `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` — `{{COLLECTION_COUNT}}` collections, `{{FACET_COUNT}}` facets. Orthogonality: `{{NON_ORTHOGONAL_COUNT}}` dependent pair(s) flagged. `{{AI_SUGGESTED_COUNT}}` facets/value-sets [AI-SUGGESTED]; `{{UNBANDED_COUNT}}` un-banded. Quality checks: `{{n_checks_passed}}/7` pass. Re-droppable into `documentation/` for `/requirements`. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` — `{{COLLECTION_COUNT}}` collections, `{{FACET_COUNT}}` facets. Orthogonality: `{{NON_ORTHOGONAL_COUNT}}` dependent pair(s) flagged. `{{AI_SUGGESTED_COUNT}}` facets/value-sets [AI-SUGGESTED]; `{{UNBANDED_COUNT}}` un-banded. Quality checks: `{{n_checks_passed}}/7` pass. Re-droppable into `documentation/` for `/requirements`. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants: prepend the Override note if Step 7 was Override'd; append the thin-slice warning if it fired; append *"no collection surface in scope — faceted classification did not apply."* on the honest-skip path; append a one-line sidecar-failed note if the sidecar write failed verification.
 

@@ -369,7 +369,7 @@ After substitution, compute the SHA-256 of the final HTML byte-string for Step 1
 
 Output one short, concrete line listing per-requirement counts, the quality-check result, the `ai-suggested` density figure, and notable totals. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/FIVE-WHYS/five-whys.html` — `{N_used + M}` requirements analysed ({N_used} from auto-extraction, {M} consultant-stated), `{L}` why-levels total. Terminations: `{R}` PASS (Sufficiency Test), `{I}` INCOMPLETE (source exhausted or cap-reached). Coverage: `{cited_count}` cited, `{G}` gaps, `{na_count}` n/a. AI-SUGGESTED density: `{density_pct}`%. Quality checks: `{n_checks_passed}/10` pass. Open it in a browser to read the why-chain diagrams. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/FIVE-WHYS/five-whys.html` — `{N_used + M}` requirements analysed ({N_used} from auto-extraction, {M} consultant-stated), `{L}` why-levels total. Terminations: `{R}` PASS (Sufficiency Test), `{I}` INCOMPLETE (source exhausted or cap-reached). Coverage: `{cited_count}` cited, `{G}` gaps, `{na_count}` n/a. AI-SUGGESTED density: `{density_pct}`%. Quality checks: `{n_checks_passed}/10` pass. Open it in a browser to read the why-chain diagrams. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

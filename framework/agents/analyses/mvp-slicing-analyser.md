@@ -177,7 +177,7 @@ The template scaffold is **not edited** — only the documented `{{placeholders}
 
 Output one short, concrete line with the per-bucket counts, the proposed slice, and the quality-check result. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/MVP-SLICING/mvp-slicing.html` — `{{CARD_COUNT}}` cards across `{{ACTIVITY_COUNT}}` backbone activities. Proposed MVP: `{{MUST_COUNT}}` Must above the slice line; `{{SHOULD_COUNT}}` Should / `{{COULD_COUNT}}` Could below; `{{WONT_COUNT}}` Won't on the board only. Quality checks: `{{n_checks_passed}}/7` pass. Confirm this slice, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/MVP-SLICING/mvp-slicing.html` — `{{CARD_COUNT}}` cards across `{{ACTIVITY_COUNT}}` backbone activities. Proposed MVP: `{{MUST_COUNT}}` Must above the slice line; `{{SHOULD_COUNT}}` Should / `{{COULD_COUNT}}` Could below; `{{WONT_COUNT}}` Won't on the board only. Quality checks: `{{n_checks_passed}}/7` pass. Opened in your browser (if not, open it via `file://`). Confirm this slice, or want changes?"*
 
 Variants (append as applicable):
 

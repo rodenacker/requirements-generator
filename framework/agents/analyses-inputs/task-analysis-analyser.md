@@ -389,7 +389,7 @@ Compose the full HTML in memory. Compute SHA-256 of the in-memory bytes; store i
 
 Output one short, concrete line:
 
-> *"Wrote `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` (run #{run_count}) — {goal_count} goals, {terminal_count} terminal operations, {plan_count} Plans, {information_req_count} information requirements. Inferred nodes: {inferred_count} ({blocking_gap_count} blocking, {non_blocking_gap_count} non-blocking). Quality gates: {n_pass}/8 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` (run #{run_count}) — {goal_count} goals, {terminal_count} terminal operations, {plan_count} Plans, {information_req_count} information requirements. Inferred nodes: {inferred_count} ({blocking_gap_count} blocking, {non_blocking_gap_count} non-blocking). Quality gates: {n_pass}/8 pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

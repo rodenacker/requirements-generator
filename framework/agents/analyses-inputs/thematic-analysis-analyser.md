@@ -336,7 +336,7 @@ The SHA-256 computed at the end of Sub-step B is final — the theme-map is a pr
 
 Output one short, concrete line listing the run's counts, the quality-check result, and the coverage shape. Template:
 
-> *"Wrote `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` (run #{run_count}) — {len(final_themes)} themes, {len(codes)} codes, {len(candidate_requirements)} candidate-requirements across {len(consumed_rows)} sources. Coverage frame: {n_covered} covered, {n_gap} gap-deductive, {n_silent} silent. Quality checks: 6/6 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` (run #{run_count}) — {len(final_themes)} themes, {len(codes)} codes, {len(candidate_requirements)} candidate-requirements across {len(consumed_rows)} sources. Coverage frame: {n_covered} covered, {n_gap} gap-deductive, {n_silent} silent. Quality checks: 6/6 pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

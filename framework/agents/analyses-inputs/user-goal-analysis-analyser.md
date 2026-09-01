@@ -325,7 +325,7 @@ If any self-check fails: do **not** advance to Step 11. Surface *"Step 10 sub-C 
 
 **A. Summary in Unicorn voice.** Output one short, concrete line:
 
-> *"Wrote `generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` (run #{run_count}) — {goal_count} goals ({explicit_count} explicit, {inferred_count} inferred) — {life_count} life, {end_count} end, {experience_count} experience; {hard_count} hard, {soft_count} soft. Hierarchy: {root_count} roots, max depth {depth}. {conflict_count} conflicts surfaced. Inference: {technique breakdown}, all anchored. Quality checks: 7/7 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` (run #{run_count}) — {goal_count} goals ({explicit_count} explicit, {inferred_count} inferred) — {life_count} life, {end_count} end, {experience_count} experience; {hard_count} hard, {soft_count} soft. Hierarchy: {root_count} roots, max depth {depth}. {conflict_count} conflicts surfaced. Inference: {technique breakdown}, all anchored. Quality checks: 7/7 pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

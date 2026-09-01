@@ -315,7 +315,7 @@ If any self-check fails: do **not** advance to Step 11. Surface *"Step 10 sub-C 
 
 **A. Summary in Unicorn voice.** Output one short, concrete line:
 
-> *"Wrote `generated-docs/analyse-inputs/GLOSSARY/glossary.html` (run #{run_count}) — {total_term_count} core terms ({domain_count} domain, {application_count} application). Maturity L0:{a} L1:{b} L2:{c} L3:{d} L4:{e}; {settled_count} settled, {proposed_count} proposed, {disputed_count} disputed. {proposal_count} convergence proposals ({by-kind breakdown}), all anchored. Open items: {needs_definition} needs-definition, {to_refine} to-refine, {to_reconcile} to-reconcile, {to_resolve} to-resolve, {ambiguous_general} ambiguous-general. Quality gates: 10/10 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/GLOSSARY/glossary.html` (run #{run_count}) — {total_term_count} core terms ({domain_count} domain, {application_count} application). Maturity L0:{a} L1:{b} L2:{c} L3:{d} L4:{e}; {settled_count} settled, {proposed_count} proposed, {disputed_count} disputed. {proposal_count} convergence proposals ({by-kind breakdown}), all anchored. Open items: {needs_definition} needs-definition, {to_refine} to-refine, {to_reconcile} to-reconcile, {to_resolve} to-resolve, {ambiguous_general} ambiguous-general. Quality gates: 10/10 pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 - If Step 10 was Override'd, prepend: *"Quality-gate violations were accepted as known — the Run-history bullet records every flagged item."*

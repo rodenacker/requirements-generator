@@ -412,7 +412,7 @@ The SHA-256 computed at the end of Sub-step B is final — the tree diagram is a
 
 Output one short, concrete line listing the run's counts, the quality-check result, the diagnostics shape, and the reversal-framing note. Template:
 
-> *"Wrote `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` (run #{run_count}) — Out-1 primary, {n_candidate_outcomes} candidate outcomes preserved, {n_opportunities} Opportunities ({n_unaddressed} unaddressed, {n_weakly_anchored} weakly-anchored), {n_solutions} Solutions ({n_orphan} orphan), Layer 4 {assumption_status}, {n_candidate_requirements} candidate-requirement lines under the Candidate-requirements section. Quality checks: 6/6 pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` (run #{run_count}) — Out-1 primary, {n_candidate_outcomes} candidate outcomes preserved, {n_opportunities} Opportunities ({n_unaddressed} unaddressed, {n_weakly_anchored} weakly-anchored), {n_solutions} Solutions ({n_orphan} orphan), Layer 4 {assumption_status}, {n_candidate_requirements} candidate-requirement lines under the Candidate-requirements section. Quality checks: 6/6 pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

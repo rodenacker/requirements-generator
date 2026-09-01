@@ -194,7 +194,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts and the quality-gate result. No marketing language. Template:
 
-> *"Wrote `generated-docs/analyse-requirements/JTBD/jtbd-job-map.html` — `{{JOB_COUNT}}` jobs across `{{CLUSTER_COUNT}}` clusters (`{{FUNCTIONAL_COUNT}}` functional, `{{EMOTIONAL_COUNT}}` emotional, `{{SOCIAL_COUNT}}` social), `{{HIGH_OPPORTUNITY_COUNT}}` at High priority. Quality gates: `{{n_gates_passed}}/7` pass. Ready, or want changes?"*
+> *"Wrote `generated-docs/analyse-requirements/JTBD/jtbd-job-map.html` — `{{JOB_COUNT}}` jobs across `{{CLUSTER_COUNT}}` clusters (`{{FUNCTIONAL_COUNT}}` functional, `{{EMOTIONAL_COUNT}}` emotional, `{{SOCIAL_COUNT}}` social), `{{HIGH_OPPORTUNITY_COUNT}}` at High priority. Quality gates: `{{n_gates_passed}}/7` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variant:
 

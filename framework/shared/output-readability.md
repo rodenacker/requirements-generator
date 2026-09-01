@@ -92,6 +92,12 @@ In every downstream case the embedded machine-readable sidecar + retained `[SRC:
     - **Documents with a downstream consumer** (analyses, `requirements.md`) — pipeline-machinery / re-ingestion prose (target-mode applicability, "this Mermaid source survives markitdown conversion…", "Use in /requirements") moves to a **"For downstream use"** section at the foot (a collapsed `<details>` footer in HTML artefacts), out of the human reading path but retained verbatim because the downstream consumer needs it. The embedded sidecar is retained in place.
     - **Reviews** — pipeline-machinery / self-referential text is **removed** from the rendered page. Nothing downstream consumes a review, so there is no footer to preserve it for. Genuine reviewer content (verdict legend, diagnostics) stays, in its existing collapsed `<details>` where applicable.
 
+13. **A gate summary that announces an HTML artefact names its preview.** The artefact opens in the consultant's default browser at write time — *before* the gate — so the gate line must say so, and must name the path as a fallback rather than assert that a tab exists. The sentence is fixed and canonical in `framework/shared/artifact-preview.md`; use it **verbatim**, immediately before the gate's closing question. Do not coin a variant and do not promise a tab.
+
+    This is not decoration. The affordance is **per-workspace** and **fails open** by design, so a gate that says nothing about the preview is what turns a workspace where it was never installed into months of silence — the consultant has no expectation to violate. A gate that names it gets the failure reported the same day.
+
+    Applies to every producer whose artefact is on the `artifact-preview.md` allowlist. Producers of markdown artefacts (`/requirements`, `/generate-prd`, `/export-application`, `/resolve-review`, `/amend-requirements`) have nothing to preview and add nothing.
+
 ## Self-validation (soft — reported, never halting)
 
 Add these four assertions to the producing agent's existing self-validation block. Readability has **no verdict function**: a hard gate on an undecidable predicate becomes either a rubber stamp or a false halt, so **no `RF-` predicate is defined here and none may be invented**. A failing assertion is reported in the handback summary and the artefact still ships.
