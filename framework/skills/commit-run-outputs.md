@@ -22,12 +22,13 @@
 
 ## Procedure
 
-1. **Branch guard — before any staging.** `Bash git status -sb` and read the first line only (e.g. `## human-readable-outputs...origin/human-readable-outputs`). Return `skipped-branch` when any of:
-    - the branch is `main`;
+1. **Branch guard — before any staging.** `Bash git status -sb` and read the first line only (e.g. `## human-readable-outputs...origin/human-readable-outputs`). Return `skipped-branch` when either of:
     - the upstream named after `...` is on the `release` remote (`release/…`);
     - HEAD is detached (the first line reads `## HEAD (no branch)`).
 
    **No upstream at all → allow.** A local-only branch cannot be a release branch. Evaluating the guard first means a refusal leaves the index untouched.
+
+   **`main` is deliberately *not* refused.** It was, until the guard's `main` clause proved to be the wrong shape: it used the branch name as a proxy for *"this is a framework-development checkout"*, and that proxy is equally true of every consultant who clones the framework and starts working. The pipelines' audience is consultants and BAs who are not expected to know git, so a name-based refusal on `main` meant the completion commit never fired for exactly the user it exists to protect — announced only by one `skipped-branch` line emitted immediately before the `/clear` tip, where it is reliably missed. What the guard now refuses is the outcome that is actually bad: a commit on a branch that tracks the shipped framework repo, or on a detached HEAD where the commit would be unreachable. Refusing `main` bought less than it appeared to in any case — the thirteen pre-destructive `checkpoint: …` commits are unguarded and land on `main` already.
 2. **Resolve `paths`** from the table below using the supplied slots. Drop every resolved path that does not exist on disk. If nothing remains, return `nothing-to-commit`.
 3. **Stage** — one `Bash git add <path>` invocation **per resolved path**. One path per invocation, so each call matches a narrow permission pattern in `.claude/settings.json` rather than requiring a broad grant.
 4. **Probe** — `Bash git diff --cached --quiet`. Exit 0 means nothing was staged: return `nothing-to-commit`. (Stage-then-probe, not stderr parsing — which is what makes any non-zero from step 5 unambiguously a real failure.)
@@ -83,7 +84,7 @@ Notes on individual rows:
 
   Everything else `IS-01` enumerates is a client original and never enters history: raw dropped source files of any format, the `*.stadium` pointer, and every path under a dropped Stadium 6 application folder. Class 3 files *are* named in `IS-01`'s protected list — they are protected from **deletion**, and they are precisely the artefact `/amend-requirements` and `/resolve-review` exist to produce, so committing them is the point.
 - Never `git add documentation/` wholesale, and never a bare `documentation/<AppName>/` app folder.
-- Never guard the pre-destructive checkpoints. The branch guard applies to the **completion** commit only. A future reader will see `checkpoint:` commits landing on `main` while completion commits do not; that asymmetry is deliberate — a checkpoint's job is preserving something about to be deleted, on any branch.
+- Never guard the pre-destructive checkpoints. The branch guard applies to the **completion** commit only. A future reader will see `checkpoint:` commits landing on a release-tracking branch or a detached HEAD while completion commits do not; that asymmetry is deliberate — a checkpoint's job is preserving something about to be deleted, on any branch.
 - Never invoke this skill on a `Keep`-existing branch, a cancel branch, a prerequisite exit, or a refusal halt. Callers invoke it **only where a fresh artefact was written this iteration**. Invoking on a `Keep` branch would find an artefact left dirty by a previously *cancelled* run and commit it under a subject claiming this iteration produced it.
 - Never block. A `failed` return produces one plain-text warning line from the caller and the pipeline continues; it never undoes a `status: "complete"` write and never suppresses the context-hygiene tip. `nothing-to-commit` produces nothing at all.
 - Never register a new `RF-NN` for a failure here. Failure is benign by design; a refusal predicate would misclassify it.
