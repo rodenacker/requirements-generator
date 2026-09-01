@@ -33,7 +33,7 @@ The two paths are otherwise identical: same gates, same agent, same parameters. 
 
 ## Stand-alone constraint
 
-This orchestrator and its drafter agent are **isolated from every other pipeline** for write purposes, with two documented cross-pipeline exceptions owned by the drafter.
+This orchestrator and its drafter agent are **isolated from every other pipeline** for write purposes, with two documented cross-pipeline exceptions owned by the drafter. The step-3 completion commit is a **git-history write, not a filesystem write** under a state directory, so it does not widen the write set below; its staging set is canonical in `framework/skills/commit-run-outputs.md`.
 
 **Writes (allowed):**
 - `generated-docs/amend-requirements/amendments-draft.md` — the drafter's staged draft (transient; deleted by the drafter on successful finalise, or by this orchestrator's step-1 Discard branch).
@@ -72,7 +72,7 @@ This pipeline is single-shot and short: no `.progress.json`, no timing NDJSON, n
             - **Discard** — `Bash rm -f generated-docs/amend-requirements/amendments-draft.md` and proceed to step 2. **No git checkpoint** — deliberate divergence from the Reset-procedure convention (and consistent with `resolve-review-orch.md` step 1): the draft was never consultant-accepted, so there is no ratified prior state to preserve.
             - **Cancel** — output: *"Keeping the stale draft for inspection. Nothing changed."* Exit cleanly, zero writes.
 2. **Invoke the drafter** — invoke `framework/agents/amend-requirements-drafter.md` in the foreground with `doc_path: "generated-docs/requirements/requirements.md"`, `doc_status`, `doc_finalised_at`, `existing_amd_count`, and `existing_run_count`. Wait until the agent hands back per its Definition of Done.
-3. **Done** — single-shot: declare done per the handback gate below. On an **accepted run** (not a clean-exit or `RF-04` halt), emit the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) to the consultant. There is no selection loop; to amend again, the consultant re-invokes `/amend-requirements` (outputs accumulate side-by-side, and the Amendments section extends rather than duplicating).
+3. **Done** — single-shot: declare done per the handback gate below. On an **accepted run** (not a clean-exit or `RF-04` halt), first **commit the accepted amendment** (best-effort, non-blocking): invoke `framework/skills/commit-run-outputs.md` with `pipeline: "amend-requirements"`, `date: <the date of the `documentation/amendments-<date>[-N].md` the drafter reported writing>`. Branch on the return: `committed` / `nothing-to-commit` → say nothing; `skipped-branch` → **one** plain-text line naming the branch; `failed` → **one** plain-text warning line. Then emit the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) to the consultant. The commit lands **before** the tip, because the tip tells the consultant to `/clear`; a non-`committed` return never suppresses the tip and never withholds the declaration of done. There is no selection loop; to amend again, the consultant re-invokes `/amend-requirements` (outputs accumulate side-by-side, and the Amendments section extends rather than duplicating).
 
 ## Handback gate
 
@@ -89,7 +89,8 @@ If neither is satisfied — including an `RF-04` halt at the agent's Step 6, Ste
 - `generated-docs/amend-requirements/amendments-draft.md` — the step-1 stale-draft existence check.
 - `framework/agents/amend-requirements-drafter.md` — the agent invoked at step 2.
 - `framework/shared/refusal-registry.md` — `RF-04` semantics surfaced by the drafter at its write steps (via `framework/skills/verify-artifact-write.md` and `framework/skills/apply-amendments-section.md`). This orchestrator surfaces no refusal directly.
-- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on an accepted run (step 3).
+- `framework/skills/commit-run-outputs.md` — invoked once on an accepted run at step 3, with `pipeline: "amend-requirements"` and `date`, immediately before the context-hygiene tip. Owns the staging set (canonical in its path table), the subject string, the branch guard, and the four return values; best-effort and non-blocking.
+- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on an accepted run (step 3, after the completion commit).
 
 ## Output
 
@@ -99,7 +100,8 @@ If neither is satisfied — including an `RF-04` halt at the agent's Step 6, Ste
 
 - `Grep` — the step-0 pre-flight extraction from `generated-docs/requirements/requirements.md`: the header line's `Status` / `Last finalised at` values, the `AMD-\d+` count, and the `### Run ` count. No other grep.
 - `Read` — the existence/size check on `generated-docs/requirements/requirements.md` (step 0) and on `generated-docs/amend-requirements/amendments-draft.md` (step 1). No content reads — in particular the orchestrator never reads the document body, any amendment content, or any file under `documentation/`.
-- `Bash` — `rm -f generated-docs/amend-requirements/amendments-draft.md` on the step-1 Discard branch only. No other Bash usage; never delete any other path; never commit or push.
+- `Bash` — `rm -f generated-docs/amend-requirements/amendments-draft.md` on the step-1 Discard branch only; and, on an accepted run at step 3, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. No other Bash usage; never delete any other path; never push, amend, or skip hooks.
+- `framework/skills/commit-run-outputs.md` — the best-effort completion commit on an accepted run (`pipeline: "amend-requirements"`).
 - `AskUserQuestion` — the step-1 `{ Discard, Cancel }` stale-draft prompt only. The step-0 advisories are printed text; the drafter owns every other prompt (the intake, the per-change asks, accept/revise/restart).
 
 The orchestrator's tools are limited to the operations above. Every other read or write belongs to the drafter, which uses the tools listed in its own agent file.
@@ -110,8 +112,8 @@ The orchestrator's tools are limited to the operations above. Every other read o
 - The step-0 extraction was `Grep`-bounded — the orchestrator did not read the document body.
 - Step 1 ran on every path that passed step 0: the Discard branch deleted only `generated-docs/amend-requirements/amendments-draft.md` (no git checkpoint, by design); the Cancel branch exited with zero writes.
 - The drafter was invoked exactly once, in the foreground, with all five parameters; it was never dispatched via the Agent / Task tool.
-- The handback gate was met before declaring done — accepted-run conditions or a documented clean exit; an `RF-04` halt was not papered over. On an accepted run, the context-hygiene completion tip was emitted verbatim, on the success path only.
-- No file was written outside `generated-docs/amend-requirements/`, the drafter's single new `documentation/` file, and the drafter's bounded Amendments-section write to `generated-docs/requirements/requirements.md`. Nothing under `framework/state/` was written on either entry path. The input-handler was not invoked. The source manifest was neither read nor written.
+- The handback gate was met before declaring done — accepted-run conditions or a documented clean exit; an `RF-04` halt was not papered over. On an accepted run, `framework/skills/commit-run-outputs.md` was invoked **exactly once**, with `pipeline: "amend-requirements"`, **before** the tip; its return was one of `committed | nothing-to-commit | skipped-branch | failed`, and a non-`committed` return produced at most one plain-text line and left the artefacts, the tip and the declaration of done untouched. It was **not** invoked on a clean exit or an `RF-04` halt. Then the context-hygiene completion tip was emitted verbatim, on the success path only.
+- No file was written outside `generated-docs/amend-requirements/`, the drafter's single new `documentation/` file, and the drafter's bounded Amendments-section write to `generated-docs/requirements/requirements.md`. (The step-3 completion commit is a git-history write, not a filesystem write.) Nothing under `framework/state/` was written on either entry path. The input-handler was not invoked. The source manifest was neither read nor written.
 
 ## Definition of Done
 
@@ -132,7 +134,10 @@ The pipeline is done when exactly one of:
 - Do not invoke the input-handler or `framework/skills/set-build-target.md`.
 - Do not write `framework/state/.progress.json` or `framework/state/timing.ndjson` on any branch — including when reached from `/requirements` Step 0, where the calling orchestrator owns the closing `run_end` event.
 - Do not branch any behaviour on which entry point was used, and do not inspect `framework/state/` to determine it.
-- Do not git-checkpoint the stale draft before discarding it — it was never consultant-accepted (documented divergence from the Reset-procedure convention). Equally: do not delete it without the consultant's explicit Discard.
+- Do not git-checkpoint the stale draft before discarding it — it was never consultant-accepted (documented divergence from the Reset-procedure convention). Equally: do not delete it without the consultant's explicit Discard. This divergence is about a **stale, never-ratified draft**; it does not conflict with the step-3 completion commit, which commits an artefact the consultant *did* accept. Both are correct — do not "fix" the apparent inconsistency by adding a checkpoint here or removing the completion commit there.
+- Do not invoke `commit-run-outputs.md` on any clean exit (step-0 missing source, step-1 Cancel, a drafter no-write terminal) or on an `RF-04` halt. Nothing was accepted on those paths.
+- Do not let the step-3 completion commit block. A `failed` return produces **one** plain-text warning line and the pipeline still declares done; it never deletes an artefact and never suppresses the context-hygiene tip. Do not restate the skill's staging set, subject string, branch guard, or pathspec form here — they are canonical in the skill.
+- Do not stage any `documentation/` path other than the dated amendments document the drafter wrote. Every consultant-dropped original stays out of git history (`commit-run-outputs.md > Anti-Patterns`).
 - Do not delete anything other than `generated-docs/amend-requirements/amendments-draft.md`, on the Discard branch only.
 - Do not loop back to step 0 after a completed run. Single-shot by design; re-invocation is the loop.
 - Do not flip the step-0 missing-source exit into an `RF-NN` predicate. It is an expected state with a friendly exit.

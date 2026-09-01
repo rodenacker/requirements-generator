@@ -23,6 +23,8 @@ Run a registry-driven, single-agent analysis pipeline whose source material is t
 
 This orchestrator and its analyser agents are **isolated from the `/requirements`, `/design-system`, `/analyse-requirement`, and `/review-requirement` pipelines** for write purposes, with one documented exception inherited from the shared input-handler's contract.
 
+The per-methodology completion commit is a **git-history write, not a filesystem write** under a state directory, so it does not widen the write set below; its staging set is canonical in `framework/skills/commit-run-outputs.md`.
+
 **Writes (allowed):**
 - `generated-docs/analyse-inputs/<METHOD>/*` — the analyser's output path (per the chosen registry row's `output_path` field).
 - `generated-docs/requirements/source-manifest.json` — **only** when step 1's input-handler invocation enters its `mode = "create"` (absent) or `mode = "refresh"` (stale, consultant chose Refresh) branch. The manifest path is shared with `/requirements`, `/generate-prd`, and `/review-inputs`; the write is bounded to a single canonical file. The input-handler also writes `documentation/<basename>.converted.md` siblings as part of the same invocation. On `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write to this path occurs.
@@ -69,7 +71,7 @@ Steps 0–3 form an in-memory loop whose head is the step-0 methodology selector
 
 3. **Invoke the analyser** — invoke `chosen.analyser_agent` in the foreground. Wait until the agent reports the artefact accepted (handback gate below).
 
-After the handback gate is met, emit *"✓ Ran {{chosen.name}}. Back to the menu."*, increment `run_count`, and return to step 0 (the selection-loop head). The orchestrator does **not** declare done here — the pipeline ends only when the consultant cancels at the step-0 selector. The step-1 preflight is not re-run (`preflight_done == true`).
+After the handback gate is met, **commit the accepted artefact** (best-effort, non-blocking): invoke `framework/skills/commit-run-outputs.md` with `pipeline: "analyse-inputs"`, `method_name: chosen.name`, `method_dir: <the directory containing chosen.output_path>` — the directory, not the file, so the methodology's `<METHOD>.sidecar.json` is captured alongside it. Branch on the return: `committed` / `nothing-to-commit` → say nothing; `skipped-branch` → **one** plain-text line naming the branch; `failed` → **one** plain-text warning line. Then emit *"✓ Ran {{chosen.name}}. Back to the menu."*, increment `run_count`, and return to step 0 (the selection-loop head). The commit is **per accepted methodology**, not once at session exit — so work survives a consultant who `/clear`s instead of cancelling at the selector. There is **no** commit at the step-0 `cancelled` exit: every artefact was already committed as it was accepted. The orchestrator does **not** declare done here — the pipeline ends only when the consultant cancels at the step-0 selector. The step-1 preflight is not re-run (`preflight_done == true`).
 
 ## Per-methodology Reset procedure (overwrite an existing artefact)
 
@@ -105,6 +107,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 - `generated-docs/requirements/source-manifest.json` — read at step 1 by the input-handler (existence check + freshness comparison). Re-built by the input-handler when absent or when the consultant chooses `Refresh` at the input-handler's step-0 drift prompt; otherwise left unchanged.
 - `documentation/` — read by the analyser per-row (originals or converted siblings) per its own workflow; the orchestrator does not read it.
 - `framework/shared/refusal-registry.md` — `RF-01`, `RF-03`, `RF-04` semantics surfaced by this orchestrator, by the input-handler at step 1, and by the analyser at its write step.
+- `framework/skills/commit-run-outputs.md` — invoked once **per accepted methodology** at the end of step 3, with `pipeline: "analyse-inputs"`, `method_name`, `method_dir`. Owns the staging set, the subject string, the branch guard, and the four return values; best-effort and non-blocking.
 - `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip appended to the selection-loop exit message.
 
 ## Output
@@ -114,7 +117,8 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 ## Tools
 
 - `Read` — check whether `<chosen.output_path>` exists at step 2. No other reads outside the input-handler's and analyser's input paths are permitted. The step-1 manifest existence-and-freshness check is owned by the input-handler at its step 0, not by the orchestrator.
-- `Bash` — git checkpoint commit + `rm -f <chosen.output_path>` during the Reset procedure. No other Bash usage outside what the invoked agents own. Never use destructive operations beyond the explicitly named path. Never push or skip hooks.
+- `Bash` — git checkpoint commit + `rm -f <chosen.output_path>` during the Reset procedure; and, after each accepted artefact, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. No other Bash usage outside what the invoked agents own. Never use destructive operations beyond the explicitly named path. Never push, amend, or skip hooks.
+- `framework/skills/commit-run-outputs.md` — the best-effort completion commit after each accepted artefact (`pipeline: "analyse-inputs"`).
 - `AskUserQuestion` — surface the step-2 `{ Overwrite, Keep }` prompt when a prior artefact exists. The step-0 methodology prompt belongs to the analysis-selector skill; the step-1 input-handler's `RF-01` / `RF-03` / `Manifest drift` prompts belong to that agent; the step-3 accept/revise/restart prompts belong to the analyser agent — the orchestrator does not surface any of these directly.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of analysis content belongs to the invoked agent; each agent uses the tools listed in its own agent file.
@@ -136,6 +140,7 @@ Each input-analyser additionally records a source-roster section in its artefact
 - If the consultant chose `Keep` at the step-2 prior-artefact gate, no `Bash` was run and the analyser was not invoked; `Keep` returned control to step 0 without incrementing `run_count`.
 - If the consultant chose `Overwrite` at step 2, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and the prior artefact was deleted before the agent was invoked.
 - If the analyser was invoked, its handback gate was met (artefact exists, verify pass, consultant accepted).
+- `framework/skills/commit-run-outputs.md` was invoked **exactly once per accepted methodology**, immediately after that methodology's handback gate and before the `✓ Ran …` line — never on the `Keep` branch, never on the step-0 `cancelled` / `empty-registry` exits, and never a second time at session exit. Its return was one of `committed | nothing-to-commit | skipped-branch | failed`; a non-`committed` return produced at most one plain-text line, left the artefact on disk, did not stop the loop, and did not suppress the exit message or its context-hygiene tip.
 - Every invoked agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
 - No file was written outside `generated-docs/analyse-inputs/<chosen.name>/`, with the documented step-1 exception of `generated-docs/requirements/source-manifest.json` and `documentation/*.converted.md` siblings produced by the input-handler.
 - `framework/state/.progress.json` was not written by this orchestrator on any branch. No selection-loop state (`run_count`, `preflight_done`) was persisted to disk; the loop ran in memory only.
@@ -155,12 +160,15 @@ Each methodology run *within* the loop completes when the analyser hands back a 
 
 - Do not perform any task other than the steps listed above.
 - Do not advance past the handback gate before it is met.
-- Do not read, write, or edit any analysis artefact directly. The orchestrator's only direct disk operations are the existence checks (Read) and the per-methodology Reset procedure (Bash rm + git commit). Every other read or write belongs to the invoked agent.
+- Do not read, write, or edit any analysis artefact directly. The orchestrator's only direct disk operations are the existence checks (Read), the per-methodology Reset procedure (Bash rm + git checkpoint commit), and the per-methodology completion commit — the last of which is a git-history write, not a filesystem write. Every other read or write belongs to the invoked agent.
 - Do not call any skill, asset, or tool not invoked transitively by the input-handler or the analyser, or listed in this orchestrator's **Tools** section.
 - Do not run any agent as a background / sub / async agent. Each must run in the foreground in the same thread so consultant Q&A and acceptance happen in-thread.
 - Do not run the per-methodology Reset procedure when no prior artefact was detected, and do not run it when the consultant chose `Keep`.
 - Do not delete anything outside `<chosen.output_path>` during a reset. The Reset procedure is scoped to one file per methodology, plus the git checkpoint commit.
-- Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
+- Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit — or during the completion commit.
+- Do not invoke `commit-run-outputs.md` on the step-2 `Keep` branch, on the step-0 `cancelled` / `empty-registry` exits, or on a step-1 input-handler exit. Nothing fresh was written on those paths; invoking there would find an artefact left dirty by a previously *cancelled* run and commit it under a subject claiming this iteration produced it.
+- Do not defer the commit to session exit, and do not emit a second one there. The commit is per accepted methodology precisely so the work survives a consultant who `/clear`s instead of cancelling at the selector.
+- Do not let the completion commit block. A `failed` return produces **one** plain-text warning line and the loop continues to step 0; it never deletes the artefact, never decrements `run_count`, and never suppresses the exit message or its tip. Do not restate the skill's staging set, subject string, branch guard, or pathspec form here — they are canonical in the skill.
 - Do not maintain a `.progress.json` file. This orchestrator runs one analyser per iteration (the input-handler invocation at step 1 is once-per-session preflight, not a tracked pipeline stage) and loops back to the selector in memory only; on-disk progress tracking is unnecessary and out of scope (the selector reconstructs run-state from artefact presence).
 - Do not re-run the step-1 input-handler invocation on loop iterations. It is once-per-session preflight, guarded by `preflight_done`; on later iterations the loop goes straight from step 0 to step 2.
 - Do not persist `run_count` or `preflight_done` (or any selection-loop state) to disk, and do not treat them as resumable across a `/clear`. The loop is in-memory only; cross-session continuity comes from the selector's on-disk `✓ already run` probe and the input-handler's own freshness check on a fresh invocation.

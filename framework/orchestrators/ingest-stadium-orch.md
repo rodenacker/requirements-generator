@@ -20,7 +20,7 @@ Run a single foreground agent (`stadium-ingestor`) that turns any **Stadium 6 ap
 
 ## Stand-alone constraint
 
-This orchestrator and its agent are isolated from the `/requirements` (and `/generate-prd`, `/analyse-inputs`, `/review-inputs`) pipelines. They do **not** read or write `generated-docs/requirements/` (no `generated-docs/requirements/source-manifest.json`, no `generated-docs/requirements/requirements.md`), and they do **not** touch any other agent's working state (`framework/state/.progress.json`, resolver sidecars, timing log). They read/write only: `documentation/` (the dropped app / pointer — read-only — and the generated `documentation/<AppName>.stadium-assets/` assets — written by the agent), `framework/state/.stadium-processed.json` (the processed-ledger), `framework/state/stadium/` (the forensic `model.json`), and the Stadium knowledge base `framework/assets/stadium/` (read-only). Building the source manifest is **not** this pipeline's job — the next input-handler run (any consuming pipeline) enumerates the produced assets as ordinary `Native-text` inputs.
+This orchestrator and its agent are isolated from the `/requirements` (and `/generate-prd`, `/analyse-inputs`, `/review-inputs`) pipelines. They do **not** read or write `generated-docs/requirements/` (no `generated-docs/requirements/source-manifest.json`, no `generated-docs/requirements/requirements.md`), and they do **not** touch any other agent's working state (`framework/state/.progress.json`, resolver sidecars, timing log). They read/write only: `documentation/` (the dropped app / pointer — read-only — and the generated `documentation/<AppName>.stadium-assets/` assets — written by the agent), `framework/state/.stadium-processed.json` (the processed-ledger), `framework/state/stadium/` (the forensic `model.json`), and the Stadium knowledge base `framework/assets/stadium/` (read-only). The completion commit at the success terminal is a **git-history write, not a filesystem write** under a state directory, so it does not widen that set; its staging set is canonical in `framework/skills/commit-run-outputs.md`. Building the source manifest is **not** this pipeline's job — the next input-handler run (any consuming pipeline) enumerates the produced assets as ordinary `Native-text` inputs.
 
 ## No progress file
 
@@ -31,7 +31,15 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
 0. **Detect units & re-ingest gate** — before invoking the agent, perform the gate described in **Startup: detect units & re-ingest gate** below. Depending on the consultant's choices, reset one or more already-ingested apps (after a git checkpoint), leave them as-is, or exit cleanly.
 1. **Run the ingestor** — invoke `framework/agents/stadium-ingestor.md` in the foreground. Wait until the agent reports every detected unit extracted, skipped (already ledgered), or failed, and hands control back (handback gate below).
 
-There is no step 2. After the handback gate is met, the orchestrator emits the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) and declares done.
+There is no step 2. After the handback gate is met, the orchestrator **commits the freshly-extracted apps** (best-effort, non-blocking) by invoking `framework/skills/commit-run-outputs.md` with `pipeline: "ingest-stadium"` and the `app_id` of every unit the agent's summary reported as **extracted** — never a *skipped* or *failed* one. Branch on the return: `committed` / `nothing-to-commit` → say nothing; `skipped-branch` → **one** plain-text line naming the branch; `failed` → **one** plain-text warning line. Then it emits the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) and declares done. The commit lands **before** the tip, because the tip tells the consultant to `/clear`; a non-`committed` return never suppresses the tip and never withholds the declaration of done.
+
+Five things about this pipeline's commit are specific to it and easy to get wrong:
+
+- **Only *extracted* apps are staged.** The handback gate accounts for every detected unit as *extracted*, *skipped*, or *failed*, and only the extracted ones produced anything this run. A *skipped* app's assets were committed by an earlier run and its hand-edits are deliberately preserved; a *failed* app is left un-ledgered for retry, and committing its partial extract would present broken output as complete.
+- **Never stage the consultant's dropped app.** `documentation/<AppName>.stadium-assets/` is framework-generated and staged; the app folder itself and the `*.stadium` pointer are client originals that never enter git history. This is the sharpest hazard the completion commit introduces here — the Anti-Pattern below draws the same line the reset procedure already draws for deletion.
+- **Its "run state" is the ledger and the forensic dirs**, not progress or timing. This pipeline writes no `.progress.json` and is forbidden from touching `timing.ndjson`; the state worth committing is `framework/state/.stadium-processed.json` and `framework/state/stadium/<app_id>/`, nothing else.
+- **The empty run is a success path.** "No Stadium application found", and a run where every unit was skipped, both reach the Definition of Done. The resolved path set is then empty and the skill returns `nothing-to-commit` — no commit, no warning. Correct, not a gap.
+- **The subject reads `extracted`, not `complete`** (see the skill's path table). This pipeline's handback gate is mechanical and its assets are LLM-audience, never surfaced for review; the only consultant decision is the startup re-ingest gate. Committing deterministic extractor output is right — it is what makes a later hand-edit diffable — but it is not approval.
 
 ## Startup: detect units & re-ingest gate
 
@@ -91,7 +99,8 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 - `framework/state/.stadium-processed.json` — read at startup to partition new vs already-ingested units; on a re-ingest reset, an entry is deleted and the file re-written (the agent otherwise owns ledger writes).
 - `framework/skills/verify-artifact-write.md` — verify the ledger write on a re-ingest reset.
 - `framework/shared/refusal-registry.md` — `RF-01` (Python preflight) semantics surfaced by the agent; `RF-04` write-verify semantics on the ledger reset write.
-- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on successful completion (after the handback gate).
+- `framework/skills/commit-run-outputs.md` — invoked once at the success terminal with `pipeline: "ingest-stadium"` and the freshly-extracted `app_id`s, immediately before the context-hygiene tip. Owns the staging set (canonical in its path table), the subject string, the branch guard, and the four return values; best-effort and non-blocking.
+- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on successful completion (after the handback gate, after the completion commit).
 
 ## Output
 
@@ -101,7 +110,8 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 - `Glob` — detect `documentation/*.stadium` pointers and `documentation/*/administration.db` app folders at startup.
 - `Read` — read `framework/state/.stadium-processed.json` at startup (and to remove a key on re-ingest reset). No reads outside the paths named in **Stand-alone constraint**.
-- `Bash` — git checkpoint commit + `rm -rf documentation/<AppName>.stadium-assets` + `rm -rf framework/state/stadium/<app_id>` during a re-ingest reset only. No other Bash usage; never destructive operations beyond those named paths; never push or skip hooks.
+- `Bash` — git checkpoint commit + `rm -rf documentation/<AppName>.stadium-assets` + `rm -rf framework/state/stadium/<app_id>` during a re-ingest reset; and, at the success terminal, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. No other Bash usage; never destructive operations beyond those named paths; never push, amend, or skip hooks. (No new permission patterns: `Bash(git add documentation/*)` and `Bash(git add framework/state/*)` already cover this pipeline's staging set.)
+- `framework/skills/commit-run-outputs.md` — the best-effort completion commit at the success terminal (`pipeline: "ingest-stadium"`).
 - `Write` — re-write `framework/state/.stadium-processed.json` with a key removed, during a re-ingest reset only (verified via `verify-artifact-write.md`).
 - `AskUserQuestion` — surface the `{ Skip, Re-ingest, Cancel }` gate at startup when a detected unit is already in the ledger.
 
@@ -114,7 +124,8 @@ The orchestrator's tools are limited to the operations above. Every other read o
 - If the consultant chose `Cancel`, no reset ran and the agent was not invoked.
 - On a run that reached the agent, its handback gate was met (every unit extracted / skipped / failed; freshly-extracted apps' ledger writes verified).
 - The agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
-- On a successful run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted verbatim after the handback gate, on the success path only.
+- On a successful run, `framework/skills/commit-run-outputs.md` was invoked **exactly once**, with `pipeline: "ingest-stadium"` and only the `app_id`s the agent reported as **extracted** — no *skipped* app, no *failed* app, no dropped app folder, no `*.stadium` pointer. Its return was one of `committed | nothing-to-commit | skipped-branch | failed`; on an empty run (no unit detected, or every unit skipped) the return was `nothing-to-commit` with no warning. A non-`committed` return produced at most one plain-text line and left the assets, the tip and the declaration of done untouched. It was **not** invoked on the startup `Cancel`.
+- On a successful run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted verbatim after the handback gate and after the completion commit, on the success path only.
 
 ## Definition of Done
 
@@ -132,7 +143,11 @@ In either case the orchestrator emits the context-hygiene tip (success path) and
 - Do not run the agent as a background / sub / async agent. It must run in the foreground so the `RF-01` choice and per-app progress happen in-thread.
 - Do not run the re-ingest reset for an app whose gate answer was `Skip`, and do not run it when the consultant chose `Cancel`.
 - Do not delete anything outside `documentation/<AppName>.stadium-assets/` and `framework/state/stadium/<app_id>/` during a reset, and do not remove any ledger key other than the re-ingested `app_id`. The `documentation/<AppName>.stadium-assets/` deletion is the one Stadium-side exception sanctioned by `framework/shared/input-safety.md` `IS-03`; consultant-dropped originals (the app folder / `*.stadium` pointer) are never deleted (`IS-01`).
-- Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
+- Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit — or during the completion commit.
+- Do not stage a *skipped* or *failed* app at the completion commit. A skipped app's assets were committed by an earlier run and its hand-edits are deliberately preserved; a failed app is un-ledgered for retry, and committing its partial extract would present broken output as complete.
+- Do not stage a consultant-dropped app folder or a `*.stadium` pointer, ever. Only the framework-generated `documentation/<AppName>.stadium-assets/` tree enters git history — the same line the reset procedure draws for deletion, applied to what is committed rather than what is removed.
+- Do not invoke `commit-run-outputs.md` on the startup `Cancel`. Nothing was extracted on that path.
+- Do not let the completion commit block. A `failed` return produces **one** plain-text warning line and the pipeline still declares done; it never deletes an asset, never un-ledgers an app, and never suppresses the context-hygiene tip. Do not restate the skill's staging set, subject string, branch guard, or pathspec form here — they are canonical in the skill. Do not route the **pre-destructive** re-ingest checkpoint through that skill: it exists to preserve something about to be deleted and stays unguarded by branch.
 - Do not read or write `generated-docs/requirements/`, `framework/state/.progress.json`, the timing log, or any other pipeline's working state. This pipeline is stand-alone.
 - Do not build or refresh the source manifest. That is the input-handler's job on the next consuming-pipeline run; the produced assets are ordinary `Native-text` inputs.
 - Do not maintain a `.progress.json` file. This orchestrator is single-agent and one-shot; the processed-ledger provides idempotency.

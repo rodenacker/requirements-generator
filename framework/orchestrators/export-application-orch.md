@@ -16,7 +16,7 @@ Run a single foreground agent (`export-application-exporter`) that re-projects t
 
 ## Stand-alone constraint
 
-This orchestrator and its agent write **only** to `generated-docs/export-application/`. Reads outside that directory are limited to: `generated-docs/requirements/requirements.md` (the source document — the pipeline's core input, read by the Step 0 gate and by the agent) and `generated-docs/requirements/draft-claims.ndjson` (agent existence-probe only). No write to any path outside `generated-docs/export-application/` is permitted by either the orchestrator or the agent — no `.progress.json`, no timing events (timing observability is a `/requirements`-family concern; standalone single-agent pipelines write none).
+This orchestrator and its agent write **only** to `generated-docs/export-application/`. (The completion commit at the success terminal is a **git-history** write, not a filesystem write under a state directory; its staging set is canonical in `framework/skills/commit-run-outputs.md`.) Reads outside that directory are limited to: `generated-docs/requirements/requirements.md` (the source document — the pipeline's core input, read by the Step 0 gate and by the agent) and `generated-docs/requirements/draft-claims.ndjson` (agent existence-probe only). No write to any path outside `generated-docs/export-application/` is permitted by either the orchestrator or the agent — no `.progress.json`, no timing events (timing observability is a `/requirements`-family concern; standalone single-agent pipelines write none).
 
 ## No progress file
 
@@ -42,7 +42,7 @@ This orchestrator does **not** maintain a `.progress.json` file and writes **no*
     - **Regenerate** — perform the **Reset procedure** below, then proceed to step 1.
 1. **Run the exporter** — invoke `framework/agents/export-application-exporter.md` in the foreground. Wait until the agent reports one of the two terminals below (**Handback gate**): a normal handback, or a `normative-residue-halt` clean exit with zero writes.
 
-There is no step 2. After the **Terminal 2** handback gate is met, the orchestrator emits the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) and declares done. On **Terminal 1** (`normative-residue-halt`) it emits no tip and does not declare done — it reports the halt and exits.
+There is no step 2. After the **Terminal 2** handback gate is met **with the consultant's `Accept`**, the orchestrator **commits the accepted export** (best-effort, non-blocking) by invoking `framework/skills/commit-run-outputs.md` with `pipeline: "export-application"`, branching on the return — `committed` / `nothing-to-commit` → say nothing; `skipped-branch` → **one** plain-text line naming the branch; `failed` → **one** plain-text warning line — then emits the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) and declares done. The commit lands **before** the tip, because the tip tells the consultant to `/clear`. A non-`committed` return never suppresses the tip and never withholds the declaration of done. On a `Reject` the skill is **not** invoked — a rejected export is not a deliverable, and `complete` in the commit subject means a human accepted this. On **Terminal 1** (`normative-residue-halt`) it emits no tip and does not declare done — it reports the halt and exits.
 
 ## Reset procedure (regenerate an existing export)
 
@@ -72,7 +72,8 @@ If any of Terminal 2's conditions is not satisfied **and** the agent did not rep
 - `generated-docs/requirements/requirements.md` — read at step 0 (existence, header `Target`, header `Status`) and at step 0a (current sha256). Content consumption belongs to the agent.
 - `generated-docs/export-application/requirements-application.md` — read at step 0a (existence + backtick-tolerant `Source sha256` grep + `Gate outcome` grep) and overwritten by the agent on a fresh run.
 - `framework/shared/refusal-registry.md` — `RF-04` (surfaced by the agent) semantics.
-- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on successful completion (after the handback gate).
+- `framework/skills/commit-run-outputs.md` — invoked once at the success terminal with `pipeline: "export-application"`, immediately before the context-hygiene tip. Owns the staging set, the subject string, the branch guard, and the four return values; best-effort and non-blocking.
+- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on successful completion (after the handback gate, after the completion commit).
 
 ## Output
 
@@ -82,8 +83,9 @@ If any of Terminal 2's conditions is not satisfied **and** the agent did not rep
 
 - `Read` — step 0 source inspection; step 0a export existence check.
 - `Grep` — step 0a provenance-row extraction from the existing export, using the backtick-tolerant `Source sha256` pattern and the `Gate outcome` pattern given in Step 0a. No other grep.
-- `Bash` / PowerShell — `Get-FileHash` at step 0a; the Reset procedure's `git add` / `git commit` / `rm -f` on the single named artefact path. Nothing else; never push, amend, or skip hooks.
+- `Bash` / PowerShell — `Get-FileHash` at step 0a; the Reset procedure's `git add` / `git commit` / `rm -f` on the single named artefact path; and, at the success terminal, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. Nothing else; never push, amend, or skip hooks.
 - `AskUserQuestion` — the step-0 `Source status` soft gate and the step-0a `{ Keep, Regenerate, Cancel }` gate.
+- `framework/skills/commit-run-outputs.md` — the best-effort completion commit at the success terminal (`pipeline: "export-application"`).
 
 Every other read or write belongs to the invoked agent, per its own agent file.
 
@@ -93,8 +95,9 @@ Every other read or write belongs to the invoked agent, per its own agent file.
 - Step 0a ran whenever step 0 did not exit, and the consultant's choice was honoured: `Keep`/`Cancel` exited with zero writes and no Bash; `Regenerate` checkpointed (no `--no-verify`, no amend, no push) before deleting exactly the one artefact path.
 - The step-0a hash comparison used the backtick-tolerant pattern and a case-normalised comparison — a `Regenerate` recommendation was **not** produced by a pattern that failed to match a well-formed provenance row. `Keep` was never offered on an artefact whose `Gate outcome` row reads `rejected`.
 - If the agent was invoked, either its Terminal-2 handback gate was met (it offered exactly `{ Accept, Reject }`) **or** it reported `normative-residue-halt` — in which case zero files were written, no gate was offered, the per-hit report was surfaced verbatim, and the run was **not** declared successful. It ran in the foreground either way — never via Agent / Task / fork / sub-agent.
-- On a successful run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim after the handback gate, on the success path only.
-- No file outside `generated-docs/export-application/` was written by orchestrator or agent; no `.progress.json`, no timing events.
+- On a consultant `Accept`, `framework/skills/commit-run-outputs.md` was invoked **exactly once**, with `pipeline: "export-application"`, after the handback gate and **before** the tip. Its return was one of `committed | nothing-to-commit | skipped-branch | failed`; a non-`committed` return produced at most one plain-text line, left the artefact on disk, and left both the tip and the declaration of done untouched. It was **not** invoked on `Reject`, on `Terminal 1`, on the step-0 exits, or on `Keep` / `Cancel` at step 0a.
+- On a successful run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim after the handback gate and after the completion commit, on the success path only.
+- No file outside `generated-docs/export-application/` was written by orchestrator or agent; no `.progress.json`, no timing events. (The completion commit is a git-history write, not a filesystem write.)
 
 ## Definition of Done
 
@@ -112,7 +115,9 @@ Every other read or write belongs to the invoked agent, per its own agent file.
 - Do not hard-gate on the source header's `Status` field — the merger stamps it only on `accept`, and pre-stamp documents read as non-`final` without being unfinished; the gate is a soft `AskUserQuestion`.
 - Do not run the export when the source is already `Target: application` — there is nothing to re-project.
 - Do not delete anything other than `generated-docs/export-application/requirements-application.md`, and only during a consultant-confirmed Regenerate after the checkpoint commit.
-- Do not commit with `--no-verify`, force-push, or amend during the checkpoint.
+- Do not commit with `--no-verify`, force-push, or amend during the checkpoint — or during the completion commit.
+- Do not let the completion commit block. A `failed` return from `commit-run-outputs.md` produces **one** plain-text warning line and the pipeline continues; it never withholds the declaration of done, never deletes the artefact, and never suppresses the context-hygiene tip. Do not restate the skill's staging set, subject string, branch guard, or pathspec form here — they are canonical in the skill.
+- Do not invoke `commit-run-outputs.md` on any branch other than a consultant `Accept` at the agent's gate: not on `Reject`, not on `Terminal 1` (`normative-residue-halt`), not on the step-0 prerequisite exits, and not on `Keep` / `Cancel` at step 0a. Nothing fresh was accepted on those paths.
 - Do not run the agent as a background / sub / async agent.
 - Do not tighten the step-0a provenance pattern to require a bare hash or exact single-space padding. Exports already on disk predate the pinned byte format, and an over-strict pattern silently degrades every re-run to the stale branch — which is exactly what the previous pattern did: it matched no real export, so the freshness gate never once reported `fresh`.
 - Do not offer `Keep` when the prior artefact's `Gate outcome` row reads `rejected`. A rejected export is not a deliverable, however fresh its hash.

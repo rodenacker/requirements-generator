@@ -22,7 +22,7 @@ Run a registry-driven, single-agent review pipeline. The orchestrator does not k
 
 ## Stand-alone constraint
 
-This orchestrator and its reviewer agents are **isolated from the `/requirements`, `/design-system`, and `/analyse-requirement` pipelines** for write purposes. They write only to `generated-docs/review-requirements/<METHOD>/` (the reviewer's output path) and never to `generated-docs/requirements/`, `generated-docs/design-system/`, `generated-docs/analyse-requirements/`, `framework/state/`, or `framework/shared/`. The orchestrator does **read** the following pipeline-external paths:
+This orchestrator and its reviewer agents are **isolated from the `/requirements`, `/design-system`, and `/analyse-requirement` pipelines** for write purposes. They write only to `generated-docs/review-requirements/<METHOD>/` (the reviewer's output path) and never to `generated-docs/requirements/`, `generated-docs/design-system/`, `generated-docs/analyse-requirements/`, `framework/state/`, or `framework/shared/`. The per-methodology completion commit is a **git-history write, not a filesystem write** under a state directory, so it does not widen that set; its staging set is canonical in `framework/skills/commit-run-outputs.md`. The orchestrator does **read** the following pipeline-external paths:
 
 - `generated-docs/requirements/requirements.md` — the prerequisite gate (existence + non-empty). Read-only.
 - `framework/assets/reviews/registry.md` — methodology registry. Read-only.
@@ -64,7 +64,7 @@ Steps 1–3 form an in-memory loop whose head is the step-1 methodology selector
 
 3. **Invoke the reviewer** — invoke `chosen.reviewer_agent` in the foreground (for Adversarial Review: `framework/agents/reviews/adversarial-reviewer.md`). Wait until the agent reports the artefact accepted (handback gate below).
 
-After the handback gate is met, emit *"✓ Ran {{chosen.name}}. Back to the menu."*, increment `run_count`, and return to step 1 (the selection-loop head). The orchestrator does **not** declare done here — the pipeline ends only when the consultant cancels at the step-1 selector (or the registry is empty).
+After the handback gate is met, **commit the accepted artefact** (best-effort, non-blocking): invoke `framework/skills/commit-run-outputs.md` with `pipeline: "review-requirement"`, `method_name: chosen.name`, `method_dir: <the directory containing chosen.output_path>` — the directory, not the file, so the methodology's `<METHOD>.sidecar.json` is captured alongside it. Branch on the return: `committed` / `nothing-to-commit` → say nothing; `skipped-branch` → **one** plain-text line naming the branch; `failed` → **one** plain-text warning line. Then emit *"✓ Ran {{chosen.name}}. Back to the menu."*, increment `run_count`, and return to step 1 (the selection-loop head). The commit is **per accepted methodology**, not once at session exit — so work survives a consultant who `/clear`s instead of cancelling at the selector. There is **no** commit at the step-1 `cancelled` exit: every artefact was already committed as it was accepted. The orchestrator does **not** declare done here — the pipeline ends only when the consultant cancels at the step-1 selector (or the registry is empty).
 
 ## Per-methodology Reset procedure (overwrite an existing artefact)
 
@@ -98,6 +98,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 - `framework/agents/reviews/<method>-reviewer.md` — the reviewer agent invoked at step 3, resolved per the chosen registry row's `reviewer_agent` field. For the Adversarial MVP: `framework/agents/reviews/adversarial-reviewer.md`.
 - `generated-docs/requirements/requirements.md` — read at step 0 (existence + non-empty check). This is the orchestrator's only read under `generated-docs/requirements/`.
 - `framework/shared/refusal-registry.md` — `RF-04` semantics surfaced by the reviewer at its write step.
+- `framework/skills/commit-run-outputs.md` — invoked once **per accepted methodology** at the end of step 3, with `pipeline: "review-requirement"`, `method_name`, `method_dir`. Owns the staging set, the subject string, the branch guard, and the four return values; best-effort and non-blocking.
 - `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip appended to the selection-loop exit message.
 
 ## Output
@@ -107,7 +108,8 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 ## Tools
 
 - `Read` — check whether `generated-docs/requirements/requirements.md` exists and is non-empty at step 0; check whether `<chosen.output_path>` exists at step 2. No other reads outside the reviewer's input paths are permitted.
-- `Bash` — git checkpoint commit + `rm -f <chosen.output_path>` during the Reset procedure. No other Bash usage. Never use destructive operations beyond the explicitly named path. Never push or skip hooks.
+- `Bash` — git checkpoint commit + `rm -f <chosen.output_path>` during the Reset procedure; and, after each accepted artefact, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. No other Bash usage. Never use destructive operations beyond the explicitly named path. Never push, amend, or skip hooks.
+- `framework/skills/commit-run-outputs.md` — the best-effort completion commit after each accepted artefact (`pipeline: "review-requirement"`).
 - `AskUserQuestion` — surface the step-2 `{ Overwrite, Keep }` prompt when a prior artefact exists. The step-1 methodology prompt and the step-3 accept/revise/restart prompts belong to the analysis-selector skill and the reviewer agent respectively — the orchestrator does not surface them directly.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of review content belongs to the invoked agent; the agent uses the tools listed in its own agent file.
@@ -121,7 +123,8 @@ The orchestrator's tools are limited to the operations above. Every other read o
 - If the consultant chose `Overwrite` at step 2, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and the prior artefact was deleted before the agent was invoked.
 - If the reviewer was invoked, its handback gate was met (artefact exists, verify pass, consultant accepted).
 - The agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
-- No file was written outside `generated-docs/review-requirements/<chosen.name uppercased>/` (excluding the step-2 git checkpoint commit, which is a git-history write, not a filesystem artefact under a state directory).
+- `framework/skills/commit-run-outputs.md` was invoked **exactly once per accepted methodology**, immediately after that methodology's handback gate and before the `✓ Ran …` line — never on the `Keep` branch, never on the step-1 `cancelled` / `empty-registry` exits, never on the step-0 prerequisite exit, and never a second time at session exit. Its return was one of `committed | nothing-to-commit | skipped-branch | failed`; a non-`committed` return produced at most one plain-text line, left the artefact on disk, did not stop the loop, and did not suppress the exit message or its context-hygiene tip.
+- No file was written outside `generated-docs/review-requirements/<chosen.name uppercased>/` (excluding the step-2 git checkpoint commit and the per-methodology completion commit, both of which are git-history writes, not filesystem artefacts under a state directory).
 - No selection-loop state (`run_count`) or `.progress.json` was written to disk on any path. The loop ran in memory only.
 
 ## Definition of Done
@@ -138,12 +141,15 @@ Each methodology run *within* the loop completes when the reviewer hands back a 
 
 - Do not perform any task other than the steps listed above.
 - Do not advance past the handback gate before it is met.
-- Do not read, write, or edit any review artefact directly. The orchestrator's only direct disk operations are the existence checks (Read) and the per-methodology Reset procedure (Bash rm + git commit). Every other read or write belongs to the reviewer agent.
+- Do not read, write, or edit any review artefact directly. The orchestrator's only direct disk operations are the existence checks (Read), the per-methodology Reset procedure (Bash rm + git checkpoint commit), and the per-methodology completion commit — the last of which is a git-history write, not a filesystem write. Every other read or write belongs to the reviewer agent.
 - Do not call any skill, asset, or tool not invoked transitively by the reviewer or listed in this orchestrator's **Tools** section.
 - Do not run the reviewer as a background / sub / async agent. The agent must run in the foreground in the same thread so consultant Q&A and acceptance happen in-thread.
 - Do not run the per-methodology Reset procedure when no prior artefact was detected, and do not run it when the consultant chose `Keep`.
 - Do not delete anything outside `<chosen.output_path>` during a reset. The Reset procedure is scoped to one file per methodology, plus the git checkpoint commit.
-- Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
+- Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit — or during the completion commit.
+- Do not invoke `commit-run-outputs.md` on the step-2 `Keep` branch, on the step-1 `cancelled` / `empty-registry` exits, or on the step-0 prerequisite exit. Nothing fresh was written on those paths; invoking there would find an artefact left dirty by a previously *cancelled* run and commit it under a subject claiming this iteration produced it.
+- Do not defer the commit to session exit, and do not emit a second one there. The commit is per accepted methodology precisely so the work survives a consultant who `/clear`s instead of cancelling at the selector.
+- Do not let the completion commit block. A `failed` return produces **one** plain-text warning line and the loop continues to step 1; it never deletes the artefact, never decrements `run_count`, and never suppresses the exit message or its tip. Do not restate the skill's staging set, subject string, branch guard, or pathspec form here — they are canonical in the skill.
 - Do not maintain a `.progress.json` file. This orchestrator runs one reviewer per iteration and loops back to the selector in memory only; on-disk progress tracking is unnecessary and out of scope (the selector reconstructs run-state from artefact presence).
 - Do not re-run the step-0 prerequisite gate on loop iterations. It runs exactly once, before the selection loop; the loop re-enters only at step 1.
 - Do not persist `run_count` or any selection-loop state to disk, and do not treat it as resumable across a `/clear`. The loop is in-memory only; cross-session continuity comes from the selector's on-disk `✓ already run` probe.

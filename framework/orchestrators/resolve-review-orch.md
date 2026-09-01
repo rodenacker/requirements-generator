@@ -22,7 +22,7 @@ Run a single-shot, single-agent pipeline that turns consultant-selected findings
 
 ## Stand-alone constraint
 
-This orchestrator and its drafter agent are **isolated from every other pipeline** for write purposes, with one documented cross-pipeline exception owned by the drafter.
+This orchestrator and its drafter agent are **isolated from every other pipeline** for write purposes, with one documented cross-pipeline exception owned by the drafter. The step-3 completion commit is a **git-history write, not a filesystem write** under a state directory, so it does not widen the write set below; its staging set is canonical in `framework/skills/commit-run-outputs.md`.
 
 **Writes (allowed):**
 - `generated-docs/resolve-review/resolutions-draft.md` — the drafter's staged draft (transient; deleted by the drafter on successful finalise, or by this orchestrator's step-1 Discard branch).
@@ -74,7 +74,7 @@ This pipeline is single-shot and short: no `.progress.json`, no timing NDJSON, n
             - **Discard** — `Bash rm -f generated-docs/resolve-review/resolutions-draft.md` and proceed to step 2. **No git checkpoint** — deliberate divergence from the per-methodology Reset-procedure convention: the draft was never consultant-accepted, so there is no ratified prior state to preserve.
             - **Cancel** — output: *"Keeping the stale draft for inspection. Nothing changed."* Exit cleanly, zero writes.
 2. **Invoke the drafter** — invoke `framework/agents/resolve-review-drafter.md` in the foreground with `review_path`, `methodology_key`, and `map_path: "framework/assets/resolve-review/methodology-map.md"`. Wait until the agent hands back per its Definition of Done.
-3. **Done** — single-shot: declare done per the handback gate below. On an **accepted run** (not a clean-exit or `RF-04` halt), emit the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) to the consultant. There is no selection loop; to resolve another review (or the same review again — output files accumulate side-by-side), the consultant re-invokes `/resolve-review`.
+3. **Done** — single-shot: declare done per the handback gate below. On an **accepted run** (not a clean-exit or `RF-04` halt), first **commit the accepted resolutions** (best-effort, non-blocking): invoke `framework/skills/commit-run-outputs.md` with `pipeline: "resolve-review"`, `stem: <filename_stem>`, `date: <the date of the `documentation/<filename_stem>-<date>[-N].md` the drafter reported writing>`, and note whether the drafter's Step 9b applied the Amendments section (its row stages `generated-docs/requirements/requirements.md` only then). Branch on the return: `committed` / `nothing-to-commit` → say nothing; `skipped-branch` → **one** plain-text line naming the branch; `failed` → **one** plain-text warning line. Then emit the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) to the consultant. The commit lands **before** the tip, because the tip tells the consultant to `/clear`; a non-`committed` return never suppresses the tip and never withholds the declaration of done. There is no selection loop; to resolve another review (or the same review again — output files accumulate side-by-side), the consultant re-invokes `/resolve-review`.
 
 ## Handback gate
 
@@ -93,7 +93,8 @@ If neither is satisfied — including an `RF-04` halt at the agent's Step 7, Ste
 - `generated-docs/resolve-review/resolutions-draft.md` — the step-1 stale-draft existence check.
 - `framework/agents/resolve-review-drafter.md` — the agent invoked at step 2.
 - `framework/shared/refusal-registry.md` — `RF-04` semantics surfaced by the drafter at its write steps (via `framework/skills/verify-artifact-write.md`). This orchestrator surfaces no refusal directly.
-- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on an accepted run (step 3).
+- `framework/skills/commit-run-outputs.md` — invoked once on an accepted run at step 3, with `pipeline: "resolve-review"`, `stem`, `date`, immediately before the context-hygiene tip. Owns the staging set (canonical in its path table), the subject string, the branch guard, and the four return values; best-effort and non-blocking.
+- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on an accepted run (step 3, after the completion commit).
 
 ## Output
 
@@ -103,7 +104,8 @@ If neither is satisfied — including an `RF-04` halt at the agent's Step 7, Ste
 
 - `Glob` — discover `generated-docs/review-inputs/*/*.html` and `generated-docs/review-requirements/*/*.html` at step 0, plus `documentation/*-resolutions-*.md` for the step-0 resolved-status scan.
 - `Read` — byte sizes of the discovered artefacts (step-0 list + size advisory), the methodology-map frontmatter (step-0 map gate), the provenance-table head of `documentation/*-resolutions-*.md` files (step-0 resolved-status scan — bounded, read-only), and the existence check on `generated-docs/resolve-review/resolutions-draft.md` (step 1). No other reads — in particular the orchestrator never reads the chosen artefact's content, any finding content or non-resolution file under `documentation/`, `generated-docs/requirements/source-manifest.json`, or `generated-docs/requirements/requirements.md`.
-- `Bash` — `rm -f generated-docs/resolve-review/resolutions-draft.md` on the step-1 Discard branch only. No other Bash usage; never delete any other path; never commit or push.
+- `Bash` — `rm -f generated-docs/resolve-review/resolutions-draft.md` on the step-1 Discard branch only; and, on an accepted run at step 3, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. No other Bash usage; never delete any other path; never push, amend, or skip hooks.
+- `framework/skills/commit-run-outputs.md` — the best-effort completion commit on an accepted run (`pipeline: "resolve-review"`).
 - `AskUserQuestion` — the step-1 `{ Discard, Cancel }` stale-draft prompt only. The step-0 artefact list is a **printed numbered list**; the drafter owns every other prompt (per-finding asks, accept/revise/restart).
 
 The orchestrator's tools are limited to the operations above. Every other read or write belongs to the drafter, which uses the tools listed in its own agent file.
@@ -115,8 +117,8 @@ The orchestrator's tools are limited to the operations above. Every other read o
 - The step-0 resolved-status scan read only the provenance-table heads of `documentation/*-resolutions-*.md` (nothing else under `documentation/`, no finding content); each artefact's resolved/not-yet tag was derived by matching its repo-relative path against a recorded `Source review` path.
 - Step 1 ran on every path that passed step 0: the Discard branch deleted only `generated-docs/resolve-review/resolutions-draft.md` (no git checkpoint, by design); the Cancel branch exited with zero writes.
 - The drafter was invoked exactly once, in the foreground, with all three parameters; it was never dispatched via the Agent / Task tool.
-- The handback gate was met before declaring done — accepted-run conditions or a documented clean exit; an `RF-04` halt was not papered over. On an accepted run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted verbatim, on the success path only.
-- No file was written outside `generated-docs/resolve-review/`, the drafter's single new `documentation/` file, and (Step 9b, review-requirements-sourced runs only) the drafter's bounded Amendments-section write to `generated-docs/requirements/requirements.md`. Nothing under `framework/state/` was written. The input-handler was not invoked. Neither `generated-docs/requirements/source-manifest.json` nor `generated-docs/requirements/requirements.md` was read by the orchestrator.
+- The handback gate was met before declaring done — accepted-run conditions or a documented clean exit; an `RF-04` halt was not papered over. On an accepted run, `framework/skills/commit-run-outputs.md` was invoked **exactly once**, with `pipeline: "resolve-review"`, **before** the tip; its return was one of `committed | nothing-to-commit | skipped-branch | failed`, and a non-`committed` return produced at most one plain-text line and left the artefacts, the tip and the declaration of done untouched. `generated-docs/requirements/requirements.md` was in its staging set **only** on a run where the drafter's Step 9b actually applied the Amendments section. It was **not** invoked on a clean exit or an `RF-04` halt. Then the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted verbatim, on the success path only.
+- No file was written outside `generated-docs/resolve-review/`, the drafter's single new `documentation/` file, and (Step 9b, review-requirements-sourced runs only) the drafter's bounded Amendments-section write to `generated-docs/requirements/requirements.md`. Nothing under `framework/state/` was written. The input-handler was not invoked. Neither `generated-docs/requirements/source-manifest.json` nor `generated-docs/requirements/requirements.md` was read by the orchestrator. (The step-3 completion commit is a git-history write, not a filesystem write, and staging a path is not reading it.)
 
 ## Definition of Done
 
@@ -137,7 +139,11 @@ The pipeline is done when exactly one of:
 - Do not invoke the input-handler or `framework/skills/set-build-target.md`.
 - Do not write `framework/state/.progress.json` or `framework/state/timing.ndjson` on any branch.
 - Do not hardcode any methodology name in control flow. Discovery is by `Glob`; consumability is the map gate; everything downstream resolves from the map row. The orchestrator must work unchanged when a map row is added.
-- Do not git-checkpoint the stale draft before discarding it — it was never consultant-accepted (documented divergence from the Reset-procedure convention). Equally: do not delete it without the consultant's explicit Discard.
+- Do not git-checkpoint the stale draft before discarding it — it was never consultant-accepted (documented divergence from the Reset-procedure convention). Equally: do not delete it without the consultant's explicit Discard. This divergence is about a **stale, never-ratified draft**; it does not conflict with the step-3 completion commit, which commits an artefact the consultant *did* accept. Both are correct — do not "fix" the apparent inconsistency by adding a checkpoint here or removing the completion commit there.
+- Do not invoke `commit-run-outputs.md` on any clean exit (zero artefacts at step 0, a step-0 or step-1 cancel, the map gate's no-row exit, a drafter no-write terminal) or on an `RF-04` halt. Nothing was accepted on those paths.
+- Do not stage `generated-docs/requirements/requirements.md` on a run where the drafter's Step 9b did not fire. On a review-inputs-sourced run, or a review-requirements run where the consultant declined the opt-in, the document was untouched and must stay out of the commit.
+- Do not let the step-3 completion commit block. A `failed` return produces **one** plain-text warning line and the pipeline still declares done; it never deletes an artefact and never suppresses the context-hygiene tip. Do not restate the skill's staging set, subject string, branch guard, or pathspec form here — they are canonical in the skill.
+- Do not stage any `documentation/` path other than the dated resolutions document the drafter wrote. Every consultant-dropped original stays out of git history (`commit-run-outputs.md > Anti-Patterns`).
 - Do not delete anything other than `generated-docs/resolve-review/resolutions-draft.md`, on the Discard branch only.
 - Do not loop back to step 0 after a completed run. Single-shot by design; re-invocation is the loop.
 - Do not flip the step-0 empty-state or no-map-row exits into `RF-NN` predicates. Both are expected states with friendly exits.

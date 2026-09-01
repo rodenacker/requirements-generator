@@ -20,7 +20,7 @@ Run a single foreground agent (`design-system-styler`), gating completion on its
 
 ## Stand-alone constraint
 
-This orchestrator and its agent are isolated from the `/requirements` pipeline. They do not read `generated-docs/requirements/`, `framework/state/.progress.json`, or any other agent's working state, and no write to any path outside `generated-docs/design-system/` is permitted by either the orchestrator or the agent. They write only to `generated-docs/design-system/` (the artefact and a transient workspace folder).
+This orchestrator and its agent are isolated from the `/requirements` pipeline. They do not read `generated-docs/requirements/`, `framework/state/.progress.json`, or any other agent's working state, and no write to any path outside `generated-docs/design-system/` is permitted by either the orchestrator or the agent. They write only to `generated-docs/design-system/` (the artefact and a transient workspace folder). The completion commit at the success terminal is a **git-history** write, not a filesystem write under a state directory; its staging set is canonical in `framework/skills/commit-run-outputs.md`.
 
 ## No progress file
 
@@ -31,7 +31,7 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
 0. **Detect prior artefact** — before invoking the agent, perform the gate described in **Startup: detect prior artefact** below. Depending on the consultant's choice, either delete the prior artefact (after a git checkpoint) or exit cleanly.
 1. **Run the styler** — invoke `framework/agents/design-system-styler.md` in the foreground. Wait until the agent reports the artefact accepted (handback gate below).
 
-There is no step 2. After the handback gate is met, the orchestrator emits the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) and declares done.
+There is no step 2. After the handback gate is met, the orchestrator **commits the accepted design system** (best-effort, non-blocking) by invoking `framework/skills/commit-run-outputs.md` with `pipeline: "design-system"`, `files_to_write: {{files_to_write}}` — exactly the mode files the agent reported writing, never the pair unconditionally. Branch on the return: `committed` / `nothing-to-commit` → say nothing; `skipped-branch` → **one** plain-text line naming the branch; `failed` → **one** plain-text warning line. Then it emits the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) and declares done. The commit lands **before** the tip, because the tip tells the consultant to `/clear`; a non-`committed` return never suppresses the tip and never withholds the declaration of done.
 
 ## Startup: detect prior artefact
 
@@ -95,7 +95,8 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 - `framework/agents/design-system-styler.md` — the single agent invoked by this orchestrator.
 - `generated-docs/design-system/design-system-light.html`, `generated-docs/design-system/design-system-dark.html` — read at startup (existence check) and overwritten by the agent's step-06 on a fresh run. The legacy `generated-docs/design-system/design-system.html` and `generated-docs/design-system/design-system.md` are existence-checked and cleaned up only.
 - `framework/shared/refusal-registry.md` — `RF-06` semantics surfaced by this orchestrator and by the styler's step-04.
-- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on successful completion (after the handback gate).
+- `framework/skills/commit-run-outputs.md` — invoked once at the success terminal with `pipeline: "design-system"` and `files_to_write`, immediately before the context-hygiene tip. Owns the staging set, the subject string, the branch guard, and the four return values; best-effort and non-blocking.
+- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on successful completion (after the handback gate, after the completion commit).
 
 ## Output
 
@@ -104,7 +105,8 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 ## Tools
 
 - `Read` — check at startup whether any of `generated-docs/design-system/design-system-light.html`, `generated-docs/design-system/design-system-dark.html`, or the transition-window stale `generated-docs/design-system/design-system.html` / `generated-docs/design-system/design-system.md` exists. No other reads outside `generated-docs/design-system/` are permitted.
-- `Bash` — git checkpoint commit + `rm -f generated-docs/design-system/design-system-light.html generated-docs/design-system/design-system-dark.html generated-docs/design-system/design-system.html generated-docs/design-system/design-system.md` (the unsuffixed `.html` and the `.md` args are the transition-window cleanup) + `rm -rf generated-docs/design-system/.workspace` during the Reset procedure. No other Bash usage. Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
+- `Bash` — git checkpoint commit + `rm -f generated-docs/design-system/design-system-light.html generated-docs/design-system/design-system-dark.html generated-docs/design-system/design-system.html generated-docs/design-system/design-system.md` (the unsuffixed `.html` and the `.md` args are the transition-window cleanup) + `rm -rf generated-docs/design-system/.workspace` during the Reset procedure; and, at the success terminal, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. No other Bash usage. Never use destructive operations beyond those explicitly named paths. Never push, amend, or skip hooks.
+- `framework/skills/commit-run-outputs.md` — the best-effort completion commit at the success terminal (`pipeline: "design-system"`).
 - `AskUserQuestion` — surface the `{ Overwrite, Keep, Cancel }` prompt at startup when a prior artefact exists.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of design-system content belongs to the invoked agent; the agent uses the tools listed in its own agent file.
@@ -114,7 +116,8 @@ The orchestrator's tools are limited to the operations above. Every other read o
 - The startup gate ran and the consultant's choice was honoured (overwrote with checkpoint, kept and exited, or cancelled cleanly).
 - If the consultant chose `Overwrite`, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and the prior artefact was deleted before the agent was invoked.
 - If the consultant chose `Keep` or `Cancel`, no `Bash` was run and the agent was not invoked.
-- On a successful run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim after the handback gate, on the success path only.
+- On a successful run, `framework/skills/commit-run-outputs.md` was invoked **exactly once**, with `pipeline: "design-system"` and the agent-reported `{{files_to_write}}` — not a hardcoded pair — after the handback gate and **before** the tip. Its return was one of `committed | nothing-to-commit | skipped-branch | failed`; a non-`committed` return produced at most one plain-text line, left the artefacts on disk, and left both the tip and the declaration of done untouched. It was **not** invoked on the `Keep` or `Cancel` branches.
+- On a successful run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim after the handback gate and after the completion commit, on the success path only.
 - If the agent was invoked, its handback gate was met (every file in `{{files_to_write}}` exists, verify `pass` on each, exactly one `meta.primary: true`, consultant accepted, workspace cleaned).
 - The agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
 
@@ -127,12 +130,15 @@ The orchestrator's tools are limited to the operations above. Every other read o
 
 - Do not perform any task other than the steps listed above.
 - Do not advance past the handback gate before it is met.
-- Do not read, write, or edit any `generated-docs/design-system/design-system-*.html` directly. The orchestrator's only direct disk operations are the existence check (Read) and the Reset procedure (Bash rm + git commit). Every other read or write belongs to the agent.
+- Do not read, write, or edit any `generated-docs/design-system/design-system-*.html` directly. The orchestrator's only direct disk operations are the existence check (Read), the Reset procedure (Bash rm + git checkpoint commit), and the completion commit — the last of which is a git-history write, not a filesystem write. Every other read or write belongs to the agent.
 - Do not assume how many files the run will produce, or which mode is primary. The consultant's mode choice and the extracted colour scheme are both resolved inside the agent at step-05b; the orchestrator gates on the set the agent reports, never on a hardcoded expectation of "the light file".
 - Do not call any skill, asset, or tool not invoked transitively by the agent or listed in this orchestrator's **Tools** section.
 - Do not run the agent as a background / sub / async agent. The agent must run in the foreground in the same thread so consultant Q&A and acceptance happen in-thread.
 - Do not run the Reset procedure when no prior artefact was detected, and do not run it when the consultant chose `Keep` or `Cancel`.
 - Do not delete anything in `generated-docs/design-system/` other than `design-system-light.html` and `design-system-dark.html` (the current-format artefacts), `design-system.html` and `design-system.md` (the transition-window stale artefacts, if present), and the `.workspace/` folder during a reset.
-- Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
+- Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit — or during the completion commit.
+- Do not invoke `commit-run-outputs.md` on the `Keep` or `Cancel` branches. Nothing fresh was written there; invoking on `Keep` would find an artefact left dirty by a previously *cancelled* run and commit it under a subject claiming this run produced it.
+- Do not pass a hardcoded light/dark pair to `commit-run-outputs.md`. Pass the agent-reported `{{files_to_write}}` — the same set the handback gate checks. Staging a mode the run did not write is the staging equivalent of the hardcoded-"light file" assumption forbidden above.
+- Do not let the completion commit block. A `failed` return produces **one** plain-text warning line and the pipeline continues; it never withholds the declaration of done, never deletes an artefact, and never suppresses the context-hygiene tip. Do not restate the skill's staging set, subject string, branch guard, or pathspec form here — they are canonical in the skill.
 - Do not maintain a `.progress.json` file. This orchestrator is single-agent and one-shot; progress tracking is unnecessary and out of scope.
 - Do not read `generated-docs/requirements/`, `framework/state/`, or `framework/shared/` outside the styler's RF-06 reference reads documented in **Stand-alone constraint**. This orchestrator and its agent remain stand-alone for every other purpose.

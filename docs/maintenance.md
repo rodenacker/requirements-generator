@@ -81,7 +81,7 @@ Full per-pipeline read/write enumeration: `docs/architecture.md`.
 - Adjusting an orchestrator's pipeline steps → its single `<name>-orch.md`. Update **Tools**, **Self-validation**, **Anti-Patterns**, **Inputs/Output** together.
 - Adding a `[STANDARD-RULE: GR-NN]` answer → append rule to `framework/shared/general-rules.md`. The drafter's `completeness-gap-pass.md` picks it up automatically when its scope predicate matches.
 - Adding a methodology (from a `plans/` candidate or net-new) → append the registry row with `status: mvp`, fill the eight registry fields, and ship the agent + reference + template + character + map skill. Orchestrator unchanged.
-- Adjusting the end-of-pipeline `/clear` suggestion → `framework/shared/context-hygiene.md` (the canonical tip wording + placement rule, emitted by each orchestrator at its success terminal). This replaced the retired context-bloat preflight (`RF-05`, tombstoned in `framework/shared/refusal-registry.md`).
+- Adjusting the end-of-pipeline behaviour → two files, both at the same success terminal. `framework/shared/context-hygiene.md` owns the `/clear` suggestion (canonical tip wording + placement rule, emitted by each orchestrator at its success terminal; it replaced the retired context-bloat preflight `RF-05`, tombstoned in `framework/shared/refusal-registry.md`). `framework/skills/commit-run-outputs.md` owns the best-effort completion commit that runs immediately **before** the tip — its 13-row staging table, subject strings, branch guard, and four return values. Changing what a pipeline commits means editing that table, not the orchestrator.
 - Updating dep graphs after any structural edit → `framework/dependency-graphs.md`.
 
 ### Create abstraction (extract a skill or shared file)
