@@ -2,9 +2,9 @@
 
 **Purpose:** Read a methodology registry, filter the methodologies whose `status` is `mvp`, present them to the consultant as a printed numbered list — **clustered by lens group, with the next un-run methodology flagged `★ suggested next` and already-produced ones marked `✓ already run`** — parse the consultant's typed reply, and return the consultant's selection as a structured row (the row's `name`, `output_path`, `reference_asset`, `character`, `template_asset`, `map_skill`, plus the caller-specific agent-pointer field — `analyser_agent` in analyses registries or `reviewer_agent` in reviews registries).
 
-The ordering and flags are derived **purely from the options** — the registry's curated order, each row's declared `group`, and whether each row's `output_path` already resolves on disk. The skill reads **no** target document (not `generated-docs/requirements/requirements.md`, not `documentation/` material), so its recommendation costs only one registry read plus one cheap `Glob` per row and can never assert a stale claim about document content.
+The ordering and flags are derived **purely from the options** — the registry's curated order, each row's declared `group`, and whether each row's `output_path` already resolves on disk. The skill reads **no** target document (not `generated-docs/requirements/requirements.md`, not `documentation/` material), so its recommendation costs only one registry read plus **one** cheap directory-wide `Glob` and can never assert a stale claim about document content.
 
-The skill is **read-only**: one registry read plus a cheap on-disk presence probe (one `Glob` per MVP row, existence only), one printed list (plus up to two re-prompts on invalid input), one return. It does not invoke the chosen agent, does not touch state, and does not write any file.
+The skill is **read-only**: one registry read plus a cheap on-disk presence probe (a single `Glob` of `<prefix>/*/*.html`, existence only), one printed list (plus up to two re-prompts on invalid input), one return. It does not invoke the chosen agent, does not touch state, and does not write any file.
 
 The skill is pipeline-neutral: it works against any registry that follows the field-shape contract documented in `framework/assets/analyses/registry.md`. The caller supplies the registry path; the skill does not hardcode it.
 
@@ -36,7 +36,11 @@ Exactly one of:
 1. **Read the registry.** `Read` the file at `registry_path`. Parse the YAML frontmatter (the block between the opening `---` and the next `---`). Locate the `methodologies:` list.
 2. **Filter to MVP.** Retain only rows whose `status` field equals the literal string `mvp`. Discard `status: future` rows and any row whose `status` field is absent.
 3. **Defensive guard.** If the filtered list is empty, return `empty-registry`. Do not surface an `AskUserQuestion` with no options.
-3a. **History probe (on-disk presence).** For each retained MVP row, `Glob` its `output_path` to determine whether that artefact already exists on disk. Mark the row `already_run = true` when the file resolves, `false` otherwise. This is an **existence check only** — never read the file's contents. (Precedent: `framework/skills/select-supporting-analyses.md` performs the same `Glob`-of-`output_path` probe.)
+3a. **History probe (on-disk presence) — ONE `Glob`, always, before anything is printed.** Derive the probe root from the retained rows themselves: every `output_path` in every shipped registry has the uniform shape `generated-docs/<pipeline-dir>/<METHOD>/<file>.html`, so the common two-segment prefix (e.g. `generated-docs/analyse-inputs`) plus `/*/*.html` is the pattern. Issue **exactly one** `Glob <prefix>/*/*.html` and hold the returned path set. Then, for each retained MVP row, mark `already_run = true` iff the row's `output_path` is a member of that set, `false` otherwise. This is an **existence check only** — never read any artefact's contents.
+
+   **Why one call and not one per row.** The per-row form this replaced asked for up to 17 `Glob` calls (the `/analyse-requirement` registry's MVP count) before a single line of output, on **every** loop iteration. That is a cost the reader reliably shortcuts, and a skipped probe fails **silently** — it renders a clean, plausible menu in which nothing is marked, rather than an error. The observed symptom was a consultant returning to a workspace with all 11 `/analyse-inputs` methodologies on disk and being shown a menu with no `✓` marks and `★` on row 1, because in a fresh session there is no conversational memory to supply what the probe didn't. One call against a concrete returned set is both cheaper and far harder to skip.
+
+   **The probe is mandatory on every invocation.** Run it even when this session has already rendered the menu, already run methodologies this session, or otherwise "knows" the answer — an earlier iteration's belief is not a substitute for the current disk state, and the cross-session case (a fresh session after `/clear`) is precisely the one where nothing but this probe can supply the marks. Do not render the list, the `Suggested next:` line, or the history footer before the `Glob` has returned.
 
 3b. **Presentation order, groups, and suggested-next.** Establish the presentation order: walk the MVP rows in registry order and cluster them by their `group` field — each distinct `group` value forms a group, groups appear in the order their first member is encountered, and rows keep registry order within their group. A row with no `group` field joins a trailing group labelled `Other`. Then compute **suggested-next** = the first row in this presentation order whose `already_run` is `false`. If every row is `already_run`, there is no suggested-next (see the all-run note in step 4).
 
@@ -52,6 +56,8 @@ Exactly one of:
 
     No leading indent. Rows are separated from each other by a single blank line. Immediately before the first row of each group, emit a blank line and a **group header line** — the group's label verbatim (e.g. `Objects, data & lifecycle`). `✓ already run` rows keep their number and remain selectable (the consultant may re-run them).
 
+    Immediately under the `Available {{list_label}}:` heading, emit the **history footer** — a single parenthesised line `(history: <R> of <N> already on disk)`, where `R` is the count of rows whose `already_run` is `true` and `N` is the MVP row count. The footer is derived **only** from the step-3a `Glob` result, and it exists to make a skipped probe visible: a reader that did not run the probe cannot produce `R`, so the silent-failure mode of the previous per-row form becomes a self-evident one. Print it on every render, including `R = 0` and `R = N`.
+
     After the methodology lines, append a blank line and a trailing cancel line:
 
     `0. Cancel — exit without running a {{verb_label}}`
@@ -64,6 +70,8 @@ Exactly one of:
 
     ```
     Available {{list_label}}:
+
+    (history: <R> of <N> already on disk)
 
     Suggested next: <suggested-next name> — <its group>
 
@@ -90,7 +98,7 @@ Exactly one of:
     Enter the number of the {{verb_label}} to run (or 0 to cancel):
     ```
 
-    (When every MVP row is already run, replace the `Suggested next:` line with `All {{list_label}} have been run — pick any to re-run and refresh it.` and render no `★`. The `Suggested next:` line always names the same row that carries the inline `★`. A row with no `group` field appears under a trailing `Other` header.)
+    (When every MVP row is already run, replace the `Suggested next:` line with `All {{list_label}} have been run — pick any to re-run and refresh it.` and render no `★`. The history footer is **not** replaced — it still prints, as `(history: <N> of <N> already on disk)`. The `Suggested next:` line always names the same row that carries the inline `★`. A row with no `group` field appears under a trailing `Other` header.)
 
     Then end the turn. The consultant's next chat message is the reply. On that turn:
 
@@ -113,8 +121,9 @@ Exactly one of:
 
 - The numbered list was printed at most three times in total (initial print plus up to two re-prompts on invalid input). The skill never loops indefinitely.
 - Methodologies were presented clustered by their declared `group` (groups in first-appearance order, registry order preserved within each group); no row was sorted by `name`, `description`, or any key other than this stable grouping.
-- Each MVP row's `output_path` was probed once via `Glob`; rows whose output exists were marked `✓ already run`, and the first un-run row in presentation order was flagged `★ suggested next` (or, when every row is already run, the "all run — re-run any to refresh" note was shown instead, with no `★`).
-- The history probe was `Glob`-only (existence); no target document (`generated-docs/requirements/requirements.md` or `documentation/`) was read.
+- The history probe ran **on this invocation** — not inherited from an earlier iteration's result, not skipped because the session believed it already knew what had been run — and it was **exactly one** `Glob <prefix>/*/*.html`, issued **before** anything was printed. Rows whose `output_path` was a member of the returned set were marked `✓ already run`, and the first un-run row in presentation order was flagged `★ suggested next` (or, when every row is already run, the "all run — re-run any to refresh" note was shown instead, with no `★`).
+- The history footer `(history: <R> of <N> already on disk)` was printed under the heading on every render, with `R` derived from the `Glob` result and not from recall.
+- The history probe was `Glob`-only (existence); no target document (`generated-docs/requirements/requirements.md` or `documentation/`) was read, and no artefact's contents were read.
 - `0` and `cancel` / `q` / `exit` (case-insensitive, with whitespace trimmed) were honoured as cancel signals at every prompt.
 - The `0. Cancel — …` line was the last line above the prompt at every print, and the prompt line was *"Enter the number of the {{verb_label}} to run (or 0 to cancel):"* (with `{{verb_label}}` substituted from the input; default `"analysis"`).
 - The returned row (when `selected`) has every required field populated (`name`, `output_path`, `reference_asset`, `character`, and the caller-specific agent-pointer field — `analyser_agent` for analyses-pipeline registries or `reviewer_agent` for reviews-pipeline registries). The `template_asset` and `map_skill` fields may be `null` for methodologies that don't require them.
@@ -125,6 +134,8 @@ Exactly one of:
 - Do not call `AskUserQuestion` from this skill. The selector renders a numbered list as plain text and parses the consultant's typed reply on the next turn. `AskUserQuestion` would re-introduce structured radio UI and defeat the consultant's chosen terminal-style UX.
 - Do not re-prompt more than twice. The retry budget is two re-prompts; the third invalid reply must return `cancelled`. Looping further turns a typo into a stuck conversation.
 - Do not sort the methodologies by `name`, `description`, or any key other than the stable `group` clustering. Registry order is the curated recommended sequence; the selector clusters rows by their declared `group` (groups in first-appearance order, registry order preserved within each group) and annotates them with `★`/`✓` marks, but never reorders within a group and never sorts alphabetically. Adding, removing, or promoting a row must not change the relative order of the others.
+- Do not skip the history probe, and do not substitute recall for it. The probe is one cheap `Glob`; skipping it produces a menu that looks correct and is wrong, with no error to notice. In particular, do not reason "this session already ran X, so I know the marks" — that is exactly the failure that made already-run methodologies invisible to a consultant returning in a new session.
+- Do not issue one `Glob` per row. The single `<prefix>/*/*.html` call is the point: N calls before any output is a cost the reader shortcuts, and the shortcut is silent.
 - Do not read the target document to compute the ordering. Ordering and flags come only from the registry (curated order + `group`) and the `Glob` presence probe of each `output_path`. Reading `generated-docs/requirements/requirements.md` or `documentation/` material here would add cost and risk a recommendation that goes stale when the consultant edits those documents — the selector deliberately asserts nothing about document content.
 - Do not hide, drop, or auto-select any MVP row based on the `★`/`✓` marks. The marks are advisory; every MVP methodology stays visible, numbered, and selectable (including already-run ones, which are re-runnable).
 - Do not hardcode methodology names. The registry is the source of truth; the selector must work unchanged when a new MVP row is added.
