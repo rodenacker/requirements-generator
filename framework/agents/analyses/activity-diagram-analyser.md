@@ -392,6 +392,7 @@ Output the final handback line:
 Before handing back, verify all of the following against the written artefact and the run's state:
 
 - `generated-docs/analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` exists and `verify-artifact-write` returned `pass`.
+- The artefact begins with `<!doctype html>` — those bytes are the very first bytes of the file (an optional UTF-8 BOM aside): no template header comment, no leading blank line, nothing before the doctype. `verify-artifact-write` returns `re-render required` otherwise; treat that as this agent's own self-validation FAIL — re-render emitting from `<!doctype html>`, recompute the sha256, re-`Write`, and re-verify.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact's DOM order begins with `<section id="plain-terms">` as the first child of `<main>`, before `<section id="overview">`. The `<section id="plain-terms">` contains a non-empty `<p>` (the plain summary is not blank).
 - The `<section id="plain-terms">` `<p>` introduces no fact, count, or `[SRC: C-NNN]` not already present in the catalogue body — it is a condensation only. No client domain term is glossed in it; methodology jargon is glossed at first use.

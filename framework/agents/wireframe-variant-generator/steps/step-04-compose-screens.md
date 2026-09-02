@@ -206,6 +206,8 @@ Token-substitute every slot in `template_screen` from in-memory state (all refer
 
 Confirm zero literal `{{...}}` remain (any surviving placeholder is a structural bug; re-render and fix the missing slot).
 
+Confirm the rendered HTML begins with `<!doctype html>` — those bytes are the very first bytes of the render (an optional UTF-8 BOM aside): the screen template's header comment is scaffolding documentation and is never emitted, and no blank line precedes the doctype. A file that is not doctype-first parses in quirks mode with an empty `<head>`, and `verify-artifact-write` (4.8) returns `re-render required` for it — re-render from the doctype, recompute the sha256, re-`Write`, and re-verify.
+
 ## 4.7 Write the physical screen file
 
 Compute the sha256 of the rendered HTML. Use `U.screen_file` **verbatim** (authored by the architect into `surface_plan`):

@@ -187,6 +187,7 @@ Variants: prepend the Override note if Step 7 was Override'd; append the density
 ## Self-validation (run before declaring done)
 
 - `generated-docs/analyse-requirements/CRUD-COVERAGE/crud-matrix.html` exists and `verify-artifact-write` returned `pass`.
+- The artefact begins with `<!doctype html>` — those bytes are the very first bytes of the file (an optional UTF-8 BOM aside): no template header comment, no leading blank line, nothing before the doctype. `verify-artifact-write` returns `re-render required` otherwise; treat that as this agent's own self-validation FAIL — re-render emitting from `<!doctype html>`, recompute the sha256, re-`Write`, and re-verify.
 - The sidecar `generated-docs/analyse-requirements/CRUD-COVERAGE/crud-coverage.sidecar.json` exists, conforms to `sidecar-schema.md` (`schema_version "1"`, `method "crud-coverage"`, `source_sha256` of the HTML, only the two declared roles in `architect_projection`), is ≤ 20 KB, and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - `<section id="plain-terms">` is the **first** content element inside `<main>`, before the `<header id="overview">`. Its `<p>` is non-empty (the plain-English lead is present, not a placeholder). DOM order: `#plain-terms` → `#overview` → `.toc` → `.legend-bar` → `#diagrams` → … → diagnostics.

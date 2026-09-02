@@ -344,6 +344,7 @@ Output the final handback line:
 Before handing back, verify all of the following against the written artefact and the run's state:
 
 - `generated-docs/analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` exists and `verify-artifact-write` returned `pass`.
+- The artefact begins with `<!doctype html>` — those bytes are the very first bytes of the file (an optional UTF-8 BOM aside): no template header comment, no leading blank line, nothing before the doctype. `verify-artifact-write` returns `re-render required` otherwise; treat that as this agent's own self-validation FAIL — re-render emitting from `<!doctype html>`, recompute the sha256, re-`Write`, and re-verify.
 - The artefact contains zero literal `{{...}}` placeholders.
 - Exactly one `<section id="plain-terms">` exists as the first content section (before `#overview`), carrying the "In plain terms" lead with a non-empty `<p>`. The lead introduces no node, count, or `[SRC]` not present in the tree below, and glosses no client domain terms.
 - Exactly one `<article class="card card-outcome">` element exists — the single root Outcome.

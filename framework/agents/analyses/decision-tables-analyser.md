@@ -182,6 +182,7 @@ Variants: prepend the Override note if Step 7 was Override'd; append the density
 ## Self-validation (run before declaring done)
 
 - `generated-docs/analyse-requirements/DECISION-TABLES/decision-tables.html` exists and `verify-artifact-write` returned `pass`.
+- The artefact begins with `<!doctype html>` — those bytes are the very first bytes of the file (an optional UTF-8 BOM aside): no template header comment, no leading blank line, nothing before the doctype. `verify-artifact-write` returns `re-render required` otherwise; treat that as this agent's own self-validation FAIL — re-render emitting from `<!doctype html>`, recompute the sha256, re-`Write`, and re-verify.
 - The sidecar `generated-docs/analyse-requirements/DECISION-TABLES/decision-tables.sidecar.json` exists, conforms to `sidecar-schema.md` (`schema_version "1"`, `method "decision-tables"`, `source_sha256` of the HTML, `architect_projection` containing only the `upstream-only` role), is ≤ 20 KB, and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - `<section id="plain-terms">` is the **first** content section in `<main>` (DOM order: before `<header id="overview">`); its `<p>` is non-empty and contains ≥ 2 sentences (≥ 20 words). The section carries no `[SRC: C-NNN]` markers. Lead-quality check: it names at least the decision count and the gap/conflict counts; it glosses at least one methodology term at first use; it introduces no fact or count not present in the rule model.

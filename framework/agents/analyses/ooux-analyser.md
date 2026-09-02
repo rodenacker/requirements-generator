@@ -235,6 +235,7 @@ Output the final handback line:
 Before handing back, verify all of the following against the written artefact and the run's state:
 
 - `generated-docs/analyse-requirements/OOUX/ooux-object-map.html` exists and `verify-artifact-write` returned `pass`.
+- The artefact begins with `<!doctype html>` — those bytes are the very first bytes of the file (an optional UTF-8 BOM aside): no template header comment, no leading blank line, nothing before the doctype. `verify-artifact-write` returns `re-render required` otherwise; treat that as this agent's own self-validation FAIL — re-render emitting from `<!doctype html>`, recompute the sha256, re-`Write`, and re-verify.
 - The artefact contains zero literal `{{...}}` placeholders (covers `{{PLAIN_SUMMARY}}` and all others).
 - **DOM order:** `<section id="plain-terms">` is the first child `<section>` inside `<main>`, appearing before `<section id="overview">`. No other section precedes it.
 - **Plain-terms quality:** `<section id="plain-terms">` contains a non-empty `<p>` whose text (a) introduces no object name, count, or `[SRC: C-NNN]` citation not already present in the body; (b) carries no `[SRC]` of its own; (c) does not gloss any client domain term (glossing those is the GLOSSARY methodology's job); (d) glosses at least one methodology term (objects, CTAs, CCPs, or relationship / cardinality) at first use if that term appears.

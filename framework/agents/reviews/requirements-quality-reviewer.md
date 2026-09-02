@@ -185,7 +185,7 @@ Per `framework/assets/reviews/template-requirements-quality.html`:
 - The heatmap is `{{SCORECARD_HEATMAP_SVG}}`: rows = requirements (grouped by type, or a scrollable grid when `enumerated_count` is large), columns = the nine characteristics in two visually-separated groups (5 decidable | 4 judgment); cell fill = green pass / red fail / grey N-A for decidable, muted-band hues for judgment. Reuse the gap-analysis `hm-*` geometry + `:root` taxonomy.
 - Compose the full HTML in memory. Compute SHA-256 of the in-memory bytes.
 
-The template scaffold itself is **not edited** — inline `<style>`, section ordering, IDs, ARIA labels, the TOC list, and table column headers are fixed. Only the documented `{{placeholders}}` are substituted. No `<script>` (beyond the JSON carrier), no external stylesheet, no CDN reference is ever introduced.
+The template scaffold itself is **not edited** — inline `<style>`, section ordering, IDs, ARIA labels, the TOC list, and table column headers are fixed. Only the documented `{{placeholders}}` are substituted. No `<script>` (beyond the JSON carrier), no external stylesheet, no CDN reference is ever introduced. The written artefact **begins at `<!doctype html>`** — the template's header comment (placeholder documentation and the block schemas) is scaffolding documentation, never content: emission starts at the doctype line and nothing precedes it, not even a blank line. A file whose first bytes are anything else parses in quirks mode with an empty `<head>`, which is why `verify-artifact-write` returns `re-render required` for it — treat that as this agent's own self-validation FAIL, re-render from the doctype, recompute the sha256, re-`Write`, and re-verify.
 
 ### Step 10 — Write
 
@@ -251,7 +251,7 @@ No read path into `generated-docs/requirements/` beyond `requirements.md`, into 
 - Anti-fabrication honoured: every decidable-fail quote exists in the quote index (gate 3); every decidable fail carries a rule code (gate 4); no rewrite invents a value (gate 7).
 - No blended conformance percentage is emitted anywhere.
 - Markers: no `[SRC: …]` / `[AI-SUGGESTED: AI-NN]` in the artefact; rescued judgment cells carry `[STANDARD-RULE: GR-NN]` / `[PROTOTYPE-INVARIANT: PI-NN]` only.
-- Self-contained HTML: one inline `<style>`, no external `<link>`, no CDN, no `<script>` beyond the trailing JSON carrier.
+- Self-contained HTML: it begins with `<!doctype html>` (the very first bytes of the file, an optional UTF-8 BOM aside — no header comment, no leading blank line), carries one inline `<style>`, no external `<link>`, no CDN, and no `<script>` beyond the trailing JSON carrier.
 - `<section id="plain-terms">` is **the first content section** in the rendered HTML (before `#executive-summary`); its `<p>` is non-empty (the `{{PLAIN_SUMMARY}}` placeholder was substituted).
 - DOM order: `#plain-terms` → `#executive-summary` → `#heatmap` → `#scorecard` → `#fix-list` → `#set-level` → `#judgement-fence` → `#diagnostics` → embedded JSON.
 - Lead quality: `{{PLAIN_SUMMARY}}` is 2–5 sentences; contains no finding or count not in the punch-list; names the verdict verbatim (BLOCKED / NEEDS-REVISION / ACCEPTED-WITH-CONCERNS); glosses verdict, risk tier, decidable characteristic, judgment band, and EARS at first use; does not gloss any client domain term.
@@ -268,6 +268,7 @@ No read path into `generated-docs/requirements/` beyond `requirements.md`, into 
 ## Anti-Patterns
 
 - **Do not freelance ambiguity** — only the reference's closed weak-phrase dictionary fires Unambiguous.
+- **Do not emit the template's header comment into the artefact** — it is scaffolding documentation. The artefact's first bytes are `<!doctype html>`; anything before it costs the doctype and renders the page in quirks mode.
 - **Do not assert a hard verdict on a judgment characteristic** — Necessary/Appropriate/Correct/Feasible are fenced bands; Correct/Feasible default `not-doc-decidable`.
 - **Do not fabricate a value in a rewrite** — placeholder + `confirm` for any meaning change.
 - **Do not rescue a decidable fail** — GR/PI rescue is judgment-band only.

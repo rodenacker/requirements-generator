@@ -149,7 +149,7 @@ Per `framework/assets/reviews/template-requirements-traceability.html`:
 - Embed the full structured result in `{{STRUCTURED_JSON_BLOCK}}` (`<script type="application/json" id="requirements-traceability-meta">`): tier, counts, the Untraceable Set, the ledger, the gate results — re-ingestible by a future `/requirements` pass.
 - Compose the full HTML in memory. Compute SHA-256 of the in-memory bytes.
 
-The template scaffold itself is **not edited** — inline `<style>`, section ordering, IDs, ARIA labels, the TOC list, and table headers are fixed. Only the documented `{{placeholders}}` are substituted. No `<script>` (beyond the JSON carrier), no external stylesheet, no CDN reference is ever introduced.
+The template scaffold itself is **not edited** — inline `<style>`, section ordering, IDs, ARIA labels, the TOC list, and table headers are fixed. Only the documented `{{placeholders}}` are substituted. No `<script>` (beyond the JSON carrier), no external stylesheet, no CDN reference is ever introduced. The written artefact **begins at `<!doctype html>`** — the template's header comment (placeholder documentation and the block schemas) is scaffolding documentation, never content: emission starts at the doctype line and nothing precedes it, not even a blank line. A file whose first bytes are anything else parses in quirks mode with an empty `<head>`, which is why `verify-artifact-write` returns `re-render required` for it — treat that as this agent's own self-validation FAIL, re-render from the doctype, recompute the sha256, re-`Write`, and re-verify.
 
 ### Step 9 — Write
 
@@ -229,7 +229,7 @@ No write path outside `generated-docs/review-requirements/REQUIREMENTS-TRACEABIL
 - Anti-fabrication honoured: every defect quote exists in the quote index (gate 4).
 - No vanity "percent traced" headline is emitted; the untraceable count leads.
 - Markers: the artefact carries no `[SRC: …]` / `[AI-SUGGESTED: AI-NN]` of its own; it references units as data (IDs, anchors, `C-NNN`, `AI-NNN`).
-- Self-contained HTML: one inline `<style>`, no external `<link>`, no CDN, no `<script>` beyond the trailing JSON carrier.
+- Self-contained HTML: it begins with `<!doctype html>` (the very first bytes of the file, an optional UTF-8 BOM aside — no header comment, no leading blank line), carries one inline `<style>`, no external `<link>`, no CDN, and no `<script>` beyond the trailing JSON carrier.
 - `verify-artifact-write` invoked after Write with `expected_min_bytes: 5000`; RF-04 on failure.
 
 ## Definition of Done
@@ -243,6 +243,7 @@ No write path outside `generated-docs/review-requirements/REQUIREMENTS-TRACEABIL
 ## Anti-Patterns
 
 - **Do not accuse fabrication.** The strongest orphan claim is *"no antecedent found in the draft or any ledger."*
+- **Do not emit the template's header comment into the artefact** — it is scaffolding documentation. The artefact's first bytes are `<!doctype html>`; anything before it costs the doctype and renders the page in quirks mode.
 - **Do not invent an antecedent or a trace** to make a unit look traced — uncertain alignment is NOT-ALIGNABLE (gate 6).
 - **Do not assert a citation verdict without the grounding-verifier ledger** (gate 5); no SOURCED/BROKEN at TIER-0.
 - **Do not certify a clean trace on missing evidence** — a missing asset lowers the tier and caps the verdict (gate 7; TIER-0 cap).

@@ -110,6 +110,7 @@ Runs **per file**, before that file's `Write`:
 - Confirm: `meta.brand_fonts` is present, with `families` and `links` keys.
 - Confirm: every `prov` value in the JSON is one of `extracted-from-url` or `inferred-from-domain`. No third marker. (`meta.brand_fonts.families[].status` is an availability enum, not a `prov` value — it must never appear as one.)
 - Confirm: status-colour entries (success/warning/error/info) all carry `prov: "inferred-from-domain"` regardless of the URL outcome.
+- Confirm: the rendered string begins with `<!doctype html>` — those bytes are the very first bytes of the render (an optional UTF-8 BOM aside): the template's header comment is scaffolding documentation and is never emitted, and no blank line precedes the doctype. `verify-artifact-write` returns `re-render required` on a file that is not doctype-first; treat that as this step's own self-check FAIL — re-render from the doctype, recompute the per-file sha256, re-`Write`, and re-verify.
 - Confirm: the document closes with `</body>\n</html>` (the template's literal closing tags are intact and not duplicated).
 - Confirm: the rendered string contains the literal substring `<section id="standards"` (from the appended standards file) exactly once.
 - Confirm: the rendered string contains the literal substring `<section id="components"` exactly once.

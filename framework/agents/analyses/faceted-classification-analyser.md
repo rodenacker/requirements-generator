@@ -177,6 +177,7 @@ Variants: prepend the Override note if Step 7 was Override'd; append the thin-sl
 
 - `<section id="plain-terms">` is the **first** content section in `<main>` (DOM order: `#plain-terms` → `#overview` → `.toc` → …); its `<p>` is non-empty (contains 2–5 plain-English sentences, ≥ 20 words); methodology jargon is glossed at first use; no client domain term is glossed; no `[SRC: C-NNN]` appears in the lead.
 - `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` exists and `verify-artifact-write` returned `pass`.
+- The artefact begins with `<!doctype html>` — those bytes are the very first bytes of the file (an optional UTF-8 BOM aside): no template header comment, no leading blank line, nothing before the doctype. `verify-artifact-write` returns `re-render required` otherwise; treat that as this agent's own self-validation FAIL — re-render emitting from `<!doctype html>`, recompute the sha256, re-`Write`, and re-verify.
 - The sidecar `generated-docs/analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json` exists, conforms to `sidecar-schema.md` (`schema_version "1"`, `method "faceted-classification"`, `source_sha256` of the HTML, `architect_projection` containing only the `upstream-only` role), is ≤ 20 KB, and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The standing empirical-validation disclaimer banner is present in `#overview` (it is hard-coded in the template; confirm it was not stripped).

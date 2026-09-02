@@ -240,6 +240,7 @@ The loop continues until the consultant chooses Accept (or a Revise-introduced R
 Before handing back, verify all of the following against the written artefact and the run's state:
 
 - `generated-docs/analyse-requirements/MVP-SLICING/mvp-slicing.html` and `…/mvp-slicing.sidecar.json` exist and `verify-artifact-write` returned `pass` for both.
+- The artefact begins with `<!doctype html>` — those bytes are the very first bytes of the file (an optional UTF-8 BOM aside): no template header comment, no leading blank line, nothing before the doctype. `verify-artifact-write` returns `re-render required` otherwise; treat that as this agent's own self-validation FAIL — re-render emitting from `<!doctype html>`, recompute the sha256, re-`Write`, and re-verify.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact contains exactly one `<section id="plain-terms">` with a non-empty `<p>` child. It is the **first** content section in `<main>`, before `<header id="overview">`. The `<p>` contains 2–5 sentences; no `[SRC: C-NNN]` marker appears in it; no client domain term is glossed in it; methodology jargon used (MVP, slice, MoSCoW, walking skeleton) is glossed at first use.
 - Section order in the artefact (DOM order) is: `plain-terms` → Overview → TOC → Story map → MoSCoW board → Diagnostics.

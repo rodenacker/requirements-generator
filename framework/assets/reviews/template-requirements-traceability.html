@@ -125,23 +125,27 @@
   LEDGER SCHEMA — each {{PROVENANCE_LEDGER_TABLE}} row (every [SRC: C-NNN] tag incl. prose, every
     draft AI-NNN / GR-NN / OUT-OF-SCOPE marker, and DEAD-PROVENANCE entries):
       <tr class="ledger-row prov-{verdict-slug}" id="ledger-{unit_id}">
-        <td><code>{unit_id}</code></td>           <!-- req_id, or C-NNN / AI-NNN for prose/marker rows -->
+        <td><code>{unit_id}</code></td>
+        ... unit_id: req_id, or C-NNN / AI-NNN for prose/marker rows
         <td><code>{anchor}</code></td>
         <td><span class="chip prov-{verdict-slug}">{VERDICT}</span></td>
-        <td>{trace_target}</td>                    <!-- "input source: documentation/brief.md" | "consultant: AI-007 corrected" | "GR-04" | "—" -->
-        <td>{evidence_escaped}</td>                <!-- C-NNN + reason, or AI-NNN + resolver status, or "tag well-formed (TIER-0)" -->
+        <td>{trace_target}</td>
+        ... trace_target: "input source: documentation/brief.md" | "consultant: AI-007 corrected" | "GR-04" | "—"
+        <td>{evidence_escaped}</td>
+        ... evidence_escaped: C-NNN + reason, or AI-NNN + resolver status, or "tag well-formed (TIER-0)"
       </tr>
     Order: untraceable verdicts first (Broken → Dropped → Orphan → Not-alignable → Unattributed),
     then Drifted, then traced (Sourced → Accepted-inference → Standard-rule → Out-of-scope),
     then Dead-provenance; ties by req_type then unit_id.
 
-  FIX-LIST SCHEMA — {{FIX_LIST_BLOCK}}: the warn-level register (NOT the headline). One <article> per
+  FIX-LIST SCHEMA — FIX_LIST_BLOCK: the warn-level register (NOT the headline). One <article> per
     DRIFTED or DEAD-PROVENANCE unit:
       <article class="fix-card prov-{drifted|dead-provenance}" id="fix-{unit_id}">
         <h3><code>{unit_id}</code> · <code>{anchor}</code> · <span class="chip prov-{slug}">{VERDICT}</span></h3>
         <dl class="fix-fields">
           <dt>Antecedent</dt><dd><blockquote class="evidence"><pre>{antecedent_escaped}</pre></blockquote></dd>
-          <dt>Current value</dt><dd><blockquote class="evidence"><pre>{current_escaped}</pre></blockquote></dd>  <!-- drift only -->
+          <dt>Current value</dt><dd><blockquote class="evidence"><pre>{current_escaped}</pre></blockquote></dd>
+          ... drift only
           <dt>Observation</dt><dd>{observation_escaped — e.g. "value changed post-merge, not explained by a correction", "ledger entry C-022 has no tag in the final doc"}</dd>
         </dl>
       </article>

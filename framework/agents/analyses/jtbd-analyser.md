@@ -255,6 +255,7 @@ Output the final handback line:
 Before handing back, verify all of the following against the written artefact and the run's state:
 
 - `generated-docs/analyse-requirements/JTBD/jtbd-job-map.html` exists and `verify-artifact-write` returned `pass`.
+- The artefact begins with `<!doctype html>` — those bytes are the very first bytes of the file (an optional UTF-8 BOM aside): no template header comment, no leading blank line, nothing before the doctype. `verify-artifact-write` returns `re-render required` otherwise; treat that as this agent's own self-validation FAIL — re-render emitting from `<!doctype html>`, recompute the sha256, re-`Write`, and re-verify.
 - The artefact contains zero literal `{{...}}` placeholders.
 - `<section id="plain-terms">` is the first child element of `<main>`, before `<section id="overview">`. Its `<p>` is non-empty (contains at least 20 words). The paragraph text is a faithful condensation of the map — it introduces no job, count, or citation not already in the artefact body, and contains no `[SRC: C-NNN]` markers.
 - Every `<article class="job-card">` has its type class set to exactly one of `type-functional`, `type-emotional`, or `type-social`. No unclassified cards.

@@ -263,6 +263,7 @@ Listed in **Stand-alone constraint** above. The five required input parameters a
 
 - `index.html` and `_drift.json` both exist; both verify-artifact-write'd `pass`.
 - `index.html` contains zero literal `{{...}}` placeholders.
+- `index.html` begins with `<!doctype html>` — those bytes are the very first bytes of the file (an optional UTF-8 BOM aside): the template's header comment is scaffolding documentation and is never emitted, and no blank line precedes the doctype. `verify-artifact-write` returns `re-render required` otherwise; treat that as this agent's own self-validation FAIL — re-render emitting from `<!doctype html>`, recompute the sha256, re-`Write`, and re-verify.
 - `index.html` contains the four section anchors (`#scope-details`, `#wireframes`, `#variant-metadata`, `#trade-off-matrix`) referenced by the in-page TOC, and the TOC itself with four list items.
 - `index.html` has zero `<iframe>` elements in the variant-link section (no embedded wireframe previews).
 - `index.html`'s §2 grid lists every `successful_variants[i]` exactly once, in `successful_variants` order. The screen links are grouped by **logical surface (`LS-NN`)** in logical-flow order; every `LS-NN` in the blueprint surface inventory has a row band aligned across all variant columns. A standalone surface renders a screen link, a wizard-split surface renders nested sub-step links, a folded surface (inline-drawer / inline-expand / modal) renders a host hint linking to its host screen and **no** own link. Every actual screen link carries `target="_blank" rel="noopener"`.
