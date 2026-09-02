@@ -1,0 +1,82 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: "{pass|fail|N/A}"
+  - text: "{"
+  - code [ref=e3]: "{rule_code}"
+  - text: "if fail } ... (Singular, Unambiguous, Conforming, Verifiable, Complete-struct)"
+  - generic [ref=e4]: "{band}"
+  - text: "... (Necessary, Appropriate, Correct, Feasible) Row order: tier ascending (Red → Yellow → Green), then req_type (functional → business-rule → ui → reporting → notification → goal), then req_id ascending. FIX LIST SCHEMA — one {{FIX_LIST_BLOCK}}"
+  - article [ref=e5]:
+    - text: "per Red/Yellow requirement:"
+    - article [ref=e6]:
+      - 'heading "{req_id} · {anchor} · {Tier}" [level=3] [ref=e7]':
+        - code [ref=e8]: "{req_id}"
+        - text: ·
+        - code [ref=e9]: "{anchor}"
+        - text: ·
+        - generic [ref=e10]: "{Tier}"
+      - generic [ref=e11]:
+        - term [ref=e12]: Failing characteristics
+        - definition [ref=e13]:
+          - text: "{ per fail:"
+          - generic [ref=e14]: "{Characteristic}"
+          - code [ref=e15]: "{rule_code}"
+          - text: "}"
+        - term [ref=e16]: Offending text
+        - definition [ref=e17]:
+          - blockquote [ref=e18]:
+            - generic [ref=e19]: "{offending_quote_escaped}"
+        - term [ref=e20]: Proposed (EARS)
+        - definition [ref=e21]:
+          - text: "{ for Singular: the N split lines; for Unambiguous/Conforming-AC: Original → Proposed; carry"
+          - generic [ref=e22]: "meaning-change: confirm"
+          - text: on placeholder rewrites; or
+          - emphasis [ref=e23]: (no automatic rewrite — needs a measurable value / structural decision)
+          - text: "for Verifiable/Complete-structural fails }"
+    - text: "Order: tier (Red first), then req_type, then req_id ascending. If zero Red/Yellow requirements, substitute"
+    - paragraph [ref=e24]: No Red or Yellow requirements — every scored requirement passes the five decidable characteristics.
+    - text: "SET-LEVEL SCHEMA — {{SET_LEVEL_REGISTER_BLOCK}}: one"
+    - article [ref=e25]:
+      - text: "per finding:"
+      - article [ref=e26]:
+        - 'heading "{characteristic} {severity}" [level=3] [ref=e27]':
+          - generic [ref=e28]: "{characteristic}"
+          - generic [ref=e29]: "{severity}"
+        - generic [ref=e30]:
+          - term [ref=e31]: Anchors
+          - definition [ref=e32]:
+            - text: "{ each"
+            - code [ref=e33]: "{anchor}"
+            - text: "}"
+          - term [ref=e34]: Evidence
+          - definition [ref=e35]:
+            - blockquote [ref=e36]:
+              - generic [ref=e37]: "{anchor}: {quote}\\n…"
+          - term [ref=e38]: Relation
+          - definition [ref=e39]: "{relation_escaped}"
+          - term [ref=e40]: Consequence
+          - definition [ref=e41]: "{consequence_escaped — observational verbs only}"
+      - text: SR-EXT-redundancy findings carry, in the
+      - 'heading ", the literal note (GTWR-Concision extension — not a 29148 set-level characteristic). If zero findings, substitute No set-level findings — the requirement set is internally consistent, comprehensible, and free of redundancy on the checks run. JUDGEMENT-FENCE SCHEMA — {{JUDGEMENT_FENCE_NOTE}}: a explaining (a) the decidable vs judgment split and the moderate-confidence disclaimer on the four judgment characteristics, (b) that Correct/Feasible default to not-doc-decidable, (c) {{ID_SCOPE_EXCLUDED}} (§6.3/§6.5/§6.6 assessed set-level only), and (d) the pointer: \"for the full business-defensibility audit of Necessary, run FIRST-PRINCIPLES\". DIAGNOSTICS SCHEMA — {{DIAGNOSTICS_BLOCK}}: one" [level=3] [ref=e42]':
+        - text: ", the literal note"
+        - emphasis [ref=e43]: (GTWR-Concision extension — not a 29148 set-level characteristic)
+        - text: . If zero findings, substitute
+        - paragraph [ref=e44]: No set-level findings — the requirement set is internally consistent, comprehensible, and free of redundancy on the checks run.
+        - text: "JUDGEMENT-FENCE SCHEMA — {{JUDGEMENT_FENCE_NOTE}}: a"
+        - generic [ref=e45]:
+          - text: "explaining (a) the decidable vs judgment split and the moderate-confidence disclaimer on the four judgment characteristics, (b) that Correct/Feasible default to not-doc-decidable, (c) {{ID_SCOPE_EXCLUDED}} (§6.3/§6.5/§6.6 assessed set-level only), and (d) the pointer: \"for the full business-defensibility audit of Necessary, run FIRST-PRINCIPLES\". DIAGNOSTICS SCHEMA — {{DIAGNOSTICS_BLOCK}}: one"
+          - group [ref=e46]:
+            - text: "wrapping:"
+            - heading "Quality gates" [level=4] [ref=e47]
+            - text: table (10 rows, PASS/FAIL/WARN chip + notes)
+            - heading "Per-characteristic fail table" [level=4] [ref=e48]
+            - text: (the five decidable characteristics × fail count)
+            - heading "Risk-tier histogram" [level=4] [ref=e49]
+            - heading "Set-level results" [level=4] [ref=e50]
+            - text: (5 characteristics + redundancy ext, result + count)
+            - heading "GR / PI rescue log" [level=4] [ref=e51]
+            - text: "({req_id, characteristic, rescue_source, summary} rows, or \"none\")"
+            - heading "Override log" [level=4] [ref=e52]
+            - text: (if Step-8 Override was chosen, list each failed gate; else "All quality gates passed; no override invoked.")
+            - heading "Schema-drift detection" [level=4] [ref=e53]
+            - text: "table: requirements_sha256 + topics_sha256, prior/current/status Style invariants baked into the CSS: • :root drives all colour: decidable verdicts (pass/fail/na), judgment bands (likely-pass/ concern/not-doc-decidable — muted, distinct from decidable hues), risk tiers (Red/Yellow/Green), set-level severities (blocking/major/minor), and the three verdict-banner colours. • Scorecard table uses position: sticky; top:0 on . • Heatmap renders at viewBox width 1080; max-width:100% so it scales on narrow viewports. • @media (max-width:720px) collapses the meta-grid; @media print expands"
+            - group [ref=e54]: ", hides toc/back-to-top. -->"

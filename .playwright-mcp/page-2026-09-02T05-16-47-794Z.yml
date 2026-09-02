@@ -1,0 +1,1077 @@
+- generic [active] [ref=e1]:
+  - code [ref=e2]: "{anchor}"
+  - generic [ref=e3]: "{VERDICT}"
+  - text: "{trace_target} {evidence_escaped} Order: untraceable verdicts first (Broken â†’ Dropped â†’ Orphan â†’ Not-alignable â†’ Unattributed), then Drifted, then traced (Sourced â†’ Accepted-inference â†’ Standard-rule â†’ Out-of-scope), then Dead-provenance; ties by req_type then unit_id. FIX-LIST SCHEMA â€”"
+  - heading "Drift â€” one cause, 24 units" [level=3] [ref=e4]
+  - paragraph [ref=e5]:
+    - text: "Every drifted unit in this document is the same edit: the persona named"
+    - code [ref=e6]: Reviewer
+    - text: throughout the draft is named
+    - code [ref=e7]: Approver
+    - text: "throughout the final document. The evidence for reading it as drift rather than a correction:"
+  - list [ref=e8]:
+    - listitem [ref=e9]:
+      - code [ref=e10]: requirements-draft.md
+      - text: contains
+      - code [ref=e11]: Reviewer
+      - text: 31 times and
+      - code [ref=e12]: Approver
+      - text: 0 times; the final document contains
+      - code [ref=e13]: Approver
+      - text: and
+      - code [ref=e14]: Reviewer
+      - text: 0 times.
+    - listitem [ref=e15]:
+      - strong [ref=e16]:
+        - text: No input file in
+        - code [ref=e17]: source-manifest.json
+        - text: contains the string
+        - code [ref=e18]: Approver
+        - text: .
+      - text: One input contains
+      - code [ref=e19]: Reviewer
+      - text: once â€”
+      - code [ref=e20]: documentation/ten-ux-questions-inputs-review-resolutions-2026-09-01.md
+      - text: ", which is the cited source for"
+      - code [ref=e21]: C-066
+      - text: and
+      - code [ref=e22]: C-161
+      - text: .
+    - listitem [ref=e23]:
+      - code [ref=e24]: resolver-answers.ndjson
+      - text: records
+      - strong [ref=e25]: zero
+      - code [ref=e26]: corrected
+      - text: resolutions (14
+      - code [ref=e27]: confirmed
+      - text: ", 33"
+      - code [ref=e28]: accepted-as-is
+      - text: ), so no consultant answer authorised the token. Eight accepted values name
+      - code [ref=e29]: Reviewer
+      - text: "explicitly:"
+      - code [ref=e30]: AI-009
+      - text: ","
+      - code [ref=e31]: AI-012
+      - text: ","
+      - code [ref=e32]: AI-019
+      - text: ","
+      - code [ref=e33]: AI-020
+      - text: ","
+      - code [ref=e34]: AI-021
+      - text: ","
+      - code [ref=e35]: AI-026
+      - text: ","
+      - code [ref=e36]: AI-030
+      - text: ","
+      - code [ref=e37]: AI-045
+      - text: .
+    - listitem [ref=e38]:
+      - text: The citation band still reports these units
+      - strong [ref=e39]: SOURCED
+      - text: ", because the cited quotes do not contain the persona token â€”"
+      - code [ref=e40]: C-066
+      - text: â€™s quote is a separate Reviewer approves or rejects the resulting transactions, a verbatim substring of its source file whether the cell reads
+      - code [ref=e41]: Reviewer
+      - text: or
+      - code [ref=e42]: Approver
+      - text: . A passing citation is therefore not evidence that the value it decorates is unchanged, which is what this band exists to catch.
+  - paragraph [ref=e43]:
+    - text: Two further locations carry the same rename but could not be matched by anchor because the quoted cross-reference was rewritten as well; they are fenced as not-alignable in the
+    - link "headline block" [ref=e44] [cursor=pointer]:
+      - /url: "#untraceable"
+    - text: .
+  - article [ref=e45]:
+    - heading "2.2 Relationships Â· L204 Â· DRIFTED" [level=3] [ref=e46]:
+      - code [ref=e47]: 2.2 Relationships
+      - text: Â·
+      - code [ref=e48]: L204
+      - text: Â·
+      - generic [ref=e49]: DRIFTED
+    - generic [ref=e50]:
+      - term [ref=e51]: Antecedent
+      - definition [ref=e52]:
+        - blockquote [ref=e53]:
+          - generic [ref=e54]: "- Reviewer **decides** Transaction [0..*]"
+        - paragraph [ref=e55]: the draft cell carries no provenance marker
+      - term [ref=e56]: Current value
+      - definition [ref=e57]:
+        - blockquote [ref=e58]:
+          - generic [ref=e59]: "- Approver **decides** Transaction [0..*]"
+      - term [ref=e60]: Observation
+      - definition [ref=e61]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e62]: requirements-draft.md Â· L140
+        - text: .
+  - article [ref=e63]:
+    - heading "Â§2.4 Diagram (optional) Â· L234 Â· DRIFTED" [level=3] [ref=e64]:
+      - code [ref=e65]: Â§2.4 Diagram (optional)
+      - text: Â·
+      - code [ref=e66]: L234
+      - text: Â·
+      - generic [ref=e67]: DRIFTED
+    - generic [ref=e68]:
+      - term [ref=e69]: Antecedent
+      - definition [ref=e70]:
+        - blockquote [ref=e71]:
+          - generic [ref=e72]: "class Reviewer {"
+        - paragraph [ref=e73]: the draft cell carries no provenance marker
+      - term [ref=e74]: Current value
+      - definition [ref=e75]:
+        - blockquote [ref=e76]:
+          - generic [ref=e77]: "class Approver {"
+      - term [ref=e78]: Observation
+      - definition [ref=e79]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e80]: requirements-draft.md Â· L170
+        - text: .
+  - article [ref=e81]:
+    - heading "Â§2.4 Diagram (optional) Â· L280 Â· DRIFTED" [level=3] [ref=e82]:
+      - code [ref=e83]: Â§2.4 Diagram (optional)
+      - text: Â·
+      - code [ref=e84]: L280
+      - text: Â·
+      - generic [ref=e85]: DRIFTED
+    - generic [ref=e86]:
+      - term [ref=e87]: Antecedent
+      - definition [ref=e88]:
+        - blockquote [ref=e89]:
+          - generic [ref=e90]: "Reviewer \"1\" --> \"*\" Transaction : decides"
+        - paragraph [ref=e91]: the draft cell carries no provenance marker
+      - term [ref=e92]: Current value
+      - definition [ref=e93]:
+        - blockquote [ref=e94]:
+          - generic [ref=e95]: "Approver \"1\" --> \"*\" Transaction : decides"
+      - term [ref=e96]: Observation
+      - definition [ref=e97]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e98]: requirements-draft.md Â· L216
+        - text: .
+  - article [ref=e99]:
+    - heading "Transaction Â· L304 Â· DRIFTED" [level=3] [ref=e100]:
+      - code [ref=e101]: Transaction
+      - text: Â·
+      - code [ref=e102]: L304
+      - text: Â·
+      - generic [ref=e103]: DRIFTED
+    - generic [ref=e104]:
+      - term [ref=e105]: Antecedent
+      - definition [ref=e106]:
+        - blockquote [ref=e107]:
+          - generic [ref=e108]: "| Imported â†’ Pending | The loaded record matches an exception category. [SRC: C-059] | â†’ Â§6.2 BR-07 \"When a loaded record matches an exception category\" | The record's status chip reads pending and it enters the Reviewer's queue. |"
+        - paragraph [ref=e109]: the draft cell carries no provenance marker
+      - term [ref=e110]: Current value
+      - definition [ref=e111]:
+        - blockquote [ref=e112]:
+          - generic [ref=e113]: "| Imported â†’ Pending | The loaded record matches an exception category. [SRC: C-059] | â†’ Â§6.2 BR-07 \"When a loaded record matches an exception category\" | The record's status chip reads pending and it enters the Approver's queue. |"
+      - term [ref=e114]: Observation
+      - definition [ref=e115]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e116]: requirements-draft.md Â· L240
+        - text: ", citations"
+        - code [ref=e117]: C-059
+        - text: .
+  - article [ref=e118]:
+    - heading "Transaction Â· L306 Â· DRIFTED" [level=3] [ref=e119]:
+      - code [ref=e120]: Transaction
+      - text: Â·
+      - code [ref=e121]: L306
+      - text: Â·
+      - generic [ref=e122]: DRIFTED
+    - generic [ref=e123]:
+      - term [ref=e124]: Antecedent
+      - definition [ref=e125]:
+        - blockquote [ref=e126]:
+          - generic [ref=e127]: "| Pending â†’ Rejected | The Reviewer rejects the record with a reason. [SRC: C-061] | â†’ Â§6.2 BR-08 \"When a Reviewer rejects a transaction\" | The status chip reads rejected and the reason is shown on the record. |"
+        - paragraph [ref=e128]: the draft cell carries no provenance marker
+      - term [ref=e129]: Current value
+      - definition [ref=e130]:
+        - blockquote [ref=e131]:
+          - generic [ref=e132]: "| Pending â†’ Rejected | The Approver rejects the record with a reason. [SRC: C-061] | â†’ Â§6.2 BR-08 \"When an Approver rejects a transaction\" | The status chip reads rejected and the reason is shown on the record. |"
+      - term [ref=e133]: Observation
+      - definition [ref=e134]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e135]: requirements-draft.md Â· L242
+        - text: ", citations"
+        - code [ref=e136]: C-061
+        - text: .
+  - article [ref=e137]:
+    - heading "Approver Â· L331 Â· DRIFTED" [level=3] [ref=e138]:
+      - code [ref=e139]: Approver
+      - text: Â·
+      - code [ref=e140]: L331
+      - text: Â·
+      - generic [ref=e141]: DRIFTED
+    - generic [ref=e142]:
+      - term [ref=e143]: Antecedent
+      - definition [ref=e144]:
+        - blockquote [ref=e145]:
+          - generic [ref=e146]: "| Role / job title | Reviewer [SRC: C-066] |"
+        - paragraph [ref=e147]:
+          - generic [ref=e148]:
+            - text: "draft markers:"
+            - code [ref=e149]: AI-012
+      - term [ref=e150]: Current value
+      - definition [ref=e151]:
+        - blockquote [ref=e152]:
+          - generic [ref=e153]: "| Role / job title | Approver [SRC: C-066] |"
+      - term [ref=e154]: Observation
+      - definition [ref=e155]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e156]: requirements-draft.md Â· L267
+        - text: ", resolver"
+        - code [ref=e157]: AI-012
+        - text: =
+        - code [ref=e158]: confirmed
+        - text: ", citations"
+        - code [ref=e159]: C-066
+        - text: .
+  - article [ref=e160]:
+    - 'heading "Story: As an Approver, I want to see the few fields that decide a record without opening it, so that I can work an exception queue quickly Â· L438 Â· DRIFTED" [level=3] [ref=e161]':
+      - code [ref=e162]: "Story: As an Approver, I want to see the few fields that decide a record without opening it, so that I can work an exception queue quickly"
+      - text: Â·
+      - code [ref=e163]: L438
+      - text: Â·
+      - generic [ref=e164]: DRIFTED
+    - generic [ref=e165]:
+      - term [ref=e166]: Antecedent
+      - definition [ref=e167]:
+        - blockquote [ref=e168]:
+          - generic [ref=e169]: "| Acceptance criteria | Given a queue of pending records, when the Reviewer reads one entry, then its date, description, amount and status are legible without opening the record. |"
+        - paragraph [ref=e170]:
+          - generic [ref=e171]:
+            - text: "draft markers:"
+            - code [ref=e172]: AI-019
+      - term [ref=e173]: Current value
+      - definition [ref=e174]:
+        - blockquote [ref=e175]:
+          - generic [ref=e176]: "| Acceptance criteria | Given a queue of pending records, when the Approver reads one entry, then its date, description, amount and status are legible without opening the record. |"
+      - term [ref=e177]: Observation
+      - definition [ref=e178]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e179]: requirements-draft.md Â· L374
+        - text: ", resolver"
+        - code [ref=e180]: AI-019
+        - text: =
+        - code [ref=e181]: accepted-as-is
+        - text: .
+  - article [ref=e182]:
+    - 'heading "Story: As an Approver, I want to reject a record with a reason, so that the finance team knows why it was not approved Â· L447 Â· DRIFTED" [level=3] [ref=e183]':
+      - code [ref=e184]: "Story: As an Approver, I want to reject a record with a reason, so that the finance team knows why it was not approved"
+      - text: Â·
+      - code [ref=e185]: L447
+      - text: Â·
+      - generic [ref=e186]: DRIFTED
+    - generic [ref=e187]:
+      - term [ref=e188]: Antecedent
+      - definition [ref=e189]:
+        - blockquote [ref=e190]:
+          - generic [ref=e191]: "| Context (frequency / expertise / stakes) | Frequent; the decision is recorded against the Reviewer's name. |"
+        - paragraph [ref=e192]: the draft cell carries no provenance marker
+      - term [ref=e193]: Current value
+      - definition [ref=e194]:
+        - blockquote [ref=e195]:
+          - generic [ref=e196]: "| Context (frequency / expertise / stakes) | Frequent; the decision is recorded against the Approver's name. |"
+      - term [ref=e197]: Observation
+      - definition [ref=e198]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e199]: requirements-draft.md Â· L383
+        - text: .
+  - article [ref=e200]:
+    - 'heading "Story: As an Approver, I want to reject a record with a reason, so that the finance team knows why it was not approved Â· L449 Â· DRIFTED" [level=3] [ref=e201]':
+      - code [ref=e202]: "Story: As an Approver, I want to reject a record with a reason, so that the finance team knows why it was not approved"
+      - text: Â·
+      - code [ref=e203]: L449
+      - text: Â·
+      - generic [ref=e204]: DRIFTED
+    - generic [ref=e205]:
+      - term [ref=e206]: Antecedent
+      - definition [ref=e207]:
+        - blockquote [ref=e208]:
+          - generic [ref=e209]: "| Acceptance criteria | Given a pending record, when the Reviewer rejects it without a reason, then the rejection is not accepted. Given a reason supplied, when the rejection is accepted, then the record reads rejected and shows the reason. |"
+        - paragraph [ref=e210]:
+          - generic [ref=e211]:
+            - text: "draft markers:"
+            - code [ref=e212]: AI-020
+      - term [ref=e213]: Current value
+      - definition [ref=e214]:
+        - blockquote [ref=e215]:
+          - generic [ref=e216]: "| Acceptance criteria | Given a pending record, when the Approver rejects it without a reason, then the rejection is not accepted. Given a reason supplied, when the rejection is accepted, then the record reads rejected and shows the reason. |"
+      - term [ref=e217]: Observation
+      - definition [ref=e218]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e219]: requirements-draft.md Â· L385
+        - text: ", resolver"
+        - code [ref=e220]: AI-020
+        - text: =
+        - code [ref=e221]: accepted-as-is
+        - text: .
+  - article [ref=e222]:
+    - 'heading "Story: As an Approver, I want to see who decided a record and when, so that I can answer a query about a past decision Â· L460 Â· DRIFTED" [level=3] [ref=e223]':
+      - code [ref=e224]: "Story: As an Approver, I want to see who decided a record and when, so that I can answer a query about a past decision"
+      - text: Â·
+      - code [ref=e225]: L460
+      - text: Â·
+      - generic [ref=e226]: DRIFTED
+    - generic [ref=e227]:
+      - term [ref=e228]: Antecedent
+      - definition [ref=e229]:
+        - blockquote [ref=e230]:
+          - generic [ref=e231]: "| Acceptance criteria | Given a decided record, when the Reviewer opens its history, then each decision names the acting user and the time it was made. |"
+        - paragraph [ref=e232]:
+          - generic [ref=e233]:
+            - text: "draft markers:"
+            - code [ref=e234]: AI-021
+      - term [ref=e235]: Current value
+      - definition [ref=e236]:
+        - blockquote [ref=e237]:
+          - generic [ref=e238]: "| Acceptance criteria | Given a decided record, when the Approver opens its history, then each decision names the acting user and the time it was made. |"
+      - term [ref=e239]: Observation
+      - definition [ref=e240]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e241]: requirements-draft.md Â· L396
+        - text: ", resolver"
+        - code [ref=e242]: AI-021
+        - text: =
+        - code [ref=e243]: accepted-as-is
+        - text: .
+  - article [ref=e244]:
+    - 'heading "Flow: Monitor an import run to its outcome Â· L508 Â· DRIFTED" [level=3] [ref=e245]':
+      - code [ref=e246]: "Flow: Monitor an import run to its outcome"
+      - text: Â·
+      - code [ref=e247]: L508
+      - text: Â·
+      - generic [ref=e248]: DRIFTED
+    - generic [ref=e249]:
+      - term [ref=e250]: Antecedent
+      - definition [ref=e251]:
+        - blockquote [ref=e252]:
+          - generic [ref=e253]: "| Role-conditional behaviour | An Importer sees every run; a Reviewer does not reach this surface. |"
+        - paragraph [ref=e254]: the draft cell carries no provenance marker
+      - term [ref=e255]: Current value
+      - definition [ref=e256]:
+        - blockquote [ref=e257]:
+          - generic [ref=e258]: "| Role-conditional behaviour | An Importer sees every run; an Approver does not reach this surface. |"
+      - term [ref=e259]: Observation
+      - definition [ref=e260]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e261]: requirements-draft.md Â· L444
+        - text: .
+  - article [ref=e262]:
+    - 'heading "Flow: Decide a transaction Â· L525 Â· DRIFTED" [level=3] [ref=e263]':
+      - code [ref=e264]: "Flow: Decide a transaction"
+      - text: Â·
+      - code [ref=e265]: L525
+      - text: Â·
+      - generic [ref=e266]: DRIFTED
+    - generic [ref=e267]:
+      - term [ref=e268]: Antecedent
+      - definition [ref=e269]:
+        - blockquote [ref=e270]:
+          - generic [ref=e271]: "| Actor | â†’ Â§3 Reviewer |"
+        - paragraph [ref=e272]: the draft cell carries no provenance marker
+      - term [ref=e273]: Current value
+      - definition [ref=e274]:
+        - blockquote [ref=e275]:
+          - generic [ref=e276]: "| Actor | â†’ Â§3 Approver |"
+      - term [ref=e277]: Observation
+      - definition [ref=e278]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e279]: requirements-draft.md Â· L461
+        - text: .
+  - article [ref=e280]:
+    - 'heading "Flow: Decide a transaction Â· L529 Â· DRIFTED" [level=3] [ref=e281]':
+      - code [ref=e282]: "Flow: Decide a transaction"
+      - text: Â·
+      - code [ref=e283]: L529
+      - text: Â·
+      - generic [ref=e284]: DRIFTED
+    - generic [ref=e285]:
+      - term [ref=e286]: Antecedent
+      - definition [ref=e287]:
+        - blockquote [ref=e288]:
+          - generic [ref=e289]: "| Exception paths | {a rejection is submitted with no reason â†’ the reason is required before the rejection is accepted â†’ the Reviewer supplies one} [SRC: C-132]; {the decision queue is empty â†’ \"No records need a decision.\" â†’ the Reviewer leaves the surface} |"
+        - paragraph [ref=e290]:
+          - generic [ref=e291]:
+            - text: "draft markers:"
+            - code [ref=e292]: GR-08
+      - term [ref=e293]: Current value
+      - definition [ref=e294]:
+        - blockquote [ref=e295]:
+          - generic [ref=e296]: "| Exception paths | {a rejection is submitted with no reason â†’ the reason is required before the rejection is accepted â†’ the Approver supplies one} [SRC: C-132]; {the decision queue is empty â†’ \"No records need a decision.\" â†’ the Approver leaves the surface} |"
+      - term [ref=e297]: Observation
+      - definition [ref=e298]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e299]: requirements-draft.md Â· L465
+        - text: ", citations"
+        - code [ref=e300]: C-132
+        - text: .
+  - article [ref=e301]:
+    - 'heading "Flow: Decide a transaction Â· L530 Â· DRIFTED" [level=3] [ref=e302]':
+      - code [ref=e303]: "Flow: Decide a transaction"
+      - text: Â·
+      - code [ref=e304]: L530
+      - text: Â·
+      - generic [ref=e305]: DRIFTED
+    - generic [ref=e306]:
+      - term [ref=e307]: Antecedent
+      - definition [ref=e308]:
+        - blockquote [ref=e309]:
+          - generic [ref=e310]: "| Role-conditional behaviour | Only a Reviewer may approve or reject. An Importer may read a transaction but not decide it. |"
+        - paragraph [ref=e311]:
+          - generic [ref=e312]:
+            - text: "draft markers:"
+            - code [ref=e313]: AI-026
+      - term [ref=e314]: Current value
+      - definition [ref=e315]:
+        - blockquote [ref=e316]:
+          - generic [ref=e317]: "| Role-conditional behaviour | Only an Approver may approve or reject. An Importer may read a transaction but not decide it. |"
+      - term [ref=e318]: Observation
+      - definition [ref=e319]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e320]: requirements-draft.md Â· L466
+        - text: ", resolver"
+        - code [ref=e321]: AI-026
+        - text: =
+        - code [ref=e322]: confirmed
+        - text: .
+  - article [ref=e323]:
+    - heading "6.1 Functional Â· L552 Â· DRIFTED" [level=3] [ref=e324]:
+      - code [ref=e325]: 6.1 Functional
+      - text: Â·
+      - code [ref=e326]: L552
+      - text: Â·
+      - generic [ref=e327]: DRIFTED
+    - generic [ref=e328]:
+      - term [ref=e329]: Antecedent
+      - definition [ref=e330]:
+        - blockquote [ref=e331]:
+          - generic [ref=e332]: "| F-13 | Must | Approve or reject a pending transaction, recording the acting user with the decision. [SRC: C-145] | When a Reviewer decides a pending transaction, the system shall set that transaction's status and shall record the acting user and the decision time. | stated | Supports â†’ Â§4.1 G-05 \"Reach a decision on every record that needs one\" |"
+        - paragraph [ref=e333]: the draft cell carries no provenance marker
+      - term [ref=e334]: Current value
+      - definition [ref=e335]:
+        - blockquote [ref=e336]:
+          - generic [ref=e337]: "| F-13 | Must | Approve or reject a pending transaction, recording the acting user with the decision. [SRC: C-145] | When an Approver decides a pending transaction, the system shall set that transaction's status and shall record the acting user and the decision time. | stated | Supports â†’ Â§4.1 G-05 \"Reach a decision on every record that needs one\" |"
+      - term [ref=e338]: Observation
+      - definition [ref=e339]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e340]: requirements-draft.md Â· L488
+        - text: ", citations"
+        - code [ref=e341]: C-145
+        - text: .
+  - article [ref=e342]:
+    - heading "6.2 Business rules Â· L572 Â· DRIFTED" [level=3] [ref=e343]:
+      - code [ref=e344]: 6.2 Business rules
+      - text: Â·
+      - code [ref=e345]: L572
+      - text: Â·
+      - generic [ref=e346]: DRIFTED
+    - generic [ref=e347]:
+      - term [ref=e348]: Antecedent
+      - definition [ref=e349]:
+        - blockquote [ref=e350]:
+          - generic [ref=e351]: "| BR-08 | When a Reviewer rejects a transaction, then a reason is required and is stored against the record. [SRC: C-160] | cross-layer | If a rejection carries no reason, then the system shall not accept the rejection. | â†’ Â§2.3 invariant | blocker |"
+        - paragraph [ref=e352]: the draft cell carries no provenance marker
+      - term [ref=e353]: Current value
+      - definition [ref=e354]:
+        - blockquote [ref=e355]:
+          - generic [ref=e356]: "| BR-08 | When an Approver rejects a transaction, then a reason is required and is stored against the record. [SRC: C-160] | cross-layer | If a rejection carries no reason, then the system shall not accept the rejection. | â†’ Â§2.3 invariant | blocker |"
+      - term [ref=e357]: Observation
+      - definition [ref=e358]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e359]: requirements-draft.md Â· L508
+        - text: ", citations"
+        - code [ref=e360]: C-160
+        - text: .
+  - article [ref=e361]:
+    - heading "6.2 Business rules Â· L573 Â· DRIFTED" [level=3] [ref=e362]:
+      - code [ref=e363]: 6.2 Business rules
+      - text: Â·
+      - code [ref=e364]: L573
+      - text: Â·
+      - generic [ref=e365]: DRIFTED
+    - generic [ref=e366]:
+      - term [ref=e367]: Antecedent
+      - definition [ref=e368]:
+        - blockquote [ref=e369]:
+          - generic [ref=e370]: "| BR-09 | When a decision is made on a transaction, then only a Reviewer is permitted to make it. [SRC: C-161] | cross-layer | If a persona other than a Reviewer attempts a decision, then the system shall refuse it. | â†’ Â§6.5 access control | blocker |"
+        - paragraph [ref=e371]:
+          - generic [ref=e372]:
+            - text: "draft markers:"
+            - code [ref=e373]: AI-030
+      - term [ref=e374]: Current value
+      - definition [ref=e375]:
+        - blockquote [ref=e376]:
+          - generic [ref=e377]: "| BR-09 | When a decision is made on a transaction, then only an Approver is permitted to make it. [SRC: C-161] | cross-layer | If a persona other than an Approver attempts a decision, then the system shall refuse it. | â†’ Â§6.5 access control | blocker |"
+      - term [ref=e378]: Observation
+      - definition [ref=e379]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e380]: requirements-draft.md Â· L509
+        - text: ", resolver"
+        - code [ref=e381]: AI-030
+        - text: =
+        - code [ref=e382]: confirmed
+        - text: ", citations"
+        - code [ref=e383]: C-161
+        - text: .
+  - article [ref=e384]:
+    - heading "6.4 UI feature needs Â· L622 Â· DRIFTED" [level=3] [ref=e385]:
+      - code [ref=e386]: 6.4 UI feature needs
+      - text: Â·
+      - code [ref=e387]: L622
+      - text: Â·
+      - generic [ref=e388]: DRIFTED
+    - generic [ref=e389]:
+      - term [ref=e390]: Antecedent
+      - definition [ref=e391]:
+        - blockquote [ref=e392]:
+          - generic [ref=e393]: "| UI-14 | Must | Reviewer can approve or reject a pending transaction, and the reject action requires a reason before it completes. [SRC: C-191] | â†’ Â§6.2 BR-08 \"When a Reviewer rejects a transaction\" | A rejection without a reason does not complete. |"
+        - paragraph [ref=e394]: the draft cell carries no provenance marker
+      - term [ref=e395]: Current value
+      - definition [ref=e396]:
+        - blockquote [ref=e397]:
+          - generic [ref=e398]: "| UI-14 | Must | Approver can approve or reject a pending transaction, and the reject action requires a reason before it completes. [SRC: C-191] | â†’ Â§6.2 BR-08 \"When an Approver rejects a transaction\" | A rejection without a reason does not complete. |"
+      - term [ref=e399]: Observation
+      - definition [ref=e400]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e401]: requirements-draft.md Â· L558
+        - text: ", citations"
+        - code [ref=e402]: C-191
+        - text: .
+  - article [ref=e403]:
+    - heading "6.4.5 Edge, empty & error states Â· L652 Â· DRIFTED" [level=3] [ref=e404]:
+      - code [ref=e405]: 6.4.5 Edge, empty & error states
+      - text: Â·
+      - code [ref=e406]: L652
+      - text: Â·
+      - generic [ref=e407]: DRIFTED
+    - generic [ref=e408]:
+      - term [ref=e409]: Antecedent
+      - definition [ref=e410]:
+        - blockquote [ref=e411]:
+          - generic [ref=e412]: "| â†’ Â§6.1 F-13 \"Approve or reject a pending transaction\" | permission-denied | Presents an in-page notice naming the missing permission instead of the decision surface. | User asks for the Reviewer permission. |"
+        - paragraph [ref=e413]:
+          - generic [ref=e414]:
+            - text: "draft markers:"
+            - code [ref=e415]: GR-02
+      - term [ref=e416]: Current value
+      - definition [ref=e417]:
+        - blockquote [ref=e418]:
+          - generic [ref=e419]: "| â†’ Â§6.1 F-13 \"Approve or reject a pending transaction\" | permission-denied | Presents an in-page notice naming the missing permission instead of the decision surface. | User asks for the Approver permission. |"
+      - term [ref=e420]: Observation
+      - definition [ref=e421]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e422]: requirements-draft.md Â· L588
+        - text: .
+  - article [ref=e423]:
+    - heading "6.5 Access control (RBAC) Â· L665 Â· DRIFTED" [level=3] [ref=e424]:
+      - code [ref=e425]: 6.5 Access control (RBAC)
+      - text: Â·
+      - code [ref=e426]: L665
+      - text: Â·
+      - generic [ref=e427]: DRIFTED
+    - generic [ref=e428]:
+      - term [ref=e429]: Antecedent
+      - definition [ref=e430]:
+        - blockquote [ref=e431]:
+          - generic [ref=e432]: "| Reviewer | R Aâ€ BR-09 | R | â€” | â€” | â€” | â€” | X | X | â€” | â€” | â€” | X |"
+        - paragraph [ref=e433]:
+          - generic [ref=e434]:
+            - text: "draft markers:"
+            - code [ref=e435]: AI-036
+      - term [ref=e436]: Current value
+      - definition [ref=e437]:
+        - blockquote [ref=e438]:
+          - generic [ref=e439]: "| Approver | R Aâ€ BR-09 | R | â€” | â€” | â€” | â€” | X | X | â€” | â€” | â€” | X |"
+      - term [ref=e440]: Observation
+      - definition [ref=e441]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e442]: requirements-draft.md Â· L601
+        - text: ", resolver"
+        - code [ref=e443]: AI-036
+        - text: =
+        - code [ref=e444]: accepted-as-is
+        - text: .
+  - article [ref=e445]:
+    - heading "6.7 Reporting feature needs Â· L714 Â· DRIFTED" [level=3] [ref=e446]:
+      - code [ref=e447]: 6.7 Reporting feature needs
+      - text: Â·
+      - code [ref=e448]: L714
+      - text: Â·
+      - generic [ref=e449]: DRIFTED
+    - generic [ref=e450]:
+      - term [ref=e451]: Antecedent
+      - definition [ref=e452]:
+        - blockquote [ref=e453]:
+          - generic [ref=e454]: "| RPT-04 | Show the records awaiting a decision [SRC: C-202] | Reviewer | Transaction, Review Exception | Status, exception category, amount range, currency | Transaction date, description, amount, status | none | on-demand |"
+        - paragraph [ref=e455]: the draft cell carries no provenance marker
+      - term [ref=e456]: Current value
+      - definition [ref=e457]:
+        - blockquote [ref=e458]:
+          - generic [ref=e459]: "| RPT-04 | Show the records awaiting a decision [SRC: C-202] | Approver | Transaction, Review Exception | Status, exception category, amount range, currency | Transaction date, description, amount, status | none | on-demand |"
+      - term [ref=e460]: Observation
+      - definition [ref=e461]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e462]: requirements-draft.md Â· L650
+        - text: ", citations"
+        - code [ref=e463]: C-202
+        - text: .
+  - article [ref=e464]:
+    - heading "6.8 Notification points Â· L723 Â· DRIFTED" [level=3] [ref=e465]:
+      - code [ref=e466]: 6.8 Notification points
+      - text: Â·
+      - code [ref=e467]: L723
+      - text: Â·
+      - generic [ref=e468]: DRIFTED
+    - generic [ref=e469]:
+      - term [ref=e470]: Antecedent
+      - definition [ref=e471]:
+        - blockquote [ref=e472]:
+          - generic [ref=e473]: "| NT-02 | A loaded record is pending a decision [SRC: C-205] | Reviewer | in-app | The Reviewer opens the decision queue. â†’ Â§6.2 BR-07 \"When a loaded record matches an exception category\" |"
+        - paragraph [ref=e474]: the draft cell carries no provenance marker
+      - term [ref=e475]: Current value
+      - definition [ref=e476]:
+        - blockquote [ref=e477]:
+          - generic [ref=e478]: "| NT-02 | A loaded record is pending a decision [SRC: C-205] | Approver | in-app | The Approver opens the decision queue. â†’ Â§6.2 BR-07 \"When a loaded record matches an exception category\" |"
+      - term [ref=e479]: Observation
+      - definition [ref=e480]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e481]: requirements-draft.md Â· L659
+        - text: ", citations"
+        - code [ref=e482]: C-205
+        - text: .
+  - article [ref=e483]:
+    - heading "6.9 Audit-trail UI feature Â· L731 Â· DRIFTED" [level=3] [ref=e484]:
+      - code [ref=e485]: 6.9 Audit-trail UI feature
+      - text: Â·
+      - code [ref=e486]: L731
+      - text: Â·
+      - generic [ref=e487]: DRIFTED
+    - generic [ref=e488]:
+      - term [ref=e489]: Antecedent
+      - definition [ref=e490]:
+        - blockquote [ref=e491]:
+          - generic [ref=e492]: "| Transaction | Status, UserNote, LastChangedUser, LastChangedDate [SRC: C-206] | Every decision the record has ever carried is readable | Importer, Reviewer |"
+        - paragraph [ref=e493]: the draft cell carries no provenance marker
+      - term [ref=e494]: Current value
+      - definition [ref=e495]:
+        - blockquote [ref=e496]:
+          - generic [ref=e497]: "| Transaction | Status, UserNote, LastChangedUser, LastChangedDate [SRC: C-206] | Every decision the record has ever carried is readable | Importer, Approver |"
+      - term [ref=e498]: Observation
+      - definition [ref=e499]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e500]: requirements-draft.md Â· L667
+        - text: ", citations"
+        - code [ref=e501]: C-206
+        - text: .
+  - article [ref=e502]:
+    - 'heading "Shape: Role Â· L871 Â· DRIFTED" [level=3] [ref=e503]':
+      - code [ref=e504]: "Shape: Role"
+      - text: Â·
+      - code [ref=e505]: L871
+      - text: Â·
+      - generic [ref=e506]: DRIFTED
+    - generic [ref=e507]:
+      - term [ref=e508]: Antecedent
+      - definition [ref=e509]:
+        - blockquote [ref=e510]:
+          - generic [ref=e511]: "**Enums:** Name â€” Importer, Reviewer"
+        - paragraph [ref=e512]:
+          - generic [ref=e513]:
+            - text: "draft markers:"
+            - code [ref=e514]: AI-045
+      - term [ref=e515]: Current value
+      - definition [ref=e516]:
+        - blockquote [ref=e517]:
+          - generic [ref=e518]: "**Enums:** Name â€” Importer, Approver"
+      - term [ref=e519]: Observation
+      - definition [ref=e520]:
+        - text: "Value changed post-merge, not explained by a correction. Antecedent:"
+        - code [ref=e521]: requirements-draft.md Â· L807
+        - text: ", resolver"
+        - code [ref=e522]: AI-045
+        - text: =
+        - code [ref=e523]: confirmed
+        - text: .
+  - heading "Dead-provenance â€” 0" [level=3] [ref=e524]
+  - paragraph [ref=e525]:
+    - text: "No dead provenance. The tagâ†”sidecar cross-check is 1:1 in both directions: all 292"
+    - code [ref=e526]: "[SRC: C-NNN]"
+    - text: tags in the final document have a ledger entry, and all 292 ledger entries have a tag. No ledger row points at content the merge removed.
+  - heading "Ledger-hygiene observations (informational)" [level=3] [ref=e527]
+  - list [ref=e528]:
+    - listitem [ref=e529]:
+      - code [ref=e530]: resolver-answers.ndjson
+      - text: Â·
+      - code [ref=e531]: AI-024
+      - text: â€” the stored
+      - code [ref=e532]: resolved_value
+      - text: begins
+      - code [ref=e533]: "non-blocking]; {dispatch fails for one file â€¦"
+      - text: ": the tail of the preceding marker leaked into the captured value. The unit still verdicts"
+      - strong [ref=e534]: ACCEPTED-INFERENCE
+      - text: ", because an"
+      - code [ref=e535]: accepted-as-is
+      - text: resolution is checked against the
+      - emphasis [ref=e536]: drafter
+      - text: value and the final cell matches the draft. The malformed record degrades a future runâ€™s ability to re-derive the answer.
+    - listitem [ref=e537]:
+      - text: Â§1.5 Scope guidance blockquote (final
+      - code [ref=e538]: L104
+      - text: ) reads
+      - generic [ref=e539]:
+        - text: "`` is"
+        - strong [ref=e540]: not
+        - text: valid in this section
+      - text: . The draft read
+      - generic [ref=e541]:
+        - text: "`[OUT-OF-SCOPE: domain-default]` is"
+        - strong [ref=e542]: not
+        - text: valid in this section
+      - text: ": the marker-strip removed the text from inside inline-code backticks, leaving an empty pair and a sentence with no subject."
+    - listitem [ref=e543]:
+      - text: Framework-internal
+      - code [ref=e544]: GR-NN
+      - text: references were stripped from audience-facing text in 8 places (Â§1.6, the Â§6.1 and Â§6.2 table headers, Â§6.3, Â§6.4, Â§6.4.5, Â§6.7, Â§6.8 blockquotes) â€” e.g.
+      - code [ref=e545]: Acceptance criteria (EARS â€” GR-23)
+      - text: â†’
+      - code [ref=e546]: Acceptance criteria (EARS)
+      - text: ", and Validation timing follows `GR-05` replaced by the rule spelled out. The values are preserved; recorded because the audience-facing document no longer names the rule a later audit would join on."
+    - listitem [ref=e547]:
+      - text: Â§6.6.1 Session UX â€” four rows (
+      - code [ref=e548]: Idle session timeout
+      - text: ","
+      - code [ref=e549]: Absolute session timeout
+      - text: ","
+      - code [ref=e550]: Idle warning lead-time
+      - text: ","
+      - code [ref=e551]: Re-auth scope
+      - text: ) trace to
+      - code [ref=e552]: "[STANDARD-RULE: GR-19]"
+      - text: in the draft, but their
+      - code [ref=e553]: Source
+      - text: column reads
+      - code [ref=e554]: inferred
+      - text: . The provenance is a deterministic framework rule, not an inference; the label understates it.
+  - text: ": the warn-level register (NOT the headline). One"
+  - article [ref=e555]:
+    - text: "per DRIFTED or DEAD-PROVENANCE unit:"
+    - article [ref=e556]:
+      - 'heading "{unit_id} Â· {anchor} Â· {VERDICT}" [level=3] [ref=e557]':
+        - code [ref=e558]: "{unit_id}"
+        - text: Â·
+        - code [ref=e559]: "{anchor}"
+        - text: Â·
+        - generic [ref=e560]: "{VERDICT}"
+      - generic [ref=e561]:
+        - term [ref=e562]: Antecedent
+        - definition [ref=e563]:
+          - blockquote [ref=e564]:
+            - generic [ref=e565]: "{antecedent_escaped}"
+        - term [ref=e566]: Current value
+        - definition [ref=e567]:
+          - blockquote [ref=e568]:
+            - generic [ref=e569]: "{current_escaped}"
+        - term [ref=e570]: Observation
+        - definition [ref=e571]: "{observation_escaped â€” e.g. \"value changed post-merge, not explained by a correction\", \"ledger entry C-022 has no tag in the final doc\"}"
+    - text: If zero, substitute
+    - paragraph [ref=e572]: No drift or dead-provenance â€” every retained value matches its antecedent and every ledger entry is present in the final doc.
+    - text: DIAGNOSTICS SCHEMA â€”
+    - group [ref=e573]:
+      - generic "Run diagnostics" [ref=e574] [cursor=pointer]
+      - heading "Capability tier" [level=4] [ref=e575]
+      - paragraph [ref=e576]:
+        - strong [ref=e577]: TIER-2 (full).
+        - text: "Confidence ceiling: high on the citation band, moderate on the alignment band."
+      - table [ref=e578]:
+        - rowgroup [ref=e579]:
+          - row "Provenance asset State Note" [ref=e580]:
+            - columnheader "Provenance asset" [ref=e581]
+            - columnheader "State" [ref=e582]
+            - columnheader "Note" [ref=e583]
+        - rowgroup [ref=e584]:
+          - row "generated-docs/requirements/requirements.md present the audited artefact â€” 976 lines, 85â€‰233 bytes" [ref=e585]:
+            - cell "generated-docs/requirements/requirements.md" [ref=e586]:
+              - code [ref=e587]: generated-docs/requirements/requirements.md
+            - cell "present" [ref=e588]:
+              - generic [ref=e589]: present
+            - cell "the audited artefact â€” 976 lines, 85â€‰233 bytes" [ref=e590]
+          - row "generated-docs/requirements/requirements-draft.md present marker-bearing baseline, 871 lines â€” 47 AI-SUGGESTED, 85 STANDARD-RULE, 18 OUT-OF-SCOPE markers" [ref=e591]:
+            - cell "generated-docs/requirements/requirements-draft.md" [ref=e592]:
+              - code [ref=e593]: generated-docs/requirements/requirements-draft.md
+            - cell "present" [ref=e594]:
+              - generic [ref=e595]: present
+            - cell "marker-bearing baseline, 871 lines â€” 47 AI-SUGGESTED, 85 STANDARD-RULE, 18 OUT-OF-SCOPE markers" [ref=e596]:
+              - text: marker-bearing baseline, 871 lines â€” 47
+              - code [ref=e597]: AI-SUGGESTED
+              - text: ", 85"
+              - code [ref=e598]: STANDARD-RULE
+              - text: ", 18"
+              - code [ref=e599]: OUT-OF-SCOPE
+              - text: markers
+          - row "generated-docs/requirements/draft-claims.ndjson present 292 claim entries, no duplicate claim_id" [ref=e600]:
+            - cell "generated-docs/requirements/draft-claims.ndjson" [ref=e601]:
+              - code [ref=e602]: generated-docs/requirements/draft-claims.ndjson
+            - cell "present" [ref=e603]:
+              - generic [ref=e604]: present
+            - cell "292 claim entries, no duplicate claim_id" [ref=e605]:
+              - text: 292 claim entries, no duplicate
+              - code [ref=e606]: claim_id
+          - row "generated-docs/requirements/draft-claims-verification.ndjson present 293 lines â€” the draft-time record; not needed at TIER-2, where sources were re-verified live" [ref=e607]:
+            - cell "generated-docs/requirements/draft-claims-verification.ndjson" [ref=e608]:
+              - code [ref=e609]: generated-docs/requirements/draft-claims-verification.ndjson
+            - cell "present" [ref=e610]:
+              - generic [ref=e611]: present
+            - cell "293 lines â€” the draft-time record; not needed at TIER-2, where sources were re-verified live" [ref=e612]
+          - row "framework/state/resolver-answers.ndjson present 47 resolutions â€” 14 confirmed, 33 accepted-as-is, 0 corrected, 0 dropped" [ref=e613]:
+            - cell "framework/state/resolver-answers.ndjson" [ref=e614]:
+              - code [ref=e615]: framework/state/resolver-answers.ndjson
+            - cell "present" [ref=e616]:
+              - generic [ref=e617]: present
+            - cell "47 resolutions â€” 14 confirmed, 33 accepted-as-is, 0 corrected, 0 dropped" [ref=e618]:
+              - text: 47 resolutions â€” 14
+              - code [ref=e619]: confirmed
+              - text: ", 33"
+              - code [ref=e620]: accepted-as-is
+              - text: ", 0"
+              - code [ref=e621]: corrected
+              - text: ", 0"
+              - code [ref=e622]: dropped
+          - row "generated-docs/requirements/consultant-answers.md present read for corroboration only, never as the authoritative resolution source" [ref=e623]:
+            - cell "generated-docs/requirements/consultant-answers.md" [ref=e624]:
+              - code [ref=e625]: generated-docs/requirements/consultant-answers.md
+            - cell "present" [ref=e626]:
+              - generic [ref=e627]: present
+            - cell "read for corroboration only, never as the authoritative resolution source" [ref=e628]
+          - row "generated-docs/requirements/source-manifest.json present 10 rows; allowlist resolved per the read-path rule â€” 1 converted_sibling, 9 original_path" [ref=e629]:
+            - cell "generated-docs/requirements/source-manifest.json" [ref=e630]:
+              - code [ref=e631]: generated-docs/requirements/source-manifest.json
+            - cell "present" [ref=e632]:
+              - generic [ref=e633]: present
+            - cell "10 rows; allowlist resolved per the read-path rule â€” 1 converted_sibling, 9 original_path" [ref=e634]:
+              - text: 10 rows; allowlist resolved per the read-path rule â€” 1
+              - code [ref=e635]: converted_sibling
+              - text: ", 9"
+              - code [ref=e636]: original_path
+          - row "the 10 allowlisted input files present all readable â€” the trace terminus" [ref=e637]:
+            - cell "the 10 allowlisted input files" [ref=e638]:
+              - code [ref=e639]: the 10 allowlisted input files
+            - cell "present" [ref=e640]:
+              - generic [ref=e641]: present
+            - cell "all readable â€” the trace terminus" [ref=e642]
+      - heading "Quality gates" [level=4] [ref=e643]
+      - table [ref=e644]:
+        - rowgroup [ref=e645]:
+          - row "Gate Result Note" [ref=e646]:
+            - columnheader "Gate" [ref=e647]
+            - columnheader "Result" [ref=e648]
+            - columnheader "Note" [ref=e649]
+        - rowgroup [ref=e650]:
+          - row "1 Schema PASS All 399 scored units carry a verdict from the closed taxonomy; all 76 matrix rows light exactly one trace target." [ref=e651]:
+            - cell "1 Schema" [ref=e652]:
+              - code [ref=e653]: 1 Schema
+            - cell "PASS" [ref=e654]:
+              - generic [ref=e655]: PASS
+            - cell "All 399 scored units carry a verdict from the closed taxonomy; all 76 matrix rows light exactly one trace target." [ref=e656]
+          - 'row "2 Enumeration PASS matrix_count 76 == enumerated_count 76. All 292 [SRC: C-NNN] tags in the final doc have a ledger row (569 ledger rows in total)." [ref=e657]':
+            - cell "2 Enumeration" [ref=e658]:
+              - code [ref=e659]: 2 Enumeration
+            - cell "PASS" [ref=e660]:
+              - generic [ref=e661]: PASS
+            - 'cell "matrix_count 76 == enumerated_count 76. All 292 [SRC: C-NNN] tags in the final doc have a ledger row (569 ledger rows in total)." [ref=e662]':
+              - text: matrix_count 76 == enumerated_count 76. All 292
+              - code [ref=e663]: "[SRC: C-NNN]"
+              - text: tags in the final doc have a ledger row (569 ledger rows in total).
+          - 'row "3 Untraceable-set-completeness PASS All 103 NOT-ALIGNABLE units appear in the headline Untraceable block, and nothing untraceable sits below the diagrams: 8 lines carried by the grouped merger-authored lead card + 2 rename cards + 55 substantive cards + 38 pointer rows = 103. Drift and dead-provenance are warn-level and are held below, in the fix list." [ref=e664]':
+            - cell "3 Untraceable-set-completeness" [ref=e665]:
+              - code [ref=e666]: 3 Untraceable-set-completeness
+            - cell "PASS" [ref=e667]:
+              - generic [ref=e668]: PASS
+            - 'cell "All 103 NOT-ALIGNABLE units appear in the headline Untraceable block, and nothing untraceable sits below the diagrams: 8 lines carried by the grouped merger-authored lead card + 2 rename cards + 55 substantive cards + 38 pointer rows = 103. Drift and dead-provenance are warn-level and are held below, in the fix list." [ref=e669]'
+          - row "4 Evidence-quote-exists PASS Every quoted offending text was extracted mechanically from requirements.md and is a substring of the Step-2 quote index. No BROKEN-CITATION exists to carry a reason." [ref=e670]:
+            - cell "4 Evidence-quote-exists" [ref=e671]:
+              - code [ref=e672]: 4 Evidence-quote-exists
+            - cell "PASS" [ref=e673]:
+              - generic [ref=e674]: PASS
+            - cell "Every quoted offending text was extracted mechanically from requirements.md and is a substring of the Step-2 quote index. No BROKEN-CITATION exists to carry a reason." [ref=e675]:
+              - text: Every quoted offending text was extracted mechanically from
+              - code [ref=e676]: requirements.md
+              - text: and is a substring of the Step-2 quote index. No BROKEN-CITATION exists to carry a reason.
+          - row "5 Citation-determinism PASS All 236 SOURCED verdicts are backed by a status:\"pass\" line in .workspace/citation-verification.ndjson. No citation verdict was asserted without a ledger basis." [ref=e677]:
+            - cell "5 Citation-determinism" [ref=e678]:
+              - code [ref=e679]: 5 Citation-determinism
+            - cell "PASS" [ref=e680]:
+              - generic [ref=e681]: PASS
+            - cell "All 236 SOURCED verdicts are backed by a status:\"pass\" line in .workspace/citation-verification.ndjson. No citation verdict was asserted without a ledger basis." [ref=e682]:
+              - text: All 236 SOURCED verdicts are backed by a
+              - code [ref=e683]: status:"pass"
+              - text: line in
+              - code [ref=e684]: .workspace/citation-verification.ndjson
+              - text: . No citation verdict was asserted without a ledger basis.
+          - row "6 Alignment-anti-fabrication PASS Every ACCEPTED-INFERENCE names an AI-NNN plus its resolver status; every STANDARD-RULE names a GR-NN; every OUT-OF-SCOPE-DEFAULT names a draft out-of-scope marker. Uncertain alignments are NOT-ALIGNABLE. No verdict text uses the word \"fabricated\" of any unit." [ref=e685]:
+            - cell "6 Alignment-anti-fabrication" [ref=e686]:
+              - code [ref=e687]: 6 Alignment-anti-fabrication
+            - cell "PASS" [ref=e688]:
+              - generic [ref=e689]: PASS
+            - cell "Every ACCEPTED-INFERENCE names an AI-NNN plus its resolver status; every STANDARD-RULE names a GR-NN; every OUT-OF-SCOPE-DEFAULT names a draft out-of-scope marker. Uncertain alignments are NOT-ALIGNABLE. No verdict text uses the word \"fabricated\" of any unit." [ref=e690]:
+              - text: Every ACCEPTED-INFERENCE names an
+              - code [ref=e691]: AI-NNN
+              - text: plus its resolver status; every STANDARD-RULE names a
+              - code [ref=e692]: GR-NN
+              - text: ; every OUT-OF-SCOPE-DEFAULT names a draft out-of-scope marker. Uncertain alignments are NOT-ALIGNABLE. No verdict text uses the word "fabricated" of any unit.
+          - row "7 Capability-banner-present PASS TIER-2 stated with its confidence ceiling. The TIER-0 verdict cap does not apply." [ref=e693]:
+            - cell "7 Capability-banner-present" [ref=e694]:
+              - code [ref=e695]: 7 Capability-banner-present
+            - cell "PASS" [ref=e696]:
+              - generic [ref=e697]: PASS
+            - cell "TIER-2 stated with its confidence ceiling. The TIER-0 verdict cap does not apply." [ref=e698]
+          - row "8 Fenced-judgment PASS NOT-ALIGNABLE and DRIFTED render as moderate-confidence bands with an observation. Both trace layers are applicable at TIER-2, so the not-applicable warn variant did not fire." [ref=e699]:
+            - cell "8 Fenced-judgment" [ref=e700]:
+              - code [ref=e701]: 8 Fenced-judgment
+            - cell "PASS" [ref=e702]:
+              - generic [ref=e703]: PASS
+            - cell "NOT-ALIGNABLE and DRIFTED render as moderate-confidence bands with an observation. Both trace layers are applicable at TIER-2, so the not-applicable warn variant did not fire." [ref=e704]:
+              - text: NOT-ALIGNABLE and DRIFTED render as moderate-confidence bands with an observation. Both trace layers are applicable at TIER-2, so the
+              - code [ref=e705]: not-applicable
+              - text: warn variant did not fire.
+          - row "9 SHA match PASS 8ba84465600112f611becd9d10115eab959ad8a79df6e01a33e752056946951c equals the Step-2 SHA-256 of generated-docs/requirements/requirements.md." [ref=e706]:
+            - cell "9 SHA match" [ref=e707]:
+              - code [ref=e708]: 9 SHA match
+            - cell "PASS" [ref=e709]:
+              - generic [ref=e710]: PASS
+            - cell "8ba84465600112f611becd9d10115eab959ad8a79df6e01a33e752056946951c equals the Step-2 SHA-256 of generated-docs/requirements/requirements.md." [ref=e711]:
+              - code [ref=e712]: 8ba84465600112f611becd9d10115eab959ad8a79df6e01a33e752056946951c
+              - text: equals the Step-2 SHA-256 of
+              - code [ref=e713]: generated-docs/requirements/requirements.md
+              - text: .
+          - 'row "10 Verdict consistency PASS Recomputed: 0 broken-citation, 0 dropped-but-present, 0 orphan â†’ no BLOCKED trigger; 103 not-alignable and 24 drifted â†’ NEEDS-REVISION. Matches the rendered verdict." [ref=e714]':
+            - cell "10 Verdict consistency" [ref=e715]:
+              - code [ref=e716]: 10 Verdict consistency
+            - cell "PASS" [ref=e717]:
+              - generic [ref=e718]: PASS
+            - 'cell "Recomputed: 0 broken-citation, 0 dropped-but-present, 0 orphan â†’ no BLOCKED trigger; 103 not-alignable and 24 drifted â†’ NEEDS-REVISION. Matches the rendered verdict." [ref=e719]'
+      - heading "Citation-verification run" [level=4] [ref=e720]
+      - paragraph [ref=e721]:
+        - text: "Engine:"
+        - code [ref=e722]: framework/skills/grounding-verifier.md
+        - text: ", executed inline against"
+        - code [ref=e723]: draft_path = generated-docs/requirements/requirements.md
+        - text: . Deterministic, no LLM â€” the same inputs yield the same SOURCED / BROKEN set every run.
+      - paragraph [ref=e724]:
+        - code [ref=e725]: "grounding-verifier: total=292 passed=292 failed=0"
+      - paragraph [ref=e726]:
+        - text: "PassÂ 2 cross-check:"
+        - code [ref=e727]: tag_without_sidecar = 0
+        - text: ","
+        - code [ref=e728]: sidecar_without_tag = 0
+        - text: ","
+        - code [ref=e729]: duplicate_claim_id = 0
+        - text: ". Output:"
+        - code [ref=e730]: generated-docs/review-requirements/REQUIREMENTS-TRACEABILITY/.workspace/citation-verification.ndjson
+        - text: .
+      - heading "Provenance-class counts" [level=4] [ref=e731]
+      - table [ref=e732]:
+        - rowgroup [ref=e733]:
+          - row "Class Count" [ref=e734]:
+            - columnheader "Class" [ref=e735]
+            - columnheader "Count" [ref=e736]
+        - rowgroup [ref=e737]:
+          - row "SOURCED 236" [ref=e738]:
+            - cell "SOURCED" [ref=e739]
+            - cell "236" [ref=e740]
+          - row "ACCEPTED-INFERENCE 32" [ref=e741]:
+            - cell "ACCEPTED-INFERENCE" [ref=e742]
+            - cell "32" [ref=e743]
+          - row "STANDARD-RULE 26" [ref=e744]:
+            - cell "STANDARD-RULE" [ref=e745]
+            - cell "26" [ref=e746]
+          - row "OUT-OF-SCOPE-DEFAULT 2" [ref=e747]:
+            - cell "OUT-OF-SCOPE-DEFAULT" [ref=e748]
+            - cell "2" [ref=e749]
+          - row "NOT-ALIGNABLE 103" [ref=e750]:
+            - cell "NOT-ALIGNABLE" [ref=e751]
+            - cell "103" [ref=e752]
+          - row "ORPHAN 0" [ref=e753]:
+            - cell "ORPHAN" [ref=e754]
+            - cell "0" [ref=e755]
+          - row "BROKEN-CITATION 0" [ref=e756]:
+            - cell "BROKEN-CITATION" [ref=e757]
+            - cell "0" [ref=e758]
+          - row "DROPPED-BUT-PRESENT 0" [ref=e759]:
+            - cell "DROPPED-BUT-PRESENT" [ref=e760]
+            - cell "0" [ref=e761]
+          - row "UNATTRIBUTED 0 â€” a TIER-1 verdict, not applicable at TIER-2" [ref=e762]:
+            - cell "UNATTRIBUTED" [ref=e763]
+            - cell "0 â€” a TIER-1 verdict, not applicable at TIER-2" [ref=e764]
+          - row "DRIFTED (warn) 24" [ref=e765]:
+            - cell "DRIFTED (warn)" [ref=e766]
+            - cell "24" [ref=e767]
+          - row "DEAD-PROVENANCE (warn) 0" [ref=e768]:
+            - cell "DEAD-PROVENANCE (warn)" [ref=e769]
+            - cell "0" [ref=e770]
+          - row "Total scored units 399" [ref=e771]:
+            - cell "Total scored units" [ref=e772]:
+              - strong [ref=e773]: Total scored units
+            - cell "399" [ref=e774]:
+              - strong [ref=e775]: "399"
+      - heading "Alignment confidence" [level=4] [ref=e776]
+      - paragraph [ref=e777]:
+        - text: "Confidently aligned:"
+        - strong [ref=e778]: "296"
+        - text: "of 399 scored units â€” 362 exact, 5 after cosmetic whitespace normalisation, 24 after persona-token normalisation (the drift register). Not confidently alignable:"
+        - strong [ref=e779]: "103"
+        - text: â€” 93 with an identical but unmarked draft antecedent (fenced, leans-traced), 10 with no antecedent at all.
+      - heading "Scope exclusions (declared)" [level=4] [ref=e780]
+      - paragraph [ref=e781]:
+        - text: Lines excluded from the unit census, with the reason. Per the methodology reference, Â§1 / Â§2 / Â§3 / Â§5 / Â§7 prose is read for its citations and for orphan-surface detection but is not scored as a heatmap row (
+        - code [ref=e782]: id_scope_excluded
+        - text: ); the heatmap rows are the ID-bearing requirements only.
+      - table [ref=e783]:
+        - rowgroup [ref=e784]:
+          - row "Excluded Lines" [ref=e785]:
+            - columnheader "Excluded" [ref=e786]
+            - columnheader "Lines" [ref=e787]
+        - rowgroup [ref=e788]:
+          - row "Contents TOC â€” navigation derived from the documentâ€™s own headings 63" [ref=e789]:
+            - cell "Contents TOC â€” navigation derived from the documentâ€™s own headings" [ref=e790]
+            - cell "63" [ref=e791]
+          - 'row "â€œFor downstream useâ€ tail â€” Â§0.1, reader note, PI-01..PI-08 (declared non-requirement / merger-conditional appendix) 55" [ref=e792]':
+            - 'cell "â€œFor downstream useâ€ tail â€” Â§0.1, reader note, PI-01..PI-08 (declared non-requirement / merger-conditional appendix)" [ref=e793]'
+            - cell "55" [ref=e794]
+          - row "Â§2.4 mermaid diagram body â€” visual restatement of Â§2.1 concepts + Â§2.2 relationships, both scored separately 54" [ref=e795]:
+            - cell "Â§2.4 mermaid diagram body â€” visual restatement of Â§2.1 concepts + Â§2.2 relationships, both scored separately" [ref=e796]
+            - cell "54" [ref=e797]
+          - row "Table header rows â€” template scaffolding 46" [ref=e798]:
+            - cell "Table header rows â€” template scaffolding" [ref=e799]
+            - cell "46" [ref=e800]
+          - row "Header metadata stamp â€” merger status + finalised-at 1" [ref=e801]:
+            - cell "Header metadata stamp â€” merger status + finalised-at" [ref=e802]
+            - cell "1" [ref=e803]
+      - heading "Non-stand-alone read (declared exception)" [level=4] [ref=e804]
+      - paragraph [ref=e805]:
+        - text: This lens reads the provenance asset family read-only, as its methodology requires â€” provenance cannot be audited without the provenance evidence. No read touched
+        - code [ref=e806]: generated-docs/analyse-requirements/
+        - text: ","
+        - code [ref=e807]: generated-docs/design-system/
+        - text: ", or"
+        - code [ref=e808]: framework/state/.progress.json
+        - text: . The only writes were this artefact and its
+        - code [ref=e809]: .workspace/citation-verification.ndjson
+        - text: .
+      - heading "Override log" [level=4] [ref=e810]
+      - paragraph [ref=e811]: All quality gates passed; no override invoked.
+    - text: ": one"
+    - group [ref=e812]:
+      - text: "wrapping:"
+      - heading "Capability tier" [level=4] [ref=e813]
+      - text: table (tier + which assets present/absent + confidence ceiling)
+      - heading "Quality gates" [level=4] [ref=e814]
+      - text: table (10 rows, PASS/FAIL/WARN chip + notes)
+      - heading "Citation-verification run" [level=4] [ref=e815]
+      - text: "(grounding-verifier summary line: total / passed / failed; or \"not run â€” TIER-0\" / \"draft-time record used â€” TIER-1b\")"
+      - heading "Provenance-class counts" [level=4] [ref=e816]
+      - text: (every class Ã— count)
+      - heading "Alignment confidence" [level=4] [ref=e817]
+      - text: (count of confident vs not-alignable alignments)
+      - heading "Override log" [level=4] [ref=e818]
+      - text: "(if Step-7 Override was chosen, list each failed gate; else \"All quality gates passed; no override invoked.\") Style invariants baked into the CSS: â€¢ :root drives all colour: traced classes (sourced/accepted/rule/oos â€” green/indigo/teal/slate), untraced classes (orphan/broken/dropped/not-alignable/unattributed â€” red family + amber for the fenced ones), warn classes (drifted/dead-provenance â€” amber/grey), capability tiers, and the three verdict-banner colours. â€¢ Ledger table uses position: sticky; top:0 on . â€¢ Heatmaps render at viewBox width 1080; max-width:100% so they scale on narrow viewports. â€¢ @media (max-width:720px) collapses the meta-grid; @media print expands"
+      - group [ref=e819]: ", hides toc/back-to-top. -->"
