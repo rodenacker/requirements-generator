@@ -3,7 +3,7 @@
 **Purpose:** Confirm that an MCP-backed tool the input-handler may need is currently available in the harness's tool list. Presence-only check — no version validation, no functional probe. Runs as the conditional preflight step of `framework/agents/input-handler.md` (when at least one input row has classified as `Supported-via-MCP`), before per-file conversion begins, so a missing dependency surfaces as `RF-01 dependency_missing` immediately rather than mid-conversion.
 
 **Inputs:**
-- `tool_name` — the fully-qualified MCP tool name to probe. Examples: `mcp__markitdown__convert_to_markdown`, `mcp__playwright__browser_navigate`.
+- `tool_name` — the fully-qualified MCP tool name to probe. Examples: `mcp__markitdown-mcp__convert_to_markdown`, `mcp__playwright__browser_navigate`.
 - `advice_path` — the repo-relative path to the setup-instructions copy for this dependency. Examples: `framework/shared/setup-instructions/markitdown.md`, `framework/shared/setup-instructions/playwright.md`.
 - `rf_predicate` — *optional* — the refusal-registry predicate ID the caller will surface on absence. Defaults to `RF-01` for backwards compatibility. Callers with a different choice set (e.g. design-system-styler with a three-way Install / Fallback / Drop prompt) pass their own predicate ID, e.g. `RF-06`.
 

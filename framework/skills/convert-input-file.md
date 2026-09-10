@@ -1,10 +1,10 @@
 # convert-input-file.md
 
-**Purpose:** Convert one `Supported-via-MCP` input file into a markdown sibling that downstream consumers can read. Office formats (`.docx`, `.xlsx`, `.pptx`) and PDFs are routed through `mcp__markitdown__convert_to_markdown` with a `file:///` URI. The original is left in place; the converted sibling is written next to it under `documentation/` with the suffix `.converted.md`. Each conversion is one call; the skill is invoked once per `Supported-via-MCP` row in the in-progress manifest.
+**Purpose:** Convert one `Supported-via-MCP` input file into a markdown sibling that downstream consumers can read. Office formats (`.docx`, `.xlsx`, `.pptx`) and PDFs are routed through `mcp__markitdown-mcp__convert_to_markdown` with a `file:///` URI. The original is left in place; the converted sibling is written next to it under `documentation/` with the suffix `.converted.md`. Each conversion is one call; the skill is invoked once per `Supported-via-MCP` row in the in-progress manifest.
 
 **Inputs:**
 - A single `Supported-via-MCP` file path under `documentation/` (e.g. `documentation/spec.docx`).
-- The MCP tool `mcp__markitdown__convert_to_markdown` must be present in the available tool list — guaranteed by the input-handler having run `framework/skills/preflight-mcp.md` first.
+- The MCP tool `mcp__markitdown-mcp__convert_to_markdown` must be present in the available tool list — guaranteed by the input-handler having run `framework/skills/preflight-mcp.md` first.
 
 **Outputs:**
 - A sibling file at `documentation/<basename>.converted.md` containing the markdown rendering.
@@ -16,7 +16,7 @@
 ## Procedure
 
 1. Build the file URI: `file:///` followed by the absolute path of the input file. On Windows, normalise backslashes to forward slashes.
-2. Call `mcp__markitdown__convert_to_markdown` with the URI. The tool returns a markdown string.
+2. Call `mcp__markitdown-mcp__convert_to_markdown` with the URI. The tool returns a markdown string.
 3. Determine the sibling path: replace the original file's extension with `.converted.md`. For `documentation/spec.docx` the sibling is `documentation/spec.converted.md`. If a file already exists at the sibling path, overwrite it — re-runs are idempotent.
 4. `Write` the markdown string to the sibling path.
 5. Compute sha256 of the markdown bytes and call `framework/skills/verify-artifact-write.md` with `path: <sibling>`, `expected_sha256: <hash>`, `expected_min_bytes: 1`. On `RF-04 trigger`, the input-handler halts per the registry; this skill returns control without writing a manifest row.

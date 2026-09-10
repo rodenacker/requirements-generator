@@ -25,7 +25,7 @@ The canonical, component-addressable installer is `framework/tools/setup-environ
 2. **Parse the summary.** Read the JSON array between the `===SETUP-ENVIRONMENT-SUMMARY-BEGIN===` and `===SETUP-ENVIRONMENT-SUMMARY-END===` sentinel lines. Each entry has `component`, `status` (`ready` | `installed-pending-restart` | `failed` | `absent` | `n/a`), `detail`, `gates`, `restartNeeded`.
 
 3. **Verify the MCP tools** — the part the script cannot see, because only the harness exposes the live tool list:
-   - `mcp__markitdown__convert_to_markdown` — callable? (gates Office/PDF inputs)
+   - `mcp__markitdown-mcp__convert_to_markdown` — callable? (gates Office/PDF inputs)
    - `mcp__playwright__browser_navigate` — callable? (gates `/design-system` URL extraction + `/prototype` smoke)
 
    A tool that is *callable now* is live in this session. A tool whose component the script just installed but that is *not yet callable* is **pending a restart** (the MCP server list is cached at session start).

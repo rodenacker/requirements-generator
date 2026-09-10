@@ -125,7 +125,7 @@ if ($pending.Count -gt 0) {
 Write-Host ''
 Write-Host ' MCP servers (markitdown, playwright): this script cannot see Claude Code''s live'
 Write-Host ' tool list. After a fresh markitdown/playwright install, restart Claude Code so'
-Write-Host ' mcp__markitdown__convert_to_markdown and mcp__playwright__browser_navigate become'
+Write-Host ' mcp__markitdown-mcp__convert_to_markdown and mcp__playwright__browser_navigate become'
 Write-Host ' callable. Run /setup inside Claude Code to verify the live MCP tools.'
 Write-Host ''
 

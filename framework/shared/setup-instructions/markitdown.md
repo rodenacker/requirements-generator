@@ -1,6 +1,6 @@
 # Markitdown MCP — Setup Instructions
 
-Install copy referenced by `RF-01 dependency_missing` in `framework/shared/refusal-registry.md`. Surfaced to the consultant when the input-handler's preflight does not find `mcp__markitdown__convert_to_markdown` in the available tool list, **or** when it is found but an Office/PDF conversion fails because the format's converter is missing.
+Install copy referenced by `RF-01 dependency_missing` in `framework/shared/refusal-registry.md`. Surfaced to the consultant when the input-handler's preflight does not find `mcp__markitdown-mcp__convert_to_markdown` in the available tool list, **or** when it is found but an Office/PDF conversion fails because the format's converter is missing.
 
 ## Fastest path — let Claude do it
 
@@ -34,7 +34,7 @@ After restarting, the input-handler's preflight runs automatically on the next p
    python -c "import mammoth, pptx, openpyxl, xlrd, pdfminer; print('office converters OK')"
    ```
 2. Confirm `markitdown-mcp` is on `PATH`: `markitdown-mcp --help`.
-3. Confirm Claude Code lists the MCP server: `mcp__markitdown__convert_to_markdown` should appear in the available tool list.
+3. Confirm Claude Code lists the MCP server: `mcp__markitdown-mcp__convert_to_markdown` should appear in the available tool list.
 
 `/setup markitdown` (or `/setup`) re-runs checks 1–2 for you and reports a status row; check 3 is what `/setup` adds on top (only Claude can see the live tool list).
 
