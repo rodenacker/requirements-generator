@@ -26,7 +26,7 @@ The skill itself does not surface refusal predicates. The drafter consumes the o
 
 1. `Read` `manifest_path` and parse JSON. Build the `allowlist` set:
    - For each row: add `converted_sibling` when it is non-null (`Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`); otherwise add `original_path` (`Native-text`). (The **Read-path resolution** rule — the same path the drafter records as `source_file`.)
-   - Skip rows with `tier = "Unsupported"`.
+   - Skip rows with `tier = "Unsupported"`, and rows whose resolved read path is **absent on disk** (same rule, same reason — a retracted or superseded file is not a legal source). A `kind: "derived"` row (an image extracted from an OOXML input) is a legal source like any other; `derived_from` is provenance only and never narrows the allowlist.
 2. `Read` `claims_path`. Parse each non-empty line as one JSON object: `{claim_id, draft_locator, claim_text, source_file, source_quote}`. Build `sidecar` keyed by `claim_id`. A duplicate `claim_id` is a FAIL with reason `duplicate_claim_id` recorded against the second-and-later occurrence; the first occurrence still runs Pass 1.
 3. `Read` `draft_path`. Extract every `[SRC: C-NNN]` token via Grep with pattern `\[SRC: C-\d{3}\]`. Build `draft_ids` as a set of the `C-NNN` strings.
 

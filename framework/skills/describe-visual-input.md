@@ -9,6 +9,7 @@ The skill is the **bounded interpretation** the input-handler delegates (see `fr
 - `original_path` — the `documentation/` file the sibling is named after (the consultant-dropped original). For raster rows this equals `image_path`; for vector rows it is the `.svg`/`.drawio`/`.vsdx` original, **not** the temporary raster.
 - `source_kind` — `"raster"` or `"rendered-vector"`. Drives the `conversions_applied` sub-tags.
 - `render_tool` — the renderer name (e.g. `inkscape`, `drawio`, `libreoffice`), present only when `source_kind == "rendered-vector"`.
+- `document_context` — **optional.** One sentence locating an image that was extracted from an OOXML input: its parent filename, position (`paragraph 12`, `slide 4`, `sheet 'Case Volumes'`), the heading or slide title it sits under, and its caption or nearest body text. Supplied by `framework/skills/extract-ooxml-media.md` via the input-handler; absent for consultant-dropped visuals. See *Document context* below for what may and may not be done with it.
 - The template asset `framework/assets/template-visual-description.md` (read once, populated top-to-bottom).
 - No external/MCP tool is required — Claude's vision is native via `Read`.
 
@@ -22,7 +23,7 @@ The skill is the **bounded interpretation** the input-handler delegates (see `fr
 ## Procedure
 
 1. Determine the sibling path: append `.converted.md` to the **full original filename** (extension included). For `documentation/wireframe.png` the sibling is `documentation/wireframe.png.converted.md`; for `documentation/erd.svg` it is `documentation/erd.svg.converted.md`. The append-extension form (not extension-replace) prevents a visual from colliding with a same-stem Office file's sibling (`chart.png.converted.md` vs `chart.converted.md`). If a file already exists at the sibling path, the **input-handler's step-5 idempotency guard** decides whether this skill is even invoked — this skill always (over)writes when invoked.
-2. `Read` `image_path` to surface the image as multimodal vision input.
+2. `Read` `image_path` to surface the image as multimodal vision input. When `document_context` is present, hold it alongside the image while describing — it disambiguates what the image *is* (a screenshot of a real screen, a proposed mockup, a diagram of a process) in a way the pixels alone often cannot.
 3. `Read` `framework/assets/template-visual-description.md` and populate it **top-to-bottom in one pass**, classifying the diagram type and filling every section. Apply the marker discipline exactly:
    - Cite every Tier-A (*what*) item with `[SRC: <original-filename>]` — the original's filename, not the temp raster's.
    - Mark inferred or low-confidence items with `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]`. **Every extracted data property/field that may be placeholder rather than real data carries `[AI-SUGGESTED: AI-NNN | blocking]`** — see the template's property section.
@@ -31,6 +32,18 @@ The skill is the **bounded interpretation** the input-handler delegates (see `fr
 4. `Write` the populated description to the sibling path.
 5. Compute sha256 of the description bytes and call `framework/skills/verify-artifact-write.md` with `path: <sibling>`, `expected_sha256: <hash>`, `expected_min_bytes: 256` (a defensive floor that exceeds an unpopulated template; a truncated description is a real and silent failure). On `RF-04 trigger`, the input-handler halts per the registry; this skill returns control without a successful row.
 6. On `pass`, return `conversions_applied: "vision-described"` plus the applicable sub-tags (diagram-type tag; `rendered-from-vector` + `render-tool=<name>` when `source_kind == "rendered-vector"`) to the caller. The caller (input-handler) writes the manifest row with `tier` retained and `converted_sibling` set to the sibling path.
+
+## Document context (extracted media only)
+
+An image extracted from an OOXML input arrives with a `document_context` sentence, because a description written blind is nearly worthless: "a table with several columns and a coloured badge" grounds nothing, while the same image described as the Case Queue screen appearing under §4.2 *Reassignment* is a requirement source a drafter can cite.
+
+Three hard limits on its use:
+
+- **It locates; it does not describe.** Never let the context supply a fact the image does not show. If the caption says "approval workflow" and the image shows three columns, the description records three columns.
+- **It is never a citation source.** Every `[SRC: <original-filename>]` still points at the image's own filename. The context text is the *parent document's* prose, and the parent is separately manifested and separately cited via its own `.converted.md` — citing it here would double-count one sentence as two sources.
+- **It is not requirement material.** Do not mine claims, rules, or intent from it. Its only jobs are to disambiguate the diagram type and to let the description say where the image sat.
+
+Record the parent and position in the description's provenance line so a reader can find the image in its source document. Absent `document_context` (any consultant-dropped visual), describe from the image alone exactly as before.
 
 ## Sub-tag conventions
 
@@ -67,3 +80,4 @@ The `conversions_applied` string is consultant-facing and forensic; the input-ha
 - Do not skip `verify-artifact-write.md`. A populated description can be kilobytes; truncated writes are real and silent.
 - Do not append free-text to `conversions_applied`. Only the documented sub-tags. Free-text breaks downstream parsing.
 - Do not overwrite a sibling the input-handler's idempotency guard chose to keep. This skill is only invoked when the guard decided to (re)generate; it must not be called to "refresh" an unchanged visual, because that would discard consultant edits.
+- Do not treat `document_context` as content. It locates an extracted image inside its parent document; it never supplies a described fact, never carries a `[SRC: …]` of its own, and is never mined for requirements (see *Document context*). The parent document's prose is cited from the parent's own `.converted.md`.

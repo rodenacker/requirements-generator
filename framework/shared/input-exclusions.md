@@ -63,6 +63,26 @@ The `embedded/` assets remain on disk for downstream *non-manifest* consumers (e
 into a prototype via `framework/skills/extract-brand-theme.md`); excluding them from the manifest does not
 delete or move them.
 
+## Not an exclusion — media directories **are** enumerated
+
+`documentation/<full-filename>.media/` holds the images `framework/skills/extract-ooxml-media.md` unpacked from an
+OOXML input (`documentation/spec.docx` → `documentation/spec.docx.media/`). These images **are** manifest inputs —
+one `kind: "derived"` row each — so both enumeration sites descend into a media directory and pick them up
+exactly as they would a consultant-dropped `.png`. That is the whole point of the extraction: an embedded
+screenshot becomes a citable input instead of being dropped by the parent's text conversion.
+
+This is stated here explicitly because it is the **inverse** of the `IX-04` note above ("any sub-directory […] is an
+advisory sidecar, never enumerated"), and that note is scoped to `*.stadium-assets/` alone. A media directory is
+not a sidecar; do not generalise `IX-04` to it. For the same reason, the word *sidecar* is not used for media
+directories anywhere in the framework — see `framework/assets/glossary.md > Media directory`.
+
+Two paths inside a media directory are nonetheless excluded, by rules that already exist:
+
+- `.extracted-by-framework` — the reconciliation marker (`IS-04`). Dot-prefixed basename, so **`IX-01`** covers it.
+- `img-<hash>.<ext>.converted.md` — the frozen visual description of an extracted image. **`IX-02`** covers it:
+  the rule matches any `*.converted.md` by basename and is not depth-limited, so a nested description is excluded
+  identically to a top-level one, and is referenced only from its parent row's `converted_sibling` field.
+
 ## IX-05 — Stadium `design-signals` asset (`/requirements` read-scope only)
 
 The extracted `documentation/*.stadium-assets/*.stadium.design-signals.md` asset (theme / styling classification —

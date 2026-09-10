@@ -150,7 +150,9 @@ Perform the steps in this order. If any step fails, stop and surface the failure
 
    Do not delete anything else under `generated-docs/requirements/` — only the six artefacts produced by the pipeline. Leave the (now-empty) progress file in place.
 
-4. **Delete input-handler converted siblings.** Delete every file under `documentation/` whose name ends in `.converted.md`. These are produced by the input-handler from `Supported-via-MCP` originals; the originals (`.docx`/`.xlsx`/`.pptx`/`.pdf` and any other consultant-dropped files) are **never** deleted. If no `.converted.md` siblings exist, this step is a no-op.
+4. **Delete input-handler converted siblings.** Delete every file under `documentation/` whose name ends in `.converted.md`, **at any depth** — this includes the frozen descriptions nested inside `documentation/*.media/` directories, which are input-handler output exactly like the top-level ones. These are produced by the input-handler from `Supported-via-MCP` originals and from visuals; the originals (`.docx`/`.xlsx`/`.pptx`/`.pdf`, images, vectors, and any other consultant-dropped file) are **never** deleted. If no `.converted.md` siblings exist, this step is a no-op.
+
+    **The extracted images themselves stay.** A `documentation/*.media/` directory and its `img-<hash>.<ext>` files are left in place: they are content-hash-named, so re-extraction at the next run's Step S2 reproduces them byte-for-byte, and deleting them would be pure churn. Removing their descriptions is what makes the next run re-describe them, which is the reset's actual intent. (Orphaned extracted media are a separate concern, reconciled at the input-handler's drift gate under `IS-04` — never here.)
 
 5. **Delete agent working-state sidecars.** Delete each of the following files under `framework/state/` if it exists, so stale resume state does not survive the reset:
     - `framework/state/resolver-manifest.ndjson`

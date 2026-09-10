@@ -8,7 +8,7 @@
 
 **Outputs:**
 - A sibling file at `documentation/<basename>.converted.md` containing the markdown rendering.
-- A `conversions_applied` string for the manifest row, in the form `"markitdown-mcp"` plus optional sub-tags separated by `; ` — for example `"markitdown-mcp; embedded-images-extracted"`, `"markitdown-mcp; tables-flattened"`, or `"failed — encrypted"`.
+- A `conversions_applied` string for the manifest row, in the form `"markitdown-mcp"` plus optional sub-tags separated by `; ` — for example `"markitdown-mcp; tables-flattened"` or `"failed — encrypted"`.
 
 **Used by:**
 - `framework/agents/input-handler.md` — called once per row that classifies as `Supported-via-MCP`. Shared between `/requirements` and `/analyse-inputs`.
@@ -27,7 +27,7 @@
 The `conversions_applied` string is consultant-facing and forensic; the input-handler embeds it in the manifest row. Sub-tags are append-only — add new ones rather than rephrasing existing ones.
 
 - `markitdown-mcp` — the file was successfully converted via markitdown. Always present on a successful conversion.
-- `embedded-images-extracted` — markitdown extracted image captions or summaries from images embedded in the source. Append when applicable.
+- `embedded-images-extracted` — **superseded; never append this tag.** It asserted that markitdown extracts captions or summaries from embedded images. It does not: the docx/pptx path renders text and drops media, and no caller ever emitted this tag. Embedded-image extraction is now a real, separate step — `framework/skills/extract-ooxml-media.md`, run at the input-handler's Step S2, which registers each surviving image as its own `kind: "derived"` manifest row. The tag is retained here (sub-tags are append-only) so a legacy manifest row carrying it stays interpretable; treat it as meaning nothing.
 - `tables-flattened` — markitdown rendered tables as text rather than markdown tables (typical for `.xlsx` with merged cells). Append when applicable.
 - `failed — encrypted` — markitdown errored out because the source is password-protected. The sibling is not written; the input-handler reclassifies the row to `tier: "Unsupported"` and skips it.
 - `failed — corrupt` — markitdown errored out for any other reason. Same handling as encrypted.

@@ -36,6 +36,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Divergence (divergence profile) | How variants/prototypes differ; goal-driven profile derived once into `scope.json`. | `scope-selector.md` |
 | Drafter | First triplet agent: emits the artefact with provenance markers + claims sidecar. | — |
 | Elevation ladder | Four meaning-bound shadow rungs (xs hairline / sm resting / md raised / lg overlay); rungs are never skipped. | `prototypes/visual-craft-standard.md §5` |
+| Extracted-media (derived input unit) | Image unpacked from an OOXML input at Step S2 and registered as a first-class `kind: "derived"` manifest row; content-hash filename. | `skills/extract-ooxml-media.md` |
 | Fixture | Static in-memory JSON data shipped with a prototype (PI-02). | `prototype-invariants.md` |
 | colour-mode strategy | How a prototype's users switch light/dark (`toggle`/`system`/`none`/`custom`); asked once at `/prototype` Step B(4b) **only when both design-system mode files exist**, then locked in `.scaffold.json`. | `prototype-orch.md` Step B(4b) |
 | font substitution | Keeping an unobtainable **brand family** first in a token stack and adding a verified Google-hosted **loadable family** behind it (`'Gotham', 'Montserrat', sans-serif`); recorded in `meta.brand_fonts`, never a `prov` marker. | `font-availability-rules.md` |
@@ -46,6 +47,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | hue source | The design-system mode whose palette was actually extracted (or domain-inferred light); always written, `meta.primary: true`; the other mode is derived from it. | `cross-mode-derivation-rules.md` |
 | Input tier | Ingest classification (Native / Supported-via-MCP / Unsupported). | `skills/classify-input-tier.md` |
 | Logical surface (LS-NN) | Decomposition-agnostic blueprint surface, pre-screen-count. | `blueprint-architect.md` |
+| Media directory | `documentation/<full-filename>.media/` holding one input's extracted-media; enumerated, marker-gated, the one derived class the framework may reconcile. | `shared/input-safety.md` `IS-04` |
 | Merger | Third triplet agent: strips markers, validates, writes the clean final artefact. | — |
 | Methodology | A named analysis/critique method (OOUX, ADVERSARIAL, GLOSSARY …); "lens" = its alias. | registries |
 | mode (design-system) | The colour scheme a design-system artefact renders (`light`/`dark`); one file per mode, chosen at step-05b. | `step-05b-domain-inference.md` |

@@ -137,7 +137,7 @@ function Test-MarkitdownConverters {
 # ---------- components ----------
 
 function Setup-Python {
-  $gates = 'markitdown (Office/PDF conversion)'
+  $gates = 'markitdown (Office/PDF conversion), Stadium + OOXML embedded-media extraction'
   if (Test-Cmd 'python') {
     $v = Get-SemverFrom 'python'
     if ($v -and $v -ge [version]'3.10') { Add-Result 'python' 'ready' "Python $v" $gates; return }

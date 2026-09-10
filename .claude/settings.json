@@ -36,6 +36,7 @@
       "Bash(rm -f framework/state/resolver-manifest.json)",
       "Bash(rm -f framework/state/resolver-answers.json)",
       "Bash(rm -f documentation/*.converted.md)",
+      "Bash(rm -f documentation/*.media/*.converted.md)",
       "Bash(rm -f generated-docs/design-system/design-system.html)",
       "Bash(rm -f generated-docs/design-system/design-system.md)",
       "Bash(rm -f generated-docs/design-system/design-system.html generated-docs/design-system/design-system.md)",

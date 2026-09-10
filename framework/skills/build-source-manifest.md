@@ -30,7 +30,8 @@
     {
       "filename": "<basename>",
       "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP | Unsupported",
-      "kind": "primary",
+      "kind": "primary | derived",
+      "derived_from": "<basename of the parent input> | null",
       "sha256": "<hex of original_path file bytes>",
       "conversions_applied": "none | markitdown-mcp[; sub-tag...] | vision-described[; sub-tag...] | drawio-xml-fallback[; sub-tag...] | failed — <reason>",
       "original_path": "documentation/<basename>",
@@ -43,7 +44,8 @@
 Field rules:
 - `filename` — basename only, including extension.
 - `tier` — exactly one of the five documented values (`Native-text`, `Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`, `Unsupported`).
-- `kind` — `"primary"` for every row in this MVP. The `"derived"` value is reserved for future extensions (style assets, UI evidence) and is not produced today.
+- `kind` — `"primary"` for a file the consultant placed in `documentation/` themselves. `"derived"` for a file the framework unpacked from a primary input and registered as an input in its own right — today, exactly one case: an image extracted from an OOXML document into `documentation/<full-filename>.media/` by `framework/skills/extract-ooxml-media.md`. A `derived` row is a **first-class input**: it is read, cited, and mined exactly like a `primary` one. `kind` records where it came from, not how much it counts.
+- `derived_from` — basename of the parent input a `derived` row was extracted from (e.g. `"spec.docx"`). `null` on every `primary` row. This is the whole provenance mechanism for extracted media: it keeps the parent relationship in the manifest **without** touching the citation grammar, so an extracted image cites as `[SRC: img-a1b2c3d4.png]` and every existing `[SRC: …]` parser is unaffected. A consumer that wants the parent looks the row up; nothing is required to.
 - `sha256` — hex digest of the bytes of `original_path` on disk at manifest-build time. Used by `framework/skills/check-manifest-freshness.md` to detect input drift on a re-invocation.
 - `conversions_applied` — `"none"` for Native-text and originally-Unsupported rows. `"markitdown-mcp[; sub-tag...]"` for successful `Supported-via-MCP` conversions. `"vision-described[; sub-tag...]"` for successful `Native-multimodal` (raster) descriptions and rendered `Vector-renderable` descriptions; on a rendered `Vector-renderable` row the sub-tags carry `rendered-from-vector` and `render-tool=<name>`. `"drawio-xml-fallback[; sub-tag...]"` for a `.drawio` `Vector-renderable` row that was read via the XML-decode fallback (`framework/skills/decode-drawio-xml.md`) instead of rendered — used when the `drawio` binary is absent or the render failed; the optional sub-tag is `multi-page-source-first-page-only`. `"failed — <reason>"` for rows whose conversion/description failed (the row's tier in the same emit is `"Unsupported"`); reasons include `markitdown` failures (`failed — encrypted`, `failed — corrupt`), `failed — vision` (the describer could not interpret the image), and `failed — render` (the vector could not be converted by any path — for `.drawio`, both render and the XML fallback failed).
 - `original_path` — repo-relative.
@@ -54,7 +56,11 @@ Field rules:
 
 This skill is the canonical home of the rule every downstream input-consumer follows to decide which file to read for a manifest row. Consumers (the `/requirements` drafter, the `/generate-prd` drafter, every `/analyse-inputs` analyser, every `/review-inputs` reviewer) **reference this rule rather than re-deriving a per-tier branch**:
 
-> **Read-path resolution.** For each manifest row: if `converted_sibling` is non-null, read `converted_sibling`; otherwise read `original_path`. Skip rows with `tier: "Unsupported"`. Skip = do not read; the row's file is never deleted or moved (see `framework/shared/input-safety.md`, `IS-02`).
+> **Read-path resolution.** For each manifest row: if `converted_sibling` is non-null, read `converted_sibling`; otherwise read `original_path`. Skip rows with `tier: "Unsupported"`. **Skip any row whose resolved read path is absent on disk**, recording it in the consumer's skipped roster as `missing-on-disk`. Skip = do not read; the row's file is never deleted or moved (see `framework/shared/input-safety.md`, `IS-02`).
+
+The missing-on-disk clause exists because a manifest can legitimately outlive the files it records. The consultant may proceed past a drift warning with a stale manifest (`framework/agents/input-handler.md`, Step 0, `Proceed-with-stale`), may hand-delete a `*.converted.md` sibling, or may have had an orphaned extracted image reconciled away (`IS-04`). In all three the manifest still lists the row; a consumer that trusts the path blindly errors mid-read. Skipping is the correct response in each case — the missing file is either superseded or deliberately retracted, and either way there is nothing to cite.
+
+Note the asymmetry with `Unsupported`: a missing file is skipped **silently as far as the artefact is concerned** but must appear in the diagnostics/skipped roster, because a row vanishing from disk is a fact about the input set the consultant should be able to see.
 
 The rule is intentionally tier-agnostic: a consumer never needs to know *why* a sibling exists (markitdown conversion, frozen vision description, or rendered-then-described vector). The sibling is always the consumer-facing surface when present. This means a row's `original_path` is read only for `Native-text` (which never carries a sibling) — every other consumable row is read through `converted_sibling`. Consumers must **not** read the `original_path` of a row that carries a non-null `converted_sibling` (e.g. re-interpreting an image's pixels when a frozen description exists defeats the single-interpretation contract).
 
@@ -71,8 +77,8 @@ Every **other** consumer — the `/generate-prd` drafter, all `/analyse-inputs` 
 For each classified row from `classify-input-tier.md`, in input-order:
 
 1. Compute `sha256` of the bytes at `original_path`.
-2. Fill `filename`, `original_path`, `kind: "primary"`.
-3. Branch on tier:
+2. Fill `filename`, `original_path`, and the provenance pair: `kind: "derived"` + `derived_from: "<parent basename>"` when `original_path` sits inside a `documentation/*.media/` directory (the input-handler supplies the parent from its Step-S2 report), otherwise `kind: "primary"` + `derived_from: null`.
+3. Branch on tier — an extracted-media row takes the ordinary `Native-multimodal` branch below; being `derived` changes its provenance fields, never its tier or its read path:
     - `Native-text` — `tier` as classified, `conversions_applied: "none"`, `converted_sibling: null`.
     - `Native-multimodal` and description succeeded — `tier: "Native-multimodal"`, `conversions_applied: "vision-described[; sub-tag...]"`, `converted_sibling: "documentation/<filename-with-ext>.converted.md"`.
     - `Vector-renderable` and render+description succeeded — `tier: "Vector-renderable"`, `conversions_applied: "vision-described; rendered-from-vector; render-tool=<name>"`, `converted_sibling: "documentation/<filename-with-ext>.converted.md"`.

@@ -360,6 +360,16 @@ Canonical source: `framework/assets/analyses/sidecar-schema.md`.
 The classification of an input file by how it can be ingested — Native, Supported-via-MCP, Unsupported — set by `classify-input-tier` and recorded on the manifest row; governs conversion and `RF-01` pauses.
 Canonical source: `framework/skills/classify-input-tier.md`.
 
+### Extracted-media (derived input unit)
+An image the framework unpacked from an OOXML input (`.docx` / `.pptx` / `.xlsx`) at the input-handler's **Step S2** and registered as an input in its own right — one manifest row with `kind: "derived"` and `derived_from` naming its parent, described once via `describe-visual-input` like any other visual. It is a **first-class** input: read, cited (`[SRC: img-<hash>.png]`) and mined exactly like a consultant-dropped `.png`; `kind` records where it came from, not reduced standing. Filenames are the image's own content hash, which is what makes orphan reconciliation safe rather than destructive. Only OOXML containers are extracted — a `.pdf`'s embedded images are deliberately out of scope.
+Canonical source: `framework/skills/extract-ooxml-media.md` + `framework/tools/extract_ooxml_media.py` (extraction); `framework/agents/input-handler.md` (Step S2); `framework/skills/build-source-manifest.md` (`kind` / `derived_from`).
+Not to be confused with: **Stadium brand chrome** (`*.stadium-assets/embedded/**`), which is advisory and never a manifest row (`IX-04`).
+
+### Media directory
+The directory `documentation/<full-filename>.media/` holding one input's **extracted-media** — `documentation/spec.docx` → `documentation/spec.docx.media/`. Append form, so `spec.docx` and `spec.pptx` cannot collide. Framework-generated but **enumerated**: its images are manifest rows, while its `.extracted-by-framework` marker (`IX-01`) and its nested frozen descriptions (`IX-02`) are not. It is the one derived-file class the framework may reconcile — marker-gated, consultant-initiated at the manifest-drift gate, and only to protect citation integrity (`IS-04`).
+Canonical source: `framework/shared/input-safety.md` (`IS-04`) + `framework/shared/input-exclusions.md` (enumeration rule).
+Not to be confused with: **sidecar** — a media directory is deliberately *not* called one. In this system "sidecar" means a companion that is *not* enumerated (`IX-04`'s `embedded/`) or a machine-readable projection of a prose artefact; a media directory is neither.
+
 ### Stadium-app (input unit)
 A deployed Twenty57 Stadium 6 low-code web app dropped into `documentation/` — either as a folder (`administration.db` + `App_Data/Updates/*.sapz` + `ClientApp/`) or as a one-line `*.stadium` pointer file naming such a folder — treated as a single input *unit* rather than a per-file tier row. Extracted once by the standalone `/ingest-stadium` command; the input-handler's **Step S** pre-pass separately **excludes** it from manifest enumeration + the freshness check and **nudges** the consultant when it is un-ingested. Only its extracted assets become manifest rows.
 Canonical source: `framework/orchestrators/ingest-stadium-orch.md` + `framework/agents/stadium-ingestor.md` + `framework/skills/extract-stadium-app.md` (extraction); `framework/agents/input-handler.md` (Step S exclusion + nudge).
