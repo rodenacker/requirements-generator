@@ -26,6 +26,7 @@
     - [5.3 Tokens from a URL](#53-to-extract-design-tokens-from-a-reference-url)
     - [5.4 Prototypes](#54-to-generate-clickable-prototypes)
     - [5.5 Stadium apps](#55-to-ingest-stadium-6-apps)
+    - [5.6 Diagram files](#56-to-read-diagram-files)
 
 ## 1. Overview
 
@@ -40,7 +41,7 @@ Drop the client material you've been given into `documentation/`, run a slash co
 
 Also generate a complete design system for brand-accurate prototype- and application-styling from a URL.
 
-Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The thirteen commands:
+Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. There are fourteen commands, plus `/setup` to install the tools they need.
 
 Here is a visual map of how the commands connect:<br>
 **[system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html)**
@@ -62,7 +63,7 @@ This repository is a **template**. You don't work in the shared copy — you cre
    & framework/tools/setup-core.ps1 -Probe    # only check what's present — installs nothing
    ```
 
-   Run it **right after cloning**, before your first command; re-run it any time to check your setup. Unlike `/setup` (below), it runs in a plain terminal, so it also bootstraps a brand-new machine *before* Claude Code is fully configured. It installs the core dependencies every engagement needs — Python, Node.js, markitdown (Office/PDF conversion + its MCP server), the Mermaid CLI, and the Playwright MCP — and installs the npm-based tools **machine-globally**, so they're available to all your future engagements. After a fresh install, **restart Claude Code** so the new tools and MCP servers are picked up.
+   Run it **right after cloning**, before your first command; re-run it any time to check your setup. Unlike `/setup` (below), it runs in a plain terminal, so it also bootstraps a brand-new machine *before* Claude Code is fully configured. It installs the core dependencies every engagement needs — Python, Node.js, markitdown (Office/PDF conversion + its MCP server), and the Playwright MCP — and installs the npm-based tools **machine-globally**, so they're available to all your future engagements. After a fresh install, **restart Claude Code** so the new tools and MCP servers are picked up.
 
    The core script deliberately skips the optional diagram renderers (draw.io, Inkscape, LibreOffice) and the prototype's own packages. For those — and for the same setup driven from *inside* Claude Code via **`/setup`** — see [§5 Setup](#5-setup).
 
@@ -74,8 +75,8 @@ This repository is a **template**. You don't work in the shared copy — you cre
 
 **Take the assets onward**
 
-7. **The outputs are your deliverables.** Each command writes to its own folder. The document outputs are grouped under **`generated-docs/`** — `generated-docs/requirements/`, `generated-docs/prd/`, `generated-docs/analyse-requirements/`, `generated-docs/design-system/`, and the rest; the visual ones sit at the top level in `wireframes/` and `prototypes/`. Hand them to a client, a designer, or the next stage (e.g. an application-build framework). Use **`/export-application`** for a clean, dependency-free handoff of the finished spec.
-8. **Leave the framework alone.** `framework/`, `.claude/`, `docs/`, and `CLAUDE.md` are the engine — your work belongs only in `documentation/` and the output folders. You're a consumer of the framework, not an editor of it.
+7. **The outputs are your deliverables.** Each command writes to its own folder. The document outputs are grouped under **`generated-docs/`** — `generated-docs/requirements/`, `generated-docs/prd/`, `generated-docs/analyse-requirements/`, `generated-docs/design-system/`, and the rest; the visual ones sit at the top level in `wireframes/` and `prototypes/`. (`blueprints/` holds working files shared by `/wireframe` and `/prototype` — you don't need to open it.) Hand them to a client, a designer, or the next stage (e.g. an application-build framework). Use **`/export-application`** for a clean, dependency-free handoff of the finished spec.
+8. **Leave the framework alone.** `framework/`, `.claude/`, `docs/`, `template/` (the starter app every prototype is copied from), and `CLAUDE.md` are the engine — your work belongs only in `documentation/` and the output folders. You're a consumer of the framework, not an editor of it.
 
 **Getting a newer version.** Your copy is a point-in-time snapshot of the framework. Updates aren't applied in place — when you start your **next** engagement, take a fresh copy (step 1 again) and you'll have the current version. There's nothing to upgrade mid-engagement.
 
@@ -101,6 +102,7 @@ This repository is a **template**. You don't work in the shared copy — you cre
 | `/wireframe`                                                                   | You want to show 2–3 divergent screen options before committing to a high-fi mock | Low-fi HTML variants tied to requirement IDs; compare side-by-side via tabs.     |
 | `/prototype`                                                                   | You want something the client can actually click through, not just look at        | Hi-fi client-side React app on fixture data; brand-locked, UX diverges by posture. |
 | `/export-application`                                                    | The spec is settled and a dev team outside this workspace needs the build-ready version | Strips the prototype scaffolding and stamps provenance — a clean handoff document. |
+| `/setup`                                                                       | New machine, or a command says a tool is missing                                  | Installs and checks the tools the commands need — see [§5](#5-setup).            |
 
 ## 4. Commands
 
@@ -109,7 +111,12 @@ Every command runs interactively inside Claude Code and keeps you in the loop. A
 - **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **one transform → you accept or reject** — no Q&A, nothing invented. `/resolve-review` and `/amend-requirements` share a third shape: **pick or state the changes → resolve each with you → you accept → written to `documentation/`** — the difference is only where the changes come from, a review's findings or your own statements.)
 - **Read-only.** Analyses and reviews only *read* your inputs or spec — they never modify or delete them. Files you drop in `documentation/` are removed only by you, manually.
 - **Re-runs are safe.** Each pipeline detects a prior run and offers to **continue**, **start fresh**, or **overwrite** — the prior work is committed to git first, so nothing is lost. Run a lens pipeline again to add another artefact alongside the first.
-- **Input file types** (for the commands that read `documentation/` — `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`): text (`.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`) and images (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) are read directly; Office and PDF (`.docx`, `.xlsx`, `.pptx`, `.pdf`) are converted first (needs markitdown — see §5.2); anything else is logged so it doesn't slip through silently.
+- **Accepted work is committed automatically.** When you accept a run's result, its outputs are committed to git locally (never pushed). If the commit can't be made, you get a one-line warning and the run still completes.
+- **Input file types** (for the commands that read `documentation/` — `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`):
+    - **Text** (`.md`, `.txt`, `.yml`, `.yaml`, `.xml`) and **images** (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) are read directly.
+    - **Office and PDF** (`.docx`, `.xlsx`, `.pptx`, `.pdf`) are converted first (needs markitdown — see §5.2). Images embedded in Office files are extracted into a `<filename>.media/` folder next to the original and read as inputs in their own right.
+    - **Diagrams** (`.drawio`, `.svg`, `.vsdx`) are rendered to an image and described (needs a diagram renderer — see §5.6). `.drawio` still works without one, at lower fidelity.
+    - Anything else is logged so it doesn't slip through silently.
 
 The [system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html) linked above gives the visual map and a deeper per-methodology description.
 
@@ -213,6 +220,8 @@ Go deeper into what your requirements doc already contains: pick a lens and the 
 | `opportunity-solution-trees`    | _opportunity-solution tree_     | Whether the doc's **features ladder up to its outcomes**, and where unaddressed opportunities or missing assumption-tests sit  |
 | `mvp-slicing`                   | _user-story map + MoSCoW board_ | **Where to draw the MVP line** — what ships first and what waits — as a user-story map with a proposed release slice, paired with a MoSCoW priority board |
 | `five-whys`                     | _five-whys_                     | Whether each requirement's **rationale chain** drills down to a user goal, business driver, or external mandate                |
+| `decision-tables`               | _DMN decision tables_           | The **conditional logic** — validation, eligibility, what's enabled for which status or role — as rule tables, with unhandled combinations and conflicting rules flagged |
+| `faceted-classification`        | _facet map_                     | How users should **filter, sort, and search** list screens — the dimensions records can be sliced by (status, type, owner, date) and the values each takes |
 | `glossary`                      | _glossary_                      | An alphabetical, **citation-bound vocabulary inventory** before designing copy, labels, status pills, or role surfaces         |
 | `trade-off-dimension-analysis`  | _trade-off-dimension matrix_    | Each user goal scored against **UX trade-off dimensions** (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, …)   |
 
@@ -268,7 +277,7 @@ Anything the export **can't** cleanly re-project — a prototype-flavoured phras
 
 Install once on your workstation. Versions below are floors — newer is fine.
 
-**Fastest path — run `/setup`.** It detects, installs (user-scoped, so a fresh repo clone never re-installs), configures, and tests everything below in one go, then prints a status table and tells you if a restart is needed. Run `/setup` for the full core set, or target one piece with e.g. `/setup markitdown`. The manual steps in §5.1–§5.4 are the equivalents `/setup` runs for you, and double as troubleshooting.
+**Fastest path — run `/setup`.** It detects, installs (user-scoped, so a fresh repo clone never re-installs), configures, and tests everything below in one go, then prints a status table and tells you if a restart is needed. Run `/setup` for everything, or target one piece: `markitdown`, `node`, `python`, `playwright`, `drawio`, `inkscape`, `libreoffice`, or `preview` (checks that finished HTML outputs open automatically for review). The manual steps in §5.1–§5.6 are the equivalents `/setup` runs for you, and double as troubleshooting.
 
 ### 5.1 First-time install (one-off)
 
@@ -320,7 +329,7 @@ The first `/prototype` run installs the app's dependencies (`npm install`) once 
 
 If Node.js is missing when you launch `/prototype`, the command tells you exactly what to install and resumes at the scaffold step after you do.
 
-Setup notes and troubleshooting: `framework/shared/setup-instructions/node-toolchain.md`.
+Setup notes and troubleshooting: `framework/shared/setup-instructions/node-toolchain.md` (Node) and `framework/shared/setup-instructions/playwright-browsers.md` (smoke-check browser).
 
 ### 5.5 To ingest Stadium 6 apps
 
@@ -329,3 +338,17 @@ Needed only for `/ingest-stadium`, which runs a bundled Python extractor over a 
 If Python is missing when you launch `/ingest-stadium`, the command tells you exactly what to install and resumes after you do.
 
 Setup notes and troubleshooting: `framework/shared/setup-instructions/stadium.md`.
+
+### 5.6 To read diagram files
+
+Needed only when your inputs include diagrams. Install the renderer for the formats you actually have:
+
+| Format  | Renderer          | Install                 |
+| ------- | ----------------- | ----------------------- |
+| `.drawio` | draw.io Desktop | `/setup drawio`         |
+| `.svg`    | Inkscape        | `/setup inkscape`       |
+| `.vsdx`   | LibreOffice     | `/setup libreoffice`    |
+
+Restart Claude Code afterwards. Without a renderer, `.drawio` files are still read, just with less detail about layout; `.svg` and `.vsdx` files are skipped and flagged, and the command offers to install the renderer.
+
+Setup notes and troubleshooting: `framework/shared/setup-instructions/visual-render.md`.
