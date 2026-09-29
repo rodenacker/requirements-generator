@@ -337,7 +337,7 @@ Needed only for `/ingest-stadium`, which runs a bundled Python extractor over a 
 
 If Python is missing when you launch `/ingest-stadium`, the command tells you exactly what to install and resumes after you do.
 
-Setup notes and troubleshooting: `framework/shared/setup-instructions/stadium.md`.
+How to prepare and run it, what it produces, setup and troubleshooting: `framework/shared/setup-instructions/stadium.md`.
 
 ### 5.6 To read diagram files
 
