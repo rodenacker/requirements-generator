@@ -34,7 +34,7 @@
 | `/review-inputs` | Critiques raw `documentation/` material (`framework/assets/reviews-inputs/registry.md`). |
 | `/wireframe` | 2–3 parallel low-fi HTML wireframe variants for a scope of `generated-docs/requirements/requirements.md`; its `blueprint-architect` + `scope-selector` + `design-philosophies.md` are reused by `/prototype`. |
 | `/prototype` | One hi-fi, clickable, client-side-only Next.js prototype per run, accumulating in one shared app under `prototypes/` behind a single landing page. Brand-locked; divergence is pure UX (posture + D1–D5). |
-| `/export-application` | Application-audience re-projection of the finished `requirements.md` (`generated-docs/export-application/requirements-application.md`) — zero improvised content, Accept/Reject gate. |
+| `/export-application` | Application-audience re-projection of the finished `requirements.md` (`generated-docs/export-application/requirements-application.md`). Pending amendments are first folded into the export's copy of the body (the **amendment fold**, recorded in `fold-report.md`); the re-projection itself improvises nothing. Accept/Reject gate. |
 | `/resolve-review` | Consultant-approved resolutions from an existing `generated-docs/review-inputs/` or `generated-docs/review-requirements/` artefact, written as a NEW dated file into `documentation/`. |
 
 **For.** Solo consultants / BAs running Claude Code locally to produce deterministic, citation-grounded handoff artefacts — specs, PRDs, analyses, reviews, wireframes, and prototypes — from briefs, decks, screenshots, spreadsheets, PDFs.
@@ -87,7 +87,7 @@ When extending, changing, or describing this system — writing plans, editing o
 | Marker | Means | Canonical in |
 |---|---|---|
 | `[SRC: C-NNN]` | Input-cited fact in the `/requirements` draft **and** final doc. Sidecar-backed by `generated-docs/requirements/draft-claims.ndjson`, the authoritative store of the verbatim source quotes (joined on the `C-NNN` tag). **Retained** by the merger as downstream provenance. | `framework/agents/requirements-merger.md` |
-| `[SRC: <filename>]` | Filename-cited fact in `/analyse-inputs` and `/review-inputs` artefacts — the manifest row's `filename` payload. | `framework/skills/build-source-manifest.md` |
+| `[SRC: <filename>]` | Filename-cited fact in `/analyse-inputs` and `/review-inputs` artefacts — the manifest row's `filename` payload. Also cites folded amendment content in the `/export-application` export, naming the `documentation/` amendments or resolutions document (consultant-approved, not input-grounding-verified). | `framework/skills/build-source-manifest.md`; export use: `framework/agents/export-application-folder.md` |
 | `[AI-SUGGESTED: AI-NNN \| blocking\|non-blocking]` | Drafter inference; resolver Q&A. Reserved for facts not traceable to inputs **and** not covered by `GR-NN` — never widen this set. | `framework/shared/refusal-registry.md` |
 | `[STANDARD-RULE: GR-NN]` | Deterministic; resolver skips. | `framework/shared/general-rules.md` |
 | `[OUT-OF-SCOPE: domain-default]` | Prototype-only; resolver skips. | `framework/shared/prototype-scope.md` |

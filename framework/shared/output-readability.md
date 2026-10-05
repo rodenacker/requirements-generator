@@ -24,7 +24,7 @@ It is referenced (not restated) by each producing agent's or character's *Reader
 | `documentation/<stem>-<date>.md` resolutions document | `/resolve-review` |
 | `documentation/amendments-<date>.md` + the transient `## Amendments (pending re-merge)` section | `/amend-requirements` |
 | `generated-docs/design-system/design-system-{light,dark}.html` | `/design-system` |
-| `generated-docs/export-application/requirements-application.md` | `/export-application` |
+| `generated-docs/export-application/requirements-application.md`, `generated-docs/export-application/fold-report.md` | `/export-application` |
 | `wireframes/<scope-slug>/**` | `/wireframe` |
 | Every consultant-facing question, batch, and gate summary | all pipelines |
 

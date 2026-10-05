@@ -16,6 +16,7 @@
 
 - `framework/agents/input-handler.md` — **two** call sites: after writing each `*.converted.md` sibling, and after writing the source-manifest at `manifest_path` (always `generated-docs/requirements/source-manifest.json` in current usage). Shared between `/requirements` and `/analyse-inputs`.
 - `framework/agents/requirements-merger.md` — after writing `generated-docs/requirements/requirements.md`, the document every downstream pipeline reads.
+- `framework/agents/export-application-folder.md` — **two** call sites: after writing `generated-docs/export-application/.folded-source.md` (`expected_min_bytes` derived as source bytes − Amendments-section bytes − removed bytes) and after writing `generated-docs/export-application/fold-report.md` (`expected_min_bytes: 512`).
 - `framework/agents/export-application-exporter.md` — after writing `generated-docs/export-application/requirements-application.md`. `expected_min_bytes` is **derived** (`source byte length − 6000`), never hard-coded: the export removes a near-constant PI appendix plus the §0.1 table and adds the provenance block, so the shortfall is constant in absolute terms while a ratio floor would loosen as documents grow.
 
 ## Procedure

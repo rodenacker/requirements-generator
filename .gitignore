@@ -26,3 +26,6 @@ prototypes/.next/
 # python bytecode — build residue, regenerated on every run
 __pycache__/
 *.pyc
+
+# /export-application amendment fold — transient intermediate, deleted at the end of each run
+generated-docs/export-application/.folded-source.md

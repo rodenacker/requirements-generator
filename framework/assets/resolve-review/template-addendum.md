@@ -31,9 +31,12 @@ Placement rule (first match wins):
     would read as non-binding. It also sits above "## Prototype invariants", so this
     placement satisfies the export constraint below as well.
   - Otherwise insert immediately BEFORE the "## Prototype invariants" heading
-    when that appendix exists (the /export-application exporter strips PI-heading→EOF;
-    anything after PI would be silently deleted at export). When neither heading exists
-    (application-target docs, legacy docs), append at EOF.
+    when that appendix exists. The appendix is framework-internal invariant material
+    the /export-application exporter strips whole (PI-heading→EOF); a section filed
+    under it reads as part of it. (The export's amendment fold —
+    framework/agents/export-application-folder.md — reads this section before that
+    strip and folds it into the body, so the export carries no Amendments section.)
+    When neither heading exists (application-target docs, legacy docs), append at EOF.
   - If a "## Amendments (pending re-merge)" section already exists, do not insert a
     second section — append a new "### Run …" sub-block inside the existing section,
     continuing the AMD-NN numbering from the highest existing entry.
@@ -75,8 +78,8 @@ Population rules:
     the pairing invariant (addendum prose stays identical to the documentation/ resolution) — it
     does not breach it.
   - The preamble blockquote below IS part of the output — it instructs downstream
-    LLM consumers (analysers, blueprint-architect, prototype agents, the exporter)
-    how to apply the section. Emit it verbatim with placeholders resolved, once per
+    LLM consumers (analysers, blueprint-architect, prototype agents, the export's
+    amendment folder) how to apply the section. Emit it verbatim with placeholders resolved, once per
     section (not per Run sub-block).
 -->
 ## Amendments (pending re-merge)

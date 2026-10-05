@@ -10,6 +10,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 |---|---|---|
 | Agent | Persona+workflow `.md` the LLM adopts to produce one content artefact. | `docs/maintenance.md > Separation of concerns` |
 | Amendment (AMD-NN) | Entry in the transient `## Amendments (pending re-merge)` section of `requirements.md` that supersedes the base text it names until the next re-merge; a cache, never the record. | `assets/resolve-review/template-addendum.md` |
+| Amendment fold | Export-time application of every `AMD-NN` to the export body (replace, insert, spread, mint IDs) so the export has no Amendments section; `requirements.md` untouched. | `agents/export-application-folder.md` |
 | Amendments document | Consultant-approved `/amend-requirements` output: a NEW dated `documentation/amendments-<date>.md` turning consultant-stated changes into corpus material (base-text-anchored, origin-marked, impact-flagged, `AM-NN` IDs). | `assets/amend-requirements/template-amendments.md` |
 | Analysis | Output of a lens-transform methodology on generated-docs/requirements/inputs (`analyse-*`). | registries |
 | Anti-fabrication | Rule: no data-bound element may invent a property outside the closed set. | `blueprint-architect.md` |
