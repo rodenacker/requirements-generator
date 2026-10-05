@@ -64,7 +64,7 @@ Population rules:
 
 ## Limits of this report
 
-> **The fold is a judgement, and you are its check.** Every fact in a folded unit must come from the base text or from the amendment itself. No machine check proves that; reading the blocks below does. Spread edits are found by meaning, not by text match, so a missed mention is possible. Minted IDs exist only in the export: `requirements.md`, its blueprints and its prototypes do not carry them until the next `/requirements` run.
+> **The fold is a judgement, and you are its check.** Every fact in a folded unit must come from the base text or from the amendment itself. No machine check proves that; reading the blocks below does. Spread edits are found by meaning, not by text match, so a missed mention is possible. Minted IDs exist only in the export. `requirements.md`, its blueprints and its prototypes do not carry them. The next `/requirements` run numbers the same requirements independently, so its IDs may differ.
 
 ## Amendments
 
@@ -88,7 +88,7 @@ Population rules:
 
 **Inserted text:**
 
-> {{verbatim folded unit exactly as it appears in the export | (none — see AMD-NN)}}
+> {{verbatim folded unit exactly as it appears in the folded source (`.folded-source.md`) — the exporter may still delete a scope span or swap a §6.10 cell inside it | (none — see AMD-NN)}}
 
 **Spread edits:**
 

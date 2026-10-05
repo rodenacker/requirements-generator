@@ -413,20 +413,24 @@ prototype-landing-updater → wireframes/position-vocabulary.md, verify-artifact
 
 ---
 
-## 10. export-application-orch.md · 14 nodes / 17 edges / depth 2
+## 10. export-application-orch.md · 16 nodes / 20 edges / depth 2
 
 ```
-orch → export-application-folder [step 1a, only when an Amendments section exists],
+orch → export-application-folder [cond: step 1a, only when an Amendments section exists],
        export-application-exporter [step 1b], context-hygiene, refusal-registry, commit-run-outputs,
        generated-docs/requirements/requirements.md [read: step-0 gate + step-0a sha256 + step-1a heading grep]
 export-application-folder → characters/amendment-folding.md, resolve-review/template-addendum.md,
-       export-application/template-fold-report.md, verify-artifact-write, refusal-registry,
+       export-application/template-fold-report.md, output-readability, verify-artifact-write, refusal-registry,
        generated-docs/requirements/requirements.md [read: full, read-only]
-       → writes .folded-source.md (transient) + fold-report.md
-export-application-exporter → characters/application-exporting.md, verify-artifact-write, prototype-scope,
-       source_path [read: full — .folded-source.md when folded, else requirements.md],
-       generated-docs/requirements/requirements.md [sha256 only when folded]
+       (writes .folded-source.md + fold-report.md — outputs, not edges)
+export-application-exporter → characters/application-exporting.md, verify-artifact-write, refusal-registry,
+       prototype-scope,
+       generated-docs/export-application/.folded-source.md [cond: folded — read: full, the source_path],
+       generated-docs/requirements/requirements.md [read: full when not folded; sha256 only when folded],
+       generated-docs/requirements/draft-claims.ndjson [existence probe only]
 ```
+
+Stats rule for this graph (it reproduces the pre-fold header of 8 / 9 / 2 exactly): every file the orchestrator or an agent reads or invokes is a node, data inputs included. The pipeline's own final output (`requirements-application.md`) and the shared `verify-artifact-write → refusal-registry` edge are not counted.
 
 **Notes (unique):**
 - Up to two agents, stateless, **no progress file and no timing events** (standalone-pipeline precedent: design-system / analyse-requirement). Resumability = the step-0a freshness gate re-probing disk; step 1a rewrites the fold's files from scratch.
