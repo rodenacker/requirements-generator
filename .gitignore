@@ -15,6 +15,7 @@
 .claude/commands/optimization/
 .claude/commands/sparc/
 .claude/commands/claude-flow-*.md
+.superpowers
 
 # local-only implementation plans — not checked in
 plans/
