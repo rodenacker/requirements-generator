@@ -100,6 +100,7 @@
     overflow-x: auto;
     padding-bottom: 2px;
   }
+  .path-flow.wrap { flex-wrap: wrap; row-gap: 8px; }
   .step {
     flex: none;
     padding: 5px 10px;
@@ -436,7 +437,7 @@
 
 <!-- ============== §1 PATHS ============== -->
 <h2 class="section" id="paths"><span class="num">§1</span>Paths</h2>
-<p class="lede">Six typical routes through the commands. Every path passes through the same three required steps; what changes is which optional commands it picks up on the way. Paths combine freely — a real engagement is often Review + Visual. Click any box to jump to its description.</p>
+<p class="lede">Six typical routes through the commands, plus the full path that contains every step. Every path passes through the same three required steps; what changes is which optional commands it picks up on the way. Paths combine freely — a real engagement is often Review + Visual. Click any box to jump to its description.</p>
 
 <div class="paths">
   <div class="path" style="--path: #555555;">
@@ -468,6 +469,11 @@
     <h3>Conversion</h3>
     <p class="when">The client gave you a Stadium 6 app</p>
     <div class="path-flow"><a class="step opt" href="#ingest-stadium" title="Extract a Stadium 6 application into input documents the other commands can read">/ingest-stadium</a><span class="step-arrow" aria-hidden="true">→</span><a class="step req" href="#intake" title="Drop source materials into the documentation folder">documentation/</a><span class="step-arrow" aria-hidden="true">→</span><a class="step req" href="#requirements" title="Generate a formal record that outlines what a product, system, or project must achieve and how it should function for prototyping purposes">/requirements</a><span class="step-arrow" aria-hidden="true">→</span><a class="step req" href="#export-application" title="Export the requirements document as a final version for development purposes">/export-application</a></div>
+  </div>
+  <div class="path" style="--path: #c0392b;">
+    <h3>Full</h3>
+    <p class="when">Every step, in order — the superset the other paths are cut from</p>
+    <div class="path-flow wrap"><a class="step opt" href="#ingest-stadium" title="Extract a Stadium 6 application into input documents the other commands can read">/ingest-stadium</a><span class="step-arrow" aria-hidden="true">→</span><a class="step req" href="#intake" title="Drop source materials into the documentation folder">documentation/</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#input-reviews" title="Use one of the available methodologies to find problems, gaps, ambiguities, etc. in the source materials">/review-inputs</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#resolve-review" title="Answer questions to resolve the issues found in a review">/resolve-review</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#input-analyses" title="Enrich your understanding of the source materials by applying established methodologies">/analyse-inputs</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#generate-prd" title="Generate a definition of the product&#39;s purpose, features, functionality, and behaviour from source documents">/generate-prd</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#design-system" title="Generate design systems in light and dark mode from a URL">/design-system</a><span class="step-arrow" aria-hidden="true">→</span><a class="step req" href="#requirements" title="Generate a formal record that outlines what a product, system, or project must achieve and how it should function for prototyping purposes">/requirements</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#req-reviews" title="Use one of the available methodologies to find problems, gaps, ambiguities, etc. in the requirement document">/review-requirement</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#resolve-review" title="Answer questions to resolve the issues found in a review">/resolve-review</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#req-analyses" title="Enrich your understanding of the requirement by applying established methodologies">/analyse-requirement</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#amend-requirements" title="Record your own changes to a finished requirement document without redrafting it">/amend-requirements</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#wireframe" title="Generate low-fidelity visual skeletal blueprints of the application interfaces to establish layouts and functionality">/wireframe</a><span class="step-arrow" aria-hidden="true">→</span><a class="step opt" href="#prototype" title="Generate high-fidelity fully interactive interfaces to demonstrate system behaviours and navigation flow without a backend">/prototype</a><span class="step-arrow" aria-hidden="true">→</span><a class="step req" href="#export-application" title="Export the requirements document as a final version for development purposes">/export-application</a></div>
   </div>
 </div>
 

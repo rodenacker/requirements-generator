@@ -48,37 +48,28 @@ Here is a visual map of how the commands connect:<br>
 
 ## 2. How to use this repo
 
-This repository is a **template**. You don't work in the shared copy — you create your own private copy from it, do your engagement work there, and take the generated assets onward. The framework itself (the `framework/`, `.claude/`, and `docs/` folders, plus the slash commands) is the product; you consume it, you don't edit it.
+This repository is a **template**. You don't work in the shared copy - you create your own private copy from it, do your engagement work there, and take the generated assets onward. The framework itself (the `framework/`, `.claude/`, and `docs/` folders, plus the slash commands) is the product; you consume it, you don't edit it.
 
-**It's proprietary** — company-internal only. Keep every copy you make **private**: never public, never shared outside the company.
+**It's proprietary** - company-internal only. Keep every copy you make **private**: never public, never shared outside the company.
 
 **Start a new engagement**
 
-1. **Create your own copy.** On the repository's GitHub page, click **Use this template → Create a new repository**. Name it for the engagement (e.g. `acme-loan-portal`) and set its visibility to **Private** (or **Internal**, per company policy). Make **one copy per client engagement** — don't reuse a copy across clients, so each client's material stays isolated and you start from a clean `documentation/`.
+1. **Create your own copy.** On the repository's GitHub page, click **Use this template → Create a new repository**. Name it for the engagement (e.g. `acme-loan-portal`) and set its visibility to **Private** (or **Internal**, per company policy). Make **one copy per client engagement** - don't reuse a copy across clients, so each client's material stays isolated and you start from a clean `documentation/`.
 2. **Clone it to your machine** with `git clone <your-new-repo-url>`, then open the folder in VS Code.
-3. **Install the tools** (first time on your workstation only). The fastest way is the bundled **setup script** — open a **PowerShell 7** terminal (`pwsh`) in the repo root and run it:
-
-   ```powershell
-   & framework/tools/setup-core.ps1           # check for, and install, the core dependencies
-   & framework/tools/setup-core.ps1 -Probe    # only check what's present — installs nothing
-   ```
-
-   Run it **right after cloning**, before your first command; re-run it any time to check your setup. Unlike `/setup` (below), it runs in a plain terminal, so it also bootstraps a brand-new machine *before* Claude Code is fully configured. It installs the core dependencies every engagement needs — Python, Node.js, markitdown (Office/PDF conversion + its MCP server), and the Playwright MCP — and installs the npm-based tools **machine-globally**, so they're available to all your future engagements. After a fresh install, **restart Claude Code** so the new tools and MCP servers are picked up.
-
-   The core script deliberately skips the optional diagram renderers (draw.io, Inkscape, LibreOffice) and the prototype's own packages. For those — and for the same setup driven from *inside* Claude Code via **`/setup`** — see [§5 Setup](#5-setup).
+3. **Install the tools.** Open Claude Code in the repo and run **`/setup`**. It checks and installs everything the commands need, then prints a status table. Run it **right after cloning**, before your first command. Re-run it any time to check your setup. If it tells you to, **restart Claude Code** and run `/setup` again. Details and manual steps are in [§5 Setup](#5-setup).
 
 **Do the work**
 
-4. **Add the client material** to the `documentation/` folder — briefs, decks, screenshots, spreadsheets, PDFs.
+4. **Add the client material** to the `documentation/` folder - briefs, decks, screenshots, spreadsheets, PDFs.
 5. **Open Claude Code** in the VS Code side panel and run a command. Start with **`/start`** to pick from a menu, or run one directly. What each command does and when to reach for it is in [§3](#3-when-to-use-which-command) and [§4](#4-commands).
-6. **Stay in the loop.** The commands are interactive — they draft, ask you to accept, and resolve anything they couldn't confidently fill in. Your answers shape the final artefacts.
+6. **Stay in the loop.** The commands are interactive - they draft, ask you to accept, and resolve anything they couldn't confidently fill in. Your answers shape the final artefacts.
 
 **Take the assets onward**
 
-7. **The outputs are your deliverables.** Each command writes to its own folder. The document outputs are grouped under **`generated-docs/`** — `generated-docs/requirements/`, `generated-docs/prd/`, `generated-docs/analyse-requirements/`, `generated-docs/design-system/`, and the rest; the visual ones sit at the top level in `wireframes/` and `prototypes/`. (`blueprints/` holds working files shared by `/wireframe` and `/prototype` — you don't need to open it.) Hand them to a client, a designer, or the next stage (e.g. an application-build framework). Use **`/export-application`** for a clean, dependency-free handoff of the finished spec.
-8. **Leave the framework alone.** `framework/`, `.claude/`, `docs/`, `template/` (the starter app every prototype is copied from), and `CLAUDE.md` are the engine — your work belongs only in `documentation/` and the output folders. You're a consumer of the framework, not an editor of it.
+7. **The outputs are your deliverables.** Each command writes to its own folder. The document outputs are grouped under **`generated-docs/`** - `generated-docs/requirements/`, `generated-docs/prd/`, `generated-docs/analyse-requirements/`, `generated-docs/design-system/`, and the rest; the visual ones sit at the top level in `wireframes/` and `prototypes/`. (`blueprints/` holds working files shared by `/wireframe` and `/prototype` - you don't need to open it.) Hand them to a client, a designer, or the next stage (e.g. an application-build framework). Use **`/export-application`** for a clean, dependency-free handoff of the finished spec.
+8. **Leave the framework alone.** `framework/`, `.claude/`, `docs/`, `template/` (the starter app every prototype is copied from), and `CLAUDE.md` are the engine - your work belongs only in `documentation/` and the output folders. You're a consumer of the framework, not an editor of it.
 
-**Getting a newer version.** Your copy is a point-in-time snapshot of the framework. Updates aren't applied in place — when you start your **next** engagement, take a fresh copy (step 1 again) and you'll have the current version. There's nothing to upgrade mid-engagement.
+**Getting a newer version.** Your copy is a point-in-time snapshot of the framework. Updates aren't applied in place - when you start your **next** engagement, take a fresh copy (step 1 again) and you'll have the current version. There's nothing to upgrade mid-engagement.
 
 ## 3. When to use which command
 
@@ -87,8 +78,8 @@ This repository is a **template**. You don't work in the shared copy — you cre
 | `/requirements`                                                                | Client just sent a pile of attachments                       | Turns inputs into a structured doc you can use for prototyping. Export with `/export-application` for Stadium 8.                          |
 | `/ingest-stadium`                                                              | Client handed you a Stadium 6 low-code app, not just documents | Extracts the app into citation-ready assets under `documentation/` that `/requirements` and the other input commands then read like any other material. Run it before `/requirements`. |
 | `/design-system`                                                               | Designer is waiting on a brand brief                                              | One run produces a complete colour + typography + effects brief for prototyping or Stadium 8.                 |
-| `/generate-prd`                                                                | A stakeholder is asking for the *why* — problem, metrics, MVP phasing, risks      | Strategic PRD from the inputs.                               |
-| `/review-inputs` → `adversarial`                                               | You want a tough critique of the raw inputs before drafting                       | Six-dimension critique of the raw input set — coverage, ambiguity, cross-source conflict, costly silences. |
+| `/generate-prd`                                                                | A stakeholder is asking for the *why* - problem, metrics, MVP phasing, risks      | Strategic PRD from the inputs.                               |
+| `/review-inputs` → `adversarial`                                               | You want a tough critique of the raw inputs before drafting                       | Six-dimension critique of the raw input set - coverage, ambiguity, cross-source conflict, costly silences. |
 | `/review-inputs` → `ten-ba-questions` or `ten-ux-questions`                    | You sense the raw inputs leave key BA or UX questions unanswered                  | Ranks the ten most consequential unanswered BA or UX questions, each sourced to a file. |
 | `/review-requirement` → `adversarial`                                          | You need to defend the spec to a sceptical stakeholder                            | Strict critique with a Patch / Defer / Reject decision per finding.              |
 | `/review-requirement` → `ten-ba-questions` or `ten-ux-questions`               | You sense something is missing in the spec but can't articulate it                | Surfaces the unasked questions in the consultant's blind spot.                   |
@@ -98,53 +89,53 @@ This repository is a **template**. You don't work in the shared copy — you cre
 | `/analyse-requirement` → `crud-coverage`                                       | Worried a CRUD-heavy spec has forgotten operations or ungranted rights            | Matrix flagging missing create/read/update/delete paths and lifecycle holes.     |
 | `/analyse-requirement` → `ooux` or `use-cases`                                 | About to brief a designer on screens and navigation                               | Surfaces the objects + CTAs, or the actor goals + flows.                         |
 | `/resolve-review`                                                              | You've run a review and want its findings *acted on*, not just listed             | Walks the findings with you and writes your approved resolutions into `documentation/`.  |
-| `/amend-requirements`                                                          | The spec is written and you want to change something in it — no review involved   | Records your changes as a new input document *and* as amendments in the spec, without redrafting it. |
+| `/amend-requirements`                                                          | The spec is written and you want to change something in it - no review involved   | Records your changes as a new input document *and* as amendments in the spec, without redrafting it. |
 | `/wireframe`                                                                   | You want to show 2–3 divergent screen options before committing to a high-fi mock | Low-fi HTML variants tied to requirement IDs; compare side-by-side via tabs.     |
 | `/prototype`                                                                   | You want something the client can actually click through, not just look at        | Hi-fi client-side React app on fixture data; brand-locked, UX diverges by posture. |
-| `/export-application`                                                    | The spec is settled and a dev team outside this workspace needs the build-ready version | Folds in pending amendments, strips the prototype scaffolding and stamps provenance — a clean handoff document. |
-| `/setup`                                                                       | New machine, or a command says a tool is missing                                  | Installs and checks the tools the commands need — see [§5](#5-setup).            |
+| `/export-application`                                                    | The spec is settled and a dev team outside this workspace needs the build-ready version | Folds in pending amendments, strips the prototype scaffolding and stamps provenance - a clean handoff document. |
+| `/setup`                                                                       | New machine, or a command says a tool is missing                                  | Installs and checks the tools the commands need - see [§5](#5-setup).            |
 
 ## 4. Commands
 
 Every command runs interactively inside Claude Code and keeps you in the loop. A few behaviours are shared, so they're stated once here rather than repeated per command:
 
-- **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **fold in any pending amendments, one transform → you accept or reject** — no Q&A. `/resolve-review` and `/amend-requirements` share a third shape: **pick or state the changes → resolve each with you → you accept → written to `documentation/`** — the difference is only where the changes come from, a review's findings or your own statements.)
-- **Read-only.** Analyses and reviews only *read* your inputs or spec — they never modify or delete them. Files you drop in `documentation/` are removed only by you, manually.
-- **Re-runs are safe.** Each pipeline detects a prior run and offers to **continue**, **start fresh**, or **overwrite** — the prior work is committed to git first, so nothing is lost. Run a lens pipeline again to add another artefact alongside the first.
+- **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **fold in any pending amendments, one transform → you accept or reject** - no Q&A. `/resolve-review` and `/amend-requirements` share a third shape: **pick or state the changes → resolve each with you → you accept → written to `documentation/`** - the difference is only where the changes come from, a review's findings or your own statements.)
+- **Read-only.** Analyses and reviews only *read* your inputs or spec - they never modify or delete them. Files you drop in `documentation/` are removed only by you, manually.
+- **Re-runs are safe.** Each pipeline detects a prior run and offers to **continue**, **start fresh**, or **overwrite** - the prior work is committed to git first, so nothing is lost. Run a lens pipeline again to add another artefact alongside the first.
 - **Accepted work is committed automatically.** When you accept a run's result, its outputs are committed to git locally (never pushed). If the commit can't be made, you get a one-line warning and the run still completes.
-- **Input file types** (for the commands that read `documentation/` — `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`):
+- **Input file types** (for the commands that read `documentation/` - `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`):
     - **Text** (`.md`, `.txt`, `.yml`, `.yaml`, `.xml`) and **images** (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) are read directly.
-    - **Office and PDF** (`.docx`, `.xlsx`, `.pptx`, `.pdf`) are converted first (needs markitdown — see §5.2). Images embedded in Office files are extracted into a `<filename>.media/` folder next to the original and read as inputs in their own right.
-    - **Diagrams** (`.drawio`, `.svg`, `.vsdx`) are rendered to an image and described (needs a diagram renderer — see §5.6). `.drawio` still works without one, at lower fidelity.
+    - **Office and PDF** (`.docx`, `.xlsx`, `.pptx`, `.pdf`) are converted first (needs markitdown - see §5.2). Images embedded in Office files are extracted into a `<filename>.media/` folder next to the original and read as inputs in their own right.
+    - **Diagrams** (`.drawio`, `.svg`, `.vsdx`) are rendered to an image and described (needs a diagram renderer - see §5.6). `.drawio` still works without one, at lower fidelity.
     - Anything else is logged so it doesn't slip through silently.
 
 The [system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html) linked above gives the visual map and a deeper per-methodology description.
 
 ### 4.1 `/start`
 
-Run it inside Claude Code to pick from a menu instead of remembering command names — it lists the commands with their one-liners and launches the one you select.
+Run it inside Claude Code to pick from a menu instead of remembering command names - it lists the commands with their one-liners and launches the one you select.
 
 ### 4.2 `/ingest-stadium`
 
-Turn a **Stadium 6 application** into inputs the other commands can read. When a client hands you a deployed Stadium low-code app instead of (or alongside) documents, drop it into `documentation/` — either the deployed app folder or a one-line `*.stadium` pointer file naming its path — and run this first. It extracts the app **once** into a set of lean, citation-ready requirement assets that `/requirements`, `/generate-prd`, `/analyse-inputs`, and `/review-inputs` then consume like any other input material.
+Turn a **Stadium 6 application** into inputs the other commands can read. When a client hands you a deployed Stadium low-code app instead of (or alongside) documents, drop it into `documentation/` - either the deployed app folder or a one-line `*.stadium` pointer file naming its path - and run this first. It extracts the app **once** into a set of lean, citation-ready requirement assets that `/requirements`, `/generate-prd`, `/analyse-inputs`, and `/review-inputs` then consume like any other input material.
 
-Each app is processed once — a ledger records what's already been ingested, and re-ingesting is a deliberate, prompted choice — so your hand-edits to the extracted assets are never silently overwritten. The raw app folder itself is left out of every other command's input set; only the extracted assets are read (the other input commands nudge you to run this if they spot an un-ingested app). Runs a bundled Python extractor — see §5.5.
+Each app is processed once - a ledger records what's already been ingested, and re-ingesting is a deliberate, prompted choice - so your hand-edits to the extracted assets are never silently overwritten. The raw app folder itself is left out of every other command's input set; only the extracted assets are read (the other input commands nudge you to run this if they spot an un-ingested app). Runs a bundled Python extractor - see §5.5.
 
-**You get** `documentation/<AppName>.stadium-assets/` — thirteen per-app assets (eleven deterministic category files covering the data model, sources, business rules, access control, surfaces, per-view user tasks, navigation, and more, plus two advisory ones), ready to be picked up on the next `/requirements` (or `/generate-prd` / `/analyse-inputs` / `/review-inputs`) run.
+**You get** `documentation/<AppName>.stadium-assets/` - thirteen per-app assets (eleven deterministic category files covering the data model, sources, business rules, access control, surfaces, per-view user tasks, navigation, and more, plus two advisory ones), ready to be picked up on the next `/requirements` (or `/generate-prd` / `/analyse-inputs` / `/review-inputs`) run.
 
 ### 4.3 `/design-system`
 
-A brand-token brief for a designer in one run — useful when the designer is blocked on visual direction and you need to send something concrete today. Two questions on launch: a required **Domain** (free text, e.g. `loan-origination-portal` — the token set is inferred per-run, no fixed lookup table) and an optional **Reference URL** (a real browser opens at desktop size and extracts the actual colours, typography, and effects from the live CSS; without one, every token is inferred from the domain string alone).
+A brand-token brief for a designer in one run - useful when the designer is blocked on visual direction and you need to send something concrete today. Two questions on launch: a required **Domain** (free text, e.g. `loan-origination-portal` - the token set is inferred per-run, no fixed lookup table) and an optional **Reference URL** (a real browser opens at desktop size and extracts the actual colours, typography, and effects from the live CSS; without one, every token is inferred from the domain string alone).
 
-**You get** `generated-docs/design-system/design-system-light.html` and/or `generated-docs/design-system/design-system-dark.html` — one self-contained, single-mode document per colour mode, each opened via `file://`: colour swatches, type specimens at their actual sizes, shadow/motion samples, and contrast-validation pairs, each token annotated with its provenance (*extracted from the URL* vs *inferred from the domain*). It also embeds a machine-readable token JSON block, so a downstream tool (Figma plugin, CSS generator, LLM pipeline) can consume the values directly.
+**You get** `generated-docs/design-system/design-system-light.html` and/or `generated-docs/design-system/design-system-dark.html` - one self-contained, single-mode document per colour mode, each opened via `file://`: colour swatches, type specimens at their actual sizes, shadow/motion samples, and contrast-validation pairs, each token annotated with its provenance (*extracted from the URL* vs *inferred from the domain*). It also embeds a machine-readable token JSON block, so a downstream tool (Figma plugin, CSS generator, LLM pipeline) can consume the values directly.
 
-You choose light-only, dark-only, or both — asked after the fetch, so the question can tell you which scheme the site actually ships. Whichever scheme was extracted is the **hue source**: it is always written and marked `primary`, and the other mode is *derived* from the same brand hues rather than fetched again. So pointing this at a dark-themed site and asking for light gives you both files — the dark one as the grounded record, the light one derived from it.
+You choose light-only, dark-only, or both - asked after the fetch, so the question can tell you which scheme the site actually ships. Whichever scheme was extracted is the **hue source**: it is always written and marked `primary`, and the other mode is *derived* from the same brand hues rather than fetched again. So pointing this at a dark-themed site and asking for light gives you both files - the dark one as the grounded record, the light one derived from it.
 
 Choosing **both** is also what unlocks light/dark switching in `/prototype`: with two files on disk the prototype gets both token sets and asks you how users switch between them; with one, it uses that mode and asks nothing.
 
 ### 4.4 `/generate-prd`
 
-A strategic, human-audience PRD from the same client inputs — problem framing, success metrics, hypotheses, MVP phasing, risks, stakeholders. Run it when a sponsor needs the *why* (not the *what-the-FE-must-do* that `/requirements` produces). Fully independent of `/requirements` — run it before, after, or alongside, with no state collision.
+A strategic, human-audience PRD from the same client inputs - problem framing, success metrics, hypotheses, MVP phasing, risks, stakeholders. Run it when a sponsor needs the *why* (not the *what-the-FE-must-do* that `/requirements` produces). Fully independent of `/requirements` - run it before, after, or alongside, with no state collision.
 
 **You get** `generated-docs/prd/prd.md`. Citation IDs are namespaced (`PC-NNN` / `PAI-NNN`) so the PRD never visually collides with a requirements doc you run alongside it.
 
@@ -152,17 +143,17 @@ A strategic, human-audience PRD from the same client inputs — problem framing,
 
 Turn the loose pile of client material into a clean, structured requirements spec. Drop the files into `documentation/` first, then run it.
 
-**You get** `generated-docs/requirements/requirements.md` — a structured spec where every item is traceable either to something you provided or to a domain-default rule the framework applies (e.g. accessibility, security, error-handling). Anything the system can't confidently fill in is resolved through the Q&A, so the final doc reads as a clean, signed-off spec.
+**You get** `generated-docs/requirements/requirements.md` - a structured spec where every item is traceable either to something you provided or to a domain-default rule the framework applies (e.g. accessibility, security, error-handling). Anything the system can't confidently fill in is resolved through the Q&A, so the final doc reads as a clean, signed-off spec.
 
-**Re-running it once the spec is finished** offers you three choices instead of silently redrafting: **amend** the document (hands off to `/amend-requirements` — see below), **regenerate** it from the corpus (a full redraft, including the whole Q&A again), or **cancel**. An unfinished run still offers the usual resume.
+**Re-running it once the spec is finished** offers you three choices instead of silently redrafting: **amend** the document (hands off to `/amend-requirements` - see below), **regenerate** it from the corpus (a full redraft, including the whole Q&A again), or **cancel**. An unfinished run still offers the usual resume.
 
 ### 4.6 `/amend-requirements`
 
-Change something in a finished spec without redrafting it. State the changes in your own words — name a section or requirement ID (`§6.3`, `F-07`) or just describe what you want different. Reachable directly, or as the **amend** option when you re-run `/requirements` on a finished spec.
+Change something in a finished spec without redrafting it. State the changes in your own words - name a section or requirement ID (`§6.3`, `F-07`) or just describe what you want different. Reachable directly, or as the **amend** option when you re-run `/requirements` on a finished spec.
 
-Where a change is already specific, it's recorded as you stated it. Where it's a direction rather than a specification (*"tighten up approvals on rate changes"*), you get two or three concrete alternatives with their consequences spelled out, and you pick one — the framework doesn't just write your vague sentence into the spec and call it a requirement.
+Where a change is already specific, it's recorded as you stated it. Where it's a direction rather than a specification (*"tighten up approvals on rate changes"*), you get two or three concrete alternatives with their consequences spelled out, and you pick one - the framework doesn't just write your vague sentence into the spec and call it a requirement.
 
-**You get** two things. A new `documentation/amendments-<date>.md` — the **durable** record, ingested as source material the next time you run `/requirements`, which is what eventually folds the change into the spec body with citations. And an `## Amendments (pending re-merge)` section inside `requirements.md` itself, so `/wireframe`, `/prototype`, the analyses, and `/export-application` all honour the change **immediately**, before that re-merge. (`/export-application` folds it into the exported body, so the handoff document shows the amended text in place, with no separate amendments section.) Nothing existing in `documentation/` is ever overwritten, and no other line of the spec is touched.
+**You get** two things. A new `documentation/amendments-<date>.md` - the **durable** record, ingested as source material the next time you run `/requirements`, which is what eventually folds the change into the spec body with citations. And an `## Amendments (pending re-merge)` section inside `requirements.md` itself, so `/wireframe`, `/prototype`, the analyses, and `/export-application` all honour the change **immediately**, before that re-merge. (`/export-application` folds it into the exported body, so the handoff document shows the amended text in place, with no separate amendments section.) Nothing existing in `documentation/` is ever overwritten, and no other line of the spec is touched.
 
 You also get told what the change affects: whether it adds or removes a data property the wireframes bind to, whether it moves the scope boundary, and which existing wireframes or exports were built against the older version of the spec.
 
@@ -174,25 +165,25 @@ Go deeper into the raw inputs *before* drafting: pick an analytical lens and the
 | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------------- |
 | The **themes and patterns** the raw inputs already carry, with a coverage check against ten concern areas                          | `thematic-analysis`           | _Braun & Clarke thematic analysis_ |
 | The **current-state user journey** described in the inputs, per persona, with sentiment curve and pain points                      | `journey-mapping`             | _NN/G journey map_                |
-| What **users are actually trying to get done** in the inputs — jobs, outcomes, forces of progress (push / pull / anxiety / habit)  | `jtbd`                        | _Jobs-to-be-done (JTBD-X)_        |
+| What **users are actually trying to get done** in the inputs - jobs, outcomes, forces of progress (push / pull / anxiety / habit)  | `jtbd`                        | _Jobs-to-be-done (JTBD-X)_        |
 | The **canonical objects, attributes, relationships, and CTAs** across all sources, with synonym-merge and an ERD                   | `ooux`                        | _Sophia Prater's ORCA process_    |
 | The **cross-functional process** with swim-lanes per actor and a Disconnect Register flagging the white-space gaps                 | `swim-lane-process-mapping`   | _Rummler-Brache swim-lane map_    |
-| A **hierarchical task decomposition** of user goals — sub-goals, operations, Plans, and per-terminal data nouns                    | `task-analysis`               | _Hierarchical Task Analysis (HTA)_ |
+| A **hierarchical task decomposition** of user goals - sub-goals, operations, Plans, and per-terminal data nouns                    | `task-analysis`               | _Hierarchical Task Analysis (HTA)_ |
 | An **outcome → opportunity → solution → assumption-test tree** seeded with candidate-requirement bridges                           | `opportunity-solution-trees`  | _Teresa Torres OST_               |
-| A **bottom-up affinity map** — atomic notes clustered into super-themes via a two-pass re-cluster with drift detection             | `affinity-mapping`            | _KJ-method affinity diagram_      |
-| One **agreed vocabulary** for the engagement — terms classified domain vs application, defined from the inputs, maturity-rated, with proposed definitions for the loose ones | `glossary`                    | _ubiquitous-language glossary_    |
-| The **actor and end-user goals** behind the request — stated and inferred — as a goal register with an AND/OR refinement tree, an actor map, and a conflicts table | `user-goal-analysis`          | _Goal-Oriented Requirements (GORE)_ |
-| The **enterprise motivation** behind the request — business problem → need → goal → problem-statement in one causal chain (the strategic *why*, not actor-level goals) | `business-context-definition` | _OMG BMM / BABOK business context_ |
+| A **bottom-up affinity map** - atomic notes clustered into super-themes via a two-pass re-cluster with drift detection             | `affinity-mapping`            | _KJ-method affinity diagram_      |
+| One **agreed vocabulary** for the engagement - terms classified domain vs application, defined from the inputs, maturity-rated, with proposed definitions for the loose ones | `glossary`                    | _ubiquitous-language glossary_    |
+| The **actor and end-user goals** behind the request - stated and inferred - as a goal register with an AND/OR refinement tree, an actor map, and a conflicts table | `user-goal-analysis`          | _Goal-Oriented Requirements (GORE)_ |
+| The **enterprise motivation** behind the request - business problem → need → goal → problem-statement in one causal chain (the strategic *why*, not actor-level goals) | `business-context-definition` | _OMG BMM / BABOK business context_ |
 
-**You get** one artefact per run under `generated-docs/analyse-inputs/<METHOD>/`, mostly self-contained HTML that survives a markitdown HTML→MD round-trip (the embedded JSON / YAML / Mermaid bodies are the load-bearing re-ingestion contract).
+**You get** one artefact per run under `generated-docs/analyse-inputs/<METHOD>/`, self-contained HTML that survives a markitdown HTML→MD round-trip (the embedded JSON / YAML / Mermaid bodies are the load-bearing re-ingestion contract).
 
 ### 4.8 `/review-inputs`
 
-Find what's missing or wrong in the raw inputs *before* you draft — a punch-list you act on before `/requirements` runs. Use it when the inputs feel thin, ambiguous, or contradictory.
+Find what's missing or wrong in the raw inputs *before* you draft - a punch-list you act on before `/requirements` runs. Use it when the inputs feel thin, ambiguous, or contradictory.
 
 | If you want to see…                                                                                                                                                                  | Pick                  |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- |
-| A **six-dimension critique** of the raw input set — stakeholder & role coverage, ambiguity, cross-source conflict, silence-with-downstream-impact, quantitative and scope signals     | `adversarial`         |
+| A **six-dimension critique** of the raw input set - stakeholder & role coverage, ambiguity, cross-source conflict, silence-with-downstream-impact, quantitative and scope signals     | `adversarial`         |
 | An **authority-grounded completeness sweep** (IEEE 29148 / Volere / BABOK / Wiegers / ISO 25010) across ten dimensions, with stakeholder elicitation questions per finding           | `completeness-review` |
 | The **lexical, syntactic, referential, vague, subjective, weak-verb, and optionality ambiguities** (Berry/Kamsties + Femmer) with ready-to-paste elicitation questions per finding   | `ambiguity-review`    |
 | A **template-bijection gap delta** measured against the drafter's own template, with a shall-form Candidate Requirement per Must/Should gap ready for `/requirements` re-ingestion   | `gap-analysis`        |
@@ -208,84 +199,85 @@ Go deeper into what your requirements doc already contains: pick a lens and the 
 | Pick                            | What it's called                | If you want to see…                                                                                                            |
 | ------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `ooux`                          | _object map_                    | The **things** in your spec (customers, accounts, applications) and what users can do with each                                |
-| `jtbd`                          | _jobs-to-be-done_               | What **users are actually trying to get done** — their jobs and the outcomes they want                                         |
+| `jtbd`                          | _jobs-to-be-done_               | What **users are actually trying to get done** - their jobs and the outcomes they want                                         |
 | `use-cases`                     | _use cases_                     | **Each user's goals** and the step-by-step flows they take to reach them                                                       |
-| `data-model`                    | _logical data model_            | The **data structure** — what records exist, what fields they have, how they relate, plus optional ERDs                        |
-| `crud-coverage`                 | _CRUD coverage matrix_          | Whether **every entity has create / read / update / delete coverage** — a matrix flagging forgotten operations, lifecycle holes, and rights granted but never delivered |
+| `data-model`                    | _logical data model_            | The **data structure** - what records exist, what fields they have, how they relate, plus optional ERDs                        |
+| `crud-coverage`                 | _CRUD coverage matrix_          | Whether **every entity has create / read / update / delete coverage** - a matrix flagging forgotten operations, lifecycle holes, and rights granted but never delivered |
 | `sequence-diagram`              | _UML sequence diagram_          | **How the parts of the system talk** to each other across a scenario (front-end ↔ back-end ↔ external services)                |
-| `state-diagram`                 | _UML state diagram_             | The **lifecycle of a record** — what statuses it moves through and what triggers each transition                               |
+| `state-diagram`                 | _UML state diagram_             | The **lifecycle of a record** - what statuses it moves through and what triggers each transition                               |
 | `activity-diagram`              | _UML activity diagram_          | A **multi-actor process flow** with branches, parallel paths, and who does what                                                |
 | `user-journeys`                 | _user journey map_              | The **user's experience phases** with pain-points and opportunities at each step                                               |
 | `task-flows`                    | _task flows_                    | The **goal-decomposition and step-by-step paths** users take, ready for wizards / form sequences                               |
 | `opportunity-solution-trees`    | _opportunity-solution tree_     | Whether the doc's **features ladder up to its outcomes**, and where unaddressed opportunities or missing assumption-tests sit  |
-| `mvp-slicing`                   | _user-story map + MoSCoW board_ | **Where to draw the MVP line** — what ships first and what waits — as a user-story map with a proposed release slice, paired with a MoSCoW priority board |
+| `mvp-slicing`                   | _user-story map + MoSCoW board_ | **Where to draw the MVP line** - what ships first and what waits - as a user-story map with a proposed release slice, paired with a MoSCoW priority board |
 | `five-whys`                     | _five-whys_                     | Whether each requirement's **rationale chain** drills down to a user goal, business driver, or external mandate                |
-| `decision-tables`               | _DMN decision tables_           | The **conditional logic** — validation, eligibility, what's enabled for which status or role — as rule tables, with unhandled combinations and conflicting rules flagged |
-| `faceted-classification`        | _facet map_                     | How users should **filter, sort, and search** list screens — the dimensions records can be sliced by (status, type, owner, date) and the values each takes |
+| `decision-tables`               | _DMN decision tables_           | The **conditional logic** - validation, eligibility, what's enabled for which status or role - as rule tables, with unhandled combinations and conflicting rules flagged |
+| `faceted-classification`        | _facet map_                     | How users should **filter, sort, and search** list screens - the dimensions records can be sliced by (status, type, owner, date) and the values each takes |
 | `glossary`                      | _glossary_                      | An alphabetical, **citation-bound vocabulary inventory** before designing copy, labels, status pills, or role surfaces         |
 | `trade-off-dimension-analysis`  | _trade-off-dimension matrix_    | Each user goal scored against **UX trade-off dimensions** (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, …)   |
 
-**You get** one HTML artefact per run under `generated-docs/analyse-requirements/<METHOD>/` (e.g. `OOUX/ooux-object-map.html`, `FIVE-WHYS/five-whys.html`) — formatted to share directly with whoever needed the insight.
+**You get** one HTML artefact per run under `generated-docs/analyse-requirements/<METHOD>/` (e.g. `OOUX/ooux-object-map.html`, `FIVE-WHYS/five-whys.html`) - formatted to share directly with whoever needed the insight. Four of them - `crud-coverage`, `decision-tables`, `faceted-classification`, and `mvp-slicing` - also write a compact `<name>.sidecar.json` beside the HTML; when you pick one of these as a supporting analysis in `/wireframe` or `/prototype`, that file is what gets read. The others are read from the HTML itself.
 
 ### 4.10 `/review-requirement`
 
-Find what's missing or wrong in the spec *before* you hand it over — a second pair of eyes before estimation, a design brief, or a sceptical stakeholder.
+Find what's missing or wrong in the spec *before* you hand it over - a second pair of eyes before estimation, a design brief, or a sceptical stakeholder.
 
 | Pick                | If you want to see…                                                                                                                |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `ten-ba-questions`  | The **stakeholder questions** the spec hasn't yet answered — questions an experienced BA would ask before design or estimation     |
+| `ten-ba-questions`  | The **stakeholder questions** the spec hasn't yet answered - questions an experienced BA would ask before design or estimation     |
 | `ten-ux-questions`  | The **design-blocking gaps** an experienced UX designer would flag before they start designing                                     |
 | `adversarial`       | A **strict critique** of what's wrong, with a Patch / Defer / Reject decision per finding so you know what to do about each        |
 | `first-principles`  | Whether each requirement is **defensible against business rationale**, so weak items get cut or strengthened before design         |
 | `user-stories`      | Which **user stories aren't ready** for design or estimation, so they can be reworked before they enter the backlog                |
-| `requirements-quality` | Whether **every requirement is well-formed** against the ISO 29148 standard (singular, unambiguous, verifiable, conforming, complete) — a per-characteristic heatmap with EARS-form rewrites for the ambiguous and compound ones |
-| `requirements-traceability` | Which facts **trace to a real source** (or an accepted AI-suggestion) and which **trace to nothing** — orphans, broken citations, and dropped content that leaked through |
+| `requirements-quality` | Whether **every requirement is well-formed** against the ISO 29148 standard (singular, unambiguous, verifiable, conforming, complete) - a per-characteristic heatmap with EARS-form rewrites for the ambiguous and compound ones |
+| `requirements-traceability` | Which facts **trace to a real source** (or an accepted AI-suggestion) and which **trace to nothing** - orphans, broken citations, and dropped content that leaked through |
 
 **You get** one HTML artefact per run under `generated-docs/review-requirements/<METHOD>/` (e.g. `ADVERSARIAL/adversarial-review.html`). Treat it as a punch-list: fix the findings you accept in `requirements.md`, then re-run for a fresh pass.
 
 ### 4.11 `/resolve-review`
 
-Turn the findings of a review you've already run into something the pipeline can consume. A review artefact is a punch-list; this command walks you through acting on it — you pick the review (any `/review-inputs` or `/review-requirement` artefact on disk), pick which findings to address, and resolve each one in turn. Anything the system infers on your behalf is confirmed with you by an explicit affirmative before it's recorded — per finding, or in one go via an explicit *Accept all remaining as drafted* choice — nothing is silently assumed. The approved resolutions are then written as a **new dated document into `documentation/`** (existing input files are never modified or overwritten), so the next `/requirements` run ingests your decisions like any other client material.
+Turn the findings of a review you've already run into something the pipeline can consume. A review artefact is a punch-list; this command walks you through acting on it - you pick the review (any `/review-inputs` or `/review-requirement` artefact on disk), pick which findings to address, and resolve each one in turn. Anything the system infers on your behalf is confirmed with you by an explicit affirmative before it's recorded - per finding, or in one go via an explicit *Accept all remaining as drafted* choice - nothing is silently assumed. The approved resolutions are then written as a **new dated document into `documentation/`** (existing input files are never modified or overwritten), so the next `/requirements` run ingests your decisions like any other client material.
 
-When the review you picked critiques the *spec* (a `/review-requirement` artefact) rather than the raw inputs, the command additionally offers — opt-in — to cache the same resolutions as a transient **Amendments** section inside `requirements.md`, so downstream commands can use them immediately. The cache is temporary by design: the next `/requirements` re-merge regenerates the doc and folds the resolutions in properly from `documentation/`.
+When the review you picked critiques the *spec* (a `/review-requirement` artefact) rather than the raw inputs, the command additionally offers - opt-in - to cache the same resolutions as a transient **Amendments** section inside `requirements.md`, so downstream commands can use them immediately. The cache is temporary by design: the next `/requirements` re-merge regenerates the doc and folds the resolutions in properly from `documentation/`.
 
-**You get** one new `documentation/<review-name>-<date>.md` per run — a consultant-approved resolutions document in which every resolution is marked as stated by you or AI-inferred-and-confirmed by you. One run resolves one review; re-run it for another (the output files accumulate side-by-side).
+**You get** one new `documentation/<review-name>-<date>.md` per run - a consultant-approved resolutions document in which every resolution is marked as stated by you or AI-inferred-and-confirmed by you. One run resolves one review; re-run it for another (the output files accumulate side-by-side).
 
 ### 4.12 `/wireframe`
 
 2–3 parallel low-fi HTML wireframe variants for a scope of `requirements.md`. Each variant adopts a divergent position on a UX trade-off dimension (density vs focus, speed vs accuracy, automation vs control, …), is bound to a persona, and traces every interactive element back to a requirement ID. You scope the run and optionally pick supporting analyses you've already produced via `/analyse-requirement` (only ones actually on disk are offered); the variants then generate in parallel, so a 2-variant scope takes about the same wall time as one.
 
-**You get** `wireframes/<scope-slug>/` — a metadata-only `index.html` landing (side-by-side variant columns of screen links plus a trade-off matrix that explains *why* the variants differ) and per-screen HTML files carrying `data-src` (requirement ID) and `data-prop` (data-shape) traceability. Open the landing, click a screen link to open it in a new tab, then drag tabs into separate windows to compare directly.
+**You get** `wireframes/<scope-slug>/` - a metadata-only `index.html` landing (side-by-side variant columns of screen links plus a trade-off matrix that explains *why* the variants differ) and per-screen HTML files carrying `data-src` (requirement ID) and `data-prop` (data-shape) traceability. Open the landing, click a screen link to open it in a new tab, then drag tabs into separate windows to compare directly.
 
 ### 4.13 `/prototype`
 
-One clickable, client-side hi-fi prototype of a scope of `requirements.md` per run, accumulating in a **single shared React/Next.js app** under `prototypes/`. The look and feel is **brand-locked and identical across every prototype** (one theme — from `/design-system` if you've run it, otherwise defaults you confirm); what differs is pure UX — a named posture plus trade-off positions reshape the layout and workflows. You scope and name the run, optionally seed it from an analysis or a wireframe variant (a wireframe basis pre-fills the posture and positions), then pick the posture and positions. It runs entirely in the browser against fixture data — there is no backend.
+One clickable, client-side hi-fi prototype of a scope of `requirements.md` per run, accumulating in a **single shared React/Next.js app** under `prototypes/`. The look and feel is **brand-locked and identical across every prototype** (one theme - from `/design-system` if you've run it, otherwise defaults you confirm); what differs is pure UX - a named posture plus trade-off positions reshape the layout and workflows. You scope and name the run, optionally seed it from an analysis or a wireframe variant (a wireframe basis pre-fills the posture and positions), then pick the posture and positions. It runs entirely in the browser against fixture data - there is no backend.
 
-**You get** a shared Next.js app under `prototypes/`: a landing page (`src/app/page.tsx`) listing every prototype grouped by scope, the clickable routes for this one (`src/app/<name-slug>/`), and shared theme / components / fixtures that grow additively across runs. Run `npm run dev` inside `prototypes/` and open the landing — a role switcher and a data-reset control are built into the chrome, so you can hand the running app to a client to click through. (The first run scaffolds the app and runs `npm install` once; later runs reuse it and are much faster.)
+**You get** a shared Next.js app under `prototypes/`: a landing page (`src/app/page.tsx`) listing every prototype grouped by scope, the clickable routes for this one (`src/app/<name-slug>/`), and shared theme / components / fixtures that grow additively across runs. Run `npm run dev` inside `prototypes/` and open the landing - a role switcher and a data-reset control are built into the chrome, so you can hand the running app to a client to click through. (The first run scaffolds the app and runs `npm install` once; later runs reuse it and are much faster.)
 
-**Light and dark.** If `/design-system` produced **both** mode files, the first run asks once how users switch between them — a button in the UI (defaulting to the OS/browser setting), the OS setting alone, no switching at all, or something you describe. The answer is locked with the brand, so later prototypes inherit it without being asked. If only one mode file exists, that mode is used and nothing is asked. The switching control, when you ask for one, sits in the application's own header — not in the prototype chrome, which is a review harness and shouldn't advertise itself as a product feature. Label and icon colours on buttons, badges and status chips are computed per mode by measuring against the actual fill in every hover state, and when both modes are live the build gate checks both — the usual dark-mode failure is a black label left on a dark fill, and it is cheaper to catch than to spot by eye.
+**Light and dark.** If `/design-system` produced **both** mode files, the first run asks once how users switch between them - a button in the UI (defaulting to the OS/browser setting), the OS setting alone, no switching at all, or something you describe. The answer is locked with the brand, so later prototypes inherit it without being asked. If only one mode file exists, that mode is used and nothing is asked. The switching control, when you ask for one, sits in the application's own header - not in the prototype chrome, which is a review harness and shouldn't advertise itself as a product feature. Label and icon colours on buttons, badges and status chips are computed per mode by measuring against the actual fill in every hover state, and when both modes are live the build gate checks both - the usual dark-mode failure is a black label left on a dark fill, and it is cheaper to catch than to spot by eye.
 
 ### 4.14 `/export-application`
 
-Export the finished spec as an **application-audience document** you can hand to a dev team outside this workspace. Run it once the requirements have settled — after the analyses, reviews, wireframes, and any manual refinements have shaped `requirements.md` into what you actually want built. It's an export of the spec **as it exists at that moment**, amendments included. If `requirements.md` carries an `## Amendments (pending re-merge)` section, the export first **folds** each amendment into its own copy of the body. A change that contradicts a statement replaces it, and an addition lands in the right section. A renamed field is renamed everywhere it's mentioned, and a new requirement gets the next free ID. Folded text is cited against the amendment document it came from. Every edit is listed in `generated-docs/export-application/fold-report.md`, and the gate points you to it — read it before accepting, because no check can prove the fold added nothing. `requirements.md` itself is never changed. Apart from the fold, nothing is invented at export time — the only wording the export supplies is a small fixed set of replacements spelled out in the exporter itself. The prototype-only scaffolding is removed (the prototype-invariants appendix, and the framework-internal target-mode table), fixture references become backend-contract pointers (with a placeholder path to rebind once a backend requirements document exists), the prototype-scoping preamble is dropped from the guidance sections, and a provenance block is stamped in — including a fingerprint of the exact `requirements.md` version it came from, so a re-run can tell you whether the export is stale. The architectural implications, session-policy, performance-budget, and rationale content is already in the spec (drafted and confirmed during `/requirements`) and carries through with only its prototype-scoping preamble removed.
+Export the finished spec as an **application-audience document** you can hand to a dev team outside this workspace. Run it once the requirements have settled - after the analyses, reviews, wireframes, and any manual refinements have shaped `requirements.md` into what you actually want built. It's an export of the spec **as it exists at that moment**, amendments included. If `requirements.md` carries an `## Amendments (pending re-merge)` section, the export first **folds** each amendment into its own copy of the body. A change that contradicts a statement replaces it, and an addition lands in the right section. A renamed field is renamed everywhere it's mentioned, and a new requirement gets the next free ID. Folded text is cited against the amendment document it came from. Every edit is listed in `generated-docs/export-application/fold-report.md`, and the gate points you to it - read it before accepting, because no check can prove the fold added nothing. `requirements.md` itself is never changed. Apart from the fold, nothing is invented at export time - the only wording the export supplies is a small fixed set of replacements spelled out in the exporter itself. The prototype-only scaffolding is removed (the prototype-invariants appendix, and the framework-internal target-mode table), fixture references become backend-contract pointers (with a placeholder path to rebind once a backend requirements document exists), the prototype-scoping preamble is dropped from the guidance sections, and a provenance block is stamped in - including a fingerprint of the exact `requirements.md` version it came from, so a re-run can tell you whether the export is stale. The architectural implications, session-policy, performance-budget, and rationale content is already in the spec (drafted and confirmed during `/requirements`) and carries through with only its prototype-scoping preamble removed.
 
-Anything the export **can't** cleanly re-project — a prototype-flavoured phrase inside a cited requirement, say — is left exactly as written and flagged, both in the provenance block and in a note under the affected section. You see it rather than having it quietly reworded, because rewording text that carries a citation would break the link back to the source quote that grounds it. Those flags are a signal to fix the wording in `requirements.md` and re-export — which is free, and is the only correction route: the gate is accept-or-reject, with no in-place editing.
+Anything the export **can't** cleanly re-project - a prototype-flavoured phrase inside a cited requirement, say - is left exactly as written and flagged, both in the provenance block and in a note under the affected section. You see it rather than having it quietly reworded, because rewording text that carries a citation would break the link back to the source quote that grounds it. Those flags are a signal to fix the wording in `requirements.md` and re-export - which is free, and is the only correction route: the gate is accept-or-reject, with no in-place editing.
 
-**You get** `generated-docs/export-application/requirements-application.md` — self-describing for external readers (a citation legend explains every traceability marker) — plus `fold-report.md` beside it when amendments were folded. If an amendment points at a requirement ID the spec doesn't have, the export stops before writing anything and names the amendment. Hand it over together with `generated-docs/requirements/draft-claims.ndjson`, which holds the verbatim source quotes behind the citation tags. Re-running after the spec changes offers a one-click regenerate; the prior export is checkpointed to git first.
+**You get** `generated-docs/export-application/requirements-application.md` - self-describing for external readers (a citation legend explains every traceability marker) - plus `fold-report.md` beside it when amendments were folded. If an amendment points at a requirement ID the spec doesn't have, the export stops before writing anything and names the amendment. Hand it over together with `generated-docs/requirements/draft-claims.ndjson`, which holds the verbatim source quotes behind the citation tags. Re-running after the spec changes offers a one-click regenerate; the prior export is checkpointed to git first.
 
 ## 5. Setup
 
-Install once on your workstation. Versions below are floors — newer is fine.
+Install once on your workstation. Versions below are floors - newer is fine.
 
-**Fastest path — run `/setup`.** It detects, installs (user-scoped, so a fresh repo clone never re-installs), configures, and tests everything below in one go, then prints a status table and tells you if a restart is needed. Run `/setup` for everything, or target one piece: `markitdown`, `node`, `python`, `playwright`, `drawio`, `inkscape`, `libreoffice`, or `preview` (checks that finished HTML outputs open automatically for review). The manual steps in §5.1–§5.6 are the equivalents `/setup` runs for you, and double as troubleshooting.
+**Fastest path - run `/setup`.** It detects, installs (user-scoped, so a fresh repo clone never re-installs), configures, and tests everything below in one go, then prints a status table and tells you if a restart is needed. Run `/setup` for everything, or target one piece: `markitdown`, `node`, `python`, `playwright`, `drawio`, `inkscape`, `libreoffice`, or `preview` (checks that finished HTML outputs open automatically for review). The manual steps in §5.1–§5.6 are the equivalents `/setup` runs for you, and double as troubleshooting.
 
 ### 5.1 First-time install (one-off)
 
-The three pieces every command needs:
+The four pieces every command needs:
 
-- **Claude Code** — the runtime everything runs under. Install from <https://claude.com/claude-code> and sign in. The slash commands are picked up automatically from `.claude/commands/` in this repo.
-- **VS Code + Claude Code extension** — your editor while a command is running. Install VS Code from <https://code.visualstudio.com/>, then add the **Claude Code** extension from the marketplace. The extension lets you launch Claude Code in a side panel and run slash commands without leaving the editor.
-- **git** — used to safely checkpoint a prior run before it gets reset (so nothing is ever lost). Install from <https://git-scm.com/>. Verify with `git --version`.
+- **Claude Code** - the runtime everything runs under. Install from <https://claude.com/claude-code> and sign in. The slash commands are picked up automatically from `.claude/commands/` in this repo.
+- **VS Code + Claude Code extension** - your editor while a command is running. Install VS Code from <https://code.visualstudio.com/>, then add the **Claude Code** extension from the marketplace. The extension lets you launch Claude Code in a side panel and run slash commands without leaving the editor.
+- **git** - used to safely checkpoint a prior run before it gets reset (so nothing is ever lost). Install from <https://git-scm.com/>. Verify with `git --version`.
+- **PowerShell 7** - `/setup` runs its installer script in PowerShell 7, and cannot install PowerShell itself. Install from <https://aka.ms/powershell>. Verify with `pwsh --version`.
 
 ### 5.2 To handle Word, Excel, PowerPoint, and PDF inputs
 
@@ -297,9 +289,9 @@ pip install --no-deps markitdown-mcp==0.0.1a4
 pip install "mcp~=1.8.0"
 ```
 
-The scoped extras are what make `.pptx`/`.xlsx`/`.xls`/`.pdf` convert — bare `markitdown-mcp` handles only `.docx`. The `--no-deps` avoids a dependency conflict on newer Python; see `framework/shared/setup-instructions/markitdown.md` for why. Restart Claude Code afterwards so the converter picks up.
+The scoped extras are what make `.pptx`/`.xlsx`/`.xls`/`.pdf` convert - bare `markitdown-mcp` handles only `.docx`. The `--no-deps` avoids a dependency conflict on newer Python; see `framework/shared/setup-instructions/markitdown.md` for why. Restart Claude Code afterwards so the converter picks up.
 
-Without it, the input-reading commands still work on plain text, YAML/XML, .drawio diagrams, and images. They only stop if they actually encounter a `.docx`, `.xlsx`, `.pptx`, or `.pdf` in your inputs — and then they tell you exactly what to install and resume after you do.
+Without it, the input-reading commands still work on plain text, YAML/XML, .drawio diagrams, and images. They only stop if they actually encounter a `.docx`, `.xlsx`, `.pptx`, or `.pdf` in your inputs - and then they tell you exactly what to install and resume after you do.
 
 Setup notes and troubleshooting: `framework/shared/setup-instructions/markitdown.md`.
 
@@ -313,19 +305,19 @@ npx -y @playwright/mcp@0.0.76 --help
 
 Restart Claude Code afterwards so the browser driver registers. The server is configured (in `.mcp.json`) to drive your **installed Google Chrome** (`--browser chrome`), so there's no separate browser binary to download.
 
-Without it, `/design-system` still works — you just skip the reference URL when asked, and every token gets inferred from the domain string. If you do supply a URL without Playwright installed, the command offers a lower-fidelity web-fetch fallback or a clean exit while you install.
+Without it, `/design-system` still works - you just skip the reference URL when asked, and every token gets inferred from the domain string. If you do supply a URL without Playwright installed, the command offers a lower-fidelity web-fetch fallback or a clean exit while you install.
 
 Setup notes and troubleshooting: `framework/shared/setup-instructions/playwright.md`.
 
 ### 5.4 To generate clickable prototypes
 
-Needed only for `/prototype`, which scaffolds and builds a real Next.js app under `prototypes/`. Install **Node.js 20+** (<https://nodejs.org/>; verify with `node --version`) — the prototype app targets Next.js 16 / React 19, which need Node 20 or newer.
+Needed only for `/prototype`, which scaffolds and builds a real Next.js app under `prototypes/`. Install **Node.js 20+** (<https://nodejs.org/>; verify with `node --version`) - the prototype app targets Next.js 16 / React 19, which need Node 20 or newer.
 
 ```
 winget install OpenJS.NodeJS.LTS
 ```
 
-The first `/prototype` run installs the app's dependencies (`npm install`) once inside `prototypes/`; the cost is amortised across every prototype you generate afterwards. The build-and-verify step also runs a Playwright smoke check, driven by a browser **already installed on your machine** (Chrome by default; set `PLAYWRIGHT_CHANNEL=msedge` to use Windows' preinstalled Edge) — no separate browser download. If no Chrome/Edge can be found, the command offers to skip the smoke check with a warning or tells you how to point it at a browser.
+The first `/prototype` run installs the app's dependencies (`npm install`) once inside `prototypes/`; the cost is amortised across every prototype you generate afterwards. The build-and-verify step also runs a Playwright smoke check, driven by a browser **already installed on your machine** (Chrome by default; set `PLAYWRIGHT_CHANNEL=msedge` to use Windows' preinstalled Edge) - no separate browser download. If no Chrome/Edge can be found, the command offers to skip the smoke check with a warning or tells you how to point it at a browser.
 
 If Node.js is missing when you launch `/prototype`, the command tells you exactly what to install and resumes at the scaffold step after you do.
 
@@ -333,7 +325,7 @@ Setup notes and troubleshooting: `framework/shared/setup-instructions/node-toolc
 
 ### 5.5 To ingest Stadium 6 apps
 
-Needed only for `/ingest-stadium`, which runs a bundled Python extractor over a Stadium app dropped in `documentation/`. The extractor is **standard-library only** — there are no packages to install — so if you already installed **Python 3.10+** for Office/PDF inputs (§5.2), you're done. Otherwise install Python (<https://www.python.org/>; verify with `python --version`), or run `/setup python`.
+Needed only for `/ingest-stadium`, which runs a bundled Python extractor over a Stadium app dropped in `documentation/`. The extractor is **standard-library only** - there are no packages to install - so if you already installed **Python 3.10+** for Office/PDF inputs (§5.2), you're done. Otherwise install Python (<https://www.python.org/>; verify with `python --version`), or run `/setup python`.
 
 If Python is missing when you launch `/ingest-stadium`, the command tells you exactly what to install and resumes after you do.
 
