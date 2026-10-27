@@ -33,6 +33,11 @@
  *     shell with a {"__selftest":true} payload on stdin and prints
  *     "PASS <shell>: <command>" or "FAIL <shell>: <diagnosis>".
  *
+ * Deferred open (spawned by the hook itself, never by a pipeline):
+ *   node framework/tools/open-artifact.cjs --open-when-filled <abs-path> [--timeout-ms N] [--no-launch]
+ *   → waits until a design-system file's brand-font-faces marker is filled by
+ *     font-embed.cjs inject, then opens it; opens anyway on timeout.
+ *
  * Wire (register the hook in this workspace's .claude/settings.json):
  *   node framework/tools/open-artifact.cjs --wire
  *   → prints "WIRED", "ALREADY-WIRED" or "FAIL <reason>". Idempotent. The
@@ -150,6 +155,52 @@ function launch(absPath) {
   const child = spawn(cmd, args, { detached: true, stdio: 'ignore', windowsHide: true });
   child.on('error', () => {}); // no handler → an ENOENT would throw async
   child.unref();
+}
+
+// ── Deferred open (design-system brand fonts) ──────────────────────────────
+// /design-system writes each file with an unfilled brand-font-faces block and
+// fills it a few tool calls later (`font-embed.cjs inject`). Opening at Write
+// time would show the specimens in the system font until a manual refresh, so
+// the hook hands such a file to a detached waiter that opens it once the
+// marker is gone. Fails open: on timeout it opens the file as it stands.
+// Same literal as MARKER in font-embed.cjs; kept inline so this hook stays
+// dependency-free.
+const FONT_MARKER = '/* BRAND_FONT_FACES */';
+const FILL_TIMEOUT_MS = 180000;
+const FILL_POLL_MS = 500;
+
+function fontsPending(absPath) {
+  try {
+    return fs.readFileSync(absPath, 'utf8').includes(FONT_MARKER);
+  } catch {
+    return false;
+  }
+}
+
+function deferOpen(absPath) {
+  const child = spawn(process.execPath, [__filename, '--open-when-filled', absPath], { detached: true, stdio: 'ignore', windowsHide: true });
+  child.on('error', () => {});
+  child.unref();
+}
+
+// --open-when-filled <abs path> [--timeout-ms N] [--no-launch]
+// Reports "filled" or "timeout" on stderr; --no-launch is for tests.
+function openWhenFilled(argv) {
+  const absPath = argv[0];
+  const t = argv.indexOf('--timeout-ms');
+  const timeoutMs = t >= 0 ? Number(argv[t + 1]) : FILL_TIMEOUT_MS;
+  const noLaunch = argv.includes('--no-launch');
+  const started = Date.now();
+  const tick = () => {
+    const filled = !fontsPending(absPath);
+    if (filled || Date.now() - started >= timeoutMs) {
+      process.stderr.write(`open-artifact: ${filled ? 'filled' : 'timeout'} ${absPath}\n`);
+      if (!noLaunch) launch(absPath);
+      return;
+    }
+    setTimeout(tick, FILL_POLL_MS);
+  };
+  tick();
 }
 
 // ── Dry-run ────────────────────────────────────────────────────────────────
@@ -447,6 +498,10 @@ function main() {
   if (argv[0] === '--wire') {
     process.exit(wire());
   }
+  if (argv[0] === '--open-when-filled') {
+    openWhenFilled(argv.slice(1));
+    return;
+  }
 
   if (optedOut()) process.exit(0);
 
@@ -500,6 +555,11 @@ function main() {
   state[rel] = hash;
   writeState(stateFile, state);
 
+  if (fontsPending(filePath)) {
+    deferOpen(filePath);
+    process.stderr.write(`open-artifact: ${rel} opens once its brand fonts are injected\n`);
+    process.exit(0);
+  }
   launch(filePath);
   process.stderr.write(`open-artifact: opened ${rel}\n`);
   process.exit(0);

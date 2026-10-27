@@ -57,6 +57,12 @@
                              framework/assets/design-system-standards.html at
                              render time. The standards file opens with its
                              own <section id="standards"> wrapper.
+   11. <style id="brand-font-faces"> — last child of <body>. Emitted verbatim
+                            with its /* BRAND_FONT_FACES */ marker; filled
+                            after `Write` by `font-embed.cjs inject`; never
+                            rendered by the LLM. Last, so a reader of the JSON
+                            block or the top of the file never meets the
+                            base64.
 
   Responsive layout: the doc is intentionally flexible — every grid uses
   `auto-fit, minmax(...)` so swatches, shadows, and contrast cards reflow
@@ -150,13 +156,15 @@
                                 // offered (step-07); null when only one existed
         "brand_fonts": {
           "families": [
-            {"role": "heading", "brand": "<family>", "loadable": "<family-or-null>",
-             "param": "<google-family-param-or-null>",
+            {"role": "heading", "brand": "<family>", "loadable": "<family>",
+             "param": "<google-family-param>",
              "status": "<google-native | substituted | unverified>",
+             "delivery": "<embedded | link>",
              "evidence": "<which ladder tier decided it>"},
             {"role": "body",    ... }
           ],
-          "links": ["<one css2 url per distinct loadable family>"]
+          "links": ["<one css2 url per distinct link-delivery family>"],
+          "embedded_bytes": <raw font bytes embedded in this file>
         }
       },
       "colours": {
@@ -344,31 +352,33 @@
   No external <script> tags in this template — the JSON block is data, not code.
   The file is openable via file://.
 
-  BRAND FONT LINKS — {{BRAND_FONT_LINKS}} in <head> is the ONE deliberate
-  exception to "no CDN resources", and it is narrow: one
-  <link rel="stylesheet"> per loadable brand family, pointing at
-  fonts.googleapis.com. No scripts, no images, no other host. Rendered by
-  step-06 from `meta.brand_fonts.links`; see
-  `framework/agents/design-system-styler/data/font-availability-rules.md` §6.3.
+  BRAND FONTS — embedded first, linked only as a fallback.
+  The brand faces (latin + latin-ext) are EMBEDDED as data URIs in the
+  <style id="brand-font-faces"> block at the end of <body>, filled by
+  `font-embed.cjs inject` after the file is written. The file stays one
+  self-contained file and renders the real letterforms offline, on a client
+  network that blocks Google, and in a sandboxed preview. See
+  `framework/agents/design-system-styler/data/font-availability-rules.md` §6.4.
 
-  Why it earns the exception: without it, EVERY family specimen renders in the
-  reader's system fallback while its label says `'Manrope', sans-serif`. The
-  consultant cannot see the typography they are being asked to approve, and the
-  ~20 component specimens are drawn in a face the brand does not use. The
-  artefact keeps every property that made the no-CDN rule worth having: it is
-  still one file, still openable via file://, still fully readable offline, and
-  still free of executable third-party content. Offline, the font requests
-  simply fail and each specimen falls through to the generic terminal that
-  font-rules.md §4 guarantees every emitted stack carries — the same graceful
-  degradation `framework/assets/prototypes/app-shell-spec.md` chose for
-  `/prototype`, and the reason a <link> is right where a build-time fetch
-  would not be.
+  {{BRAND_FONT_LINKS}} in <head> remains the ONE deliberate exception to "no
+  CDN resources", and it is narrower than before: one <link rel="stylesheet">
+  per family whose embedding FAILED at generation (`delivery: "link"`),
+  pointing at fonts.googleapis.com. No scripts, no images, no other host.
+  Rendered by step-06 from `meta.brand_fonts.links` (§6.3); when every family
+  is embedded it renders a comment and no link at all.
+
+  Why the link still earns the exception: without it, a family that could not
+  be embedded renders in the reader's system fallback while its label says
+  `'Manrope', sans-serif`. Offline, that request simply fails and the specimen
+  falls through to the generic terminal that font-rules.md §4 guarantees every
+  emitted stack carries. Order per family: embedded face → Google link →
+  generic terminal.
 
   Do not "restore" the invariant by deleting the placeholder, and do not
   broaden it: a second host, a <script>, or a remote image is a different
-  decision and this comment does not authorise it. A family whose availability
-  could not be verified contributes no link at all, so the artefact never
-  requests a face that is not known to exist.
+  decision and this comment does not authorise it. Every link names a
+  loadable family drawn from the verified list or verified this run, so the
+  artefact never requests a face that is not known to exist.
 
   MODES — this template is rendered ONCE PER COLOUR MODE. Each render is a
   complete, single-mode document; there is no in-document mode switcher.
@@ -1138,5 +1148,6 @@
 
 </main>
 
+<style id="brand-font-faces">/* BRAND_FONT_FACES */</style>
 </body>
 </html>
