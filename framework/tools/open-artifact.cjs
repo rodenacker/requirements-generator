@@ -13,6 +13,8 @@
  *
  * This is a harness-level affordance. It is NOT invoked by any orchestrator,
  * agent, or skill — do not add a call site for it, and do not look for one.
+ * The one other caller is font-embed.cjs inject (via openIfAllowed): a
+ * design-system file opens when its brand fonts are filled, not at Write.
  *
  * Self-contained: no dependencies, reads the hook payload as JSON on stdin.
  * Fails open: every error path exits 0 so it can never wedge a session or a
@@ -32,11 +34,6 @@
  *   → runs the registered PostToolUse:Write command(s) under every discoverable
  *     shell with a {"__selftest":true} payload on stdin and prints
  *     "PASS <shell>: <command>" or "FAIL <shell>: <diagnosis>".
- *
- * Deferred open (spawned by the hook itself, never by a pipeline):
- *   node framework/tools/open-artifact.cjs --open-when-filled <abs-path> [--timeout-ms N] [--no-launch]
- *   → waits until a design-system file's brand-font-faces marker is filled by
- *     font-embed.cjs inject, then opens it; opens anyway on timeout.
  *
  * Wire (register the hook in this workspace's .claude/settings.json):
  *   node framework/tools/open-artifact.cjs --wire
@@ -157,17 +154,16 @@ function launch(absPath) {
   child.unref();
 }
 
-// ── Deferred open (design-system brand fonts) ──────────────────────────────
+// ── Design-system files open at inject, not at Write ───────────────────────
 // /design-system writes each file with an unfilled brand-font-faces block and
 // fills it a few tool calls later (`font-embed.cjs inject`). Opening at Write
-// time would show the specimens in the system font until a manual refresh, so
-// the hook hands such a file to a detached waiter that opens it once the
-// marker is gone. Fails open: on timeout it opens the file as it stands.
+// time would show the specimens in the system font, so the hook skips a file
+// that still holds the marker and inject opens it once filled (openIfAllowed).
+// Inject runs on every design-system file however it was written, so the open
+// does not depend on the agent having used Write.
 // Same literal as MARKER in font-embed.cjs; kept inline so this hook stays
 // dependency-free.
 const FONT_MARKER = '/* BRAND_FONT_FACES */';
-const FILL_TIMEOUT_MS = 180000;
-const FILL_POLL_MS = 500;
 
 function fontsPending(absPath) {
   try {
@@ -177,30 +173,20 @@ function fontsPending(absPath) {
   }
 }
 
-function deferOpen(absPath) {
-  const child = spawn(process.execPath, [__filename, '--open-when-filled', absPath], { detached: true, stdio: 'ignore', windowsHide: true });
-  child.on('error', () => {});
-  child.unref();
-}
-
-// --open-when-filled <abs path> [--timeout-ms N] [--no-launch]
-// Reports "filled" or "timeout" on stderr; --no-launch is for tests.
-function openWhenFilled(argv) {
-  const absPath = argv[0];
-  const t = argv.indexOf('--timeout-ms');
-  const timeoutMs = t >= 0 ? Number(argv[t + 1]) : FILL_TIMEOUT_MS;
-  const noLaunch = argv.includes('--no-launch');
-  const started = Date.now();
-  const tick = () => {
-    const filled = !fontsPending(absPath);
-    if (filled || Date.now() - started >= timeoutMs) {
-      process.stderr.write(`open-artifact: ${filled ? 'filled' : 'timeout'} ${absPath}\n`);
-      if (!noLaunch) launch(absPath);
-      return;
-    }
-    setTimeout(tick, FILL_POLL_MS);
-  };
-  tick();
+// Open an artefact from outside the hook (font-embed.cjs inject). Same
+// allowlist, opt-out and launch as the hook; no dedupe state, because inject
+// refuses an already-filled file and so runs once per render. Returns the
+// repo-relative path it opened, or null. Never throws.
+function openIfAllowed(absPath, { launcher = launch } = {}) {
+  try {
+    if (optedOut()) return null;
+    const rel = toRel(path.resolve(absPath), REPO_ROOT);
+    if (!isAllowed(rel)) return null;
+    launcher(path.resolve(absPath));
+    return rel;
+  } catch {
+    return null;
+  }
 }
 
 // ── Dry-run ────────────────────────────────────────────────────────────────
@@ -498,11 +484,6 @@ function main() {
   if (argv[0] === '--wire') {
     process.exit(wire());
   }
-  if (argv[0] === '--open-when-filled') {
-    openWhenFilled(argv.slice(1));
-    return;
-  }
-
   if (optedOut()) process.exit(0);
 
   const raw = readStdin();
@@ -549,24 +530,28 @@ function main() {
     process.exit(0);
   }
 
+  if (fontsPending(filePath)) {
+    process.stderr.write(`open-artifact: ${rel} opens when font-embed.cjs inject fills its brand fonts\n`);
+    process.exit(0);
+  }
+
   const stateFile = statePath(payload.session_id);
   const state = readState(stateFile);
   if (state[rel] === hash) process.exit(0); // already opened this exact content
   state[rel] = hash;
   writeState(stateFile, state);
 
-  if (fontsPending(filePath)) {
-    deferOpen(filePath);
-    process.stderr.write(`open-artifact: ${rel} opens once its brand fonts are injected\n`);
-    process.exit(0);
-  }
   launch(filePath);
   process.stderr.write(`open-artifact: opened ${rel}\n`);
   process.exit(0);
 }
 
-try {
-  main();
-} catch {
-  process.exit(0); // fail open
+module.exports = { openIfAllowed, isAllowed, FONT_MARKER };
+
+if (require.main === module) {
+  try {
+    main();
+  } catch {
+    process.exit(0); // fail open
+  }
 }

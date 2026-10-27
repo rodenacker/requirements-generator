@@ -31,13 +31,15 @@
  *   node framework/tools/font-embed.cjs embed       --params "<A>,<B>" --out <css>
  *        writes the CSS (possibly empty); prints { embedded, failed, bytes }
  *   node framework/tools/font-embed.cjs inject      --html <path> --css <path>
- *        rewrites the HTML in place; prints { sha256, bytes } of the new file
+ *        rewrites the HTML in place, then opens it in the default browser when
+ *        open-artifact.cjs allowlists it; prints { sha256, bytes, opened }
  *   node framework/tools/font-embed.cjs vendor      --html <path> --fonts-dir <dir> --css-out <path>
  *        writes the woff2 files and the CSS; prints { files, css_bytes }
  *   exit 0 → result printed / file written; exit 2 → one-line stderr message.
  *   Never throws an uncaught error. As a module, bad input throws a TypeError.
  *
- * Self-contained: Node >= 18 (global fetch), no dependencies.
+ * Node >= 18 (global fetch), no package dependencies; inject uses the sibling
+ * open-artifact.cjs to preview the filled file.
  * Unit tests: font-embed.test.cjs.
  */
 'use strict';
@@ -373,7 +375,9 @@ async function main(argv) {
       const file = arg('--html');
       fs.writeFileSync(file, inject(fs.readFileSync(file, 'utf8'), fs.readFileSync(arg('--css'), 'utf8')));
       const disk = fs.readFileSync(file);
-      return { sha256: crypto.createHash('sha256').update(disk).digest('hex'), bytes: disk.length };
+      // The filled file is final: open it for the consultant (artifact-preview.md).
+      const opened = require('./open-artifact.cjs').openIfAllowed(file);
+      return { sha256: crypto.createHash('sha256').update(disk).digest('hex'), bytes: disk.length, opened };
     },
     vendor: async () => {
       need('--html', '--fonts-dir', '--css-out');

@@ -105,6 +105,7 @@ After acceptance:
 
 1. Delete `generated-docs/design-system/.workspace/` and its contents: `Bash rm -rf generated-docs/design-system/.workspace`.
 2. If deletion fails, log a warning but do not halt — workspace cleanup is best-effort.
+3. If any URL reference was given, call `mcp__playwright__browser_close()` once more — a backstop for a tab left open after step-04. With nothing open it is a no-op and launches nothing; ignore its result.
 
 ## D. Hand Back to Orchestrator
 

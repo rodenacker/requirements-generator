@@ -268,6 +268,7 @@ test('test_cli_inject_reports_sha', () => {
   assert.equal(out.sha256, crypto.createHash('sha256').update(disk).digest('hex'));
   assert.equal(out.bytes, disk.length);
   assert.ok(!disk.toString('utf8').includes(fe.MARKER));
+  assert.equal(out.opened, null, 'a file outside the preview allowlist is never opened');
 });
 
 test('test_cli_bad_input', () => {

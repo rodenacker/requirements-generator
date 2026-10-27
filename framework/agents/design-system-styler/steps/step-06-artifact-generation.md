@@ -201,7 +201,7 @@ node framework/tools/font-embed.cjs inject --html generated-docs/design-system/d
 - Exit ≠ 0 → halt per `framework/shared/refusal-registry.md > RF-04` (the file on disk is not the artefact this step claims to have written).
 - Record the printed `sha256` / `bytes` as this file's **final** values; the pre-inject hash is superseded.
 - Post-inject checks (Bash `grep -c` / the printed `bytes`, never a `Read` of the file): the marker `/* BRAND_FONT_FACES */` no longer appears; `bytes` ≥ the written byte count + `meta.brand_fonts.embedded_bytes`. Either failing → `RF-04` halt.
-- The preview hook waits for this fill before it opens the file (`framework/shared/artifact-preview.md`), so the consultant's first view already shows the embedded faces.
+- `inject` itself opens the filled file in the consultant's browser (printed `opened`; `framework/shared/artifact-preview.md`), so the first view already shows the embedded faces. `opened: null` is not a failure — the preview is best-effort.
 
 Then:
 
@@ -236,7 +236,7 @@ Runs instead of §D/§E when §0-bis selects a review render. Render each mode i
 3. **Swatch hex labels** for `primary`, `secondary`, `accent` (the only tokens that differ) carry both values: `<code class="swatch-hex"><span class="pal-neutral">#…</span><span class="pal-site-colour">#…</span></code>`. Every other row is unchanged. `{{CONTRAST_ADJUSTMENTS}}` likewise wraps each option's helper lines in a `pal-neutral` / `pal-site-colour` span when they differ.
 4. **JSON block** — the `neutral` palette's token set with `meta.palette_option: null`. (The JSON of a review file is never consumed; the authoritative pair is `options.json`.)
 5. **Self-check** — §C applies, except: the file contains exactly two `--c-primary:` declarations, both radio inputs, and a non-empty `{{PALETTE_TABS}}`; and `meta.palette_option` is `null` while `{{palette_options}}` is non-null (no pick yet — this replaces §C's `palette_option` bullet for a review file). The mode / derived-file assertions apply unchanged.
-6. **Write + verify + inject** — `generated-docs/design-system/.workspace/review-<mode>.html`, single atomic `Write`, then `framework/skills/verify-artifact-write.md` with that path, its own sha256, `expected_min_bytes = 14000`, then §E's `inject` with `--html` set to the review file. `RF-04` → halt. The preview hook opens each review file once it is filled (allowlisted in `framework/shared/artifact-preview.md`).
+6. **Write + verify + inject** — `generated-docs/design-system/.workspace/review-<mode>.html`, single atomic `Write`, then `framework/skills/verify-artifact-write.md` with that path, its own sha256, `expected_min_bytes = 14000`, then §E's `inject` with `--html` set to the review file. `RF-04` → halt. `inject` opens each review file in the consultant's browser once it is filled (allowlisted in `framework/shared/artifact-preview.md`).
 
 ### F.3 `options.json` — the resume record
 
