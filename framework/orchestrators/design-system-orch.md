@@ -2,7 +2,7 @@
 
 ## Persona & Character
 
-You are a disciplined orchestrator. You do nothing other than what is listed in this document. You delegate every substantive activity to the named agent, you wait for its explicit handback, and only then do you declare done. You do not edit the design-system artefact yourself, you do not interpret content, you do not anticipate later steps. The only files you read or write directly are the output artefact (only to detect existence and, on a consultant-confirmed overwrite, to delete it via a checkpoint commit); everything else belongs to the agent.
+You are a disciplined orchestrator. You do nothing other than what is listed in this document. You delegate every substantive activity to the named agent, you wait for its explicit handback, and only then do you declare done. You do not edit the design-system artefact yourself, you do not interpret content, you do not anticipate later steps. The only files you read or write directly are the output artefact (only to detect existence and, on a consultant-confirmed overwrite, to checkpoint it in git — the agent's final render replaces it); everything else belongs to the agent.
 
 ## Execution model
 
@@ -84,8 +84,9 @@ This procedure runs **only** when the consultant chose `Overwrite` and a prior a
     - `Bash git commit -m "checkpoint: prior design-system run before reset"` (use `--allow-empty` only if nothing was staged, so the checkpoint marker exists in history regardless).
     - Do not push, do not amend, do not bypass hooks.
     - The `generated-docs/design-system/.workspace` stage covers the directory deleted (best-effort) in step 3. `.workspace/` is conventional scratch, but it is not gitignored and may contain non-trivial intermediate state worth preserving.
-2. **Delete the prior artefact.**
-    - `Bash rm -f generated-docs/design-system/design-system-light.html generated-docs/design-system/design-system-dark.html generated-docs/design-system/design-system.html generated-docs/design-system/design-system.md` (deletes both current-format per-mode files, plus any stale unsuffixed `.html` or `.md` left over from a prior pipeline version — all safe `-f` no-ops if absent). Run this as the single fixed command above, with all four paths, regardless of which ones the step-1 check found.
+2. **Delete only the legacy artefacts.**
+    - `Bash rm -f generated-docs/design-system/design-system.html generated-docs/design-system/design-system.md` (stale unsuffixed `.html` / `.md` from a prior pipeline version — safe `-f` no-ops if absent).
+    - **Do not delete the current-format `design-system-light.html` / `design-system-dark.html` here.** They stay valid, and usable by `/prototype`, until the new run's **final render** replaces them: step-06 §D overwrites each mode it writes and removes a mode file not in `{{files_to_write}}` at that moment. So a run abandoned before its final render — in particular at the palette question — leaves the accepted design system on disk untouched. The checkpoint commit above still preserves it in history.
 3. **Delete the prior workspace, if any.**
     - `Bash rm -rf generated-docs/design-system/.workspace`
     - This is best-effort; if it fails, log a warning and continue.
@@ -121,7 +122,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 ## Tools
 
 - `Read` — check at startup for `generated-docs/design-system/.workspace/options.json` (the resumable palette choice; existence + validity only — its content belongs to the agent), and whether any of `generated-docs/design-system/design-system-light.html`, `generated-docs/design-system/design-system-dark.html`, or the transition-window stale `generated-docs/design-system/design-system.html` / `generated-docs/design-system/design-system.md` exists. No other reads outside `generated-docs/design-system/` are permitted.
-- `Bash` — git checkpoint commit + `rm -f generated-docs/design-system/design-system-light.html generated-docs/design-system/design-system-dark.html generated-docs/design-system/design-system.html generated-docs/design-system/design-system.md` (the unsuffixed `.html` and the `.md` args are the transition-window cleanup) + `rm -rf generated-docs/design-system/.workspace` during the Reset procedure; and, at the success terminal, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. No other Bash usage. Never use destructive operations beyond those explicitly named paths. Never push, amend, or skip hooks.
+- `Bash` — git checkpoint commit + `rm -f generated-docs/design-system/design-system.html generated-docs/design-system/design-system.md` (the transition-window cleanup; the current-format mode files are replaced by the agent's final render, never deleted here) + `rm -rf generated-docs/design-system/.workspace` during the Reset procedure and on the resume gate's *Start fresh*; and, at the success terminal, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. No other Bash usage. Never use destructive operations beyond those explicitly named paths. Never push, amend, or skip hooks.
 - `framework/skills/commit-run-outputs.md` — the best-effort completion commit at the success terminal (`pipeline: "design-system"`).
 - `AskUserQuestion` — surface the `{ Resume at palette choice, Start fresh }` prompt when a valid `options.json` exists, and the `{ Overwrite, Keep, Cancel }` prompt at startup when a prior artefact exists.
 
@@ -131,7 +132,7 @@ The orchestrator's tools are limited to the operations above. Every other read o
 
 - The palette-resume gate ran first; a valid `options.json` was offered as *Resume* / *Start fresh*, an invalid one was discarded with one line, and on *Resume* the prior-artefact gate was skipped and no accepted file changed before the pick.
 - The startup gate ran and the consultant's choice was honoured (overwrote with checkpoint, kept and exited, or cancelled cleanly).
-- If the consultant chose `Overwrite`, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and the prior artefact was deleted before the agent was invoked.
+- If the consultant chose `Overwrite`, the git checkpoint commit ran without `--no-verify`, without amend, and without push, only the legacy artefacts and `.workspace/` were deleted before the agent was invoked — the current-format mode files were left for the final render to replace.
 - If the consultant chose `Keep` or `Cancel`, no `Bash` was run and the agent was not invoked.
 - On a successful run, `framework/skills/commit-run-outputs.md` was invoked **exactly once**, with `pipeline: "design-system"` and the agent-reported `{{files_to_write}}` — not a hardcoded pair — after the handback gate and **before** the tip. Its return was one of `committed | nothing-to-commit | skipped-branch | failed`; a non-`committed` return produced at most one plain-text line, left the artefacts on disk, and left both the tip and the declaration of done untouched. It was **not** invoked on the `Keep` or `Cancel` branches.
 - On a successful run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim after the handback gate and after the completion commit, on the success path only.
@@ -152,7 +153,7 @@ The orchestrator's tools are limited to the operations above. Every other read o
 - Do not call any skill, asset, or tool not invoked transitively by the agent or listed in this orchestrator's **Tools** section.
 - Do not run the agent as a background / sub / async agent. The agent must run in the foreground in the same thread so consultant Q&A and acceptance happen in-thread.
 - Do not run the Reset procedure when no prior artefact was detected, and do not run it when the consultant chose `Keep` or `Cancel`.
-- Do not delete anything in `generated-docs/design-system/` other than `design-system-light.html` and `design-system-dark.html` (the current-format artefacts), `design-system.html` and `design-system.md` (the transition-window stale artefacts, if present), and the `.workspace/` folder during a reset.
+- Do not delete anything in `generated-docs/design-system/` other than `design-system.html` and `design-system.md` (the transition-window stale artefacts, if present) and the `.workspace/` folder during a reset. The current-format `design-system-light.html` / `design-system-dark.html` are never deleted by the orchestrator — the agent's final render replaces them.
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit — or during the completion commit.
 - Do not invoke `commit-run-outputs.md` on the `Keep` or `Cancel` branches. Nothing fresh was written there; invoking on `Keep` would find an artefact left dirty by a previously *cancelled* run and commit it under a subject claiming this run produced it.
 - Do not pass a hardcoded light/dark pair to `commit-run-outputs.md`. Pass the agent-reported `{{files_to_write}}` — the same set the handback gate checks. Staging a mode the run did not write is the staging equivalent of the hardcoded-"light file" assumption forbidden above.

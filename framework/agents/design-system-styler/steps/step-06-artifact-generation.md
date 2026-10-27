@@ -179,6 +179,7 @@ The availability assertions are the same kind of backstop for the second axis. *
 
 1. Ensure the `generated-docs/design-system/` directory exists. If not, create it: `Bash mkdir -p generated-docs/design-system` (a no-op on the second render).
 2. Write the rendered string to `generated-docs/design-system/design-system-{{mode}}.html` (single atomic Write call).
+   **On this run's first final-render Write only:** if a `generated-docs/design-system/design-system-<mode>.html` exists for a mode not in `{{files_to_write}}`, remove it now (`Bash rm -f generated-docs/design-system/design-system-<that mode>.html`). The orchestrator's Reset no longer deletes the accepted files, so this is the one point where the previous design system is retired — after a palette pick, never before.
 3. Store `{{artifact_written_{{mode}}}} = true` — i.e. `{{artifact_written_light}}` or `{{artifact_written_dark}}`.
 
 ## E. Verify the Write
@@ -221,7 +222,7 @@ Runs instead of §D/§E when §0-bis selects a review render. Render each mode i
    with the two primary hexes substituted from `{{palettes}}.<palette>.<mode>.colours.primary`.
 3. **Swatch hex labels** for `primary`, `secondary`, `accent` (the only tokens that differ) carry both values: `<code class="swatch-hex"><span class="pal-neutral">#…</span><span class="pal-site-colour">#…</span></code>`. Every other row is unchanged. `{{CONTRAST_ADJUSTMENTS}}` likewise wraps each option's helper lines in a `pal-neutral` / `pal-site-colour` span when they differ.
 4. **JSON block** — the `neutral` palette's token set with `meta.palette_option: null`. (The JSON of a review file is never consumed; the authoritative pair is `options.json`.)
-5. **Self-check** — §C applies, except: the file contains exactly two `--c-primary:` declarations, both radio inputs, and a non-empty `{{PALETTE_TABS}}`; the mode / derived-file assertions apply unchanged.
+5. **Self-check** — §C applies, except: the file contains exactly two `--c-primary:` declarations, both radio inputs, and a non-empty `{{PALETTE_TABS}}`; and `meta.palette_option` is `null` while `{{palette_options}}` is non-null (no pick yet — this replaces §C's `palette_option` bullet for a review file). The mode / derived-file assertions apply unchanged.
 6. **Write + verify** — `generated-docs/design-system/.workspace/review-<mode>.html`, single atomic `Write`, then `framework/skills/verify-artifact-write.md` with that path, its own sha256, `expected_min_bytes = 14000`. `RF-04` → halt. The preview hook opens each review file (allowlisted in `framework/shared/artifact-preview.md`).
 
 ### F.3 `options.json` — the resume record
@@ -244,7 +245,7 @@ After every review file is written and verified, write `generated-docs/design-sy
 }
 ```
 
-`tokens` is exactly the object §B.1 serialises into `{{TOKENS_JSON}}` for that mode and palette, so a final render reads it back verbatim. `options.json` is read only by step-07 and the orchestrator's resume gate — never by any other pipeline — and is deleted with the rest of `.workspace/` on accept.
+`tokens` is exactly the object §B.1 serialises into `{{TOKENS_JSON}}` for that mode and palette, so a final render reads it back verbatim. **A final render after a resume** (step-07 §A-0) takes, for the chosen palette and each mode: `{{TOKENS_JSON}}` = `tokens` verbatim; `--c-<token>` = `tokens.colours.<token>.hex`; `--on-<fill>` = `on_colours.<fill>`; the contrast section from `tokens.contrast`; `{{CONTRAST_ADJUSTMENTS}}` from `adjustments`. That is the `{{palettes}}` view §C checks against. `options.json` is read only by step-07 and the orchestrator's resume gate — never by any other pipeline — and is deleted with the rest of `.workspace/` on accept.
 
 ---
 
