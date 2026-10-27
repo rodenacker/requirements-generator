@@ -122,6 +122,12 @@ Extract `heading_weight` and `body_weight` only.
 - Keywords to integers: `normal → 400`, `bold → 700`, `lighter → 300`, `bolder → 700`.
 - Round non-standard weights (e.g. `450`) to the nearest 100, unless the CSS uses variable-font axes: then keep the exact value.
 
-**Weight carried by the family name.** When the declared family name carries a weight word (`SourceSansPro-SemiBold`), `node framework/tools/font-embed.cjs candidates` reports that weight, and it **beats any computed weight**: a per-weight family is drawn at the weight its own file carries, while `fontWeight` reports whatever the CSS happened to set (`400`, or `100` on absa.co.za, whose `@font-face` blocks all declare `font-weight: normal`). A computed weight stands only when the name carries no weight word.
+**Weight carried by the served file or the family name.** A per-weight family is drawn at the weight its own font file carries, while `fontWeight` reports whatever the CSS happened to set (`400`, or `100` on absa.co.za, whose `@font-face` blocks all declare `font-weight: normal`). So, per slot, take the first of:
+
+1. the `weight` that E1's `node framework/tools/font-embed.cjs file-family` returned for the file serving this slot's face (`font-availability-rules.md` §1 E1) — the file is the face actually shown;
+2. the `weight` that `font-embed.cjs candidates` reported for the declared family name (`SourceSansPro-SemiBold` → `600`);
+3. the computed weight above.
+
+A file or name weight **beats any computed weight and fills a missing one**, but only when it is between `400` and `700` — the weights the design system embeds or links (`font-availability-rules.md` §6.3). Outside that range it is ignored and the computed weight (else the interim fallback) stands. Worked: Standard Bank's heading `bentonsans-extra-light-webfont` (name `200`) serves `LibreFranklin-Regular.ttf` (file `400`) → `400`; absa.co.za's `SourceSansPro-SemiBold` serves `SourceSansPro-SemiBold.woff` → `600`, over a computed `100`.
 
 A weight not found stays unset; step-05b fills it from `house-defaults.md` §4 (interim font fallback).

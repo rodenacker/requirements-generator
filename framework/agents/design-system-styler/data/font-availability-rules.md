@@ -75,7 +75,7 @@ The helper probes §2's first two candidates per name, one family per request an
 | `unavailable` | `substituted` — genuinely unavailable; the §3 row when one matches, else §3's classification fallback |
 | `unknown` | **`unverified`** — the network, not the font, is the problem (E4) |
 
-The result's `weight` is the weight the declared name carries (`SourceSansPro-SemiBold` → `600`); it beats any computed weight (`font-rules.md` §5).
+The result's `weight` is the weight the declared name carries (`SourceSansPro-SemiBold` → `600`); `font-rules.md` §5 says when it, or a `file-family` weight, sets the slot's weight.
 
 **E4 — `unverified`.** Nothing established the answer. Keep the brand family **first**, add §3's classification-fallback substitute behind it as `loadable`, and disclose it at step-07. A machine that has the brand installed still renders it; every other machine gets a lookalike instead of the generic terminal.
 

@@ -115,7 +115,7 @@ Run its §1 evidence ladder per family, canonicalising the name per §2 before a
 For each family, store the record `font-availability-rules.md` §6.2 specifies:
 
 - `{{font_availability_heading}}` / `{{font_availability_body}}` — `{ brand, loadable, param, status, evidence }`, with `status` one of `google-native | substituted | unverified` and `loadable` / `param` never `null`. `brand` is the resolved family; step-05b §G adds `delivery`.
-- When `candidates` reported a `weight` for the declared name, §5 below applies `font-rules.md` §5's name-weight rule to that slot (the name's weight beats any computed weight).
+- Keep, per slot, the `weight` E1's `file-family` returned for the file serving its face and the `weight` `candidates` reported for the declared name; §5 below applies `font-rules.md` §5's file/name-weight rule with them.
 
 For a `substituted` or `unverified` family, rewrite that token's value to the three-name shape in §6.1 — `'<Brand>', '<Loadable>', <generic>`. **Do not change `prov`**: the family is still exactly as extracted, and availability is not a provenance question (`prov` has two values, and this is not one of them). Leave `google-native` values in the two-name shape.
 
@@ -125,7 +125,7 @@ For a `substituted` or `unverified` family, rewrite that token's value to the th
 
 ### 5. Typography — Weights
 
-Apply `font-rules.md` §5 (already loaded) to extract `heading_weight` and `body_weight` only, including its rule that a weight carried by the declared family name (§4b's `candidates` result) beats any computed weight. A weight not found stays `null`; step-05b fills it from the interim font fallback.
+Apply `font-rules.md` §5 (already loaded) to extract `heading_weight` and `body_weight` only, including its file/name-weight rule (§4b's `file-family` and `candidates` weights, first in that order, beat any computed weight and fill a missing one when they are within `400`–`700`). A weight not found stays `null`; step-05b fills it from the interim font fallback.
 
 ### 6. Assemble In-Memory Extraction Results
 
