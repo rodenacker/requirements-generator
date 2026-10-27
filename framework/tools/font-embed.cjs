@@ -87,6 +87,13 @@ function camelSplit(token) {
     .filter(Boolean);
 }
 
+// An all-lowercase token has no case boundary, so split off a glued class
+// word instead (`bentonsans` → `benton sans`); the stem keeps 3+ letters.
+function classSplit(token) {
+  const m = token === token.toLowerCase() ? /^([a-z]{3,})(sans|serif|mono)$/.exec(token) : null;
+  return m ? [m[1], m[2]] : [token];
+}
+
 // Words → { words, weight, italic }: drop one trailing style word, then one
 // trailing weight word (single, or camel-split pair such as `Semi Bold`).
 function stripWeight(words) {
@@ -115,7 +122,7 @@ function titleCase(words) {
 
 // Delimiter split, per-token camel split, weight strip, Title Case.
 function parseWords(tokens) {
-  const words = tokens.flatMap(camelSplit);
+  const words = tokens.flatMap(camelSplit).flatMap(classSplit);
   // A Font Squirrel build suffix (`-webfont`, `WebFont`) names the build, never the family.
   const n = words.length;
   if (n > 1 && words[n - 1].toLowerCase() === 'webfont') words.pop();

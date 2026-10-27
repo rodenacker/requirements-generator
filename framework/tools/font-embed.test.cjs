@@ -293,7 +293,19 @@ test('test_build_faces_merges_variable_weights', async () => {
 test('test_candidates_strips_webfont_suffix', () => {
   // Standard Bank declares a Font Squirrel build name for its heading face.
   const r = candidates('bentonsans-extra-light-webfont');
-  assert.equal(r.candidates[0], 'Bentonsans');
+  assert.equal(r.candidates[0], 'Benton Sans');
   assert.equal(r.weight, 200);
   assert.deepEqual(familyFromFontFile('https://x.example/fonts/gotham-bold-webfont.woff2'), { family: 'Gotham', weight: 700 });
+});
+
+test('test_candidates_splits_lowercase_glued_class_word', () => {
+  // An all-lowercase name has no case boundary to split on, so a glued class word is split off.
+  assert.equal(candidates('bentonsans').candidates[0], 'Benton Sans');
+  assert.equal(candidates('opensans-bold').candidates[0], 'Open Sans');
+  assert.equal(candidates('sourceserif').candidates[0], 'Source Serif');
+  assert.equal(familyFromFontFile('https://x.example/f/robotomono-regular.woff2').family, 'Roboto Mono');
+  // Guards: a stem under 3 letters, the bare class word, and mixed case stay as they are.
+  assert.equal(candidates('sans').candidates[0], 'Sans');
+  assert.equal(candidates('xsans').candidates[0], 'Xsans');
+  assert.equal(candidates('Artisans').candidates[0], 'Artisans');
 });
