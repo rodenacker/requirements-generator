@@ -67,7 +67,7 @@ A `heading_family` or `body_family` filled from the interim fallback is **`googl
 - Set `{{font_availability_<slot>}}` to the availability record in `house-defaults.md` §4.
 - **Do not run the evidence ladder and do not probe.** Never re-probe a fallback family: there is nothing to establish; the value came from the verified list.
 
-An **extracted** family keeps whatever record step-05 §4b already produced, including a `substituted` three-name value. This loop never rewrites it.
+An **extracted** family keeps whatever record step-05 §4b already produced, including a `substituted` or `unverified` three-name value. This loop never rewrites it. Every family, fallback or extracted, gets its `delivery` in §G.
 
 ## C. Brand Roles and Status Colours (house set) — via the helper
 
@@ -169,9 +169,17 @@ Before advancing, set:
 - **Mode state:** `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{hue_source}}` (`extracted-light` | `extracted-dark` | `extracted-both` | `declared-light`), `{{other_mode_extracted}}`, `{{mode_choice}}`, `{{derived_mode_requested}}`, `{{primary_mode}}`, `{{files_to_write}}`.
 - **Colour state (from the helper):** `{{brand}}`, `{{palette_options}}`, `{{assign_decisions}}`, and `{{palettes}}` — `{ <palette>: { <mode>: { colours, on_colours, contrast, fills, adjustments } } }`, palette `default` (no options) or `neutral` + `site_colour`. Step-06 renders from `{{palettes}}`.
 - **Per-mode contrast:** `{{cv_pass_count_light}}` / `{{cv_adjustments_light}}` / `{{cv_adjustment_count_light}}` and the `_dark` twins. Exactly one set is populated when a single file is written; both are populated when two are.
-- **`{{brand_fonts}}`** — assemble the `meta.brand_fonts` object in the shape `font-availability-rules.md` §6.2 specifies, from `{{font_availability_heading}}` and `{{font_availability_body}}` (set by step-05 §4b for extracted families, by §B.2 above for fallback ones):
-  - `families` — exactly two entries, `role: "heading"` first then `role: "body"`, even when both resolve to the same face.
-  - `links` — one URL per **distinct** non-null `param`, built per §6.3 (`?family=<param>:wght@400;500;600;700&display=swap`, one family per link, never combined). Deduped when heading and body share a face; `[]` when neither family is loadable.
+- **Embed the faces** (`font-availability-rules.md` §6.4). Before assembling `{{brand_fonts}}`, run once over the distinct `param`s of the two availability records:
+
+  ```
+  node framework/tools/font-embed.cjs embed --params "<distinct params, comma-separated>" --out generated-docs/design-system/.workspace/font-faces.css
+  ```
+
+  Keep its report as `{{font_embed_report}}` (`{ embedded, failed, bytes }`). A non-zero exit is not a halt: treat every family as `failed` with reason `network` and continue. The CSS file is what step-06 injects; never open it or copy from it.
+- **`{{brand_fonts}}`** — assemble the `meta.brand_fonts` object in the shape `font-availability-rules.md` §6.2 specifies, from `{{font_availability_heading}}` and `{{font_availability_body}}` (set by step-05 §4b for extracted families, by §B.2 above for fallback ones) and `{{font_embed_report}}`:
+  - `families` — exactly two entries, `role: "heading"` first then `role: "body"`, even when both resolve to the same face. Each gets `delivery: "embedded"` when its `param` is in the report's `embedded`, else `delivery: "link"`.
+  - `links` — one URL per **distinct** `param` whose `delivery` is `"link"`, built per §6.3 (`?family=<param>:wght@400;500;600;700&display=swap`, one family per link, never combined). Deduped when heading and body share a face; `[]` when every family is embedded.
+  - `embedded_bytes` — the report's `bytes` (`0` when nothing was embedded).
   - Typography is mode-invariant, so `{{brand_fonts}}` is a single object written **identically into both mode files** — do not derive a per-mode variant.
 
 Confirm before advancing:
@@ -179,7 +187,7 @@ Confirm before advancing:
 - Every token in the hue-source set has a non-null value, a Source Context, and one of the two provenance markers.
 - If `{{derived_mode_requested}}`, the other-mode set likewise has all 34 tokens; when it was derived (not `extracted-both`), its colours other than `brand` and its 3 shadows carry `derived: …` source strings and its 19 shared tokens carrying the hue-source markers.
 - `{{files_to_write}}` contains `{{hue_source_mode}}`, and `{{primary_mode}} == {{hue_source_mode}}`.
-- `{{brand_fonts}}.families` has two entries with `status` in `google-native | substituted | unverified`; every non-null `param` is in `font-availability-rules.md` §4.1; and each `substituted` entry's token value carries `brand` then `loadable` in that order.
+- `{{brand_fonts}}.families` has two entries with `status` in `google-native | substituted | unverified` and `delivery` in `embedded | link`; every `param` is non-null and is in `font-availability-rules.md` §4.1 or was verified this run (E1 / E3, per §4.1's cache note); each `substituted` or `unverified` entry's token value carries `brand` then `loadable` in that order; `links` holds exactly the `link`-delivery params.
 
 The artefact is generated even on non-success status. The doc is always complete; the status records *why* the URL path didn't yield extracted values.
 

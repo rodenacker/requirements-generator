@@ -26,7 +26,7 @@ Your only inputs are: the brand references the consultant names in step-02 (URLs
 
 ## Node preflight
 
-The colour maths runs in `framework/tools/colour-tokens.cjs` (step-05b), so Node must be on `PATH`. Call `framework/skills/preflight-cli.md` with `binaries: ["node"]`, `advice_path: "framework/shared/setup-instructions/node-toolchain.md"`, `rf_predicate: "RF-01"`. On `RF-01 trigger`, surface it per `framework/shared/refusal-registry.md > RF-01` and branch:
+The colour maths runs in `framework/tools/colour-tokens.cjs` (step-05b) and the font probe, embedding and injection in `framework/tools/font-embed.cjs` (step-05 to step-07), so Node must be on `PATH`. Call `framework/skills/preflight-cli.md` with `binaries: ["node"]`, `advice_path: "framework/shared/setup-instructions/node-toolchain.md"`, `rf_predicate: "RF-01"`. On `RF-01 trigger`, surface it per `framework/shared/refusal-registry.md > RF-01` and branch:
 
 - `install-now` → run `framework/tools/setup-environment.ps1 -Component node` via Bash, report, then **re-probe** `node` (the helper runs as a fresh subprocess) — if it now resolves, continue; if not, behave as `continue-later`.
 - `continue-skip` → there is nothing to skip to: no palette can be assigned without the helper. Say so in one line and behave as `continue-later`.

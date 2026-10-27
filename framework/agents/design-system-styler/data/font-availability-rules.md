@@ -1,6 +1,6 @@
 # Font Availability & Substitution Rules — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by step-05 (§4b Availability & substitution), step-05b (§B gap-fill, §G bookkeeping), step-06 (§B link rendering, §C assertions) and step-07 (§A disclosure, §B revise). It is the **canonical source of the availability axis** — the `google-native | substituted | unverified` enum in §1, the canonicalisation rules in §2, the proprietary→substitute table in §3, the verified-Google lists in §4, the non-brand→allowed map in §5, and the emitted-value/link shapes in §6. No other file restates any of them.
+**Role:** Pure reference knowledge consumed by step-05 (§4b Availability & substitution), step-05b (§B gap-fill, §G bookkeeping), step-06 (§B link rendering, §C assertions) and step-07 (§A disclosure, §B revise). It is the **canonical source of the availability axis** — the `google-native | substituted | unverified` enum in §1, the canonicalisation rules in §2, the proprietary→substitute table in §3, the verified-Google lists in §4, the non-brand→allowed map in §5, and the emitted-value, link and embedding shapes in §6. No other file restates any of them.
 
 Sibling of `font-rules.md`, which owns the **brand-ness** axis. The two are disjoint; §0 is the contract between them.
 
@@ -19,6 +19,8 @@ A brand family token passes through two independent questions, in this order:
 
 The distinction matters because the two failures have different correct answers. A site declaring `Arial` has told us nothing about its brand, so there is nothing to preserve and inference is strictly better. A site declaring `Gotham` has told us exactly what its brand is; discarding that would destroy real evidence, so the name is preserved and a loadable stand-in is added behind it.
 
+**The helper.** `framework/tools/font-embed.cjs` implements the mechanical parts of this file — §2's candidate list, E1's file-name reading, E3's probe and §6.4's embedding. This file keeps the policy: which tier decides, which substitute, which shape. The helper decides nothing about brand-ness.
+
 **Not governed by this file:**
 
 - **Monospace.** The design-system emits no mono family token (`framework/skills/extract-brand-theme.md` — `--font-mono` keeps the template default), so there is nothing to substitute.
@@ -31,11 +33,13 @@ The distinction matters because the two failures have different correct answers.
 
 Every brand family token that survives `font-rules.md` §1 gets exactly one status:
 
-| Status | Meaning | Token value | Emits a `<link>`? |
+| Status | Meaning | Token value | Face emitted (§6.4) |
 |--------|---------|-------------|-------------------|
 | `google-native` | The family itself is Google-hosted. | `'<Family>', <generic>` — unchanged | Yes, for `<Family>` |
 | `substituted` | The family is real and branded but **not** Google-hosted, on positive evidence. | `'<Brand>', '<Loadable>', <generic>` | Yes, for `<Loadable>` |
-| `unverified` | Availability could not be established either way. | `'<Brand>', <generic>` — unchanged | **No** |
+| `unverified` | Availability could not be established either way. | `'<Brand>', '<Loadable>', <generic>` — `<Loadable>` is the §3 classification-fallback substitute | Yes, for `<Loadable>` |
+
+Every slot therefore has a loadable face. §6.4 decides how it reaches the file: embedded, or a Google `<link>` when embedding failed.
 
 `status` is an **availability status, not a provenance marker.** The `prov` enum stays exactly two values — `extracted` and `system-derived` — per the locked decision in `framework/agents/design-system-styler.md`. A substituted token keeps whichever `prov` it already had; the substitution is a delivery concern, not a re-sourcing. `meta.extraction_status` is the precedent for a non-provenance status enum living in `meta`.
 
@@ -49,6 +53,7 @@ Run in order per family; stop at the first tier that resolves. A typical run res
 - An `@font-face` block in `css-content.txt` whose `font-family` is this family and whose `src: url(...)` points at the site's own origin/CDN, `use.typekit.net`, `p.typekit.net`, `fonts.net`, `fast.fonts.com`, `cloud.typography.com`, `api.fontshare.com` or `cdn.fontshare.com` ⇒ **suspect licensed/self-hosted — continue to E2.**
 
   **Self-hosting is not proof of unavailability.** Plenty of sites self-host a face that *is* on Google Fonts (`next/font` self-hosts Inter; Vercel self-hosts Geist, which is Google-hosted). E1 may only *raise suspicion* here — it must never conclude `substituted` on its own. Concluding from self-hosting alone is the single most likely way to implement this feature wrongly.
+- **The file name is evidence of the face actually shown.** For each `src` URL of this family's `@font-face` blocks, run `node framework/tools/font-embed.cjs file-family --url <url>`. When it returns a family that **differs** from the declared one and that family resolves Google-hosted (§4.1, or `resolve` in E3), the slot is **`substituted`** with that family as `loadable`, evidence `site @font-face for <declared> serves <file>`. This **outranks E2**: it is the face the site itself renders (Standard Bank's `Benton-Sans-Regular` serves `LibreFranklin-Regular.ttf`). A `null` result means only "no file-name evidence".
 
 **E2 — the curated table.** Canonicalise per §2, then look up §3 and §4.1.
 
@@ -56,28 +61,23 @@ Run in order per family; stop at the first tier that resolves. A typical run res
 - In §3 (known proprietary) ⇒ **`substituted`**, using that row's primary substitute.
 - Neither ⇒ continue to E3.
 
-**E3 — live probe with a control.** Only reached when E1 and E2 are both inconclusive. Probe the candidate **and** a known-good control in the same step, using `WebFetch`:
+**E3 — live probe with a control.** Only reached when E1 and E2 are both inconclusive. Run **one** helper call per run carrying the raw names of every family still unresolved:
 
 ```
-WebFetch  url: https://fonts.googleapis.com/css2?family=<Canonical+Family>
-          prompt: "Does this response contain @font-face rules? Answer only YES or NO."
+node framework/tools/font-embed.cjs resolve --name <raw heading family> --name <raw body family>
 ```
 
-- **Probe §2's candidate list in order, stopping at the first success.** A single name is not the unit of the test — `GeistSans` fails where its candidate `Geist` succeeds. Cap at the **first two** candidates per family (the full name, then the best-ranked rewrite): beyond two the list is speculative and a wrong hit is worse than an `unverified`.
-- **One family per request.** A combined `?family=A&family=B` request returns **200 even when A does not exist** — Google silently drops unknown families — so a combined probe cannot detect anything.
-- **No `:wght@…` axis.** Requesting an axis a family lacks still returns 200, so the axis adds nothing; omitting it keeps "family unknown" the only thing a failure can mean.
-- **Control family: `Inter`.** Probe it once per run, the first time E3 runs — not once per candidate.
-- **Cost ceiling: 5 requests per run** — up to 2 candidates × 2 family slots, plus 1 control. A run that would exceed it stops and takes `unverified` for whatever is unresolved.
+The helper probes §2's first two candidates per name, one family per request and with no weight axis, stopping at the first success; it probes the `Inter` control once per call and owns the request ceiling (`MAX_PROBES`). A thrown request or a non-200 both count as "did not succeed" — the point of the control is that we never have to distinguish *why* a request failed, only whether requests are working at all. Map each result's `verdict`:
 
-| Candidates | Control | Verdict |
-|-----------|---------|---------|
-| any succeeds | — | `google-native`, under **that** candidate's spelling (which becomes the token value per §6.1) |
-| all fail | succeeds | `substituted` — genuinely unavailable; choose the substitute per §3's classification fallback |
-| all fail | fails | **`unverified`** — the network, not the font, is the problem |
+| `verdict` | Status |
+|-----------|--------|
+| `google-native` | `google-native`, under the returned `family` spelling (which becomes the token value per §6.1) |
+| `unavailable` | `substituted` — genuinely unavailable; the §3 row when one matches, else §3's classification fallback |
+| `unknown` | **`unverified`** — the network, not the font, is the problem (E4) |
 
-Read a `WebFetch` error (400, network failure, timeout) as "did not succeed" — the point of the control is that we never have to distinguish *why* a request failed, only whether requests are working at all.
+The result's `weight` is the weight the declared name carries (`SourceSansPro-SemiBold` → `600`); `font-rules.md` §5 says when it wins.
 
-**E4 — `unverified`.** Nothing established the answer. Keep the brand family alone, emit no `<link>` for it, and disclose it at step-07. This is the fail-safe direction: **a real brand font is never silently replaced on weak evidence.**
+**E4 — `unverified`.** Nothing established the answer. Keep the brand family **first**, add §3's classification-fallback substitute behind it as `loadable`, and disclose it at step-07. A machine that has the brand installed still renders it; every other machine gets a lookalike instead of the generic terminal.
 
 ### Fallback families skip the ladder
 
@@ -91,9 +91,12 @@ Google Fonts family names are **case-sensitive and space-sensitive**: `?family=i
 
 Produce an **ordered candidate list** from the raw name, then test candidates in order. The first candidate that resolves is the answer.
 
+**`node framework/tools/font-embed.cjs candidates --name <raw>` implements this section** and returns `{ candidates, weight, italic }`. Run it rather than applying the steps by hand; the steps below say what it does and why. Its word lists (`WEIGHT_WORDS` and the rest) live in the helper only.
+
 1. Strip surrounding quotes (`"Inter"` → `Inter`) and collapse internal whitespace runs to one space.
 2. **Strip a variable-font build suffix**: a trailing `-var`, `-variable`, `-vf`, `Var`, `VF`, or `Variable` (`sohne-var` → `sohne`, `Inter-Variable` → `Inter`). These name a build artefact, never a family.
-3. **Split delimiters and camel case.** If the name contains `-` or `_`, replace them with spaces (`sohne-var` → `sohne`, `founders-grotesk` → `founders grotesk`). If it is a single token in camel/PascalCase, split on the case boundaries (`GeistSans` → `Geist Sans`, `SourceSansPro` → `Source Sans Pro`).
+3. **Split delimiters, then camel case per token.** Replace `-` and `_` with spaces (`sohne-var` → `sohne`, `founders-grotesk` → `founders grotesk`), then split **each** resulting token on its case boundaries (`GeistSans` → `Geist Sans`, `SourceSansPro-Regular` → `Source Sans Pro Regular`).
+3a. **Strip one trailing weight/style word**, before any classification trim, and report its weight: `SourceSansPro-SemiBold` → `Source Sans Pro`, weight `600`; `Gotham-BoldItalic` → `Gotham`, weight `700`, italic. Per-weight family names are how many sites declare a face; left in, the weight word makes every candidate 400 and loses the weight the name carries.
 4. Title-Case each word, then restore known all-caps and mixed-case names verbatim: `DM Sans`, `DM Serif Display`, `EB Garamond`, `IBM Plex Sans`, `IBM Plex Serif`, `PT Sans`, `PT Serif`, `Wix Madefor Display`. Numerals stay as digits: `Source Serif 4`, `Source Sans 3`, `Exo 2`.
 5. **Fold diacritics into an additional candidate**, both directions — `Söhne` → `Sohne`. §3's *Brand family* column lists the ASCII and build-alias spellings sites actually declare (in parentheses); a match on one of those resolves to that row. A site will never write `Söhne` in CSS; it writes `sohne-var`.
 6. **Add a trailing-word-trimmed candidate, ranked LAST.** Drop one trailing classification or style word — `Sans`, `Serif`, `Mono`, `Grotesk`, `Text`, `Display`, `Std`, `LT`, `Pro`, `Regular`, `Book` — to produce a final fallback candidate (`Geist Sans` → `Geist`).
@@ -287,12 +290,12 @@ Do not read this table as a substitution table. Nothing here produces a two-name
 | Status | Shape | Example |
 |---|---|---|
 | `google-native` | `'<Family>', <generic>` | `'Inter', sans-serif` |
-| `unverified` | `'<Brand>', <generic>` | `'Acme Sans', sans-serif` |
 | `substituted` | `'<Brand>', '<Loadable>', <generic>` | `'Gotham', 'Montserrat', sans-serif` |
+| `unverified` | `'<Brand>', '<Loadable>', <generic>` | `'Acme Sans', 'Inter', sans-serif` |
 
 **The token carries the resolved name, not the raw declaration.** When §2 resolves a candidate that differs from what the CSS declared, the resolved spelling is what goes into the token and into `param`; the raw alias goes into `evidence` only. `GeistSans` becomes `'Geist', sans-serif`, and `sohne-var` becomes `'Söhne', 'Inter', sans-serif` using §3's row name. The raw form is a build artefact that means nothing outside that site — the same reason `font-rules.md` §1 group (d) rejects `__Inter_abc123` outright. Shipping `'GeistSans', sans-serif` would name a family no one else can resolve *and* fail to load, which is the worst of both.
 
-The three-name shape is the **only** permitted extension to `font-rules.md` §4's emitted stack shape, and only when a matching `substituted` record exists in `meta.brand_fonts.families` for that slot, with `brand` and `loadable` appearing in that order. Both named families are single-quoted; the generic terminal is required exactly as `font-rules.md` §4 requires it, and matches the *brand* family's classification (a serif brand keeps `serif` even if its substitute is listed under a different heading — they are the same classification by construction).
+The three-name shape is the **only** permitted extension to `font-rules.md` §4's emitted stack shape, and only when a matching `substituted` or `unverified` record exists in `meta.brand_fonts.families` for that slot, with `brand` and `loadable` appearing in that order. Both named families are single-quoted; the generic terminal is required exactly as `font-rules.md` §4 requires it, and matches the *brand* family's classification (a serif brand keeps `serif` even if its substitute is listed under a different heading — they are the same classification by construction).
 
 Brand-first is deliberate: the brief's headline stays the client's actual typeface, the cascade performs the substitution at render time, and a machine that has the licensed face installed renders the real thing with no further change.
 
@@ -304,27 +307,29 @@ Assembled once, in step-05b §G, and consumed verbatim by step-06 and by `/proto
 "brand_fonts": {
   "families": [
     { "role": "heading", "brand": "Gotham", "loadable": "Montserrat", "param": "Montserrat",
-      "status": "substituted",
+      "status": "substituted", "delivery": "embedded",
       "evidence": "self-hosted @font-face (cdn.example.com); probe 400, control 200" },
-    { "role": "body", "brand": "Inter", "loadable": "Inter", "param": "Inter",
-      "status": "google-native",
-      "evidence": "site loads it via fonts.googleapis.com" }
+    { "role": "body", "brand": "Acme Sans", "loadable": "Inter", "param": "Inter",
+      "status": "unverified", "delivery": "link",
+      "evidence": "probe control failed; embed failed: network" }
   ],
   "links": [
-    "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap",
     "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-  ]
+  ],
+  "embedded_bytes": 61440
 }
 ```
 
 - `families` always has exactly two entries, `role: "heading"` then `role: "body"`, even when both resolve to the same face.
-- `loadable` equals `brand` when `status` is `google-native`. When `status` is `unverified`, `loadable` and `param` are both `null`.
+- `loadable` equals `brand` when `status` is `google-native`. `loadable` and `param` are **never** `null`: an `unverified` slot carries its §3 classification-fallback substitute.
+- `delivery` is `"embedded"` or `"link"`, set by §6.4.
+- `embedded_bytes` is the raw font bytes embedded in the file (the `embed` report's `bytes`); `0` when nothing was embedded.
 - `param` is `loadable` with spaces replaced by `+` (`Source Serif 4` → `Source+Serif+4`). No other escaping is needed for any name in §4.1.
 - `evidence` is a short free-text record of which ladder tier decided it. It is read by step-07 for the disclosure line and by a human auditing the run; nothing branches on its text.
 
 ### 6.3 Link building
 
-One `<link>` per **distinct** `param`, in `families` order, deduped when heading and body share a face:
+One `<link>` per **distinct** `param` whose `delivery` is `"link"`, in `families` order, deduped when heading and body share a face. An embedded family gets **no** link: one set of faces, the same rendering online and offline.
 
 ```
 https://fonts.googleapis.com/css2?family=<param>:wght@400;500;600;700&display=swap
@@ -333,13 +338,28 @@ https://fonts.googleapis.com/css2?family=<param>:wght@400;500;600;700&display=sw
 - **One family per link, never a combined `family=A&family=B` request.** A combined request returns 200 even when one family does not exist, so a mistake becomes invisible; separate links keep each face's success or failure its own.
 - Weights are always `400;500;600;700`. Over-requesting is harmless — a family with fewer weights still returns 200 and serves what it has — and this axis covers both weight tokens plus the `font-medium`/`font-semibold` utilities the prototype primitives use. Do not compute a narrower list.
 - `display=swap` is required, so text paints immediately in the fallback rather than blocking on the fetch.
-- A family with `status: "unverified"` contributes **no** link. If neither family is loadable, `links` is `[]`.
+- `links` is `[]` when every family is embedded.
+
+### 6.4 Embedding
+
+Step-05b §G runs, once, over the distinct `param`s:
+
+```
+node framework/tools/font-embed.cjs embed --params "<param>,<param>" --out generated-docs/design-system/.workspace/font-faces.css
+```
+
+- Families in the report's `embedded` → `delivery: "embedded"`. Families in `failed` (`network`, `http <code>`, `budget`, `no faces`) → `delivery: "link"`; the run continues and step-07 says so in one line.
+- The helper owns the subsets (`SUBSETS`: latin + latin-ext), the byte budget (`MAX_EMBED_BYTES`, a family is embedded whole or not at all) and the request headers. Characters outside those subsets fall through to the generic terminal.
+- Step-06 writes each file with an empty `brand-font-faces` block and fills it with `inject` after `verify-artifact-write`; the faces never pass through the LLM.
+
+Fallback order for any one family: **embedded face → Google `<link>` → generic terminal.** The generic terminal appears only when embedding failed at generation **and** Google is unreachable at view time.
 
 ---
 
 ## 7. Anti-patterns
 
-- **Do not substitute on `unverified`.** An offline run must leave the brand family untouched. Substituting on absence-of-evidence is how a client's real typeface gets silently replaced by a lookalike — the worst outcome this whole file exists to prevent, and worse than the problem it would be trying to solve.
+- **Do not leave a slot with no loadable face: brand first, stand-in second, generic last.** An `unverified` slot keeps its brand in first position, so the client's real typeface is never displaced where it is installed; everywhere else the choice is between a lookalike and Arial.
+- **Do not write or edit base64 font data by hand; only `inject` / `vendor` touch it.**
 - **Do not conclude from self-hosting alone.** Many Google-hosted faces are self-hosted (`next/font`, Geist). E1 raises suspicion; E2 or E3 decides.
 - **Do not substitute for a `font-rules.md` §1 family.** That axis's answer is *unset + infer*, and it has not changed. §5 is a naming aid for a conversation, not a substitution path.
 - **Do not combine families** in a probe or in a `<link>`. Both mask a missing family behind a 200.

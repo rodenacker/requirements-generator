@@ -64,6 +64,6 @@ Used only for a family (or weight) no reference supplied:
 | `heading_weight` | `600` |
 | `body_weight` | `400` |
 
-Availability record for a fallback family: `{ brand: "Inter", loadable: "Inter", param: "Inter", status: "google-native", evidence: "interim font fallback (verified Google-hosted)" }`. `source: "interim font fallback"`.
+Availability record for a fallback family: `{ brand: "Inter", loadable: "Inter", param: "Inter", status: "google-native", delivery: <set by step-05b §G>, evidence: "interim font fallback (verified Google-hosted)" }`. `source: "interim font fallback"`.
 
 Replaced by the fonts topic.
