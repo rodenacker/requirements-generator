@@ -204,20 +204,32 @@ function assign(input) {
   const inUse = (c) => c.weight === null || total === 0 || c.weight / total >= USAGE_SHARE_MIN;
   const byWeight = [...cands].sort((a, b) => (b.weight || 0) - (a.weight || 0) || a.i - b.i);
 
-  // brand: largest-area chromatic colour; forced when the caller supplies one.
+  // brand: largest-area chromatic colour (pale tints below the chroma floor
+  // never qualify); forced when the caller supplies one.
+  const chromatic = byWeight.find((c) => hexToOklch(c.hex).C >= RESERVED.minC);
   let brand;
   if (input.brand) brand = input.brand.toUpperCase();
   else if (cands.length === 0) brand = picks.primary;
-  else if (weighted) brand = byWeight[0].hex;
-  else brand = picks.primary || cands[0].hex;
+  else if (weighted && chromatic) brand = chromatic.hex;
+  else brand = picks.primary || (chromatic || cands[0]).hex;
   const brandO = hexToOklch(brand);
   const brandH = brandO.H;
 
-  const neutralRoles = {
-    primary: oklchToHex({ L: 0.30, C: 0.025, H: brandH }),
-    secondary: oklchToHex({ L: 0.45, C: 0.02, H: brandH }),
-    accent: oklchToHex({ L: 0.42, C: 0.065, H: brandH }),
-  };
+  // Neutral roles sit at the far end of the hue-source ladder: charcoal on a
+  // light surface, near-white on a dark one (a dark charcoal would look disabled).
+  const surface = input.neutrals.surface.toUpperCase();
+  const darkSurface = hexToOklch(surface).L < 0.5;
+  const neutralRoles = darkSurface
+    ? {
+      primary: oklchToHex({ L: 0.90, C: 0.025, H: brandH }),
+      secondary: oklchToHex({ L: 0.36, C: 0.02, H: brandH }),
+      accent: stepUntil(oklchToHex({ L: 0.42, C: 0.065, H: brandH }), surface, FILL_TARGET, 1),
+    }
+    : {
+      primary: oklchToHex({ L: 0.30, C: 0.025, H: brandH }),
+      secondary: oklchToHex({ L: 0.45, C: 0.02, H: brandH }),
+      accent: oklchToHex({ L: 0.42, C: 0.065, H: brandH }),
+    };
   const usable = (c) => !isReserved(c.hex) && hexToOklch(c.hex).C >= RESERVED.minC;
 
   // primary cascade
@@ -270,8 +282,6 @@ function assign(input) {
 
   // status: the house set; error moved away from a reserved brand hue.
   const status = { ...HOUSE_STATUS };
-  const surface = input.neutrals.surface.toUpperCase();
-  const darkSurface = hexToOklch(surface).L < 0.5;
   if (isReserved(brand)) {
     const e = hexToOklch(status.error);
     if (hueDist(e.H, brandH) < 12) {

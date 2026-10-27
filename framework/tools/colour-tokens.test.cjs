@@ -161,6 +161,28 @@ test('test_assign_error_clear_of_brand_and_warning', () => {
   assert.ok(hueDist(e.H, hexToOklch(out.brand).H) >= 8 || Math.abs(e.L - hexToOklch(out.brand).L) >= 0.08, 'error not distinct from brand');
 });
 
+test('test_assign_dark_surface_neutral_roles_visible', () => {
+  const out = assign({
+    candidates: [{ hex: '#E11D48', weight: 400 }],
+    picks: { primary: '#E11D48', secondary: null, accent: null },
+    neutrals: { background: '#0E0E12', surface: '#16161C', text: '#F2F2F5', text_muted: '#A0A0AA' },
+  });
+  const p = hexToOklch(out.roles.primary);
+  assert.ok(p.L >= 0.85, `dark-surface neutral primary L ${p.L}`);
+  assert.ok(contrast(out.roles.primary, '#16161C') >= 3.0);
+  assert.ok(contrast(out.roles.accent, '#16161C') >= 3.0, `accent ${out.roles.accent}`);
+  for (const k of ['primary', 'secondary', 'accent']) assert.equal(isReserved(out.roles[k]), false, k);
+});
+
+test('test_assign_brand_ignores_pale_tint', () => {
+  const out = assign({
+    candidates: [{ hex: '#FFF4E5', weight: 600 }, { hex: '#CA2B3D', weight: 120 }],
+    picks: { primary: '#CA2B3D', secondary: null, accent: null },
+    neutrals: ABSA().neutrals,
+  });
+  assert.equal(out.brand, '#CA2B3D');
+});
+
 test('test_assign_house_status', () => {
   const out = assign(ORANGE_CTA_BLUE_BRAND());
   assert.deepEqual(out.status, HOUSE_STATUS);
