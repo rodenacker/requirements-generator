@@ -1,6 +1,6 @@
 # Brand Style Extraction — Prompt Template
 
-**Purpose:** This is a reusable instruction block for extracting brand colours, font families, typography scale, weights, line-heights, shadows, and motion tokens from CSS content via LLM analysis. The design-system-styler workflow loads this file after successfully fetching CSS content (step-04) and applies its instructions to produce structured brand extraction results.
+**Purpose:** This is a reusable instruction block for extracting brand colours, font families and font weights from CSS content via LLM analysis. Sizes, line heights, shadows and motion are **not** extraction outputs: they are fixed house defaults (`data/house-defaults.md`), filled by step-05b. The design-system-styler workflow loads this file after successfully fetching CSS content (step-04) and applies its instructions to produce structured brand extraction results.
 
 **Usage:** Read this file using the Read tool. Apply the instructions to `{{primary_css_content}}` (the CSS text obtained from the two-pass site fetching step).
 
@@ -17,12 +17,11 @@ The extraction logic is organized into focused data files. Step-05 reads them **
 | 1 | `prompt-templates/brand-extraction.md` (this file) | Extraction overview + the Section 7 output format. |
 | 2 | `data/insufficient-data-handling.md` | Minimum 3-color threshold check (Section 8). Applied first; if threshold fails, all extraction is skipped and every token is routed to step-05b. |
 | 3 | `data/color-extraction-rules.md` | CSS analysis strategy, colour extraction and normalization, colour-to-token mapping heuristics for the 7 brand tokens (Sections 1-3). Status colours are explicitly NOT extracted here — they always fall through to step-05b. |
-| 4 | `data/font-rules.md` | Font family extraction (Section 4). Border-radius extraction has been removed from this rules file. |
-| 5 | `data/typography-scale-rules.md` | Font-size scale, font-weight, line-height extraction (Sections A–C). |
-| 6 | `data/shadow-motion-rules.md` | `box-shadow` elevation tokens, `transition-duration`, `transition-timing-function` (Sections E–F). |
+| 4 | `data/font-rules.md` | Font family extraction (Section 4) and font weights (Section 5). |
+| 5 | `data/font-availability-rules.md` | Whether an extracted family can be loaded (step-05 §4b). |
 | — | `data/contrast-validation.md` | WCAG AA contrast ratio validation and adjustment strategy (Section 6). **Read by step-05b, not step-05** — it validates the final token set (extracted *and* domain-inferred), so it runs after the domain-inference fill. |
 
-**Note:** The six step-05 files are read in one batch; the application order in the table above is what's preserved. The insufficient-data gate is applied before colour extraction so it can short-circuit before any extraction reasoning when the CSS lacks sufficient data. Contrast validation (`contrast-validation.md`) is a step-05b concern, applied last so it can validate against any token (extracted *or* domain-inferred).
+**Note:** The five step-05 files are read in one batch; the application order in the table above is what's preserved. The insufficient-data gate is applied before colour extraction so it can short-circuit before any extraction reasoning when the CSS lacks sufficient data. Contrast validation (`contrast-validation.md`) is a step-05b concern, applied last so it can validate against any token (extracted *or* domain-inferred).
 
 ---
 
@@ -49,26 +48,8 @@ extracted_typography:
   heading_weight:  { value: 600 | null,         source: "{source_context}" | null }
   body_family:     { value: "Font Name" | null, source: "{source_context}" | null }
   body_weight:     { value: 400 | null,         source: "{source_context}" | null }
-  size_xs:         { value: "0.75rem" | null,   source: "{source_context}" | null }
-  size_sm:         { value: "0.875rem" | null,  source: "{source_context}" | null }
-  size_base:       { value: "1rem" | null,      source: "{source_context}" | null }
-  size_lg:         { value: "1.125rem" | null,  source: "{source_context}" | null }
-  size_xl:         { value: "1.25rem" | null,   source: "{source_context}" | null }
-  size_2xl:        { value: "1.5rem" | null,    source: "{source_context}" | null }
-  size_3xl:        { value: "1.875rem" | null,  source: "{source_context}" | null }
-  size_4xl:        { value: "2.25rem" | null,   source: "{source_context}" | null }
-  lh_tight:        { value: 1.25 | null,        source: "{source_context}" | null }
-  lh_base:         { value: 1.5 | null,         source: "{source_context}" | null }
-  lh_loose:        { value: 1.75 | null,        source: "{source_context}" | null }
-
-extracted_effects:
-  shadow_sm:       { value: "0 1px 2px ..." | null, source: "{source_context}" | null }
-  shadow_md:       { value: "0 4px 6px ..." | null, source: "{source_context}" | null }
-  shadow_lg:       { value: "0 10px 15px ..." | null, source: "{source_context}" | null }
-  dur_fast:        { value: "150ms" | null,         source: "{source_context}" | null }
-  dur_base:        { value: "200ms" | null,         source: "{source_context}" | null }
-  dur_slow:        { value: "300ms" | null,         source: "{source_context}" | null }
-  easing_standard: { value: "cubic-bezier(...)" | null, source: "{source_context}" | null }
+  # The 8 sizes, 3 line heights, 3 shadows and 4 motion tokens are never
+  # extracted: step-05b fills them from data/house-defaults.md.
 
 contrast_validation:
   text_on_background:        { ratio: 7.2, pass: true }
@@ -87,14 +68,10 @@ STYLER BRAND EXTRACTION
 Colours extracted: {extracted_count}/7 brand tokens (status colours always inferred-from-domain)
   primary: {hex_or_null} (from: {source_or_null})
   ... (one line per token)
-Typography extracted: {extracted_typo_count}/15 tokens
+Typography extracted: {extracted_typo_count}/4 tokens (families + weights; sizes and line heights are house defaults)
   heading: {family_or_null} {weight_or_null}
   body: {family_or_null} {weight_or_null}
-  scale tokens found: {size_count}/8
-  line-heights found: {lh_count}/3
-Effects extracted: {extracted_effects_count}/7 tokens
-  shadows found: {shadow_count}/3
-  motion found: {motion_count}/4
+Effects: house defaults (never extracted)
 Contrast validation: {pass_count}/4 passed ({adjustment_count} adjustments made)
 Extraction status: {extraction_status}
 ```

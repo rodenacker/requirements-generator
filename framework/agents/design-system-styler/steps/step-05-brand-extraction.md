@@ -6,8 +6,6 @@ description: 'Orchestrate brand extraction by loading data files together (one b
 # data_color_rules: 'framework/agents/design-system-styler/data/color-extraction-rules.md'
 # data_font_rules: 'framework/agents/design-system-styler/data/font-rules.md'
 # data_font_availability_rules: 'framework/agents/design-system-styler/data/font-availability-rules.md'
-# data_typography_scale_rules: 'framework/agents/design-system-styler/data/typography-scale-rules.md'
-# data_shadow_motion_rules: 'framework/agents/design-system-styler/data/shadow-motion-rules.md'
 # data_contrast_validation: 'framework/agents/design-system-styler/data/contrast-validation.md'
 # data_insufficient_handling: 'framework/agents/design-system-styler/data/insufficient-data-handling.md'
 # workspace_path: 'generated-docs/design-system/.workspace'
@@ -38,17 +36,15 @@ Read CSS content from disk (not from in-memory state of step-04):
 
 ## Extraction Orchestration
 
-Read all seven data files in a **single batched message** (the harness runs the reads concurrently) — they are independent, so there is no reason to serialise the reads:
+Read all five data files in a **single batched message** (the harness runs the reads concurrently) — they are independent, so there is no reason to serialise the reads:
 
 - `framework/agents/design-system-styler/prompt-templates/brand-extraction.md` (extraction overview + Section 7 output format)
 - `framework/agents/design-system-styler/data/insufficient-data-handling.md`
 - `framework/agents/design-system-styler/data/color-extraction-rules.md`
 - `framework/agents/design-system-styler/data/font-rules.md`
 - `framework/agents/design-system-styler/data/font-availability-rules.md`
-- `framework/agents/design-system-styler/data/typography-scale-rules.md`
-- `framework/agents/design-system-styler/data/shadow-motion-rules.md`
 
-With all seven in context, apply their rules to `{{primary_css_content}}` in the reasoning order below — **critically, the insufficient-data gate (section 2) first**: if it short-circuits, route to `step-05b-domain-inference.md` *before* doing any colour / typography / effect extraction. (`contrast-validation.md` is **not** read here — contrast validation is a step-05b concern, run against the final token set after the domain-inference fill.)
+With all five in context, apply their rules to `{{primary_css_content}}` in the reasoning order below — **critically, the insufficient-data gate (section 2) first**: if it short-circuits, route to `step-05b-domain-inference.md` *before* doing any colour / typography extraction. Sizes, line heights, shadows and motion are **never extracted**: step-05b fills them from `data/house-defaults.md`. (`contrast-validation.md` is **not** read here — contrast validation is a step-05b concern, run against the final token set after the domain-inference fill.)
 
 ### 1. Extraction Overview (already loaded)
 
@@ -121,32 +117,17 @@ For a `substituted` family, rewrite that token's value to the three-name shape i
 
 **Never unset a family because it is unavailable.** That is the §1-rejection outcome, on the other axis. Here the brand evidence is real and is preserved in first position no matter what the ladder returns.
 
-### 5. Typography — Scale, Weights, Line-Heights
+### 5. Typography — Weights
 
-Apply `typography-scale-rules.md` (already loaded) Sections A–C to extract:
+Apply `font-rules.md` §5 (already loaded) to extract `heading_weight` and `body_weight` only. A weight not found stays `null`; step-05b fills it from the interim font fallback.
 
-- 8 size tokens (`size_xs` … `size_4xl`)
-- font weights (already covered by Section 4 — re-confirm against the heading/body-weight heuristics if those weren't found)
-- 3 line-height tokens (`lh_tight`, `lh_base`, `lh_loose`)
-
-Apply the coverage threshold from Section A: if fewer than 3 of the 8 size tokens can be confidently extracted, leave **all 8** unset and let step-05b infer the entire size scale per-run.
-
-### 6. Effects — Shadows and Motion
-
-Apply `shadow-motion-rules.md` (already loaded):
-
-- Section E to extract `shadow_sm`, `shadow_md`, `shadow_lg`.
-- Section F to extract `dur_fast`, `dur_base`, `dur_slow`, `easing_standard`.
-
-All seven effects tokens are independent — fill what was found, leave the rest `null`.
-
-### 7. Assemble In-Memory Extraction Results
+### 6. Assemble In-Memory Extraction Results
 
 Assemble the structured output per Section 7 format from `brand-extraction.md`:
 
 - `{{extracted_colors}}` — 7 brand tokens (status colours not included)
-- `{{extracted_typography}}` — 15 typography tokens
-- `{{extracted_effects}}` — 7 effect tokens
+- `{{extracted_typography}}` — 4 tokens: `heading_family`, `heading_weight`, `body_family`, `body_weight` (the 11 size and line-height tokens are house defaults, never extracted)
+- no effect tokens: shadows and motion are house defaults, never extracted
 - `{{extraction_status}} = "success"` (only if extraction completed without an early skip; otherwise the prior status is preserved)
 - `{{font_rejected_heading}}` / `{{font_rejected_body}}` — set per Section 4 above, else `null`. Carry them through step-05b unchanged (they describe what the *URL* held, so a domain-inferred fill does not clear them) so step-07 §A can state why a family is `inferred-from-domain`.
 - `{{font_availability_heading}}` / `{{font_availability_body}}` — set per Section 4b above for each family Section 4 selected, else `null` (an unset family has no availability question until step-05b fills it). Step-05b §G assembles them into `meta.brand_fonts`; step-07 §A discloses every `substituted` and `unverified` outcome.

@@ -79,9 +79,9 @@ Read a `WebFetch` error (400, network failure, timeout) as "did not succeed" —
 
 **E4 — `unverified`.** Nothing established the answer. Keep the brand family alone, emit no `<link>` for it, and disclose it at step-07. This is the fail-safe direction: **a real brand font is never silently replaced on weak evidence.**
 
-### Inferred families skip the ladder
+### Fallback families skip the ladder
 
-A family filled by step-05b's domain inference is `google-native` by construction — `prompt-templates/domain-inference.md` §C.1 draws only from §4.1. Assert membership; do not probe.
+A family filled by step-05b from the interim font fallback (`house-defaults.md` §4, `Inter`) is `google-native` by construction — it is in §4.1. Assert membership; do not probe.
 
 ---
 

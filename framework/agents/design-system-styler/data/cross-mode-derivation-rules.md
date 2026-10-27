@@ -1,6 +1,6 @@
 # Cross-Mode Derivation — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by `framework/agents/design-system-styler/steps/step-05b-domain-inference.md` — by **§B.1** (scheme-aware gap-fill) and by **§F** (whole-set derivation of the opposite mode). States the **policy** for deriving one colour mode's token set from the other's, in **both** directions; `framework/tools/colour-tokens.cjs` implements the colour part of it and owns every number.
+**Role:** Pure reference knowledge consumed by `framework/agents/design-system-styler/steps/step-05b-domain-inference.md` — by **§F** (whole-set derivation of the opposite mode), and by `house-defaults.md` §2 for the dark-shadow treatment (§3.5). States the **policy** for deriving one colour mode's token set from the other's, in **both** directions; `framework/tools/colour-tokens.cjs` implements the colour part of it and owns every number.
 
 ---
 
@@ -99,13 +99,9 @@ If the helper subsequently adjusts a derived value, it **retains** this marker a
 
 ---
 
-## 7. Gap-fill contract (used by step-05b §B.1)
+## 7. Gap-fill (not a derivation)
 
-`prompt-templates/domain-inference.md` produces **light** values by construction. On a run whose extracted scheme is **dark**, step-05b §B.1 therefore converts any domain-inferred neutral with **one** `colour-tokens.cjs derive` call and keeps only the unset tokens from its output — the dark neutral ladder is defined in exactly one place, the helper.
+A neutral the references did not give is filled by `colour-tokens.cjs assign` from the hue-source mode's neutral ladder (`neutralLadder`, the same numbers §3.3 uses), in step-05b §C. Such a token belongs to the hue-source set; it was never a cross-mode derivation, so it does not take the §6 source string:
 
-Such a token's provenance is:
-
-- **Marker:** `prov: "inferred-from-domain"` (unchanged — it *is* domain-inferred).
-- **Source string:** `domain-inference ({{domain}}) → dark variant`
-
-This is distinct from the §6 form, which is reserved for whole-set derivation of the opposite mode in §F. A token that was gap-filled during §B belongs to the hue-source set; it was never a cross-mode derivation.
+- **Marker:** `prov: "system-derived"`.
+- **Source string:** `neutral ladder`

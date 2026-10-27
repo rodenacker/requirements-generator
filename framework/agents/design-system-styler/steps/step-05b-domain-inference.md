@@ -4,12 +4,12 @@ description: 'Classify the extracted colour scheme, infer every unset token from
 # Variables referenced (inherited from agent):
 # data_contrast_validation: 'framework/agents/design-system-styler/data/contrast-validation.md'
 # data_cross_mode_derivation: 'framework/agents/design-system-styler/data/cross-mode-derivation-rules.md'
-# domain_inference: 'framework/agents/design-system-styler/prompt-templates/domain-inference.md'
+# data_house_defaults: 'framework/agents/design-system-styler/data/house-defaults.md'
 ---
 
 # Step 5b: Scheme Detection, Domain-Inference Fill, Mode Selection + Cross-Mode Derivation
 
-This step always runs. It fills every token still unset after step-05 (or the entire token set, if step-05 was skipped) by inferring values from the consultant's free-text `{{domain}}` string against the canonical token list defined in `framework/assets/template-design-system.html` (the JSON SHAPE comment block at the top of the template enumerates all 34 token names). It then validates contrast, asks the consultant which colour mode(s) to ship, and derives the opposite mode if one is wanted.
+This step always runs. It completes the canonical token list defined in `framework/assets/template-design-system.html` (the JSON SHAPE comment block at the top of the template enumerates all 34 token names): sizes, line heights, shadows and motion from the fixed house defaults, unextracted fonts from the interim fallback, and every colour from the helper (`framework/tools/colour-tokens.cjs`). Nothing is inferred. It then validates contrast, asks the consultant which colour mode(s) to ship, and derives the opposite mode if one is wanted.
 
 **The governing rule for this step:** *the extracted scheme is the hue source; the other mode is derived from it.* Nothing here assumes light — a reference URL ships a dark palette as readily as a light one, and when it does, **light** is the derived mode.
 
@@ -17,8 +17,8 @@ This step always runs. It fills every token still unset after step-05 (or the en
 
 Read both in a single batched message — neither depends on the other:
 
-- `framework/agents/design-system-styler/prompt-templates/domain-inference.md` — the inference protocol: voice synthesis from `{{domain}}`, then per-section derivation rules (colours, typography, effects), coherence constraints, and the 33-token output contract. Hold the synthesised Voice in memory — it anchors every value produced in this step.
-- `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md` — the bidirectional mode-derivation rules, used per-token in §B and for the whole set in §F.
+- `framework/agents/design-system-styler/data/house-defaults.md` — the fixed house values for sizes, line heights, shadows and motion, and the interim font fallback. Used in §B.
+- `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md` — the bidirectional mode-derivation rules (dark-shadow treatment in §B, the whole set in §F).
 
 ## A-bis. Detect the Extracted Scheme
 
@@ -54,59 +54,41 @@ Otherwise `{{other_mode_extracted}} = false` and the other mode, if requested, i
 
 ## B. Fill Loop
 
-**No `assign-in.json`** (no URL, or any non-success extraction path) → skip this loop and §B.1/§B.2 and go straight to §C, which halts. *(Interim: until references replace the domain, `/design-system` needs a URL that extracts.)*
+**No `assign-in.json`** (no URL, or any non-success extraction path) → skip this loop and go straight to §C, which halts. *(Interim: until references replace the domain, `/design-system` needs a URL that extracts.)*
 
-For every token in the canonical set (12 colours + 15 typography + 7 effects = 34 tokens) **except** `primary`, `secondary`, `accent`, `brand` and the four status colours — those eight are owned by the helper call in §C and are never domain-inferred:
+Fill every non-colour token. Colours (all 12, neutrals included) are §C's: the helper owns them.
 
-1. If the token is already set in the in-memory extraction results from step-05, leave it alone. Its provenance remains `extracted-from-url` and its Source Context records the CSS selector or property where it was found.
-2. If the token is unset (`null`), fill it by applying the inference rules from `domain-inference.md`:
-   - Source Context = `domain-inference ({{domain}})`
-   - Provenance = `inferred-from-domain`
+1. **Sizes, line heights, shadows, motion** (8 + 3 + 3 + 4 = 18 tokens): **always** from `house-defaults.md` §1–§3, never from extraction. `prov: system-derived`, `source: "house default"`. Shadows take `<text-rgb>` from the hue-source `text` colour, which §C settles: fill the shadows after §C step 4 (on a dark hue-source set, apply `house-defaults.md` §2's dark treatment).
+2. **Font families and weights** already set by step-05: leave them alone. Their provenance stays `extracted`, with the selector or page as Source Context.
+3. **Font families and weights not extracted:** the interim fallback, `house-defaults.md` §4. `prov: system-derived`, `source: "interim font fallback"`.
 
-### B.1 Scheme-aware gap-fill (required when `{{extracted_scheme}} == "dark"`)
+### B.2 Availability of a fallback family
 
-`domain-inference.md` produces **light** values by construction — it anchors `background` to `#FFFFFF`. Filling a gap in a **dark** extracted set straight from that contract would drop a near-white neutral into a dark palette, and the result would be incoherent (and would then be dragged around by contrast validation trying to rescue it).
+A `heading_family` or `body_family` filled from the interim fallback is **`google-native` by construction**: `Inter` is in `font-availability-rules.md` §4.1, the verified Google-hosted list. So:
 
-So when `{{extracted_scheme}} == "dark"` and step 2 above filled any colour (only the neutrals `surface`, `text`, `text_muted` can be unset here — `background` was extracted, since it set the scheme), convert them with **one** helper call instead of storing the light values:
-
-1. Write `generated-docs/design-system/.workspace/gapfill-in.json` = `{ "source_mode": "light", "colours": { <12 colour keys> } }` with the four neutrals from the inferred light values, and every other colour slot set to the top `assign-in.json` candidate hex (or `picks.primary` when there are no candidates). The helper's dark neutral ladder reads only the brand hue, so the stub slots do not leak into the neutrals.
-2. Run `node framework/tools/colour-tokens.cjs derive --in generated-docs/design-system/.workspace/gapfill-in.json --out generated-docs/design-system/.workspace/gapfill-out.json`. Exit code ≠ 0 → halt with the stderr line.
-3. Take **only the unset tokens** from `gapfill-out.json` → `colours`. Provenance stays `inferred-from-domain` (the token *is* domain-inferred); Source Context = `domain-inference ({{domain}}) → dark variant`.
-
-This keeps dark neutral targets defined in exactly one place — the helper. Do not copy dark neutral rules into the inference contract, and do not hand-pick dark values here. *(The domain-removal plan changes where colour gap-fills come from; this `derive` call stays as the mechanism.)*
-
-Tokens that were **extracted** are never converted — they are already in the extracted scheme.
-
-### B.2 Availability of an inferred family
-
-A `heading_family` or `body_family` filled by this loop is **`google-native` by construction** — `domain-inference.md` §C.1 draws only from `font-availability-rules.md` §4.1, the verified Google-hosted list. So:
-
-- Confirm the filled family's name is in §4.1 (a name that is not is an inference bug — re-pick from §4.1's defaults rather than shipping an unloadable family).
-- Set `{{font_availability_<slot>}} = { brand: <family>, loadable: <family>, param: <family with spaces as +>, status: "google-native", evidence: "domain-inference default (verified Google-hosted)" }`.
-- **Do not run the evidence ladder and do not probe.** There is nothing to establish; the value came from the verified list.
+- Set `{{font_availability_<slot>}}` to the availability record in `house-defaults.md` §4.
+- **Do not run the evidence ladder and do not probe.** Never re-probe a fallback family: there is nothing to establish; the value came from the verified list.
 
 An **extracted** family keeps whatever record step-05 §4b already produced, including a `substituted` three-name value. This loop never rewrites it.
-
-After this loop, every token in the in-memory state has a non-null value in `{{extracted_scheme}}`'s scheme, a non-empty Source Context, and a Provenance marker. This set is the **hue-source set**.
 
 ## C. Brand Roles and Status Colours (house set) — via the helper
 
 **Ordering (fixed):** step-05 wrote `generated-docs/design-system/.workspace/assign-in.json` with the candidates and picks; §B above completed the neutrals; this section runs the helper. Nothing else assigns `primary`, `secondary`, `accent`, `brand` or the status colours.
 
 1. **No `assign-in.json`** (no URL / failed extraction / insufficient data) → **halt** with exactly one line: *"No extracted palette. Until references replace the domain, `/design-system` needs a URL that extracts."* End the run (no files written; clean up `.workspace/` per step-07 §C). *(Interim halt — replaced by the domain-removal plan's reference-required refusal.)*
-2. Read `assign-in.json`, set `neutrals` to the hue-source set's `background`, `surface`, `text`, `text_muted` hexes, and Write it back.
+2. Read `assign-in.json`, set `mode` to `{{hue_source_mode}}` (§A-bis) and `neutrals` to the extracted `background`, `surface`, `text`, `text_muted` hexes (`null` for any not extracted: the helper fills those from its neutral ladder), and Write it back.
 3. Run, via Bash:
    ```
    node framework/tools/colour-tokens.cjs assign --in generated-docs/design-system/.workspace/assign-in.json --out generated-docs/design-system/.workspace/assign-out.json
    ```
    Exit code ≠ 0 → **halt** and show the helper's one-line stderr message. Never fall back to prose colour rules.
 4. Read `assign-out.json` and set:
-   - `{{brand}}` = `brand`; `{{roles}}` = `roles` (the single palette, or Option 1 when options exist); `{{palette_options}}` = `options` (or `null`); `{{assign_decisions}}` = `decisions`; and the four status colours = `status`.
+   - `{{brand}}` = `brand`; `{{roles}}` = `roles` (the single palette, or Option 1 when options exist); `{{palette_options}}` = `options` (or `null`); `{{assign_decisions}}` = `decisions`; the four status colours = `status`; and the four neutrals = `neutrals`. A neutral named in `filled` → `prov: system-derived`, `source: "neutral ladder"`; the others keep their extracted provenance.
    - Provenance: `brand`, and every role whose hex is an extracted candidate or pick → `extracted-from-url` (Source Context: the pick context, or `area-weighted capture` for `brand`). A role the helper filled with a **brand-tinted neutral**, and all four status colours → `inferred-from-domain` (Source Context: `colour-tokens.cjs assign — <the matching decisions line>`, and `colour-tokens.cjs house status set` for status). Two markers only.
 
 5. **Other mode extracted** (`{{other_mode_extracted}}`): write `assign-in-<other_mode>.json` with the same `candidates`, the §A-bis.1 picks, that scheme's four neutrals (an unpicked `surface` / `text_muted` takes the value a `derive` of the hue-source set gives — run it once now if needed), and `"brand": "{{brand}}"`; run `assign` on it (→ `assign-out-<other_mode>.json`). Its `roles` and `status` are the other mode's; its `brand` equals `{{brand}}` by construction. When `{{palette_options}}` is non-null, the other mode's two option sets are this call's `options` if non-null; otherwise each option's other-mode roles come from that option's §F `derive`.
 
-The status colours are the helper's fixed house set (`HOUSE_STATUS` in `framework/tools/colour-tokens.cjs`) — never inferred from the domain (`domain-inference.md` §3.B.3 is not used) and never extracted from CSS. On a reserved (red / orange / amber) brand the helper moves `error` away from the brand hue, and on a dark hue-source surface it moves status lightness only as far as the fill contrast target needs. Do not restate or re-tune those numbers here.
+The status colours are the helper's fixed house set (`HOUSE_STATUS` in `framework/tools/colour-tokens.cjs`) — never extracted. On a reserved (red / orange / amber) brand the helper moves `error` away from the brand hue, and on a dark hue-source surface it moves status lightness only as far as the fill contrast target needs. Do not restate or re-tune those numbers here.
 
 ## D. Contrast Validation (hue-source set)
 
@@ -186,11 +168,10 @@ Before advancing, set:
 
 - `{{extraction_status}}` to `"success"` if and only if step-05 reached its happy path. Otherwise preserve the prior status (`no_url` / `fetch_failed` / `no_css` / `css_fetch_failed` / `insufficient_data` / `workspace_read_failed`).
 - `{{extraction_date}}` to today's date in ISO 8601 (`YYYY-MM-DD`).
-- `{{voice}}` to the one-line Voice statement synthesised in §A. Step-07 prints it in the diagnostic summary.
 - **Mode state:** `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{hue_source}}` (`extracted-light` | `extracted-dark` | `extracted-both` | `domain-inferred-light`), `{{other_mode_extracted}}`, `{{mode_choice}}`, `{{derived_mode_requested}}`, `{{primary_mode}}`, `{{files_to_write}}`.
 - **Colour state (from the helper):** `{{brand}}`, `{{palette_options}}`, `{{assign_decisions}}`, and `{{palettes}}` — `{ <palette>: { <mode>: { colours, on_colours, contrast, fills, adjustments } } }`, palette `default` (no options) or `neutral` + `site_colour`. Step-06 renders from `{{palettes}}`.
 - **Per-mode contrast:** `{{cv_pass_count_light}}` / `{{cv_adjustments_light}}` / `{{cv_adjustment_count_light}}` and the `_dark` twins. Exactly one set is populated when a single file is written; both are populated when two are.
-- **`{{brand_fonts}}`** — assemble the `meta.brand_fonts` object in the shape `font-availability-rules.md` §6.2 specifies, from `{{font_availability_heading}}` and `{{font_availability_body}}` (set by step-05 §4b for extracted families, by §B.2 above for inferred ones):
+- **`{{brand_fonts}}`** — assemble the `meta.brand_fonts` object in the shape `font-availability-rules.md` §6.2 specifies, from `{{font_availability_heading}}` and `{{font_availability_body}}` (set by step-05 §4b for extracted families, by §B.2 above for fallback ones):
   - `families` — exactly two entries, `role: "heading"` first then `role: "body"`, even when both resolve to the same face.
   - `links` — one URL per **distinct** non-null `param`, built per §6.3 (`?family=<param>:wght@400;500;600;700&display=swap`, one family per link, never combined). Deduped when heading and body share a face; `[]` when neither family is loadable.
   - Typography is mode-invariant, so `{{brand_fonts}}` is a single object written **identically into both mode files** — do not derive a per-mode variant.

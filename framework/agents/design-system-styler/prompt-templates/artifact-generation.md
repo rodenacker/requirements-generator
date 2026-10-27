@@ -2,7 +2,7 @@
 
 **Purpose:** Reusable instruction block for writing the populated design-system doc — **one file per colour mode** — from `framework/assets/template-design-system.html`. The design-system-styler workflow loads this file after extraction (step-05) and the domain-inference fill + mode selection + cross-mode derivation (step-05b), then applies its instructions once per mode in `{{files_to_write}}` to serialise the in-memory token sets into the structured artefacts.
 
-**Usage:** Read this file using the Read tool. Apply the instructions to the in-memory results: `{{extracted_colors}}`, `{{extracted_typography}}`, `{{extracted_effects}}`, the per-mode contrast results, `{{extraction_status}}`, `{{voice}}`, the mode state (`{{mode_choice}}`, `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{files_to_write}}`, `{{primary_mode}}`), plus the consultant inputs (`{{domain}}`, `{{reference_url}}`).
+**Usage:** Read this file using the Read tool. Apply the instructions to the in-memory results: the completed per-mode token sets from step-05b, the per-mode contrast results, `{{extraction_status}}`, the mode state (`{{mode_choice}}`, `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{files_to_write}}`, `{{primary_mode}}`), plus the consultant inputs (`{{domain}}`, `{{reference_url}}`).
 
 ---
 

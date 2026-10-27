@@ -34,7 +34,6 @@ With all five in context, apply the artifact-generation prompt's instructions in
 - The **other-mode token set**, if `{{derived_mode_requested}}` — the same 34 tokens in the opposite mode. Derived: its colours other than `brand` and its 3 shadows carry `derived: …` source strings. Extracted (`{{hue_source}} == extracted-both`): its colours carry the alt-scheme selectors. Its 19 shared tokens (and `brand`) are copied verbatim.
 - `{{palettes}}` — the helper's per-palette, per-mode `{ colours, on_colours, contrast, fills, adjustments }` (step-05b §G). **Every colour value and every on-colour this step renders comes from `{{palettes}}`** — never recomputed. Palette `default` when `{{palette_options}}` is null; otherwise `neutral` and `site_colour` (rendering both is step-06 §F, a review render).
 - `{{palette_option}}` — `null`, or the option the consultant picked in step-07 (`neutral` | `site-colour`); a final render uses only that palette.
-- `{{voice}}` — one-line Voice statement synthesised in step-05b
 - **Mode state:** `{{files_to_write}}`, `{{hue_source_mode}}`, `{{mode_choice}}`, `{{hue_source}}`, `{{primary_mode}}`, `{{extracted_scheme}}`
 - **Per-mode contrast:** `{{cv_pass_count_light}}` / `{{cv_adjustments_light}}` / `{{cv_adjustment_count_light}}` and the `_dark` twins
 - `{{extraction_status}}`, `{{extraction_date}}`, `{{domain}}`, `{{domain_provenance}}`, `{{reference_url}}`, `{{css_source_type}}`, `{{css_source_url}}`
@@ -149,7 +148,7 @@ Check the **two in-memory token values** `typography.heading_family.value` and `
 - Confirm: the rendered string contains no `<link`, `<script src`, `<img src`, `url(http`, or `@import` pointing at any host other than `fonts.googleapis.com`. The template comment authorises these font links and only these.
 - Confirm: the rendered string still contains `system-ui` in the documentation-chrome `html, body` rule. The chrome must not have picked up the brand family now that a webfont actually loads.
 
-Any failure is a **hard halt before the `Write`**. This should never fire: `font-rules.md` §1 stops a non-brand family at extraction and `domain-inference.md` §C.1 stops one at inference, so a violation reaching step-06 means one of those two rules was skipped. It is a fail-closed backstop, not the primary mechanism — do not "repair" the value here and continue, and do not downgrade the halt to a warning. Shipping `Arial` as a client's brand font is the defect this whole rule exists to prevent, and unlike an unreachable contrast ratio it has a free, deterministic correct answer (leave the token unset; step-05b infers a real webfont).
+Any failure is a **hard halt before the `Write`**. This should never fire: `font-rules.md` §1 stops a non-brand family at extraction and the only other source is the interim fallback (`house-defaults.md` §4, `Inter`), so a violation reaching step-06 means §1 was skipped. It is a fail-closed backstop, not the primary mechanism — do not "repair" the value here and continue, and do not downgrade the halt to a warning. Shipping `Arial` as a client's brand font is the defect this whole rule exists to prevent, and unlike an unreachable contrast ratio it has a free, deterministic correct answer (leave the token unset; step-05b fills the interim fallback).
 
 The availability assertions are the same kind of backstop for the second axis. **Do not repair here either** — in particular, do not "fix" an unlisted `param` by substituting a family you believe exists, and do not downgrade a `substituted` entry to `unverified` to get past the check. Both hide the real fault, which is upstream in step-05 §4b or step-05b §B.2.
 
@@ -238,7 +237,7 @@ After every review file is written and verified, write `generated-docs/design-sy
     "neutral":     { "<mode>": { "tokens": { <the full design-tokens object for that file, meta.palette_option = "neutral"> }, "on_colours": { … }, "adjustments": [ … ] } },
     "site_colour": { "<mode>": { "tokens": { … meta.palette_option = "site-colour" … }, "on_colours": { … }, "adjustments": [ … ] } }
   },
-  "shared": { "voice": "…", "assign_decisions": [ … ], "brand": "#…", "extraction_method": "…",
+  "shared": { "assign_decisions": [ … ], "brand": "#…", "extraction_method": "…",
               "font_rejected_heading": null, "font_rejected_body": null, "brand_fonts": { … },
               "attribution": { "extraction_status": "…", "domain": "…" } },
   "review_files": ["generated-docs/design-system/.workspace/review-light.html", "…"]

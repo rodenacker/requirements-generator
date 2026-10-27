@@ -1,6 +1,6 @@
 # Font Extraction Rules — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Contains font family extraction heuristics, and is the **canonical source of the non-brand-family (prohibited) set** in §1 — `step-05`, `step-06`, `step-07`, `prompt-templates/domain-inference.md`, and the agent's Self-validation all reference §1 by number and never restate the list. Ported from v3's `font-border-rules.md`; the border-radius section has been removed (border-radius is out of v1 scope per the design-system plan). Typography scale, weights, and line-heights are governed by `typography-scale-rules.md`.
+**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Contains font family extraction heuristics, and is the **canonical source of the non-brand-family (prohibited) set** in §1 — `step-05`, `step-06`, `step-07`, and the agent's Self-validation all reference §1 by number and never restate the list. Ported from v3's `font-border-rules.md`; the border-radius section has been removed (border-radius is out of v1 scope per the design-system plan). Font weights are §5 below. Sizes, line heights, shadows and motion are never extracted: they are house defaults (`house-defaults.md`).
 
 ---
 
@@ -75,8 +75,7 @@ Extract the first family name from the `font-family` value that is **not** a non
 - The first surviving name is the branded heading font
 - If the chain is exhausted without a survivor, leave the token unset (see *Font Output Rules* below)
 
-Extract `font-weight` if declared alongside the heading selectors:
-- Default heading weight: `600` if not explicitly found
+Extract the heading weight per §5.
 
 ### Body Font
 
@@ -86,8 +85,7 @@ Search these selectors in priority order:
 
 Extract the first family name that is not a non-brand family, using the same §1 rules as heading.
 
-Extract `font-weight`:
-- Default body weight: `400` if not explicitly found
+Extract the body weight per §5.
 
 ### Font Output Rules
 
@@ -102,3 +100,26 @@ Extract `font-weight`:
 - **Quoted font names:** Strip surrounding quotes from font names while scanning (e.g., `"Inter"` → `Inter`). Re-quote the selected family with single quotes in the emitted stack.
 - **Record a rejection:** when a chain is rejected because every candidate was non-brand, store the name that would have been selected under the pre-§1 rule — the first *named* family in the chain — as `{{font_rejected_heading}}` / `{{font_rejected_body}}`. Step-07 uses it to tell the consultant *why* the family is domain-inferred rather than extracted; without it the extracted-token count silently drops with no explanation.
 - **Tag provenance:** When a font family is found via this rules file, tag it `extracted-from-url` and record the source selector (e.g. `h1, h2 font-family`) in the Source Context column. When the token is left unset (and later filled by step-05b), the agent tags it `inferred-from-domain`.
+
+---
+
+## 5. Weights
+
+Extract `heading_weight` and `body_weight` only.
+
+**Playwright path** (`computed-tokens.json` present):
+- `heading_weight` ← `sampleElements.h1.fontWeight`.
+- `body_weight` ← `sampleElements.body.fontWeight`.
+
+**WebFetch fallback / CSS text:**
+
+| Token | Heuristic |
+|---|---|
+| `heading_weight` | `font-weight` declared on `h1`, `h2`, `h3`, `.heading`, `.title`, or a `--heading-weight` custom property. |
+| `body_weight` | `font-weight` declared on `body`, `html`, `p`, or a `--body-weight` custom property. |
+
+**Normalisation:**
+- Keywords to integers: `normal → 400`, `bold → 700`, `lighter → 300`, `bolder → 700`.
+- Round non-standard weights (e.g. `450`) to the nearest 100, unless the CSS uses variable-font axes: then keep the exact value.
+
+A weight not found stays unset; step-05b fills it from `house-defaults.md` §4 (interim font fallback).
