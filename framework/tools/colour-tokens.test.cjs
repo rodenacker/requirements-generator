@@ -1,0 +1,169 @@
+'use strict';
+// Unit tests for colour-tokens.cjs. Run: node --test framework/tools/colour-tokens.test.cjs
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+
+const ct = require('./colour-tokens.cjs');
+const { hexToOklch, oklchToHex, contrast, isReserved, assign, derive, NEUTRAL_C, HOUSE_STATUS } = ct;
+
+const hueDist = (a, b) => { const d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; };
+
+// Design *Evidence* table (absa.co.za spike, 2026-10-26).
+const ABSA = () => ({
+  candidates: [
+    { hex: '#CA2B3D', weight: 508 },
+    { hex: '#95052A', weight: 80 },
+    { hex: '#AF144B', weight: 63 },
+    { hex: '#77021E', weight: 8 },
+    { hex: '#FA551E', weight: 7 },
+    { hex: '#0074A6', weight: 7 },
+  ],
+  picks: { primary: '#FA551E', secondary: '#CA2B3D', accent: '#AF144B' },
+  neutrals: { background: '#FFFFFF', surface: '#F4F3F3', text: '#2D2323', text_muted: '#524A4A' },
+});
+
+const ORANGE_CTA_BLUE_BRAND = () => ({
+  candidates: [{ hex: '#1D4ED8', weight: 400 }, { hex: '#F97316', weight: 30 }],
+  picks: { primary: '#F97316', secondary: null, accent: null },
+  neutrals: ABSA().neutrals,
+});
+
+function absaOption1Light() {
+  const out = assign(ABSA());
+  return { ...ABSA().neutrals, ...out.roles, brand: out.brand, ...out.status };
+}
+
+const CHROMATIC_FILLS = ['primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'];
+
+test('test_oklch_roundtrip', () => {
+  for (const x of ['#CA2B3D', '#0074A6', '#FFFFFF', '#000000']) {
+    assert.equal(oklchToHex(hexToOklch(x)), x);
+  }
+});
+
+test('test_reserved_absa', () => {
+  for (const x of ['#CA2B3D', '#95052A', '#AF144B', '#77021E', '#FA551E']) assert.equal(isReserved(x), true, x);
+  for (const x of ['#0074A6', '#2D2323', '#524A4A']) assert.equal(isReserved(x), false, x);
+});
+
+test('test_contrast_known', () => {
+  assert.ok(Math.abs(contrast('#FFFFFF', '#000000') - 21) <= 0.01);
+  assert.ok(contrast('#FA551E', '#F4F3F3') < 3.0);
+});
+
+test('test_assign_absa', () => {
+  const out = assign(ABSA());
+  assert.equal(out.brand, '#CA2B3D');
+  const p = hexToOklch(out.roles.primary);
+  assert.ok(p.C < NEUTRAL_C, `primary C ${p.C}`);
+  assert.ok(hueDist(p.H, hexToOklch('#CA2B3D').H) < 3, `primary H ${p.H}`);
+  for (const k of ['primary', 'secondary', 'accent']) assert.equal(isReserved(out.roles[k]), false, k);
+  assert.ok(out.options);
+  assert.equal(out.options.site_colour.primary, '#0074A6');
+  assert.ok(out.decisions.some((d) => d.includes('#FA551E')));
+});
+
+test('test_assign_orange_cta_blue_brand', () => {
+  const out = assign(ORANGE_CTA_BLUE_BRAND());
+  assert.equal(out.roles.primary, '#1D4ED8');
+  assert.equal(out.brand, '#1D4ED8');
+  assert.equal(out.options, null);
+});
+
+test('test_assign_single_colour_brand_no_rotation', () => {
+  const out = assign({
+    candidates: [{ hex: '#1D4ED8', weight: 400 }],
+    picks: { primary: '#1D4ED8', secondary: null, accent: null },
+    neutrals: ABSA().neutrals,
+  });
+  const bh = hexToOklch('#1D4ED8').H;
+  for (const k of ['secondary', 'accent']) {
+    const o = hexToOklch(out.roles[k]);
+    assert.ok(o.C < 0.07, `${k} C ${o.C}`);
+    assert.ok(hueDist(o.H, bh) < 3, `${k} H ${o.H}`);
+  }
+});
+
+test('test_assign_no_area_data', () => {
+  const input = ABSA();
+  for (const c of input.candidates) c.weight = null;
+  const out = assign(input);
+  assert.equal(out.brand, '#FA551E');
+  for (const k of ['primary', 'secondary', 'accent']) assert.equal(isReserved(out.roles[k]), false, k);
+});
+
+test('test_derive_light_to_dark_absa', () => {
+  const out = derive({ source_mode: 'light', colours: absaOption1Light() });
+  assert.equal(out.mode, 'dark');
+  assert.equal(out.colours.brand, '#CA2B3D');
+  assert.ok(hexToOklch(out.colours.primary).L >= 0.85);
+  for (const [k, v] of Object.entries(out.fills)) assert.ok(v >= 3.0, `fill ${k} ${v}`);
+  for (const [k, v] of Object.entries(out.contrast)) assert.ok(v >= 4.5, `pair ${k} ${v}`);
+  for (const [k, on] of Object.entries(out.on_colours)) {
+    const ok = contrast(on, out.colours[k]) >= 4.5 || out.adjustments.some((a) => a.startsWith(k));
+    assert.ok(ok, `on-colour ${k}`);
+  }
+});
+
+test('test_derive_min_change_keeps_passing_fill', () => {
+  const out = derive({ source_mode: 'light', colours: { ...absaOption1Light(), info: '#3B82F6' } });
+  assert.equal(out.colours.info, '#3B82F6');
+});
+
+test('test_derive_preserves_hue_chroma', () => {
+  const src = absaOption1Light();
+  const out = derive({ source_mode: 'light', colours: src });
+  for (const k of CHROMATIC_FILLS) {
+    const a = hexToOklch(src[k]);
+    if (a.C < NEUTRAL_C) continue;
+    const b = hexToOklch(out.colours[k]);
+    assert.ok(hueDist(a.H, b.H) <= 2, `${k} H ${a.H} -> ${b.H}`);
+    assert.ok(b.C <= a.C + 0.005, `${k} C ${a.C} -> ${b.C}`);
+  }
+});
+
+test('test_derive_dark_to_light_neutral_flip', () => {
+  const darkSrc = {
+    background: oklchToHex({ L: 0.17, C: 0.012, H: 20 }),
+    surface: oklchToHex({ L: 0.22, C: 0.014, H: 20 }),
+    text: oklchToHex({ L: 0.95, C: 0.008, H: 20 }),
+    text_muted: oklchToHex({ L: 0.75, C: 0.01, H: 20 }),
+    primary: oklchToHex({ L: 0.90, C: 0.012, H: 20 }),
+    secondary: oklchToHex({ L: 0.36, C: 0.012, H: 20 }),
+    accent: '#60A5FA',
+    brand: '#CA2B3D',
+    success: '#4ADE80', warning: '#FBBF24', error: '#F87171', info: '#38BDF8',
+  };
+  const out = derive({ source_mode: 'dark', colours: darkSrc });
+  assert.equal(out.mode, 'light');
+  assert.ok(Math.abs(hexToOklch(out.colours.primary).L - 0.30) <= 0.01);
+});
+
+test('test_assign_no_candidates', () => {
+  const out = assign({
+    candidates: [],
+    picks: { primary: '#DC2626', secondary: null, accent: null },
+    neutrals: ABSA().neutrals,
+  });
+  assert.equal(out.brand, '#DC2626');
+  assert.ok(hexToOklch(out.roles.primary).C < NEUTRAL_C);
+  assert.equal(out.options, null);
+});
+
+test('test_assign_house_status', () => {
+  const out = assign(ORANGE_CTA_BLUE_BRAND());
+  assert.deepEqual(out.status, HOUSE_STATUS);
+});
+
+test('test_cli_bad_input', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'colour-tokens-'));
+  const inPath = path.join(dir, 'in.json');
+  fs.writeFileSync(inPath, '{}');
+  const r = spawnSync(process.execPath, [path.join(__dirname, 'colour-tokens.cjs'), 'assign', '--in', inPath, '--out', path.join(dir, 'out.json')], { encoding: 'utf8' });
+  assert.equal(r.status, 2);
+  assert.ok(r.stderr.trim().length > 0);
+});
