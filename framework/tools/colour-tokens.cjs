@@ -24,7 +24,17 @@
  * Contract (CLI):
  *   node framework/tools/colour-tokens.cjs <assign|derive|measure> --in <json> --out <json>
  *   exit 0 → output JSON written; exit 2 → one-line stderr message (bad input).
- *   Never throws an uncaught error.
+ *   Never throws an uncaught error. As a module, bad input throws a TypeError.
+ *
+ * assign input:  { mode: "light"|"dark" (the hue-source mode, required),
+ *                  candidates: [{hex, weight|null}], picks: {primary, secondary,
+ *                  accent, brand?} (hex|null; a non-null brand is the brand),
+ *                  neutrals: {background, surface, text, text_muted} (hex|null) }
+ * assign output: { brand, monochrome, roles, options, status, neutrals (all
+ *                  filled), filled: [neutral names taken from the ladder],
+ *                  decisions }
+ *   monochrome = no candidate or pick carries colour; every helper-made tint
+ *   is then pure grey. neutralLadder(brand|null, mode) is exported too.
  *
  * Self-contained: Node >= 18, no dependencies. Unit tests: colour-tokens.test.cjs.
  */
@@ -42,6 +52,7 @@ const TEXT_TARGET = 4.5;
 // infers status any more; this constant is its only definition.
 const HOUSE_STATUS = { success: '#15803D', warning: '#B45309', error: '#B91C1C', info: '#0369A1' };
 
+const NEUTRAL_KEYS = ['background', 'surface', 'text', 'text_muted'];
 const COLOUR_KEYS = ['background', 'surface', 'text', 'text_muted', 'primary', 'secondary', 'accent', 'brand', 'success', 'warning', 'error', 'info'];
 const FILL_KEYS = ['primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'];
 const ON_KEYS = ['primary', 'secondary', 'accent', 'brand', 'success', 'warning', 'error', 'info'];
@@ -162,7 +173,7 @@ function stepUntil(hex, against, target, dir) {
 
 // ---------- validation ----------
 
-class InputError extends Error {}
+class InputError extends TypeError {}
 
 function requireHexMap(obj, keys, label, allowNull) {
   if (!obj || typeof obj !== 'object') throw new InputError(`${label} must be an object`);
@@ -180,8 +191,9 @@ function validateAssign(input) {
     if (!c || !isHex(c.hex)) throw new InputError('every candidate needs a #RRGGBB hex');
     if (c.weight !== null && c.weight !== undefined && typeof c.weight !== 'number') throw new InputError('candidate weight must be a number or null');
   }
-  requireHexMap(input.picks, ['primary', 'secondary', 'accent'], 'picks', true);
-  requireHexMap(input.neutrals, ['background', 'surface', 'text', 'text_muted'], 'neutrals', false);
+  if (input.mode !== 'light' && input.mode !== 'dark') throw new InputError('mode must be "light" or "dark" (the hue-source mode)');
+  requireHexMap(input.picks, ['primary', 'secondary', 'accent', 'brand'], 'picks', true);
+  requireHexMap(input.neutrals, NEUTRAL_KEYS, 'neutrals', true);
   if (input.brand !== undefined && input.brand !== null && !isHex(input.brand)) throw new InputError('brand must be a #RRGGBB hex');
   if (!input.picks.primary && input.candidates.length === 0) throw new InputError('need picks.primary or at least one candidate');
 }
@@ -192,43 +204,87 @@ function validateDerive(input) {
   requireHexMap(input.colours, COLOUR_KEYS, 'colours', false);
 }
 
+// ---------- neutral ladder ----------
+
+// The brand-tinted neutral set for one mode: the hue-source gap-fill in assign
+// and the other mode in derive. No brand, or a monochrome one, gives pure greys.
+function neutralLadder(brandHex, mode) {
+  if (mode !== 'light' && mode !== 'dark') throw new InputError('mode must be "light" or "dark"');
+  const b = isHex(brandHex) ? hexToOklch(brandHex) : null;
+  const tint = b && b.C >= NEUTRAL_C ? 1 : 0;
+  const H = b ? b.H : 0;
+  const dark = mode === 'dark';
+  const at = (L, C) => oklchToHex({ L, C: C * tint, H });
+  const out = dark
+    ? { background: at(0.17, 0.012), surface: at(0.22, 0.014), text: at(0.95, 0.008) }
+    : { background: at(0.99, 0.004), surface: at(0.965, 0.006), text: at(0.22, 0.015) };
+  const mutedC = dark ? 0.01 : 0.012;
+  const far = dark ? 1 : -1;
+  let mL = dark ? 0.70 : 0.45;
+  out.text_muted = at(mL, mutedC);
+  while ((contrast(out.text_muted, out.surface) < TEXT_TARGET || contrast(out.text_muted, out.background) < TEXT_TARGET) && mL > 0 && mL < 1) {
+    mL += far * STEP;
+    out.text_muted = at(mL, mutedC);
+  }
+  return out;
+}
+
 // ---------- assign ----------
 
 function assign(input) {
   validateAssign(input);
   const decisions = [];
   const picks = { primary: up(input.picks.primary || null), secondary: up(input.picks.secondary || null), accent: up(input.picks.accent || null) };
+  const declaredBrand = up(input.picks.brand || input.brand || null);
   const cands = input.candidates.map((c, i) => ({ hex: c.hex.toUpperCase(), weight: typeof c.weight === 'number' ? c.weight : null, i }));
   const weighted = cands.some((c) => c.weight !== null);
   const total = cands.reduce((s, c) => s + (c.weight || 0), 0);
   const inUse = (c) => c.weight === null || total === 0 || c.weight / total >= USAGE_SHARE_MIN;
   const byWeight = [...cands].sort((a, b) => (b.weight || 0) - (a.weight || 0) || a.i - b.i);
 
-  // brand: largest-area chromatic colour (pale tints below the chroma floor
-  // never qualify); forced when the caller supplies one.
+  // monochrome: no candidate and no pick carries colour. Every tint the helper
+  // makes (neutral roles, neutral ladder, on-colour inks) is then pure grey.
+  const monochrome = [...cands.map((c) => c.hex), picks.primary, picks.secondary, picks.accent, declaredBrand]
+    .filter(Boolean).every((h) => hexToOklch(h).C < NEUTRAL_C);
+  const tint = monochrome ? 0 : 1;
+
+  // brand: a declared brand (PDF brand guide) wins outright; otherwise the
+  // largest-area chromatic colour (pale tints below the chroma floor never qualify).
   const chromatic = byWeight.find((c) => hexToOklch(c.hex).C >= RESERVED.minC);
   let brand;
-  if (input.brand) brand = input.brand.toUpperCase();
+  if (declaredBrand) brand = declaredBrand;
   else if (cands.length === 0) brand = picks.primary;
   else if (weighted && chromatic) brand = chromatic.hex;
   else brand = picks.primary || (chromatic || cands[0]).hex;
   const brandO = hexToOklch(brand);
   const brandH = brandO.H;
 
+  // Neutral gap-fill: every neutral the references did not give comes from the
+  // hue-source ladder; given neutrals are kept exactly.
+  const ladder = neutralLadder(monochrome ? null : brand, input.mode);
+  const neutrals = {};
+  const filled = [];
+  for (const k of NEUTRAL_KEYS) {
+    if (input.neutrals[k]) neutrals[k] = input.neutrals[k].toUpperCase();
+    else { neutrals[k] = ladder[k]; filled.push(k); }
+  }
+  if (filled.length) decisions.push(`neutral ladder filled: ${filled.join(', ')}`);
+
   // Neutral roles sit at the far end of the hue-source ladder: charcoal on a
   // light surface, near-white on a dark one (a dark charcoal would look disabled).
-  const surface = input.neutrals.surface.toUpperCase();
+  const surface = neutrals.surface;
   const darkSurface = hexToOklch(surface).L < 0.5;
+  const tinted = (L, C) => oklchToHex({ L, C: C * tint, H: brandH });
   const neutralRoles = darkSurface
     ? {
-      primary: oklchToHex({ L: 0.90, C: 0.025, H: brandH }),
-      secondary: oklchToHex({ L: 0.36, C: 0.02, H: brandH }),
-      accent: stepUntil(oklchToHex({ L: 0.42, C: 0.065, H: brandH }), surface, FILL_TARGET, 1),
+      primary: tinted(0.90, 0.025),
+      secondary: tinted(0.36, 0.02),
+      accent: stepUntil(tinted(0.42, 0.065), surface, FILL_TARGET, 1),
     }
     : {
-      primary: oklchToHex({ L: 0.30, C: 0.025, H: brandH }),
-      secondary: oklchToHex({ L: 0.45, C: 0.02, H: brandH }),
-      accent: oklchToHex({ L: 0.42, C: 0.065, H: brandH }),
+      primary: tinted(0.30, 0.025),
+      secondary: tinted(0.45, 0.02),
+      accent: tinted(0.42, 0.065),
     };
   const usable = (c) => !isReserved(c.hex) && hexToOklch(c.hex).C >= RESERVED.minC;
 
@@ -302,15 +358,16 @@ function assign(input) {
   // A dark hue-source surface: status keeps H and C, lightness only as far as the fill target needs.
   for (const k of Object.keys(status)) status[k] = stepUntil(status[k], surface, FILL_TARGET, darkSurface ? 1 : -1);
 
-  return { brand, roles, options, status, decisions };
+  return { brand, monochrome, roles, options, status, neutrals, filled, decisions };
 }
 
 // ---------- derive ----------
 
 function onColours(colours, _mode) {
-  const H = hexToOklch(colours.brand).H;
-  const inkDark = oklchToHex({ L: 0.20, C: 0.01, H });
-  const inkLight = oklchToHex({ L: 0.98, C: 0.005, H });
+  const b = hexToOklch(colours.brand);
+  const tint = b.C >= NEUTRAL_C ? 1 : 0;
+  const inkDark = oklchToHex({ L: 0.20, C: 0.01 * tint, H: b.H });
+  const inkLight = oklchToHex({ L: 0.98, C: 0.005 * tint, H: b.H });
   const out = {};
   for (const k of ON_KEYS) out[k] = contrast(inkDark, colours[k]) >= contrast(inkLight, colours[k]) ? inkDark : inkLight;
   return out;
@@ -336,23 +393,7 @@ function derive(input) {
   const adjustments = [];
   const out = { brand: src.brand };
 
-  // neutral ladder
-  if (toDark) {
-    out.background = oklchToHex({ L: 0.17, C: 0.012, H });
-    out.surface = oklchToHex({ L: 0.22, C: 0.014, H });
-    out.text = oklchToHex({ L: 0.95, C: 0.008, H });
-  } else {
-    out.background = oklchToHex({ L: 0.99, C: 0.004, H });
-    out.surface = oklchToHex({ L: 0.965, C: 0.006, H });
-    out.text = oklchToHex({ L: 0.22, C: 0.015, H });
-  }
-  const mutedC = toDark ? 0.01 : 0.012;
-  let mL = toDark ? 0.70 : 0.45;
-  out.text_muted = oklchToHex({ L: mL, C: mutedC, H });
-  while ((contrast(out.text_muted, out.surface) < TEXT_TARGET || contrast(out.text_muted, out.background) < TEXT_TARGET) && mL > 0 && mL < 1) {
-    mL += far * STEP;
-    out.text_muted = oklchToHex({ L: mL, C: mutedC, H });
-  }
+  Object.assign(out, neutralLadder(src.brand, mode));
 
   // fills: neutral flip for primary/secondary, minimum change for the rest
   const fills = {};
@@ -452,7 +493,7 @@ function main(argv) {
 }
 
 module.exports = {
-  hexToOklch, oklchToHex, contrast, isReserved, assign, derive, measure, onColours,
+  hexToOklch, oklchToHex, contrast, isReserved, assign, derive, measure, onColours, neutralLadder,
   RESERVED, NEUTRAL_C, USAGE_SHARE_MIN, FILL_TARGET, LABEL_TARGET, TEXT_TARGET, HOUSE_STATUS,
 };
 

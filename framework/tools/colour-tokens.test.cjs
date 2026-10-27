@@ -24,12 +24,14 @@ const ABSA = () => ({
   ],
   picks: { primary: '#FA551E', secondary: '#CA2B3D', accent: '#AF144B' },
   neutrals: { background: '#FFFFFF', surface: '#F4F3F3', text: '#2D2323', text_muted: '#524A4A' },
+  mode: 'light',
 });
 
 const ORANGE_CTA_BLUE_BRAND = () => ({
   candidates: [{ hex: '#1D4ED8', weight: 400 }, { hex: '#F97316', weight: 30 }],
   picks: { primary: '#F97316', secondary: null, accent: null },
   neutrals: ABSA().neutrals,
+  mode: 'light',
 });
 
 function absaOption1Light() {
@@ -79,6 +81,7 @@ test('test_assign_single_colour_brand_no_rotation', () => {
     candidates: [{ hex: '#1D4ED8', weight: 400 }],
     picks: { primary: '#1D4ED8', secondary: null, accent: null },
     neutrals: ABSA().neutrals,
+    mode: 'light',
   });
   const bh = hexToOklch('#1D4ED8').H;
   for (const k of ['secondary', 'accent']) {
@@ -148,6 +151,7 @@ test('test_assign_no_candidates', () => {
     candidates: [],
     picks: { primary: '#DC2626', secondary: null, accent: null },
     neutrals: ABSA().neutrals,
+    mode: 'light',
   });
   assert.equal(out.brand, '#DC2626');
   assert.ok(hexToOklch(out.roles.primary).C < NEUTRAL_C);
@@ -166,6 +170,7 @@ test('test_assign_dark_surface_neutral_roles_visible', () => {
     candidates: [{ hex: '#E11D48', weight: 400 }],
     picks: { primary: '#E11D48', secondary: null, accent: null },
     neutrals: { background: '#0E0E12', surface: '#16161C', text: '#F2F2F5', text_muted: '#A0A0AA' },
+    mode: 'dark',
   });
   const p = hexToOklch(out.roles.primary);
   assert.ok(p.L >= 0.85, `dark-surface neutral primary L ${p.L}`);
@@ -179,6 +184,7 @@ test('test_assign_brand_ignores_pale_tint', () => {
     candidates: [{ hex: '#FFF4E5', weight: 600 }, { hex: '#CA2B3D', weight: 120 }],
     picks: { primary: '#CA2B3D', secondary: null, accent: null },
     neutrals: ABSA().neutrals,
+    mode: 'light',
   });
   assert.equal(out.brand, '#CA2B3D');
 });
@@ -233,4 +239,73 @@ test('test_cli_bad_input', () => {
   const r = spawnSync(process.execPath, [path.join(__dirname, 'colour-tokens.cjs'), 'assign', '--in', inPath, '--out', path.join(dir, 'out.json')], { encoding: 'utf8' });
   assert.equal(r.status, 2);
   assert.ok(r.stderr.trim().length > 0);
+});
+
+// ---------- domain removal: declared brand, monochrome brands, neutral gap-fill ----------
+
+const NULL_NEUTRALS = () => ({ background: null, surface: null, text: null, text_muted: null });
+const BLUE_BRAND_NO_NEUTRALS = () => ({
+  candidates: [{ hex: '#1D4ED8', weight: 400 }],
+  picks: { primary: '#1D4ED8', secondary: null, accent: null },
+  neutrals: NULL_NEUTRALS(),
+  mode: 'light',
+});
+
+test('test_assign_declared_brand_wins', () => {
+  const input = ABSA();
+  input.picks.brand = '#95052A';
+  const out = assign(input);
+  assert.equal(out.brand, '#95052A');
+  for (const k of ['primary', 'secondary', 'accent']) assert.equal(isReserved(out.roles[k]), false, k);
+});
+
+test('test_assign_monochrome', () => {
+  const out = assign({
+    candidates: [{ hex: '#111111', weight: 300 }, { hex: '#777777', weight: 20 }],
+    picks: { primary: '#111111', secondary: null, accent: null },
+    neutrals: NULL_NEUTRALS(),
+    mode: 'light',
+  });
+  assert.equal(out.monochrome, true);
+  assert.equal(out.brand, '#111111');
+  for (const k of ['primary', 'secondary', 'accent']) assert.ok(hexToOklch(out.roles[k]).C < 0.005, `${k} ${out.roles[k]}`);
+  for (const [k, v] of Object.entries(out.neutrals)) assert.ok(hexToOklch(v).C < 0.005, `${k} ${v}`);
+});
+
+test('test_on_colours_monochrome_brand_pure_grey', () => {
+  const on = ct.onColours({ ...absaOption1Light(), brand: '#111111' }, 'light');
+  for (const [k, v] of Object.entries(on)) assert.ok(hexToOklch(v).C < 0.005, `${k} ${v}`);
+});
+
+test('test_assign_neutral_gapfill_light', () => {
+  const out = assign(BLUE_BRAND_NO_NEUTRALS());
+  assert.deepEqual([...out.filled].sort(), ['background', 'surface', 'text', 'text_muted']);
+  assert.ok(hexToOklch(out.neutrals.background).L >= 0.98);
+  assert.ok(contrast(out.neutrals.text, out.neutrals.surface) >= 4.5);
+  assert.ok(contrast(out.neutrals.text_muted, out.neutrals.surface) >= 4.5);
+});
+
+test('test_assign_neutral_gapfill_keeps_given', () => {
+  const input = BLUE_BRAND_NO_NEUTRALS();
+  input.neutrals.background = '#0D1117';
+  input.neutrals.text = '#E6EDF3';
+  input.mode = 'dark';
+  const out = assign(input);
+  assert.equal(out.neutrals.background, '#0D1117');
+  assert.equal(out.neutrals.text, '#E6EDF3');
+  assert.deepEqual(out.filled, ['surface', 'text_muted']);
+  assert.ok(hexToOklch(out.neutrals.surface).L < 0.5);
+  assert.ok(contrast(out.neutrals.text_muted, out.neutrals.surface) >= 4.5);
+});
+
+test('test_neutral_ladder_matches_derive', () => {
+  const ladder = ct.neutralLadder('#CA2B3D', 'dark');
+  const d = derive({ source_mode: 'light', colours: absaOption1Light() }).colours;
+  for (const k of ['background', 'surface', 'text']) assert.equal(ladder[k], d[k], k);
+});
+
+test('test_assign_requires_mode', () => {
+  const input = ABSA();
+  delete input.mode;
+  assert.throws(() => assign(input), TypeError);
 });
