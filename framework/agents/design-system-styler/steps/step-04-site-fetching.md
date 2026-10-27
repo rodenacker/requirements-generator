@@ -150,6 +150,77 @@ mcp__playwright__browser_evaluate({
           .filter(Boolean).slice(0, 5)
       };
 
+      // Colour area weights — which chromatic colours the page actually shows,
+      // and how much of them. Feeds the `brand` pick and the "real use" test
+      // in framework/tools/colour-tokens.cjs. Any CSS colour syntax is
+      // normalised through a 1x1 canvas. Near-greys (max−min channel < 24)
+      // and colours with alpha < 0.5 are skipped.
+      const cv = document.createElement("canvas"); cv.width = cv.height = 1;
+      const ctx = cv.getContext("2d", { willReadFrequently: true });
+      const toHex = (c) => {
+        if (!c || c === "transparent" || c === "none") return null;
+        ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = "#000"; ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+        if (a < 128) return null;
+        if (Math.max(r, g, b) - Math.min(r, g, b) < 24) return null;
+        return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
+      };
+      const weights = {};
+      const addW = (c, w) => { const h = toHex(c); if (h) weights[h] = (weights[h] || 0) + w; };
+      for (const el of document.body.querySelectorAll("*")) {
+        const rect = el.getBoundingClientRect();
+        if (!rect.width || !rect.height) continue;
+        const cs = getComputedStyle(el);
+        if (cs.visibility === "hidden" || cs.display === "none" || Number(cs.opacity) === 0) continue;
+        addW(cs.backgroundColor, Math.min(rect.width * rect.height, 200000) / 1000);
+        if (Array.from(el.childNodes).some(n => n.nodeType === 3 && n.textContent.trim())) addW(cs.color, 1);
+        for (const side of ["Top", "Right", "Bottom", "Left"]) {
+          if (parseFloat(cs["border" + side + "Width"]) > 0 && cs["border" + side + "Style"] !== "none") addW(cs["border" + side + "Color"], 0.2);
+        }
+      }
+      const colourWeights = Object.entries(weights)
+        .map(([hex, weight]) => ({ hex, weight: Math.round(weight * 10) / 10 }))
+        .sort((a, b) => b.weight - a.weight).slice(0, 30);
+
+      // The site's own other scheme — every rule inside
+      // @media (prefers-color-scheme: <opposite>) plus root-level theme-variant
+      // rules ([data-*theme*=<opposite>], .<opposite>, [data-color-mode=<opposite>]).
+      const bgRgb = (() => {
+        for (const el of [document.body, document.documentElement]) {
+          const m = getComputedStyle(el).backgroundColor.match(/[\d.]+/g);
+          if (m && (m.length < 4 || Number(m[3]) > 0.5)) return m.slice(0, 3).map(Number);
+        }
+        return [255, 255, 255];
+      })();
+      const pageScheme = (0.2126 * bgRgb[0] + 0.7152 * bgRgb[1] + 0.0722 * bgRgb[2]) / 255 < 0.5 ? "dark" : "light";
+      const opposite = pageScheme === "dark" ? "light" : "dark";
+      const variantRe = new RegExp("^(:root|html|body)?\\s*(\\." + opposite + "\\b|\\[data-[\\w-]*(theme|mode|scheme)[\\w-]*=[\"']?" + opposite + "[\"']?\\])");
+      const alt = { scheme: opposite, customProperties: {}, declarations: [] };
+      const colourProp = /^(color|background(-color)?|border(-[a-z]+)?-color|fill|stroke|outline-color|box-shadow)$/;
+      const isColour = (v) => { ctx.fillStyle = "#010203"; ctx.fillStyle = v; return ctx.fillStyle !== "#010203"; };
+      const takeStyle = (rule) => {
+        const rootSel = /^(:root|html|body|:host)\b/.test(rule.selectorText) || variantRe.test(rule.selectorText);
+        for (const prop of rule.style) {
+          const value = rule.style.getPropertyValue(prop).trim();
+          if (!value) continue;
+          if (prop.startsWith("--")) { if (rootSel && isColour(value)) alt.customProperties[prop] = value; }
+          else if (colourProp.test(prop) && alt.declarations.length < 300) alt.declarations.push({ selector: rule.selectorText, prop, value });
+        }
+      };
+      const walk = (rules, inScheme) => {
+        for (const rule of rules) {
+          if (rule.media && rule.cssRules) {
+            walk(rule.cssRules, inScheme || rule.media.mediaText.includes("prefers-color-scheme: " + opposite));
+          } else if (rule.cssRules && !rule.selectorText) {
+            walk(rule.cssRules, inScheme);
+          } else if (rule.selectorText && (inScheme || variantRe.test(rule.selectorText))) {
+            takeStyle(rule);
+          }
+        }
+      };
+      for (const sheet of document.styleSheets) { try { walk(sheet.cssRules, false); } catch (e) {} }
+      const altScheme = (Object.keys(alt.customProperties).length || alt.declarations.length) ? alt : null;
+
       return {
         rawCss: sheetTexts.join("\n\n") + "\n\n" + inlineStyles,
         sources,
@@ -162,7 +233,10 @@ mcp__playwright__browser_evaluate({
           button: sample('button, .btn, [role="button"]'),
           input: sample("input, textarea, select")
         },
-        businessSignals
+        businessSignals,
+        colourWeights,
+        pageScheme,
+        altScheme
       };
     }
   `
@@ -171,12 +245,14 @@ mcp__playwright__browser_evaluate({
 
 Store the result as `{{eval_payload}}`. Also store `{{business_signals}} = {{eval_payload}}.businessSignals` — step-04b reads it to suggest the domain. (If every field of `businessSignals` is null/empty, treat `{{business_signals}}` as null so step-04b falls back to the prose prompt.)
 
+Also store `{{colour_weights}} = {{eval_payload}}.colourWeights` (area-weighted chromatic colours: background area / 1000, area capped at 200 000 px², + 1 per text use + 0.2 per visible border; sorted descending, top 30) and `{{alt_scheme}} = {{eval_payload}}.altScheme` (`null` when the site ships no opposite-scheme rules). Step-05 turns `{{colour_weights}}` into the `assign` candidates; step-05b §A-bis reads `{{alt_scheme}}`.
+
 ### 4.A.3 CORS fallback for cross-origin stylesheets
 
 For each entry in `{{eval_payload}}.sources` that is an object with a `corsBlocked` href:
 
 1. Call `mcp__playwright__browser_network_request({ url: <corsBlocked href>, method: "GET" })`.
-2. On success, append the body text to `{{eval_payload}}.rawCss` (separated by `\n\n`).
+2. On success, append the body text to `{{eval_payload}}.rawCss` (separated by `\n\n`). Also scan that text for `@media (prefers-color-scheme: <altScheme scheme, else the opposite of pageScheme>)` blocks and root-level theme-variant rules (same selectors as the evaluate's `variantRe`), and merge their custom properties / colour declarations into `{{alt_scheme}}` (creating it with `scheme` = the opposite of `pageScheme` if it was `null`).
 3. On per-sheet failure (network error, non-200 status), log "CORS-fallback fetch failed for {href}" and continue to the next blocked sheet. Do NOT abort the run for one failed sheet.
 
 ### 4.A.4 Close the browser
@@ -253,7 +329,10 @@ Concatenate the synthetic `:root` block (from §4.A.6) with `{{eval_payload}}.ra
        "body": { ... },
        "h1": { ... }, ...
      },
-     "sources": [ ... ]
+     "sources": [ ... ],
+     "colourWeights": [ { "hex": "#RRGGBB", "weight": 0 } ],
+     "pageScheme": "light" | "dark",
+     "altScheme": null | { "scheme": "dark" | "light", "customProperties": { ... }, "declarations": [ { "selector": "...", "prop": "...", "value": "..." } ] }
    }
    ```
 4. Write `generated-docs/design-system/.workspace/metadata.json`:
@@ -367,7 +446,7 @@ Persist state to disk for inter-step access:
 
 1. Create the workspace directory: `Bash mkdir -p generated-docs/design-system/.workspace`
 2. Write `generated-docs/design-system/.workspace/css-content.txt` — the full `{{primary_css_content}}`.
-3. **Do NOT write `generated-docs/design-system/.workspace/computed-tokens.json` on this path.** Step-05's rules files detect its absence and use legacy text-pattern matching exclusively.
+3. **Do NOT write `generated-docs/design-system/.workspace/computed-tokens.json` on this path.** Step-05's rules files detect its absence and use legacy text-pattern matching exclusively. There is no `{{colour_weights}}` and no `{{alt_scheme}}` on this path: consumers treat both as absent (step-05 sends `weight: null` candidates; step-05b derives the other mode).
 4. Write `generated-docs/design-system/.workspace/metadata.json`:
    ```json
    {
