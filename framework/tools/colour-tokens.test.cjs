@@ -309,3 +309,20 @@ test('test_assign_requires_mode', () => {
   delete input.mode;
   assert.throws(() => assign(input), TypeError);
 });
+
+test('test_assign_achromatic_brand_chromatic_palette_no_invented_hue', () => {
+  for (const mode of ['light', 'dark']) {
+    const dark = mode === 'dark';
+    const out = assign({
+      candidates: [{ hex: '#1D4ED8', weight: 400 }],
+      picks: { primary: '#1D4ED8', secondary: null, accent: null, brand: '#000000' },
+      neutrals: dark
+        ? { background: '#0E0E12', surface: '#16161C', text: '#F2F2F5', text_muted: '#A0A0AA' }
+        : ABSA().neutrals,
+      mode,
+    });
+    assert.equal(out.monochrome, false);
+    for (const k of ['secondary', 'accent']) assert.ok(hexToOklch(out.roles[k]).C < 0.005, `${mode} ${k} ${out.roles[k]}`);
+  }
+});
+

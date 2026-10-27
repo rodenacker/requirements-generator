@@ -246,7 +246,6 @@ function assign(input) {
   // makes (neutral roles, neutral ladder, on-colour inks) is then pure grey.
   const monochrome = [...cands.map((c) => c.hex), picks.primary, picks.secondary, picks.accent, declaredBrand]
     .filter(Boolean).every((h) => hexToOklch(h).C < NEUTRAL_C);
-  const tint = monochrome ? 0 : 1;
 
   // brand: a declared brand (PDF brand guide) wins outright; otherwise the
   // largest-area chromatic colour (pale tints below the chroma floor never qualify).
@@ -258,6 +257,10 @@ function assign(input) {
   else brand = picks.primary || (chromatic || cands[0]).hex;
   const brandO = hexToOklch(brand);
   const brandH = brandO.H;
+  // Helper-made tints carry the brand's hue only when the brand has one: an
+  // achromatic brand (monochrome palette, or a black / grey declared brand)
+  // gives pure greys, as neutralLadder and onColours do.
+  const tint = brandO.C >= NEUTRAL_C ? 1 : 0;
 
   // Neutral gap-fill: every neutral the references did not give comes from the
   // hue-source ladder; given neutrals are kept exactly.
