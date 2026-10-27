@@ -540,6 +540,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   background: transparent;
   border: 0;
   font-size: 18px;
+  font-family: {{typography.body_family.value}};
   line-height: 1;
   cursor: pointer;
   color: var(--c-text-muted);
@@ -602,6 +603,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   background: transparent;
   border: 0;
   font-size: 16px;
+  font-family: {{typography.body_family.value}};
   line-height: 1;
   cursor: pointer;
   color: var(--c-text-muted);
