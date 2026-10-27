@@ -2,7 +2,7 @@
 
 **Purpose:** This is a reusable instruction block for the two-pass site fetching strategy. The design-system-styler workflow loads this file and applies its instructions to fetch and identify the primary CSS source from a reference website.
 
-**Usage:** Read this file using the Read tool. Apply the instructions within to perform the two-pass fetch on `{{reference_url}}`.
+**Usage:** Read this file using the Read tool. Apply the instructions within to perform the two-pass fetch on `{{url}}` (the URL reference step-04 §4.B is reading — on the WebFetch path, the first URL reference).
 
 Ported from v3 b3-style-extractor verbatim.
 
@@ -10,10 +10,10 @@ Ported from v3 b3-style-extractor verbatim.
 
 ## 1. Pass 1 — Homepage HTML Fetching
 
-Fetch the homepage at the provided `{{reference_url}}` using the WebFetch tool.
+Fetch the homepage at the provided `{{url}}` using the WebFetch tool.
 
 **Request:**
-- URL: `{{reference_url}}`
+- URL: `{{url}}`
 - No additional headers or authentication — only publicly accessible pages are supported
 
 **On success:** Store the complete HTML response. Do NOT attempt to parse CSS at this stage — the goal is only to retrieve the HTML document.
@@ -94,9 +94,9 @@ External stylesheet `href` values may be relative. Resolve them against the **ef
 
 1. Check the HTML for a `<base href="...">` tag in the `<head>` section
 2. If a `<base href>` exists with an absolute URL: use that as the base URL for resolving relative hrefs
-3. If no `<base href>` exists: use the origin of `{{reference_url}}` as the base URL
+3. If no `<base href>` exists: use the origin of `{{url}}` as the base URL
 
-**Origin** = scheme + host from `{{reference_url}}` (e.g., `https://example.com` from `https://example.com/about`).
+**Origin** = scheme + host from `{{url}}` (e.g., `https://example.com` from `https://example.com/about`).
 
 ### Resolution Table
 

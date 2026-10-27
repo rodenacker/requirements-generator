@@ -1,8 +1,8 @@
 # Artifact Generation — Prompt Template
 
-**Purpose:** Reusable instruction block for writing the populated design-system doc — **one file per colour mode** — from `framework/assets/template-design-system.html`. The design-system-styler workflow loads this file after extraction (step-05) and the domain-inference fill + mode selection + cross-mode derivation (step-05b), then applies its instructions once per mode in `{{files_to_write}}` to serialise the in-memory token sets into the structured artefacts.
+**Purpose:** Reusable instruction block for writing the populated design-system doc — **one file per colour mode** — from `framework/assets/template-design-system.html`. The design-system-styler workflow loads this file after extraction and the reference merge (step-05) and the house-default fill + mode selection + cross-mode derivation (step-05b), then applies its instructions once per mode in `{{files_to_write}}` to serialise the in-memory token sets into the structured artefacts.
 
-**Usage:** Read this file using the Read tool. Apply the instructions to the in-memory results: the completed per-mode token sets from step-05b, the per-mode contrast results, `{{extraction_status}}`, the mode state (`{{mode_choice}}`, `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{files_to_write}}`, `{{primary_mode}}`), plus the consultant inputs (`{{domain}}`, `{{reference_url}}`).
+**Usage:** Read this file using the Read tool. Apply the instructions to the in-memory results: the completed per-mode token sets from step-05b, the per-mode contrast results, `{{extraction_status}}`, the mode state (`{{mode_choice}}`, `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{files_to_write}}`, `{{primary_mode}}`), plus the brand references (`{{references}}`, with final statuses, and `{{lead_url}}`).
 
 ---
 
@@ -15,7 +15,7 @@ Each written mode gets its **own complete, single-mode file**:
 
 There is no in-document mode switcher, and no combined file. Which files are written is decided in step-05b: **every mode the consultant asked for, plus the hue-source mode always** (`{{files_to_write}}`). The plain `design-system.html` filename is retired.
 
-The **hue source** is the mode whose palette is grounded in the reference URL — whichever scheme that site actually ships, dark as readily as light — or domain-inferred light when no URL was given. The other mode is **derived** from it per `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md` and is **never presented as extracted**.
+The **hue source** is the mode whose palette is grounded in the brand references — whichever scheme the references' `background` puts it in, dark as readily as light — or light when no reference declared a background (`declared-light`). The other mode is **derived** from it per `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md` and is **never presented as extracted**.
 
 Each file is populated from `framework/assets/template-design-system.html`. It is a self-contained HTML document with two parallel encodings of the same token set:
 
@@ -61,9 +61,7 @@ The `{{TOKENS_JSON}}` placeholder receives a JSON-serialised object with five to
 ```json
 {
   "meta": {
-    "domain": "{{domain}}",
-    "domain_provenance": "{{domain_provenance}}",
-    "reference_url": "{{reference_url_or_null}}",
+    "references": {{references}},
     "extraction_date": "{{extraction_date}}",
     "extraction_status": "{{extraction_status}}",
     "css_source_type": "{{css_source_type_or_null}}",
@@ -81,22 +79,20 @@ The `{{TOKENS_JSON}}` placeholder receives a JSON-serialised object with five to
 }
 ```
 
-- `meta.domain`: the domain string, lowercased and trimmed — set in step-04b (suggested from the fetched page and confirmed, or typed directly when no URL/signals). Drives the Voice synthesis in step-05b.
-- `meta.domain_provenance`: how the domain was chosen — one of `suggested-from-url-accepted` (consultant accepted the page-derived suggestion), `suggested-from-url-overridden` (a suggestion was offered but the consultant picked an alternative or typed their own), or `consultant-typed` (no signals; domain entered via the prose prompt).
-- `meta.reference_url`: the URL the consultant supplied, or `null` if they skipped the URL prompt.
+- `meta.references`: the brand references, in the order the consultant gave them — `[{ "kind": "url" | "pdf", "ref": "<url or documentation/… path>", "status": "used" | "failed — <reason>" | "skipped — <reason>" }]`, copied from `{{references}}` with final statuses. Never empty, and at least one entry is `used` (a run with none stops at `RF-14` before this step).
 - `meta.extraction_date`: ISO date (e.g. `2026-05-04`).
-- `meta.extraction_status`: one of `success | no_url | fetch_failed | no_css | css_fetch_failed | insufficient_data | workspace_read_failed | playwright_unavailable`. Still write the artefact even on non-success — the doc is complete (every unset token domain-inferred in step-05b); the status records *why* the URL path didn't yield extracted values.
+- `meta.extraction_status`: the lead URL's capture — one of `success | not_applicable | fetch_failed | no_css | css_fetch_failed | insufficient_data | workspace_read_failed | playwright_unavailable` (`not_applicable` = no URL references were given). Still write the artefact on any other status when a PDF reference was used — the status records *why* the URL path didn't yield extracted values.
 - `meta.css_source_type`, `meta.css_source_url`: present on the Playwright path, `null` otherwise.
 - `meta.mode`: the colour mode **this file** renders — `light` or `dark`. Must agree with the filename suffix and with the `({{MODE_LABEL}})` text in the `<title>` and H1.
 - `meta.mode_choice`: what the consultant selected at step-05b — one of `light-only | dark-only | both`. The **same value in every written file**, so a reader of one file can tell what was asked for.
-- `meta.hue_source`: which palette is grounded, and how — one of `extracted-light` (the URL shipped a light scheme), `extracted-dark` (the URL shipped a dark scheme), `extracted-both` (the site ships its own other scheme too, so neither file is derived), or `domain-inferred-light` (no URL, or extraction did not complete; the light set came from domain inference). The **same value in every written file**.
+- `meta.hue_source`: which palette is grounded, and how — one of `extracted-light` (the URL shipped a light scheme), `extracted-dark` (the URL shipped a dark scheme), `extracted-both` (the site ships its own other scheme too, so neither file is derived), or `declared-light` (no reference declared a background, so the light palette is the hue source — a default for missing evidence, not "light is authoritative"). The **same value in every written file**.
 - `meta.palette_option`: `"neutral"` or `"site-colour"` when two palettes were offered and the consultant picked one in step-07; `null` when only one palette existed. The **same value in every written file**.
 - `meta.primary`: a JSON **boolean** (not a string). `true` in exactly one written file — **the hue-source mode's file**, because that palette is the one grounded in the real brand; the derived mode is `false`. Derive it as `mode == hue_source_mode`. When only one file is written it is necessarily `true`.
 - `meta.brand_fonts`: the loadable-font contract assembled in step-05b §G — a `families` array of exactly two entries (`heading`, then `body`) plus a deduped `links` array. Emit `{{brand_fonts}}` as the object it already is; **do not rebuild or reorder it**. Its `status` values (`google-native | substituted | unverified`) are an *availability* enum, **not** a third `prov` marker — the `prov` set stays closed at two. Because typography is mode-invariant, this object is byte-identical in both written files. Canonical field definitions: `data/font-availability-rules.md` §6.2.
 
 Note that `meta.mode` varies per file while `mode_choice`, `hue_source` and `brand_fonts` do not; `primary` is the join between them. The five top-level keys (`meta`, `colours`, `typography`, `effects`, `contrast`) are **unchanged** and the token counts are 12 / 15 / 7 (34; `brand` is the 12th colour) — these `meta` fields are purely additive, so existing downstream parsers of the `design-tokens` block keep working.
 
-Each colour / typography / effects entry has the shape `{"hex" | "value": "...", "prov": "extracted-from-url|inferred-from-domain", "source": "..."}`. The full key list is documented in the template's JSON SHAPE comment block.
+Each colour / typography / effects entry has the shape `{"hex" | "value": "...", "prov": "extracted|system-derived", "source": "..."}`. The full key list is documented in the template's JSON SHAPE comment block.
 
 Each contrast pair has the shape `{"ratio": 7.2, "status": "Pass"}`. The `adjustments` key is a string (`"none"` or the comma-separated record).
 
@@ -112,9 +108,9 @@ Pick one variant:
 
 | Condition | Attribution HTML |
 | --- | --- |
-| `extraction_status = success`, `reference_url` set | `Tokens extracted from <a href="{{reference_url}}">{{reference_url}}</a>. Status colours and any unset tokens are inferred per-run from the <code>{{domain}}</code> string.` |
-| `reference_url` is null (consultant skipped) | `Tokens inferred per-run from <code>{{domain}}</code> — no reference URL was provided.` |
-| Any other non-success status (fetch_failed, no_css, css_fetch_failed, insufficient_data, workspace_read_failed, playwright_unavailable) | `Tokens inferred per-run from <code>{{domain}}</code>. URL extraction was attempted from <a href="{{reference_url}}">{{reference_url}}</a> but did not complete: {{extraction_status}}.` |
+| At least one reference `used` | `Brand colours and fonts extracted from {{used-references}}. Sizes, line heights, shadows, motion and the status colours are system-derived house defaults for internal data-management tools; any colour the references did not give is system-derived by the colour helper.` — `{{used-references}}` lists every `used` reference in order: a URL as `<a href="<url>"><url></a>`, a PDF as `<code><file>.pdf</code>` (brand guide), joined with commas. |
+
+Then, when any reference failed or was skipped, append `<br>Not used: <ref> (<status>)` for each, comma-separated.
 
 ### 4.2 Mode clause
 
@@ -130,7 +126,7 @@ The derived file **must never** imply its colours were read from the URL. When `
 
 ### 4.3 Standing reminder
 
-Always end the attribution with: `<br><br>Every token below carries a provenance marker — <code>extracted-from-url</code> if the value was found in the fetched CSS, <code>inferred-from-domain</code> if it was inferred per-run from the <code>{{domain}}</code> string or derived from the other mode. Review before proceeding.`
+Always end the attribution with: `<br><br>Every token below carries a provenance marker — <code>extracted</code> if the value was found in a brand reference (a page's CSS or a PDF brand guide), <code>system-derived</code> if a fixed rule produced it (house default, colour helper, or derivation from the other mode). Review before proceeding.`
 
 ---
 
@@ -138,25 +134,25 @@ Always end the attribution with: `<br><br>Every token below carries a provenance
 
 For every token in the doc:
 
-- If the in-memory token came from step-05 (CSS extraction), tag it `extracted-from-url`. JSON `source` = the CSS selector or custom-property name the value came from.
-- If the in-memory token came from step-05b (domain-inference fill), tag it `inferred-from-domain`. JSON `source` = `domain-inference ({{domain}})`.
-- If the token was **gap-filled on a dark-extracted run** (step-05b §B converted a domain-inferred light value to dark), tag it `inferred-from-domain`. JSON `source` = `domain-inference ({{domain}}) → dark variant`.
-- If the token is a **cross-mode derived** colour or shadow in the derived file (step-05b §F), tag it `inferred-from-domain`. JSON `source` = `derived: <target-mode> variant of <source-mode> <token> (<source-hex>)` — e.g. `derived: light variant of dark primary (#7AA2F7)`.
+- If the in-memory token came from a brand reference (step-05), tag it `extracted`. JSON `source` = the reference: `<url> <selector or custom property>` for a page, `<file>.pdf p.N: "<as written>"` for a PDF brand guide.
+- If a fixed rule produced it (step-05b), tag it `system-derived`. JSON `source` = the rule: `house default` (sizes, line heights, shadows, motion), `HOUSE_STATUS` (status colours), `neutral ladder` (a neutral the references did not give), `cascade fallback — <decisions line>` (a helper-filled role), or `interim font fallback`.
+- If the token is a **cross-mode derived** colour or shadow in the derived file (step-05b §F), tag it `system-derived`. JSON `source` = `derived: <target-mode> variant of <source-mode> <token> (<source-hex>)` — e.g. `derived: light variant of dark primary (#7AA2F7)`.
 - The derived file's **19 shared tokens** (15 typography + 3 transitions + easing) keep the hue-source file's markers and source strings **verbatim** — they were not re-derived, so their provenance does not change.
-- Never leave a `prov` value empty. **Never invent a third marker** — a derived value is `inferred-from-domain`, because it was not read from the URL. There is no `derived-from-mode` marker and no `consultant-specified` marker; the `source` string carries the detail, the marker set stays at two.
-- For status colours (success/warning/error/info), `prov` is **always** `inferred-from-domain` — they are the helper's fixed house set, never extracted.
-- `brand` keeps the `prov` / `source` step-05b §C gave it (`extracted-from-url`, area-weighted capture) in **both** files — it is mode-invariant, so the other-mode file copies it verbatim rather than tagging it `derived:`.
-- Every visual snippet that surfaces a token also carries a matching `<span class="prov prov-{{prov-slug}}">{{prov}}</span>` element. The prov-slug equals the prov value verbatim; it's used directly as a CSS class suffix (the template defines `.prov-extracted-from-url` and `.prov-inferred-from-domain`).
+- Never leave a `prov` value empty. **Never invent a third marker** — a derived value is `system-derived`, because it was not read from a reference. There is no `derived-from-mode` marker and no `consultant-specified` marker; the `source` string carries the detail, the marker set stays at two.
+- For status colours (success/warning/error/info), `prov` is **always** `system-derived` (`source: HOUSE_STATUS`) — they are the helper's fixed house set, never extracted.
+- `brand` keeps the `prov` / `source` step-05b §C gave it (`extracted` — a PDF's declared brand, or the lead URL's area-weighted capture) in **both** files — it is mode-invariant, so the other-mode file copies it verbatim rather than tagging it `derived:`.
+- Every visual snippet that surfaces a token also carries a matching `<span class="prov prov-{{prov-slug}}">{{prov}}</span>` element. The prov-slug equals the prov value verbatim; it's used directly as a CSS class suffix (the template defines `.prov-extracted` and `.prov-system-derived`).
 
 Source-context examples (used in the visual snippets and in the JSON `source` field):
 
 - `--brand-primary in :root` (CSS custom property)
 - `.btn background-color` (class declaration)
 - `body color` (element selector)
-- `colour-tokens.cjs assign — secondary = #605150: brand-tinted neutral` (a helper fallback; tag `inferred-from-domain`)
-- `domain-inference (retail-banking)` (per-run inference)
-- `domain-inference (legal services SaaS)` (per-run inference; free-text)
-- `domain-inference (retail-banking) → dark variant` (inferred light, converted for a dark-extracted run)
+- `brand-guide.pdf p.4: "RGB 202 43 61"` (a PDF brand guide's declared colour; tag `extracted`)
+- `cascade fallback — secondary = #605150: brand-tinted neutral` (a helper fallback; tag `system-derived`)
+- `house default` (sizes, line heights, shadows, motion; tag `system-derived`)
+- `neutral ladder` (a neutral no reference gave; tag `system-derived`)
+- `HOUSE_STATUS` (status colours; tag `system-derived`)
 - `derived: dark variant of light background (#FFFFFF)` (cross-mode derivation)
 - `derived: light variant of dark shadow_md (0 4px 6px rgba(0,0,0,0.32))` (cross-mode derivation)
 

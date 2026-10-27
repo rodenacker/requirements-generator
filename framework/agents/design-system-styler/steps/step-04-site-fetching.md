@@ -1,6 +1,6 @@
 ---
 name: step-04-site-fetching
-description: 'Playwright-driven site fetching: resize → navigate → settle → aggregate stylesheets + computed :root + sample elements. Falls back to two-pass WebFetch only when the consultant elects it at the preflight prompt. Skipped entirely when reference_url is null.'
+description: 'Playwright-driven site fetching for each URL reference: resize → navigate → settle (login-page check) → aggregate stylesheets + computed :root + sample elements. Falls back to two-pass WebFetch only when the consultant elects it at the preflight prompt. Skipped entirely when there are no URL references.'
 # Variables referenced (inherited from agent):
 # workspace_path: 'generated-docs/design-system/.workspace'
 # Variables read for the WebFetch fallback path only:
@@ -10,15 +10,22 @@ description: 'Playwright-driven site fetching: resize → navigate → settle �
 
 # Step 4: Site Fetching (Playwright-preferred, WebFetch fallback)
 
-**Skip condition:** if `{{reference_url}}` is null (consultant skipped the URL prompt in step-02), do not run any sub-step here. Set `{{business_signals}} = null` and skip directly to `step-04b-domain.md` with `{{extraction_status}} = "no_url"`. No preflight, no Playwright invocation. (step-04b will collect the domain via its prose-prompt branch.)
+**Skip condition:** if `{{reference_urls}}` is empty (no URL references), do not run any sub-step here. Set `{{extraction_status}} = "not_applicable"` and skip directly to `step-04b-pdf-references.md`. No preflight, no Playwright invocation.
 
-**Domain note:** the domain is no longer collected before this step. This step captures `{{business_signals}}` from the same fetch that grabs the CSS, so step-04b can *suggest* the domain. **Every exit from this step routes to `step-04b-domain.md`** (not `step-05b`) — except the RF-06 *Install* branch below, which aborts the run. On any path that does not capture page signals (failure, non-HTML, drop-URL), set `{{business_signals}} = null` so step-04b falls back to asking for the domain directly.
+**One URL at a time, in order.** Run §4.A once per entry of `{{reference_urls}}`, in the order the consultant gave them:
+
+- **The lead URL** is the first URL whose capture succeeds. It does the **full capture** (§4.A.1–§4.A.9), unchanged: `css-content.txt`, `computed-tokens.json`, `metadata.json`. Its page sets the scheme and the neutrals, and it is the only source of `{{alt_scheme}}`. Set `{{lead_url}}` to it.
+- **Every later URL** (once a lead exists) does the **lean capture**: §4.A.1, then the §4.A.2 evaluate unchanged, keeping only its `colourWeights` and `sampleElements` (font data), written to `generated-docs/design-system/.workspace/computed-tokens-<n>.json` (`<n>` = the URL's 1-based position in `{{reference_urls}}`; plain `Write`, workspace scratch). No CORS fallback, no `:root` synthesis, no `css-content.txt`. Close the browser (§4.A.4).
+- **A failed URL** sets that reference's `status` to `failed — <reason>` (one line naming it) and the loop continues with the next URL. A failure never ends the run here: step-05's reference gate decides whether anything usable is left.
+- Set the reference's `status` to `used` when its capture succeeds.
+
+`{{extraction_status}}` describes the lead URL's capture; if no URL captured, it is the first URL's failure status. **Every exit from this step routes to `step-04b-pdf-references.md`** — except the RF-06 *Install* branch below, which aborts the run.
 
 ---
 
 ## 4.0 Preflight: Confirm Playwright MCP is available
 
-When `{{reference_url}}` is non-null, before any navigation, run the preflight skill:
+When `{{reference_urls}}` is non-empty, before any navigation, run the preflight skill (once per run, not per URL):
 
 ```
 Read tool: framework/skills/preflight-mcp.md
@@ -32,25 +39,25 @@ Apply the skill's procedure with the following inputs:
 
 **If the skill returns `ok`:** advance to §4.A (Playwright path).
 
-**If the skill returns `RF-06 trigger`:** surface the predicate per `framework/shared/refusal-registry.md > RF-06 style_extraction_dependency_missing`. Use `AskUserQuestion` with three options. The question text must include the path `framework/shared/setup-instructions/playwright.md` and the verbatim fidelity warning for option B.
+**If the skill returns `RF-06 trigger`:** surface the predicate per `framework/shared/refusal-registry.md > RF-06 style_extraction_dependency_missing`. Use `AskUserQuestion` with three options — two when no PDF reference exists (*Continue without URLs* is offered **only** when `{{reference_pdfs}}` is non-empty). The question text must include the path `framework/shared/setup-instructions/playwright.md` and the verbatim fidelity warning for the WebFetch option.
 
 | Option header | Label                                  | Description (shown to consultant)                                                                                                                                                                                                                                                                                  |
 | ------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Install       | Install Playwright and retry           | Highest fidelity. Stop now, install per `framework/shared/setup-instructions/playwright.md`, then re-run `/design-system`. The agent will exit cleanly after this prompt.                                                                                                                                          |
-| WebFetch      | Use WebFetch instead (degraded fidelity) | WebFetch returns LLM-summarised content rather than raw CSS. Exact hex codes, custom properties, and computed font/shadow values are typically lost. Brand-token extraction will be lower fidelity than Playwright; many tokens may end up `inferred-from-domain` instead of `extracted-from-url`.                  |
-| Drop URL      | Drop the URL and infer from the domain   | Most predictable. The run proceeds without any URL extraction; every token is inferred per-run from `{{domain}}` and tagged `inferred-from-domain`.                                                                                                                                                                |
+| WebFetch      | Use WebFetch instead (degraded fidelity) | WebFetch returns LLM-summarised content rather than raw CSS. Exact hex codes, custom properties, and computed font values are typically lost, and only the first URL is read. Brand-colour extraction will be lower fidelity than Playwright; more colours may end up `system-derived` (helper fallbacks) instead of `extracted`. |
+| Continue      | Continue without URLs                    | Only when a PDF brand guide was also given. Every URL reference is skipped; the run uses the PDF reference(s) only. |
 
 **Branch on the consultant's selection:**
 
-- **Install** → emit a single-line handback note pointing at `framework/shared/setup-instructions/playwright.md`, set `{{extraction_status}} = "playwright_unavailable"` in agent memory, and exit step-04 by terminating the agent run cleanly. Do NOT advance to step-05 or step-05b on this branch — the consultant must install and re-run.
-- **WebFetch** → set `{{extraction_method}} = "webfetch-fallback"` in agent memory and advance to §4.B (WebFetch fallback path).
-- **Drop URL** → set `{{reference_url}} = null`, set `{{business_signals}} = null`, set `{{extraction_status}} = "playwright_unavailable"`, and skip to `step-04b-domain.md` (which will ask for the domain directly).
+- **Install** (`install-and-retry`) → emit a single-line handback note pointing at `framework/shared/setup-instructions/playwright.md`, set `{{extraction_status}} = "playwright_unavailable"` in agent memory, and exit step-04 by terminating the agent run cleanly. Do NOT advance to step-05 or step-05b on this branch — the consultant must install and re-run.
+- **WebFetch** (`use-webfetch-fallback`) → set `{{extraction_method}} = "webfetch-fallback"` in agent memory and advance to §4.B (WebFetch fallback path).
+- **Continue** (`continue-without-urls`) → mark every URL reference `skipped — Playwright unavailable`, set `{{extraction_status}} = "playwright_unavailable"`, and skip to `step-04b-pdf-references.md`.
 
 ---
 
 ## 4.A Playwright path (preferred)
 
-Reached when preflight returned `ok`. Sets `{{extraction_method}} = "playwright"` in agent memory.
+Reached when preflight returned `ok`. Sets `{{extraction_method}} = "playwright"` in agent memory. Below, `{{url}}` is the URL being captured in this pass of the loop.
 
 ### 4.A.1 Pass 1 — Navigate with desktop viewport and settling wait
 
@@ -60,30 +67,33 @@ Reached when preflight returned `ok`. Sets `{{extraction_method}} = "playwright"
    ```
 2. Navigate:
    ```
-   mcp__playwright__browser_navigate({ url: "{{reference_url}}" })
+   mcp__playwright__browser_navigate({ url: "{{url}}" })
    ```
-3. Settle for late-loading styles (CSS-in-JS injection — styled-components, emotion, vanilla-extract, etc.) and return an HTML-validity flag in the **same** call (no separate HTML capture — the full `outerHTML` is never consumed on the Playwright path):
+3. Settle for late-loading styles (CSS-in-JS injection — styled-components, emotion, vanilla-extract, etc.) and return an HTML-validity flag and the login-page signals in the **same** call (no separate HTML capture — the full `outerHTML` is never consumed on the Playwright path):
    ```
    mcp__playwright__browser_evaluate({
-     function: "async () => { await document.fonts.ready; await new Promise(r => setTimeout(r, 1500)); return { settled: true, isHtmlDoc: !!document.querySelector('html') || !!document.querySelector('head') || !!document.doctype }; }"
+     function: "async () => { await document.fonts.ready; await new Promise(r => setTimeout(r, 1500)); const pw = Array.from(document.querySelectorAll('input[type=password]')).some(el => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; }); return { settled: true, isHtmlDoc: !!document.querySelector('html') || !!document.querySelector('head') || !!document.doctype, finalHost: location.host, visiblePassword: pw }; }"
    })
    ```
-   Store the returned `isHtmlDoc` flag.
+   Store the returned `isHtmlDoc`, `finalHost` and `visiblePassword`.
+
+**Login-page check (before anything is captured):** the reference is a login page when `finalHost` differs from the requested URL's host (compare lower-cased, ignoring a leading `www.`) **or** `visiblePassword` is true. Then:
+
+- Log one line: *"`{{url}}` is a login page (`<finalHost>`), not the brand. Skipping it; for a guide behind a login, add its PDF."*
+- Set this reference's `status` to `failed — login page`. Never extract an identity provider's login page as the brand.
+- Close the browser (`mcp__playwright__browser_close()`) and continue with the next URL.
 
 **Validation:** if the returned `isHtmlDoc` flag is false (the live DOM has no `<html>` / `<head>` / doctype — e.g. JSON, plain text, binary):
 
-- Log: "Fetched content from {{reference_url}} is not HTML (likely an API endpoint or non-web-page URL)"
-- Set `{{extraction_status}} = "fetch_failed"`
-- Set `{{extraction_error}} = "Response is not an HTML page"`
-- Set `{{business_signals}} = null` (no usable page signals were captured).
-- Close the browser (`mcp__playwright__browser_close()`) and skip to `step-04b-domain.md`.
+- Log: "Fetched content from {{url}} is not HTML (likely an API endpoint or non-web-page URL)"
+- Set `{{extraction_status}} = "fetch_failed"` (lead attempt only) and `{{extraction_error}} = "Response is not an HTML page"`; set this reference's `status` to `failed — not an HTML page`.
+- Close the browser (`mcp__playwright__browser_close()`) and continue with the next URL.
 
 **On any navigation/evaluate error** (timeout, DNS failure, HTTP 4xx/5xx surfaced by Playwright):
 
-- Log: "Playwright failed to load {{reference_url}}: {error_description}"
-- Set `{{extraction_status}} = "fetch_failed"` and `{{extraction_error}} = "{error_description}"`
-- Set `{{business_signals}} = null`.
-- Close the browser if it is still open. Skip to `step-04b-domain.md`.
+- Log: "Playwright failed to load {{url}}: {error_description}"
+- Set `{{extraction_status}} = "fetch_failed"` (lead attempt only) and `{{extraction_error}} = "{error_description}"`; set this reference's `status` to `failed — could not load (<error_description>)`.
+- Close the browser if it is still open, and continue with the next URL.
 
 ### 4.A.2 Pass 2 — Aggregate stylesheets and computed tokens
 
@@ -126,28 +136,6 @@ mcp__playwright__browser_evaluate({
           transitionDuration: cs.transitionDuration,
           transitionTimingFunction: cs.transitionTimingFunction
         };
-      };
-
-      // Business signals — harvested in the SAME session so step-04b can suggest
-      // the domain with no second fetch. Cheap DOM reads; piggyback on this evaluate.
-      const meta = (sel) => {
-        const m = document.querySelector(sel);
-        return m ? (m.getAttribute("content") || "").trim() || null : null;
-      };
-      const h1El = document.querySelector("h1");
-      const businessSignals = {
-        title: (document.title || "").trim() || null,
-        metaDescription: meta('meta[name="description"]'),
-        ogSiteName: meta('meta[property="og:site_name"]'),
-        ogTitle: meta('meta[property="og:title"]'),
-        ogType: meta('meta[property="og:type"]'),
-        ogDescription: meta('meta[property="og:description"]'),
-        h1: h1El ? (h1El.textContent || "").trim() || null : null,
-        nav: Array.from(document.querySelectorAll("header nav a, nav a"))
-          .map(a => (a.textContent || "").trim()).filter(Boolean).slice(0, 20),
-        jsonLd: Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
-          .map(s => { try { return JSON.parse(s.textContent); } catch (e) { return null; } })
-          .filter(Boolean).slice(0, 5)
       };
 
       // Colour area weights — which chromatic colours the page actually shows,
@@ -233,7 +221,6 @@ mcp__playwright__browser_evaluate({
           button: sample('button, .btn, [role="button"]'),
           input: sample("input, textarea, select")
         },
-        businessSignals,
         colourWeights,
         pageScheme,
         altScheme
@@ -243,7 +230,7 @@ mcp__playwright__browser_evaluate({
 })
 ```
 
-Store the result as `{{eval_payload}}`. Also store `{{business_signals}} = {{eval_payload}}.businessSignals` — step-04b reads it to suggest the domain. (If every field of `businessSignals` is null/empty, treat `{{business_signals}}` as null so step-04b falls back to the prose prompt.)
+Store the result as `{{eval_payload}}`. **Lean capture** (a URL after the lead): write `{ "colourWeights": …, "sampleElements": … }` from it to `computed-tokens-<n>.json`, set the reference's `status` to `used`, skip to §4.A.4 (close the browser), and continue with the next URL.
 
 Also store `{{colour_weights}} = {{eval_payload}}.colourWeights` (area-weighted chromatic colours: background area / 1000, area capped at 200 000 px², + 1 per text use + 0.2 per visible border; sorted descending, top 30) and `{{alt_scheme}} = {{eval_payload}}.altScheme` (`null` when the site ships no opposite-scheme rules). Step-05 turns `{{colour_weights}}` into the `assign` candidates; step-05b §A-bis reads `{{alt_scheme}}`.
 
@@ -304,9 +291,9 @@ If **all** of the following are true:
 
 then:
 
-- Log: "No identifiable CSS content captured from {{reference_url}}"
-- Set `{{extraction_status}} = "no_css"`
-- Skip to `step-04b-domain.md`. (The browser is already closed. `{{business_signals}}` captured in §4.A.2 is preserved — step-04b can still suggest the domain even though no CSS was found.)
+- Log: "No identifiable CSS content captured from {{url}}"
+- Set `{{extraction_status}} = "no_css"` and this reference's `status` to `failed — no CSS captured`.
+- Continue with the next URL (the browser is already closed).
 
 ### 4.A.8 Content size management
 
@@ -340,9 +327,9 @@ Concatenate the synthetic `:root` block (from §4.A.6) with `{{eval_payload}}.ra
    {
      "extraction_method": "playwright",
      "css_source_type": "browser-aggregate",
-     "css_source_url": "{{reference_url}}",
+     "css_source_url": "{{url}}",
      "stylesheet_sources": [ ... ],
-     "reference_url": "{{reference_url}}"
+     "lead_url": "{{url}}"
    }
    ```
 
@@ -352,7 +339,8 @@ Store the final results in agent memory:
 - `{{custom_properties}}` — filtered brand custom properties (resolved values).
 - `{{sample_elements}}` — computed styles for body / h1–h6 / link / button / input.
 - `{{css_source_type}}` — `"browser-aggregate"`.
-- `{{css_source_url}}` — `{{reference_url}}` (the homepage URL, since stylesheets are aggregated).
+- `{{css_source_url}}` — `{{url}}` (the page URL, since stylesheets are aggregated).
+- `{{lead_url}}` — `{{url}}`; this reference's `status` = `used`. Every later URL does the lean capture.
 
 **Note:** Do not set `{{extraction_status}}` to `"success"` here — it is set by step-05 after extraction completes. Setting it prematurely could mask downstream extraction failures.
 
@@ -360,7 +348,7 @@ Store the final results in agent memory:
 
 ## 4.B WebFetch fallback path (degraded fidelity)
 
-Reached only when the consultant explicitly selected option **B (Use WebFetch instead)** at the §4.0 preflight prompt. Sets `{{extraction_method}} = "webfetch-fallback"` and proceeds with the legacy two-pass WebFetch logic. **Do not write `computed-tokens.json` on this path** — the rules files in `framework/agents/design-system-styler/data/` detect its absence and use legacy text-pattern matching against `{{primary_css_content}}` only.
+Reached only when the consultant explicitly selected **Use WebFetch instead** at the §4.0 preflight prompt. Sets `{{extraction_method}} = "webfetch-fallback"` and proceeds with the legacy two-pass WebFetch logic. **One URL only:** WebFetch reads the first URL in `{{reference_urls}}` (`{{url}}` below); it yields no area data to pool, so every later URL is marked `skipped — WebFetch fallback reads the first URL only`. A first URL that fails here is marked `failed — <reason>` and the run continues to step-04b. WebFetch cannot see a password field reliably: a summary that describes a sign-in / login page is treated as `failed — login page`. **Do not write `computed-tokens.json` on this path** — the rules files in `framework/agents/design-system-styler/data/` detect its absence and use legacy text-pattern matching against `{{primary_css_content}}` only.
 
 Read the site-fetching prompt template before executing:
 
@@ -372,26 +360,20 @@ Apply its instructions to perform the two-pass fetch.
 
 ### 4.B.1 Pass 1: Fetch Homepage HTML
 
-1. Use WebFetch to retrieve the homepage at `{{reference_url}}`.
+1. Use WebFetch to retrieve the page at `{{url}}`.
 2. Store the full HTML response as `{{homepage_html}}`.
 
 **If WebFetch fails (network error, timeout, HTTP 4xx/5xx):**
 
 - Log: "Failed to fetch homepage: {error_description}"
-- Set `{{extraction_status}} = "fetch_failed"`
-- Set `{{extraction_error}} = "{error_description}"`
-- Set `{{business_signals}} = null`.
-- Skip to `step-04b-domain.md`. Do NOT halt.
+- Set `{{extraction_status}} = "fetch_failed"`, `{{extraction_error}} = "{error_description}"`, and the reference's `status` to `failed — could not load (<error_description>)`.
+- Skip to `step-04b-pdf-references.md`. Do NOT halt.
 
 **If WebFetch succeeds:** Verify the response is HTML by checking that the content contains `<html`, `<!doctype`, or `<head` (case-insensitive). If not HTML (e.g., JSON, plain text, binary):
 
-- Log: "Fetched content from {{reference_url}} is not HTML (likely an API endpoint or non-web-page URL)"
-- Set `{{extraction_status}} = "fetch_failed"`
-- Set `{{extraction_error}} = "Response is not an HTML page"`
-- Set `{{business_signals}} = null`.
-- Skip to `step-04b-domain.md`.
-
-**If the response is HTML:** capture business signals for step-04b's domain suggestion. WebFetch returns LLM-summarised content rather than raw markup, so set `{{business_signals}}` to that summarised description of what the site/company is (a single free-text blob; `domain-suggestion.md` handles this shape). If the summary is empty or uninformative, set `{{business_signals}} = null`.
+- Log: "Fetched content from {{url}} is not HTML (likely an API endpoint or non-web-page URL)"
+- Set `{{extraction_status}} = "fetch_failed"`, `{{extraction_error}} = "Response is not an HTML page"`, and the reference's `status` to `failed — not an HTML page`.
+- Skip to `step-04b-pdf-references.md`.
 
 ### 4.B.2 CSS Source Identification
 
@@ -410,8 +392,8 @@ Apply its classification rules to `{{homepage_html}}`:
 **If no CSS sources found:**
 
 - Log: "No identifiable CSS sources in homepage HTML"
-- Set `{{extraction_status}} = "no_css"`
-- Skip to `step-04b-domain.md`. (`{{business_signals}}` captured above is preserved — the domain can still be suggested.)
+- Set `{{extraction_status}} = "no_css"` and the reference's `status` to `failed — no CSS captured`.
+- Skip to `step-04b-pdf-references.md`.
 
 **If CSS sources found:** Select the primary source per the prompt template heuristics and store as `{{primary_css_source}}` with `{{css_source_type}}` (`"external"` or `"inline"`).
 
@@ -427,7 +409,7 @@ Apply its classification rules to `{{homepage_html}}`:
 
 - Check if an inline `<style>` block exists as fallback.
 - If fallback available: use the largest inline `<style>` block as `{{primary_css_content}}`; log "External stylesheet fetch failed, using inline style fallback".
-- If no fallback: set `{{extraction_status}} = "css_fetch_failed"`, skip to `step-04b-domain.md`. (`{{business_signals}}` is preserved.)
+- If no fallback: set `{{extraction_status}} = "css_fetch_failed"` and the reference's `status` to `failed — stylesheet fetch failed`, and skip to `step-04b-pdf-references.md`.
 
 **If `{{primary_css_source}}` is inline:**
 
@@ -453,7 +435,7 @@ Persist state to disk for inter-step access:
        "extraction_method": "webfetch-fallback",
        "css_source_type": "{{css_source_type}}",
        "css_source_url": "{{css_source_url}}",
-       "reference_url": "{{reference_url}}"
+       "lead_url": "{{url}}"
    }
    ```
 
@@ -463,7 +445,8 @@ Store the final results in agent memory:
 - `{{primary_css_content}}` — Primary CSS content
 - `{{css_source_type}}` — `"external"` or `"inline"`
 - `{{css_source_url}}` — URL of the stylesheet (if external) or `"inline"`
+- `{{lead_url}}` — `{{url}}`; the reference's `status` = `used`.
 
 ---
 
-**Next:** Read fully and follow `step-04b-domain.md` (set the domain — suggested from `{{business_signals}}` when present). Step-04b then proceeds to `step-05-brand-extraction.md`.
+**Next:** Read fully and follow `step-04b-pdf-references.md` (reads any PDF brand guides; with none it passes straight through). Step-04b then proceeds to `step-05-brand-extraction.md`.

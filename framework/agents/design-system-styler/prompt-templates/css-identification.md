@@ -52,7 +52,7 @@ Note: No external stylesheets found; using inline styles for brand analysis
 **Action:**
 - Set `{{extraction_status}}` = `"no_css"`
 - Log the diagnostic output below
-- Skip URL extraction; route every token through step-05b (domain-inference)
+- Skip URL extraction; this URL reference is `failed — no CSS captured`
 
 **Diagnostic output:**
 ```
@@ -61,32 +61,26 @@ HTML size: {{html_size}} characters
 Analysis: Homepage contains no identifiable CSS sources
   - External stylesheets (<link rel="stylesheet">): 0
   - Inline style blocks (<style>): 0
-Impact: All tokens will be inferred per-run from `{{domain}}`.
+Impact: This URL is a failed reference; the other references are still used (none usable → RF-14).
 ```
 
 ---
 
 ## 2. Graceful Exit Conditions
 
-The styler never halts. These are the exit conditions that bypass CSS fetching and route every token through step-05b for domain-inference:
-
-### Exit: No Reference URL
-
-**Trigger:** Consultant skipped the URL prompt in step-02.
-**Status:** `extraction_status: "no_url"`
-**Log message:** "No reference site URL provided. Inferring every token per-run from `{{domain}}`."
+None of these halts the run. Each marks this URL reference failed and continues with the other references (step-05's reference gate raises `RF-14` when none is usable):
 
 ### Exit: Homepage Fetch Failed
 
 **Trigger:** WebFetch for the homepage returned an error (network, timeout, HTTP error).
 **Status:** `extraction_status: "fetch_failed"`
-**Log message:** "Failed to fetch homepage at {{reference_url}}: {{error_description}}"
+**Log message:** "Failed to fetch homepage at {{url}}: {{error_description}}"
 
 ### Exit: No CSS Sources
 
 **Trigger:** Category C classification — homepage has no CSS.
 **Status:** `extraction_status: "no_css"`
-**Log message:** "Homepage at {{reference_url}} contains no identifiable CSS sources."
+**Log message:** "Homepage at {{url}} contains no identifiable CSS sources."
 
 ### Exit: Stylesheet Fetch Failed (No Fallback)
 
@@ -105,7 +99,7 @@ Every execution of the CSS identification step produces a diagnostic summary, re
 ```
 STYLER CSS IDENTIFICATION
 ─────────────────────────
-Reference URL: {{reference_url}}
+Reference URL: {{url}}
 Homepage fetch: ✓ ({{html_size}} chars)
 External stylesheets found: {{external_count}}
   Excluded (framework/CDN): {{excluded_count}}
@@ -122,12 +116,12 @@ Extraction status: success
 ```
 STYLER CSS IDENTIFICATION
 ─────────────────────────
-Reference URL: {{reference_url}}
+Reference URL: {{url}}
 Homepage fetch: {{✓ | ✗}} {{error_if_failed}}
 External stylesheets found: {{external_count}}
 Inline style blocks found: {{inline_count}}
 Primary CSS source: none
 Extraction status: {{extraction_status}}
 Reason: {{extraction_error}}
-Impact: All tokens will be inferred per-run from `{{domain}}`.
+Impact: This URL is a failed reference; the other references are still used (none usable → RF-14).
 ```

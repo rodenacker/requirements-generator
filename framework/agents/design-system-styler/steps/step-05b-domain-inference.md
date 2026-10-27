@@ -22,23 +22,23 @@ Read both in a single batched message — neither depends on the other:
 
 ## A-bis. Detect the Extracted Scheme
 
-Before filling anything, classify what step-05 actually extracted. Apply the **Scheme Detection** rule in `framework/agents/design-system-styler/data/contrast-validation.md` (relative luminance of the `background` token; `>= 0.5` → `light`, `< 0.5` → `dark`). Do not restate the math — cite that subsection.
+Before filling anything, classify the merged `background` step-05 §7 wrote into `assign-in.json` → `neutrals.background` (the first PDF that declares a background, else the lead URL's). Apply the **Scheme Detection** rule in `framework/agents/design-system-styler/data/contrast-validation.md` (relative luminance of the `background` token; `>= 0.5` → `light`, `< 0.5` → `dark`). Do not restate the math — cite that subsection.
 
 Set:
 
 - `{{extracted_scheme}}` — `light` or `dark`.
-  - If `background` was extracted, classify it as above.
-  - If `{{reference_url}}` was null, or `{{extraction_status}}` is anything other than `"success"`, or `background` is unset → `light`. The domain-inference contract is light-anchored by construction, so an all-inferred set is a light set.
+  - If `background` is non-null, classify it as above.
+  - If no reference gave a `background` → `light`. This is a default for missing evidence, **not** "light is authoritative": an extracted dark `background` still makes dark the hue source.
 - `{{hue_source_mode}}` = `{{extracted_scheme}}`. This is the mode whose palette is grounded; it is the seed for any derivation and it will carry `meta.primary: true`.
-- `{{hue_source}}` (the JSON `meta` field) — `extracted-light` | `extracted-dark` | `extracted-both` | `domain-inferred-light` (`extracted-both` is set by §A-bis.1 when the site ships its own other scheme):
-  - `background` came from CSS and classified `light` → `extracted-light`
-  - `background` came from CSS and classified `dark` → `extracted-dark`
-  - no URL / non-success extraction → `domain-inferred-light`
+- `{{hue_source}}` (the JSON `meta` field) — `extracted-light` | `extracted-dark` | `extracted-both` | `declared-light` (`extracted-both` is set by §A-bis.1 when the site ships its own other scheme):
+  - `background` given and classified `light` → `extracted-light`
+  - `background` given and classified `dark` → `extracted-dark`
+  - no `background` in any reference → `declared-light`
 
 Output one short Unicorn-voice line so the consultant can see what was found before being asked anything:
 
 - extracted: *"Extracted palette is **`{{extracted_scheme}}`** (background `{{background_hex}}`). That's the hue source for this run."*
-- inferred: *"No extracted palette — inferring a light set from `{{domain}}`."*
+- declared-light: *"No background colour in the references; the light palette is the hue source."*
 
 **Do not "normalise" a dark extraction toward light.** A dark result here is correct, not a defect.
 
@@ -53,8 +53,6 @@ If step-04 captured `{{alt_scheme}}` (non-null, Playwright path only) and its `s
 Otherwise `{{other_mode_extracted}} = false` and the other mode, if requested, is derived in §F.
 
 ## B. Fill Loop
-
-**No `assign-in.json`** (no URL, or any non-success extraction path) → skip this loop and go straight to §C, which halts. *(Interim: until references replace the domain, `/design-system` needs a URL that extracts.)*
 
 Fill every non-colour token. Colours (all 12, neutrals included) are §C's: the helper owns them.
 
@@ -73,10 +71,10 @@ An **extracted** family keeps whatever record step-05 §4b already produced, inc
 
 ## C. Brand Roles and Status Colours (house set) — via the helper
 
-**Ordering (fixed):** step-05 wrote `generated-docs/design-system/.workspace/assign-in.json` with the candidates and picks; §B above completed the neutrals; this section runs the helper. Nothing else assigns `primary`, `secondary`, `accent`, `brand` or the status colours.
+**Ordering (fixed):** step-05 §7 wrote `generated-docs/design-system/.workspace/assign-in.json` with the merged candidates, picks and neutrals (it raised `RF-14` instead when no reference was usable, so the file always exists here); this section runs the helper. Nothing else assigns `primary`, `secondary`, `accent`, `brand` or the status colours.
 
-1. **No `assign-in.json`** (no URL / failed extraction / insufficient data) → **halt** with exactly one line: *"No extracted palette. Until references replace the domain, `/design-system` needs a URL that extracts."* End the run (no files written; clean up `.workspace/` per step-07 §C). *(Interim halt — replaced by the domain-removal plan's reference-required refusal.)*
-2. Read `assign-in.json`, set `mode` to `{{hue_source_mode}}` (§A-bis) and `neutrals` to the extracted `background`, `surface`, `text`, `text_muted` hexes (`null` for any not extracted: the helper fills those from its neutral ladder), and Write it back.
+1. **No `assign-in.json`** → raise `RF-14` (step-05 §7's reference gate was skipped; this is a backstop, not a second path).
+2. Read `assign-in.json`, set `mode` to `{{hue_source_mode}}` (§A-bis), and Write it back. Leave `neutrals` as step-05 wrote them: a `null` neutral is filled by the helper from its neutral ladder.
 3. Run, via Bash:
    ```
    node framework/tools/colour-tokens.cjs assign --in generated-docs/design-system/.workspace/assign-in.json --out generated-docs/design-system/.workspace/assign-out.json
@@ -84,9 +82,9 @@ An **extracted** family keeps whatever record step-05 §4b already produced, inc
    Exit code ≠ 0 → **halt** and show the helper's one-line stderr message. Never fall back to prose colour rules.
 4. Read `assign-out.json` and set:
    - `{{brand}}` = `brand`; `{{roles}}` = `roles` (the single palette, or Option 1 when options exist); `{{palette_options}}` = `options` (or `null`); `{{assign_decisions}}` = `decisions`; the four status colours = `status`; and the four neutrals = `neutrals`. A neutral named in `filled` → `prov: system-derived`, `source: "neutral ladder"`; the others keep their extracted provenance.
-   - Provenance: `brand`, and every role whose hex is an extracted candidate or pick → `extracted-from-url` (Source Context: the pick context, or `area-weighted capture` for `brand`). A role the helper filled with a **brand-tinted neutral**, and all four status colours → `inferred-from-domain` (Source Context: `colour-tokens.cjs assign — <the matching decisions line>`, and `colour-tokens.cjs house status set` for status). Two markers only.
+   - Provenance: `brand`, and every role whose hex is an extracted candidate or pick → `extracted` (Source Context: the reference from step-05 §7's `{{merged_sources}}` — `<url> <selector>`, `<file>.pdf p.N: "<as written>"`, or `<lead url> area-weighted capture` for an area-picked `brand`). A role the helper filled with a **brand-tinted neutral** → `system-derived` (Source Context: `cascade fallback — <the matching decisions line>`), and all four status colours → `system-derived` (Source Context: `HOUSE_STATUS`). Two markers only.
 
-5. **Other mode extracted** (`{{other_mode_extracted}}`): write `assign-in-<other_mode>.json` with the same `candidates`, the §A-bis.1 picks, that scheme's four neutrals (an unpicked `surface` / `text_muted` takes the value a `derive` of the hue-source set gives — run it once now if needed), and `"brand": "{{brand}}"`; run `assign` on it (→ `assign-out-<other_mode>.json`). Its `roles` and `status` are the other mode's; its `brand` equals `{{brand}}` by construction. When `{{palette_options}}` is non-null, the other mode's two option sets are this call's `options` if non-null; otherwise each option's other-mode roles come from that option's §F `derive`.
+5. **Other mode extracted** (`{{other_mode_extracted}}`): write `assign-in-<other_mode>.json` with the same `candidates`, the §A-bis.1 picks, that scheme's four neutrals (`null` for an unpicked one: the helper's ladder fills it), `"mode": "<other_mode>"`, and `picks.brand` = `{{brand}}`; run `assign` on it (→ `assign-out-<other_mode>.json`). Its `roles` and `status` are the other mode's; its `brand` equals `{{brand}}` by construction. When `{{palette_options}}` is non-null, the other mode's two option sets are this call's `options` if non-null; otherwise each option's other-mode roles come from that option's §F `derive`.
 
 The status colours are the helper's fixed house set (`HOUSE_STATUS` in `framework/tools/colour-tokens.cjs`) — never extracted. On a reserved (red / orange / amber) brand the helper moves `error` away from the brand hue, and on a dark hue-source surface it moves status lightness only as far as the fill contrast target needs. Do not restate or re-tune those numbers here.
 
@@ -116,8 +114,8 @@ Use `AskUserQuestion`:
 - Header: `Modes`
 - multiSelect: false
 - Question — pick the phrasing that matches the run:
-  - **Extraction produced a palette** (`{{hue_source}}` is `extracted-light` or `extracted-dark`): *"`{{reference_url}}`'s palette is **{{extracted_scheme}}**. Which colour mode(s) should the design system ship in? The {{extracted_scheme}} palette is the hue source — the other mode is derived from the same brand hues, not extracted separately."* (When `{{hue_source}}` is `extracted-both`, replace that last sentence with: *"The site ships its own {{other_mode}} palette too, so that mode is extracted, not derived."*)
-  - **No extracted palette** (`{{hue_source}}` is `domain-inferred-light`): *"Every token was inferred from `{{domain}}` as a light palette. Which colour mode(s) should the design system ship in? A dark palette would be derived from the same brand hues."*
+  - **A reference gave a background** (`{{hue_source}}` is `extracted-light` or `extracted-dark`): *"The references' palette is **{{extracted_scheme}}**. Which colour mode(s) should the design system ship in? The {{extracted_scheme}} palette is the hue source — the other mode is derived from the same brand hues, not extracted separately."* (When `{{hue_source}}` is `extracted-both`, replace that last sentence with: *"The site ships its own {{other_mode}} palette too, so that mode is extracted, not derived."*)
+  - **No reference declared a background** (`{{hue_source}}` is `declared-light`): *"No reference declared a background, so the light palette is the hue source. Which colour mode(s) should the design system ship in? A dark palette would be derived from the same brand hues."*
 - Options — **list `Both` first and mark it Recommended**. Both is the default because a design system that ships only one mode leaves every downstream consumer (`/prototype`'s scaffold in particular) with no palette for the other mode, and the derived set costs nothing beyond §F. The single-mode options follow, extracted scheme before derived, since the extracted one is the grounded palette:
   1. `Both` *(Recommended)* — ship both files. The {{extracted_scheme}} file is primary (the palette actually extracted); the {{other_mode}} file is derived from the same brand hues.
   2. `{{extracted_scheme}} only` — ship just the grounded palette.
@@ -168,7 +166,7 @@ Before advancing, set:
 
 - `{{extraction_status}}` to `"success"` if and only if step-05 reached its happy path. Otherwise preserve the prior status (`no_url` / `fetch_failed` / `no_css` / `css_fetch_failed` / `insufficient_data` / `workspace_read_failed`).
 - `{{extraction_date}}` to today's date in ISO 8601 (`YYYY-MM-DD`).
-- **Mode state:** `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{hue_source}}` (`extracted-light` | `extracted-dark` | `extracted-both` | `domain-inferred-light`), `{{other_mode_extracted}}`, `{{mode_choice}}`, `{{derived_mode_requested}}`, `{{primary_mode}}`, `{{files_to_write}}`.
+- **Mode state:** `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{hue_source}}` (`extracted-light` | `extracted-dark` | `extracted-both` | `declared-light`), `{{other_mode_extracted}}`, `{{mode_choice}}`, `{{derived_mode_requested}}`, `{{primary_mode}}`, `{{files_to_write}}`.
 - **Colour state (from the helper):** `{{brand}}`, `{{palette_options}}`, `{{assign_decisions}}`, and `{{palettes}}` — `{ <palette>: { <mode>: { colours, on_colours, contrast, fills, adjustments } } }`, palette `default` (no options) or `neutral` + `site_colour`. Step-06 renders from `{{palettes}}`.
 - **Per-mode contrast:** `{{cv_pass_count_light}}` / `{{cv_adjustments_light}}` / `{{cv_adjustment_count_light}}` and the `_dark` twins. Exactly one set is populated when a single file is written; both are populated when two are.
 - **`{{brand_fonts}}`** — assemble the `meta.brand_fonts` object in the shape `font-availability-rules.md` §6.2 specifies, from `{{font_availability_heading}}` and `{{font_availability_body}}` (set by step-05 §4b for extracted families, by §B.2 above for fallback ones):

@@ -69,15 +69,15 @@ This ID is retained — never renumbered or deleted — per the append-only stab
 
 **Severity:** pause.
 
-**Trigger:** The design-system-styler's preflight in `step-04-site-fetching.md` does not find `mcp__playwright__browser_navigate` in the available tool list, AND the consultant supplied a non-null `{{reference_url}}` in step-02. Distinct from `RF-01` because the styler has a degraded-fidelity fallback path (WebFetch) that the input-handler does not, so the choice set is three-way rather than two-way.
+**Trigger:** The design-system-styler's preflight in `step-04-site-fetching.md` does not find `mcp__playwright__browser_navigate` in the available tool list, AND at least one URL reference was given in step-02. Distinct from `RF-01` because the styler has a degraded-fidelity fallback path (WebFetch) that the input-handler does not, so the choice set is three-way rather than two-way.
 
-**Surface:** `AskUserQuestion` with the choice set `{ install-and-retry, use-webfetch-fallback, drop-url }` plus an "Other" override. The question text must include the install instructions path (`advice_path`) and the verbatim fidelity warning for the WebFetch option.
+**Surface:** `AskUserQuestion` with the choice set `{ install-and-retry, use-webfetch-fallback, continue-without-urls }` plus an "Other" override. `continue-without-urls` is offered **only** when a PDF reference exists; otherwise the set is the first two. The question text must include the install instructions path (`advice_path`) and the verbatim fidelity warning for the WebFetch option.
 
 - `install-and-retry` — the agent halts step-04, writes `status: setup-pending` and `pending_setup: { predicate: "RF-06", advice_path: "framework/shared/setup-instructions/playwright.md", since: <ISO-8601 UTC> }` semantics into the styler's own state (the styler does not write `framework/state/.progress.json` per the stand-alone constraint — it surfaces the install path in the handback message and exits cleanly so the consultant installs Playwright and re-runs `/design-system`). The agent may first run `framework/tools/setup-environment.ps1 -Component playwright` to warm the MCP server's `npx` cache on the consultant's behalf; the server still only registers on the next Claude Code start, so the consultant restarts and re-runs regardless. Highest-fidelity outcome.
-- `use-webfetch-fallback` — the agent proceeds via the legacy WebFetch two-pass path. Sets `extraction_method = "webfetch-fallback"` in `metadata.json`, does not write `computed-tokens.json`. The consultant's choice is the contract — the agent does not re-warn during the run. Lower-fidelity outcome; many tokens may end up `inferred-from-domain` instead of `extracted-from-url`.
-- `drop-url` — the agent sets `{{reference_url}} = null`, records `extraction_status = playwright_unavailable`, and skips to `step-05b-domain-inference.md`. Most predictable outcome; tokens uniformly `inferred-from-domain`.
+- `use-webfetch-fallback` — the agent proceeds via the legacy WebFetch two-pass path. Sets `extraction_method = "webfetch-fallback"` in `metadata.json`, does not write `computed-tokens.json`. The consultant's choice is the contract — the agent does not re-warn during the run. Lower-fidelity outcome; WebFetch reads only the first URL, and more colours may end up `system-derived` (helper fallbacks) instead of `extracted`.
+- `continue-without-urls` — the agent marks every URL reference `skipped — Playwright unavailable`, records `extraction_status = playwright_unavailable`, and continues with the PDF reference(s) only (`step-04b-pdf-references.md`).
 
-**Recovery:** `install-and-retry` exits cleanly so the consultant installs Playwright per `framework/shared/setup-instructions/playwright.md` and re-invokes `/design-system`. `use-webfetch-fallback` and `drop-url` continue the run.
+**Recovery:** `install-and-retry` exits cleanly so the consultant installs Playwright per `framework/shared/setup-instructions/playwright.md` and re-invokes `/design-system`. `use-webfetch-fallback` and `continue-without-urls` continue the run.
 
 **Refusal-registry schema field:** `setup_instructions_path` — same field as RF-01, pointing here at `framework/shared/setup-instructions/playwright.md`.
 
@@ -179,6 +179,22 @@ This ID is retained — never renumbered or deleted — per the append-only stab
 **Recovery:** The consultant inspects (disk space, npm registry reachability, Node version), removes any partial `prototypes/` tree if instructed, and re-invokes.
 
 **Refusal-registry schema field:** none specific.
+
+## RF-14 — brand_reference_missing
+
+**Severity:** clean stop. Not `setup-pending` (nothing to install) and not `hard` (no prior work is at risk: nothing has been written). A plain-text stop, like `hard`, because there is no choice to offer.
+
+**Trigger:** `/design-system` has no usable brand reference: no reference was given in step-02, **or** no reference yielded any colour (every URL failed or was skipped, and every PDF was skipped or had no hex / RGB value). Raised at step-02 (no references) and at step-05 §7's reference gate (zero candidates and zero picks). A monochrome brand is **not** this: a black-and-white guide yields colours.
+
+**Surface:** one plain-text line, no question:
+
+> *"No usable brand reference, so no design system: `/design-system` never invents a brand. Add a brand URL or a PDF brand guide and re-run. To prototype without a brand, run `/prototype` and pick `template-defaults`."*
+
+Followed by one line per reference with its `status` (none when no reference was given). The run ends: no files are written, and prior `generated-docs/design-system/` files are left untouched.
+
+**Recovery:** re-run `/design-system` with a reference.
+
+**Refusal-registry schema field:** none.
 
 ## Anti-Patterns
 

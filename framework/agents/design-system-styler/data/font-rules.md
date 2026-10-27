@@ -15,7 +15,7 @@ If `generated-docs/design-system/.workspace/computed-tokens.json` exists (Playwr
 
 The values arrive as full font-family chains, e.g. `"Inter", "Helvetica Neue", sans-serif`. Strip surrounding quotes from each name and pick the first family that is **not** a non-brand family per §1 below. In that example `Inter` is the brand font; `"Helvetica Neue"` is a system face serving as a fallback and is rejected, as is the `sans-serif` terminal.
 
-If **every** family in the chain is non-brand (e.g. the body resolves to `Arial, Helvetica, sans-serif`, or to `system-ui, sans-serif`), leave the token unset — step-05b infers it per-run from the domain. Tag computed-source extractions `extracted-from-url` and record the source as `sampleElements.h1` / `sampleElements.body`.
+If **every** family in the chain is non-brand (e.g. the body resolves to `Arial, Helvetica, sans-serif`, or to `system-ui, sans-serif`), leave the token unset — another reference may supply it, else step-05b uses the interim font fallback. Tag computed-source extractions `extracted-from-url` and record the source as `sampleElements.h1` / `sampleElements.body`.
 
 **If `computed-tokens.json` is absent (WebFetch fallback path):** skip this section and use the legacy text-pattern logic in §4 below against `{{primary_css_content}}` only.
 
@@ -90,7 +90,7 @@ Extract the body weight per §5.
 ### Font Output Rules
 
 - **Max 2 fonts:** Report heading font + body font. If the site uses the same font for both, report it once and reuse.
-- **No brand font detected:** If every `font-family` value in the chain is a non-brand family per §1 (e.g. `Arial, Helvetica, sans-serif`, or only `sans-serif`, `system-ui`), leave the token unset. Step-05b infers it per-run from `{{domain}}`.
+- **No brand font detected:** If every `font-family` value in the chain is a non-brand family per §1 (e.g. `Arial, Helvetica, sans-serif`, or only `sans-serif`, `system-ui`), leave the token unset. Another reference may supply it (step-05 §4a); otherwise step-05b uses the interim font fallback (`house-defaults.md` §4).
 - **Never repair a non-brand family in place.** Do not substitute a "closest webfont", do not keep the name with a note, and do not downgrade it to a weaker marker. The only outcome for a rejected chain is *unset*, which routes to the existing step-05b gap-fill path — that path already proposes real webfonts only, so the correct value arrives for free.
   - This bullet governs the **brand-ness** axis: a family that is not a brand at all. It is **not** contradicted by the substitution that `font-availability-rules.md` performs on a family that *is* a deliberate brand typeface but cannot be loaded from Google Fonts. There, the brand name is *kept* and a loadable face is added behind it — nothing is repaired and nothing is unset. The two cases have opposite correct answers because a rejected chain carries no brand evidence to preserve, and an unobtainable brand face carries nothing but.
 - **Emitted stack shape:** a family token's value is exactly `'<Family>', <one generic>` — e.g. `'Manrope', sans-serif`. One named family, one generic terminal, nothing else. Never carry a captured chain's fallback tail into the token: the tail is where system faces live, and every emitted `font-family:` declaration in the artefact is substituted from these two token values.

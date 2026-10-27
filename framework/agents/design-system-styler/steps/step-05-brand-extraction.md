@@ -1,6 +1,6 @@
 ---
 name: step-05-brand-extraction
-description: 'Orchestrate brand extraction by loading data files together (one batched read) and applying extraction logic to {{primary_css_content}}.'
+description: 'Extract colours, font families and weights from the lead URL (one batched data-file read), merge every reference (later URLs, PDF brand guides — the PDF wins per token), run the reference gate (RF-14), and write the helper input.'
 # Variables referenced (inherited from agent):
 # prompt_brand_extraction: 'framework/agents/design-system-styler/prompt-templates/brand-extraction.md'
 # data_color_rules: 'framework/agents/design-system-styler/data/color-extraction-rules.md'
@@ -11,28 +11,29 @@ description: 'Orchestrate brand extraction by loading data files together (one b
 # workspace_path: 'generated-docs/design-system/.workspace'
 ---
 
-# Step 5: Brand Extraction (URL-driven)
+# Step 5: Brand Extraction and Reference Merge
 
-**Skip condition:** this step runs **only** when step-04 captured CSS to extract from. Skip it entirely and route to `step-05b-domain-inference.md` whenever **any** of the following holds (every run now reaches this step via step-04b, so this guard must catch every no-CSS path):
+**Runs whenever any reference is `used` or `pending`.** Two parts:
 
-- `{{reference_url}}` is null (consultant skipped the URL), or
-- `{{extraction_status}}` is set to any non-CSS value — `no_url`, `fetch_failed`, `no_css`, `css_fetch_failed`, or `playwright_unavailable` (the RF-06 *Drop URL* / unavailable path), or
-- no `generated-docs/design-system/.workspace/css-content.txt` was written (equivalently, `{{primary_css_content}}` is unavailable).
+- **§1–§6, the lead URL** — only when step-04 captured a lead URL (`{{lead_url}}` set and `generated-docs/design-system/.workspace/css-content.txt` written). Otherwise skip straight to §7 (a PDF-only run, or every URL failed).
+- **§7, the merge and the reference gate** — always.
 
-In all those cases, step 5b infers every token per-run from the `{{domain}}` set in step-04b. (Note: `{{extraction_status}}` is not yet `"success"` at this point — step-04 deliberately defers setting it; on the happy path it is unset here and set to `"success"` after extraction.)
+No reference `used` or `pending` at all → go straight to §7's reference gate, which raises `RF-14`.
+
+(Note: `{{extraction_status}}` is not yet `"success"` at this point — step-04 deliberately defers setting it; on the happy path it is unset here and set to `"success"` after the lead URL's extraction.)
 
 ## Workspace Read
 
 Read CSS content from disk (not from in-memory state of step-04):
 
 1. Read `generated-docs/design-system/.workspace/css-content.txt` → store as `{{primary_css_content}}`.
-2. Read `generated-docs/design-system/.workspace/metadata.json` → confirm `css_source_type`, `css_source_url`, `reference_url`.
+2. Read `generated-docs/design-system/.workspace/metadata.json` → confirm `css_source_type`, `css_source_url`, `lead_url`.
 
 **If workspace file read fails:**
 
 - Log: "Workspace read failed — css-content.txt not found or unreadable".
-- Set `{{extraction_status}} = "workspace_read_failed"`.
-- Skip to `step-05b-domain-inference.md`.
+- Set `{{extraction_status}} = "workspace_read_failed"` and the lead URL's reference `status` to `failed — workspace read failed`.
+- Skip to §7.
 
 ## Extraction Orchestration
 
@@ -44,7 +45,7 @@ Read all five data files in a **single batched message** (the harness runs the r
 - `framework/agents/design-system-styler/data/font-rules.md`
 - `framework/agents/design-system-styler/data/font-availability-rules.md`
 
-With all five in context, apply their rules to `{{primary_css_content}}` in the reasoning order below — **critically, the insufficient-data gate (section 2) first**: if it short-circuits, route to `step-05b-domain-inference.md` *before* doing any colour / typography extraction. Sizes, line heights, shadows and motion are **never extracted**: step-05b fills them from `data/house-defaults.md`. (`contrast-validation.md` is **not** read here — contrast validation is a step-05b concern, run against the final token set after the domain-inference fill.)
+With all five in context, apply their rules to `{{primary_css_content}}` in the reasoning order below — **critically, the insufficient-data gate (section 2) first**: if it short-circuits, go to §7 *before* doing any colour / typography extraction. Sizes, line heights, shadows and motion are **never extracted**: step-05b fills them from `data/house-defaults.md`. (`contrast-validation.md` is **not** read here — contrast validation is a step-05b concern, run against the final token set.)
 
 ### 1. Extraction Overview (already loaded)
 
@@ -58,7 +59,7 @@ From `brand-extraction.md` (read in the batch above), use:
 Apply `insufficient-data-handling.md` (already loaded) — its threshold check:
 
 - Count distinct non-white/non-black hex colors in `{{primary_css_content}}`.
-- **If fewer than 3:** Set `{{extraction_status}} = "insufficient_data"`, log the diagnostic, and skip to `step-05b-domain-inference.md`. Do NOT halt.
+- **If fewer than 3:** Set `{{extraction_status}} = "insufficient_data"` and the lead URL's reference `status` to `failed — too few colours`, log the diagnostic, and skip to §7. Do NOT halt: later URLs and PDF references still count.
 - **If 3 or more:** Continue.
 
 ### 3. Colour Extraction (7 brand tokens)
@@ -73,29 +74,29 @@ Status colours (`success`, `warning`, `error`, `info`) are NOT extracted here �
 
 Store: `{{extracted_colors}}` as the structure defined in `brand-extraction.md` Section 7. Tokens that could not be extracted remain `null`.
 
-**Write the assignment input.** Write `generated-docs/design-system/.workspace/assign-in.json` (plain `Write`; workspace scratch) for `framework/tools/colour-tokens.cjs assign`:
-
-```json
-{ "candidates": [ { "hex": "#RRGGBB", "weight": 0 } ],
-  "picks": { "primary": "#RRGGBB" | null, "secondary": "#RRGGBB" | null, "accent": "#RRGGBB" | null },
-  "neutrals": null }
-```
-
-- `candidates` — Playwright path: `computed-tokens.json` → `colourWeights`, verbatim. WebFetch path (no `computed-tokens.json`): every deduplicated **chromatic** colour from Section 2, each with `weight: null`.
-- `picks` — the Section 3 `primary` / `secondary` / `accent` picks.
-- `neutrals` — left `null` here. Step-05b §C fills it from the hue-source set after its §B gap-fill (the helper needs all four neutrals) and runs the helper. **Ordering:** step-05 writes the picks → step-05b §B fills gaps → step-05b §C completes `neutrals` and calls `assign`. No `status` field — the helper starts from its house status set.
+These are the **lead URL's** colours. §7 merges them with every other reference and writes the helper input.
 
 ### 4. Typography — Families
 
 Apply `font-rules.md` (already loaded) to extract `heading_family`, `heading_weight`, `body_family`, `body_weight` — its Section 0 on the Playwright path (`computed-tokens.json` present), its Section 4 on the WebFetch fallback. Tokens that could not be extracted remain `null`.
 
-Both paths reject **non-brand families** per `font-rules.md` §1 (system faces such as `Arial`, `Helvetica`, `Segoe UI`; generics; `next/font` hash aliases). A chain with no surviving candidate leaves the family `null` for step-05b to infer — this is the ordinary unset path, not an error. When that happens, also store the rejection record §1 calls for:
+Both paths reject **non-brand families** per `font-rules.md` §1 (system faces such as `Arial`, `Helvetica`, `Segoe UI`; generics; `next/font` hash aliases). A chain with no surviving candidate leaves the family `null` — this is the ordinary unset path, not an error (§4a may still fill it from another reference; otherwise step-05b uses the interim font fallback). When that happens, also store the rejection record §1 calls for:
 
-- `{{font_rejected_heading}}` / `{{font_rejected_body}}` — the first *named* family in the rejected chain (the value the pre-§1 rule would have selected), or `null` if the chain held no named family at all. Step-07 surfaces it so the consultant sees why the family is domain-inferred.
+- `{{font_rejected_heading}}` / `{{font_rejected_body}}` — the first *named* family in the rejected chain (the value the pre-§1 rule would have selected), or `null` if the chain held no named family at all. Step-07 surfaces it so the consultant sees why the family is not the lead URL's.
+
+### 4a. Typography — Merge the families across references
+
+Per family slot (`heading_family`, `body_family`), first non-null wins:
+
+1. **Declared** — the first PDF in `{{declared}}` (step-04b) that names it. `source`: `<file>.pdf p.N: "<as written>"` (drop `p.N` when unknown).
+2. **The lead URL** — §4 above. `source`: `<lead url> <selector>`.
+3. **Later URLs** — each `computed-tokens-<n>.json` in order: `sampleElements.h1` (then `h2`, `h3`) `.fontFamily` for heading, `sampleElements.body.fontFamily` for body, with `font-rules.md` §0/§1 applied exactly as for the lead. `source`: `<url> sampleElements.<element>`.
+
+Weights follow the same order minus the PDF (a guide's weights are not taken): lead URL (§5), then later URLs' `sampleElements` per `font-rules.md` §5. Every merged family carries `prov: extracted`.
 
 ### 4b. Typography — Availability & Substitution
 
-Apply `font-availability-rules.md` (already loaded) to each family Section 4 **selected** — a family left `null` there is skipped entirely and handled by step-05b's inference instead. This is the second of the two axes that file's §0 defines: Section 4 above decided *"is it a brand?"*, this sub-step decides *"can we fetch it?"*.
+Apply `font-availability-rules.md` (already loaded) to each family §4a **selected** — a family left `null` there is skipped entirely and handled by step-05b's interim fallback instead. On a PDF-only run (no lead URL) read `font-availability-rules.md` now and run this sub-step on the declared families; E1 then has no evidence on disk, so the ladder starts at E2. This is the second of the two axes that file's §0 defines: Section 4 above decided *"is it a brand?"*, this sub-step decides *"can we fetch it?"*.
 
 Run its §1 evidence ladder per family, canonicalising the name per §2 before any lookup or probe:
 
@@ -129,10 +130,52 @@ Assemble the structured output per Section 7 format from `brand-extraction.md`:
 - `{{extracted_typography}}` — 4 tokens: `heading_family`, `heading_weight`, `body_family`, `body_weight` (the 11 size and line-height tokens are house defaults, never extracted)
 - no effect tokens: shadows and motion are house defaults, never extracted
 - `{{extraction_status}} = "success"` (only if extraction completed without an early skip; otherwise the prior status is preserved)
-- `{{font_rejected_heading}}` / `{{font_rejected_body}}` — set per Section 4 above, else `null`. Carry them through step-05b unchanged (they describe what the *URL* held, so a domain-inferred fill does not clear them) so step-07 §A can state why a family is `inferred-from-domain`.
-- `{{font_availability_heading}}` / `{{font_availability_body}}` — set per Section 4b above for each family Section 4 selected, else `null` (an unset family has no availability question until step-05b fills it). Step-05b §G assembles them into `meta.brand_fonts`; step-07 §A discloses every `substituted` and `unverified` outcome.
+- `{{font_rejected_heading}}` / `{{font_rejected_body}}` — set per Section 4 above, else `null`. Carry them through step-05b unchanged (they describe what the *lead URL* held, so a fallback fill does not clear them) so step-07 §A can state why a family is `system-derived`.
+- `{{font_availability_heading}}` / `{{font_availability_body}}` — set per Section 4b above for each family §4a selected, else `null` (an unset family has no availability question until step-05b fills it). Step-05b §G assembles them into `meta.brand_fonts`; step-07 §A discloses every `substituted` and `unverified` outcome.
 
-Contrast validation runs **after** step-05b, not here — it must validate against the final token set, including any domain-inferred fills.
+### 7. Merge the References, Reference Gate, Helper Input
+
+Runs always (§1–§6 may have been skipped).
+
+**Candidates** (`assign` `candidates`):
+
+- **Pooled area weights, plain sums.** Add up `colourWeights` across every URL workspace file — `computed-tokens.json` (the lead) and each `computed-tokens-<n>.json` — summing the `weight` of the same hex. Sort descending.
+- **WebFetch path** (no `computed-tokens.json`): every deduplicated **chromatic** colour from the lead URL's Section 2, each with `weight: null`.
+- **PDF colours:** every `{{declared}}[*].colours` hex not already present, each with `weight: null`, appended after the URL colours.
+
+**Picks** (`assign` `picks`), per token — the first that states it wins:
+
+1. `{{declared}}` — the first PDF (in `{{references}}` order) that declares `primary` / `secondary` / `accent`.
+2. The lead URL's Section 3 pick.
+3. `null` (the helper's cascade fills it).
+
+`picks.brand` = the first PDF's declared `brand`, else `null` (the helper then picks the largest-area colour). A declared role never overrides the reserved zones: the helper checks every pick.
+
+**Neutrals** (`assign` `neutrals`) are taken **as a set**, so a light page's text never meets a dark page's background:
+
+1. The first PDF that declares `background` → that PDF's declared `background`, `surface`, `text`, `text_muted`.
+2. Else the lead URL's Section 3 neutrals.
+3. Else the first PDF that declares any neutral → its declared ones.
+4. Else none.
+
+Every neutral not given is `null`; the helper fills it from its neutral ladder.
+
+**Reference gate.** Zero candidates **and** zero non-null picks (every reference failed or skipped, or every PDF had no hex / RGB value) → raise **`RF-14`** per `framework/shared/refusal-registry.md > RF-14 — brand_reference_missing`: print its line plus one line per reference with its `status`, clean up `.workspace/` (step-07 §C), and end the run. Nothing is written; prior design-system files are untouched.
+
+**Write the helper input.** Write `generated-docs/design-system/.workspace/assign-in.json` (plain `Write`; workspace scratch):
+
+```json
+{ "mode": null,
+  "candidates": [ { "hex": "#RRGGBB", "weight": 0 } ],
+  "picks": { "primary": "#RRGGBB" | null, "secondary": "#RRGGBB" | null, "accent": "#RRGGBB" | null, "brand": "#RRGGBB" | null },
+  "neutrals": { "background": "#RRGGBB" | null, "surface": "#RRGGBB" | null, "text": "#RRGGBB" | null, "text_muted": "#RRGGBB" | null } }
+```
+
+`mode` is set by step-05b §C once scheme detection (§A-bis) has classified the merged `background`. No `status` field — the helper starts from its house status set.
+
+**Sources.** Every extracted value's `source` names its reference: `<url> <selector>` for a page, `<file>.pdf p.N: "<as written>"` for a PDF (e.g. `brand-guide.pdf p.4: "RGB 202 43 61"`). Keep a `{{merged_sources}}` map `{ <token>: <source> }` for step-05b §C, which tags the helper's output.
+
+Contrast validation runs **after** step-05b, not here — it must validate against the final token set.
 
 ---
 

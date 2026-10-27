@@ -36,7 +36,7 @@ With all five in context, apply the artifact-generation prompt's instructions in
 - `{{palette_option}}` — `null`, or the option the consultant picked in step-07 (`neutral` | `site-colour`); a final render uses only that palette.
 - **Mode state:** `{{files_to_write}}`, `{{hue_source_mode}}`, `{{mode_choice}}`, `{{hue_source}}`, `{{primary_mode}}`, `{{extracted_scheme}}`
 - **Per-mode contrast:** `{{cv_pass_count_light}}` / `{{cv_adjustments_light}}` / `{{cv_adjustment_count_light}}` and the `_dark` twins
-- `{{extraction_status}}`, `{{extraction_date}}`, `{{domain}}`, `{{domain_provenance}}`, `{{reference_url}}`, `{{css_source_type}}`, `{{css_source_url}}`
+- `{{extraction_status}}`, `{{extraction_date}}`, `{{references}}` (final statuses), `{{lead_url}}`, `{{css_source_type}}`, `{{css_source_url}}`
 - `{{brand_fonts}}` — the loadable-font contract assembled in step-05b §G. Mode-invariant: the same object goes into both files.
 
 ## 0-bis. Render Loop
@@ -63,7 +63,7 @@ The component catalogue `component-catalogue.md` (also read in Section 0) owns t
 Apply the prompt template's instructions in order:
 
 1. **Section 3 — JSON metadata block.** Build the `tokens` object in memory with `meta`, `colours`, `typography`, `effects`, and `contrast` keys per the JSON SHAPE documented at the top of the template. Serialise with `JSON.stringify`-equivalent 2-space indent. Substitute into `{{TOKENS_JSON}}`.
-2. **Section 4 — Attribution paragraph.** Pick the variant per `{{extraction_status}}` and `{{reference_url}}` state. The rendered string is inserted **as inner HTML of the `<blockquote class="attribution">`** (already in the template); the styler emits raw text plus any necessary `<a>` anchors for URLs. Substitute into `{{ATTRIBUTION_PARAGRAPH}}`.
+2. **Section 4 — Attribution paragraph.** Build it from `{{references}}` (the `used` ones, then any not used). The rendered string is inserted **as inner HTML of the `<blockquote class="attribution">`** (already in the template); the styler emits raw text plus any necessary `<a>` anchors for URLs. Substitute into `{{ATTRIBUTION_PARAGRAPH}}`.
 3. **Section 5 — Provenance tagging.** Every token in the JSON gets `prov` set to one of `extracted-from-url` or `inferred-from-domain`. Every visual snippet that surfaces a token gets a matching `<span class="prov prov-{{prov-slug}}">{{prov}}</span>` element (`prov-slug` is the prov value verbatim — `extracted-from-url` or `inferred-from-domain`, used directly as a CSS class suffix).
 4. **Section 6 — Render visual snippets.** Build the four pre-rendered HTML blocks and substitute them into the template placeholders:
     - `{{PALETTE_VARS}}` — the palette custom properties per the template's PALETTE VARS list, from this mode's `{{palettes}}.<palette>.<mode>`: `--c-<token>` = `colours.<token>` (token `_` written as `-`) for all 12 colours, and `--on-<fill>` = `on_colours.<fill>` for the 8 fills. A final render emits **one** block: `    :root { --c-primary: #…; … --on-info: #…; }`, and `{{PALETTE_TABS}}` becomes the empty string. (The two-block review form is §F.)
@@ -231,7 +231,7 @@ After every review file is written and verified, write `generated-docs/design-sy
 ```json
 {
   "version": 1,
-  "reference_url": "…", "files_to_write": ["light", "dark"],
+  "references": [ { "kind": "url", "ref": "…", "status": "used" } ], "files_to_write": ["light", "dark"],
   "hue_source_mode": "light", "hue_source": "extracted-light", "mode_choice": "both",
   "palettes": {
     "neutral":     { "<mode>": { "tokens": { <the full design-tokens object for that file, meta.palette_option = "neutral"> }, "on_colours": { … }, "adjustments": [ … ] } },
@@ -239,7 +239,7 @@ After every review file is written and verified, write `generated-docs/design-sy
   },
   "shared": { "assign_decisions": [ … ], "brand": "#…", "extraction_method": "…",
               "font_rejected_heading": null, "font_rejected_body": null, "brand_fonts": { … },
-              "attribution": { "extraction_status": "…", "domain": "…" } },
+              "attribution": { "extraction_status": "…", "lead_url": "…" } },
   "review_files": ["generated-docs/design-system/.workspace/review-light.html", "…"]
 }
 ```
