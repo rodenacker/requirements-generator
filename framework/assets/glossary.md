@@ -234,9 +234,24 @@ Canonical source: `framework/tools/colour-tokens.cjs` (`RESERVED`; the only defi
 Not to be confused with: **provenance marker** (where a value came from), **brand identity colour** (which may sit in the zone).
 
 ### brand identity colour
-The 12th design-system colour token, `brand`: the largest-area chromatic colour on the reference site, kept whether or not it is in the **reserved zone**. Identity-only — header bar / logo strip, brand mark, empty-state illustration; never a button, link, badge, focus ring or text colour. Mode-invariant (copied verbatim to the derived file; only its on-colour is measured per mode) and always present. `/prototype` maps it to `--brand` and must show it in the app shell's header region.
+The 12th design-system colour token, `brand`: a PDF brand guide's declared brand colour, else the largest-area chromatic colour across the reference pages, kept whether or not it is in the **reserved zone**. Identity-only — header bar / logo strip, brand mark, empty-state illustration; never a button, link, badge, focus ring or text colour. Mode-invariant (copied verbatim to the derived file; only its on-colour is measured per mode) and always present. `/prototype` maps it to `--brand` and must show it in the app shell's header region.
 Canonical source: `framework/tools/colour-tokens.cjs` (`assign`); consumers `framework/skills/extract-brand-theme.md`, `framework/agents/prototype-generator/steps/step-05-compose-route.md`.
 Not to be confused with: **Brand** (the whole fixed visual identity of the prototypes), `primary` (the action colour), `--brand-accent` (the accent hue for callouts and charts).
+
+### brand reference
+A consultant-named source `/design-system` extracts brand colours and fonts from: a **URL** (public or intranet; a login page is a failed reference) or a **PDF brand guide** in `documentation/` (hex / sRGB values, role labels, font names; CMYK / Pantone ignored). Several may be given; a PDF's declared value wins per token over the rendered pages, and the first URL that captures sets the scheme and neutrals. The styler reads only the files named and never scans `documentation/`. No usable reference → `RF-14`: no design system, never an invented brand. Recorded as `meta.references`.
+Canonical source: `framework/agents/design-system-styler/steps/step-02-inputs.md` (merge: `step-05-brand-extraction.md` §7).
+Not to be confused with: **reference URL** in `/prototype`'s own brand step (`prototype-orch.md` Step B(4a)), **input** files in general (which `/requirements` reads).
+
+### house default
+A fixed `/design-system` token value for internal, CRUD-heavy data-management tools — the type scale and line heights, shadows and motion (plus the interim font fallback). Never extracted from a brand reference and never varies by client or industry; `/prototype` adapts which type steps a surface uses by its D3 position. Tagged `system-derived`, `source: house default`.
+Canonical source: `framework/agents/design-system-styler/data/house-defaults.md`.
+Not to be confused with: `HOUSE_STATUS` (the status colours, owned by the colour helper), **posture defaults** (`[POSTURE-DEFAULT]`, a `/prototype` design-spec marker).
+
+### system-derived
+One of the two `/design-system` provenance values (`prov`), with `extracted`: the value came from a fixed rule, not a brand reference — a house default, the colour helper (`HOUSE_STATUS`, neutral ladder, cascade fallback), the interim font fallback, or derivation from the other colour mode. The `source` field names the rule. Not AI judgement, so nothing for a resolver to ask about.
+Canonical source: `framework/agents/design-system-styler/prompt-templates/artifact-generation.md` §5.
+Not to be confused with: `[AI-SUGGESTED]` and the other requirement provenance markers (CLAUDE.md §2), which this two-value `prov` set is not part of.
 
 ### palette option
 One of the two candidate palettes `/design-system` offers when the brand colour is reserved and the site also uses a non-reserved colour, but only marginally: **Option 1, neutral** (a brand-tinted charcoal `primary`) or **Option 2, site colour** (that marginal site colour as `primary`). They differ only in `primary` / `secondary` / `accent`. Shown as tabs in `.workspace/review-<mode>.html`, chosen in step-07, then collapsed so the final files hold one palette; recorded as `meta.palette_option`. The pending choice is the pipeline's one resumable point (`.workspace/options.json`).

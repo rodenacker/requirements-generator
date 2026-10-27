@@ -46,9 +46,9 @@ Mode-invariant. `source: "house default"`.
 
 | Token | Value |
 |---|---|
-| `dur_fast` (`transition-fast`) | `100ms` |
-| `dur_base` (`transition-base`) | `160ms` |
-| `dur_slow` (`transition-slow`) | `240ms` |
+| `transition_fast` | `100ms` |
+| `transition_base` | `160ms` |
+| `transition_slow` | `240ms` |
 | `easing_standard` | `cubic-bezier(0.4, 0, 0.2, 1)` |
 
 Mode-invariant. `source: "house default"`.

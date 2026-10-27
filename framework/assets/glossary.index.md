@@ -19,7 +19,8 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Asset | Read-only reference content under `framework/assets/`. | `docs/maintenance.md > Separation of concerns` |
 | Blueprint | Shared scope IR: logical surfaces + closed sets + allowed realizations; no patterns/realization chosen. | `blueprint-architect.md` |
 | Brand | Fixed visual identity applied uniformly across all prototypes (one `theme.css`). | `prototypes/app-shell-spec.md` |
-| brand identity colour | The 12th design-system colour, `brand`: largest-area site colour, identity-only (header / logo strip / brand mark), never an action or text colour; `/prototype` `--brand`. | `tools/colour-tokens.cjs` |
+| brand identity colour | The 12th design-system colour, `brand`: a PDF's declared brand colour, else the largest-area site colour, identity-only (header / logo strip / brand mark), never an action or text colour; `/prototype` `--brand`. | `tools/colour-tokens.cjs` |
+| brand reference | A consultant-named URL or PDF brand guide `/design-system` extracts colours and fonts from; PDF wins per token; none usable → `RF-14`; `meta.references`. | `design-system-styler/steps/step-02-inputs.md` |
 | Build target | Manifest output-mode field, auto-set to prototype (fixtures); application = legacy value / export-time concern (`/export-application`). | `prototype-invariants.md` PI-06 |
 | Category asset (`.stadium-assets`) | Lean citation-ready `Native-text` file the Stadium extractor writes under `documentation/<AppName>.stadium-assets/`; consumed by the normal pipelines. | `skills/extract-stadium-app.md` |
 | Character | Persona file giving an agent its stance/voice; not a product persona. | `assets/characters/` |
@@ -46,6 +47,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | generated-docs | Repo-root parent of every consultant-facing **document** output, one subdir per pipeline; `wireframes/`, `prototypes/` and `blueprints/` stay outside it. | `docs/architecture.md > Top-level dirs` |
 | Grounding | The act of linking a claim to a real source; ungrounded facts fail validation. | — |
 | Handback gate | Orchestrator checkpoint accepting/re-invoking a finished agent. | orchestrators |
+| house default | Fixed `/design-system` type scale, line heights, shadows, motion (+ interim font fallback) for internal tools; never extracted; `system-derived`. | `design-system-styler/data/house-defaults.md` |
 | hue source | The design-system mode whose palette the brand references ground (or light when no reference declared a background: `declared-light`); always written, `meta.primary: true`; the other mode is derived from it (or extracted too: `extracted-both`). | `cross-mode-derivation-rules.md` |
 | Input tier | Ingest classification (Native / Supported-via-MCP / Unsupported). | `skills/classify-input-tier.md` |
 | Logical surface (LS-NN) | Decomposition-agnostic blueprint surface, pre-screen-count. | `blueprint-architect.md` |
@@ -91,6 +93,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Stadium-app (input unit) | A deployed Twenty57 Stadium 6 app dropped into `documentation/`; extracted once by `/ingest-stadium`; excluded + nudged at the input-handler's Step S. | `agents/stadium-ingestor.md` |
 | Store | Client-side state container a prototype reads/writes, initialised from fixtures. | `shared-component-conventions.md` |
 | surface_plan | Per-variant JSON authoring realization + pattern picks + screens per `LS-NN`. | `blueprint-architect.md` |
+| system-derived | `/design-system` `prov` value (with `extracted`): produced by a fixed rule (house default, colour helper, derivation), not a reference. | `design-system-styler/prompt-templates/artifact-generation.md` |
 | Target-user (persona) | A persona of the product under design (`requirements.md §3`); not the consultant. | `requirements.md §3` |
 | Timing event | Append-only NDJSON record of the run timeline (`timing.ndjson`). | `state/timing.ndjson` |
 | Trade-off dimension | One of six axes `D1..D6` a design is positioned on (D6 inactive). | `trade-off-dimensions.md` |

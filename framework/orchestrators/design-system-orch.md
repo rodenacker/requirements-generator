@@ -10,7 +10,7 @@ The agent runs **in the foreground**, in the same conversational thread as the o
 
 Do **not** invoke the agent as a background / sub / async agent (e.g., via the Agent / Task tool, fork, or any other off-thread delegation). Background invocation is forbidden because:
 
-- The styler requires interactive consultant input in the same thread — the step-02 URL prose prompt, the step-04b domain-suggestion menu (or its no-signals prose fallback), the step-04 RF-06 choice, **the step-05b §E output-mode menu** (light-only / dark-only / both, asked after extraction so it can name the colour scheme actually found), and the step-07 accept/revise/restart loop (the domain menu, RF-06, mode menu, and accept loop all via `AskUserQuestion`) — none of which is surfaced in background harnesses.
+- The styler requires interactive consultant input in the same thread — the step-02 brand-references prose prompt, the step-04 RF-06 choice, **the step-05b §E output-mode menu** (light-only / dark-only / both, asked after extraction so it can name the colour scheme actually found), and the step-07 accept/revise/restart loop (RF-06, mode menu, and accept loop all via `AskUserQuestion`) — none of which is surfaced in background harnesses.
 - The handback gate depends on consultant acceptance in the same thread.
 - Foreground execution keeps the full conversation context — including step-by-step Unicorn-voice updates — visible to the consultant.
 
