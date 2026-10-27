@@ -100,6 +100,12 @@ Two rules: **never skip a rung** on hover (`sm → md`, not `sm → lg`), and **
 ## 6. Typography discipline
 
 - **A real hierarchy.** A page title is `text-2xl` or `text-3xl`, a section heading `text-lg`/`text-xl`, body `text-sm`/`text-base`, metadata `text-xs`. Shipping `text-xl` as the only heading size and `text-sm` for everything else is what "looks unstyled" actually means in practice.
+- **Type follows D3, like spacing (§7).** The design system ships one house scale; D3 chooses which steps a surface uses.
+  - **D3 +1 / +2 (dense):** body `text-sm`; table cells, metadata and helper text `text-xs`; section headings one step down (`text-base`/`text-lg`).
+  - **D3 0:** the hierarchy above.
+  - **D3 −1 / −2 (calm):** body `text-base`; section headings one step up (`text-xl`/`text-2xl`).
+
+  Never introduce sizes outside the scale; never override `--text-*` per surface.
 - `tracking-tight` at `text-2xl` and above (the base layer already does this for `h1`/`h2`; match it on any non-heading element rendered at display size).
 - **Numeric columns get `tabular-nums`** (or `data-numeric="true"`, which the base layer styles) so digits align down the column. Right-align them.
 - Weight carries hierarchy alongside size: `font-semibold` for headings and column headers, `font-medium` for emphasis inside body text. Never bold a whole paragraph.
