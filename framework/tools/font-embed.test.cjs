@@ -137,10 +137,10 @@ test('test_build_faces_keeps_latin_subsets', async () => {
   const r = await buildFaces(['Inter'], { fetch });
   assert.deepEqual(r.embedded, ['Inter']);
   assert.deepEqual(r.failed, []);
-  assert.equal(blocks(r.css), 8);
+  assert.equal(blocks(r.css), 2); // one per subset: variable weights merged
   assert.ok(!r.css.includes('fonts.gstatic.com'));
   const srcs = r.css.match(/src:.*/g);
-  assert.equal(srcs.length, 8);
+  assert.equal(srcs.length, 2);
   assert.ok(srcs.every((s) => s.startsWith("src: url(data:font/woff2;base64,")));
   assert.equal(fetch.calls.filter((c) => c.url.includes('fonts.gstatic.com')).length, 2);
   assert.equal(r.bytes, 2000);
@@ -190,4 +190,102 @@ test('test_build_faces_budget', async () => {
   assert.deepEqual(r.failed, [{ param: 'Lato', reason: 'budget' }]);
   assert.equal(r.bytes, 2000);
   assert.ok(!r.css.includes("'Lato'"));
+});
+
+// ---------- Task 3: inject, vendor, CLI ----------
+
+const os = require('node:os');
+const crypto = require('node:crypto');
+const { spawnSync } = require('node:child_process');
+const { inject, vendor } = fe;
+const HELPER = path.join(__dirname, 'font-embed.cjs');
+
+const PAGE_HEAD = '<!doctype html>\n<html><head><script type="application/json" id="design-tokens">{"meta":{"brand_fonts":{}}}</script></head>\n<body>\n<section id="standards">x</section>\n<style id="brand-font-faces">';
+const PAGE_TAIL = '</style>\n</body>\n</html>\n';
+const PAGE = PAGE_HEAD + fe.MARKER + PAGE_TAIL;
+
+test('test_inject_only_touches_marker', () => {
+  const css = "/* latin */\n@font-face { font-family: 'Inter'; src: url(data:font/woff2;base64,AAAA) format('woff2'); }";
+  const out = inject(PAGE, css);
+  assert.ok(out.startsWith(PAGE_HEAD));
+  assert.ok(out.endsWith(PAGE_TAIL));
+  assert.equal(out, PAGE_HEAD + css + PAGE_TAIL);
+  assert.equal(out.split(css).length - 1, 1);
+});
+
+test('test_inject_empty_css', () => {
+  const out = inject(PAGE, '');
+  assert.ok(out.includes('/* no embedded brand fonts */'));
+  assert.ok(!out.includes(fe.MARKER));
+});
+
+test('test_inject_rejects_filled_block', () => {
+  assert.equal(typeof inject, 'function');
+  assert.throws(() => inject(inject(PAGE, 'x'), 'y'), TypeError);
+  assert.throws(() => inject('<!doctype html><body></body>', 'x'), TypeError);
+  const two = PAGE_HEAD + fe.MARKER + '</style>\n<style id="brand-font-faces">' + fe.MARKER + PAGE_TAIL;
+  assert.throws(() => inject(two, 'x'), TypeError);
+});
+
+test('test_vendor_round_trip', async () => {
+  const sources = new Map();
+  const fetch = fakeFetch([
+    ['fonts.gstatic.com', (url) => {
+      if (!sources.has(url)) sources.set(url, Buffer.alloc(1000, sources.size + 1));
+      return { status: 200, bytes: sources.get(url) };
+    }],
+    ['family=Inter', { status: 200, text: INTER_CSS }],
+  ]);
+  const faces = await buildFaces(['Inter'], { fetch });
+  const v = vendor(inject(PAGE, faces.css));
+  assert.equal(v.files.length, 2);
+  for (const f of v.files) assert.match(f.name, /^inter-(latin|latin-ext)-[0-9a-f]{8}\.woff2$/);
+  const src = [...sources.values()].map((b) => b.toString('hex')).sort();
+  assert.deepEqual(v.files.map((f) => f.bytes.toString('hex')).sort(), src);
+  assert.equal((v.css.match(/url\(\/fonts\//g) || []).length, 2);
+  assert.ok(!v.css.includes('data:'));
+});
+
+test('test_vendor_without_block', () => {
+  assert.deepEqual(vendor('<!doctype html><p>x</p>'), { css: '', files: [] });
+  assert.deepEqual(vendor(PAGE), { css: '', files: [] });
+});
+
+function tmpDir() {
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'font-embed-'));
+}
+
+test('test_cli_inject_reports_sha', () => {
+  const dir = tmpDir();
+  const h = path.join(dir, 'ds.html');
+  const c = path.join(dir, 'faces.css');
+  fs.writeFileSync(h, PAGE);
+  fs.writeFileSync(c, "/* latin */\n@font-face { font-family: 'Inter'; }");
+  const r = spawnSync(process.execPath, [HELPER, 'inject', '--html', h, '--css', c], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  const out = JSON.parse(r.stdout);
+  const disk = fs.readFileSync(h);
+  assert.equal(out.sha256, crypto.createHash('sha256').update(disk).digest('hex'));
+  assert.equal(out.bytes, disk.length);
+  assert.ok(!disk.toString('utf8').includes(fe.MARKER));
+});
+
+test('test_cli_bad_input', () => {
+  const dir = tmpDir();
+  const c = path.join(dir, 'faces.css');
+  fs.writeFileSync(c, '');
+  const r = spawnSync(process.execPath, [HELPER, 'inject', '--html', path.join(dir, 'missing.html'), '--css', c], { encoding: 'utf8' });
+  assert.equal(r.status, 2);
+  assert.equal(r.stderr.trim().split('\n').length, 1);
+});
+
+test('test_build_faces_merges_variable_weights', async () => {
+  const fetch = fakeFetch([GSTATIC_1000, ['family=Inter', { status: 200, text: INTER_CSS }]]);
+  const r = await buildFaces(['Inter'], { fetch });
+  // A variable family serves one file per subset for every weight: one block each, a weight range, the data once.
+  assert.equal(blocks(r.css), 2);
+  assert.equal((r.css.match(/font-weight: 400 700;/g) || []).length, 2);
+  assert.equal((r.css.match(/data:font\/woff2/g) || []).length, 2);
+  assert.match(r.css, /\/\* latin \*\//);
+  assert.match(r.css, /\/\* latin-ext \*\//);
 });

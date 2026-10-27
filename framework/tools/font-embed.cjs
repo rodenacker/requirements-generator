@@ -42,6 +42,10 @@
  */
 'use strict';
 
+const crypto = require('node:crypto');
+const fs = require('node:fs');
+const path = require('node:path');
+
 const GOOGLE_CSS = 'https://fonts.googleapis.com/css2?family=';
 const WEIGHTS = ':wght@400;500;600;700&display=swap';
 // A desktop Chrome UA makes Google answer with woff2 faces split by subset.
@@ -229,8 +233,24 @@ async function embedFamily(fetch, param) {
     if (font.status !== 200) return { reason: `http ${font.status}` };
     try { data.set(url, Buffer.from(await font.arrayBuffer())); } catch { return { reason: 'network' }; }
   }
-  const css = faces
-    .map((f) => `/* ${f.subset} */\n${f.block.replace(SRC_RE, `src: url(data:font/woff2;base64,${data.get(f.url).toString('base64')}) format('woff2');`)}`)
+  // A variable family repeats one file per subset in a block per weight: merge
+  // those into one block with a weight range so each file is embedded once.
+  const groups = new Map();
+  for (const f of faces) {
+    const style = (f.block.match(/font-style:\s*([a-z]+)/) || [])[1] || 'normal';
+    const key = `${f.subset}|${style}|${f.url}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(f);
+  }
+  const css = [...groups.values()]
+    .map((g) => {
+      const weights = g.map((f) => Number((f.block.match(/font-weight:\s*(\d+)/) || [])[1])).filter(Number.isFinite);
+      let block = g[0].block.replace(SRC_RE, `src: url(data:font/woff2;base64,${data.get(g[0].url).toString('base64')}) format('woff2');`);
+      if (g.length > 1 && weights.length === g.length) {
+        block = block.replace(/font-weight:\s*\d+;/, `font-weight: ${Math.min(...weights)} ${Math.max(...weights)};`);
+      }
+      return `/* ${g[0].subset} */\n${block}`;
+    })
     .join('\n');
   const bytes = [...data.values()].reduce((n, b) => n + b.length, 0);
   return { css, bytes };
@@ -259,7 +279,115 @@ async function buildFaces(params, { fetch, maxBytes = MAX_EMBED_BYTES }) {
   return { css: parts.join('\n'), embedded, failed, bytes };
 }
 
+// ---------- the brand-font-faces block ----------
+
+const BLOCK_OPEN = '<style id="brand-font-faces">';
+const EMPTY_FACES = '/* no embedded brand fonts */';
+
+// [start, end) of the one block's content; null when there is no block.
+function blockRange(html) {
+  const first = html.indexOf(BLOCK_OPEN);
+  if (first < 0) return null;
+  if (html.indexOf(BLOCK_OPEN, first + 1) >= 0) throw new InputError('more than one brand-font-faces block');
+  const start = first + BLOCK_OPEN.length;
+  const end = html.indexOf('</style>', start);
+  if (end < 0) throw new InputError('brand-font-faces block is not closed');
+  return [start, end];
+}
+
+// Fill the marker block; every other byte is unchanged.
+function inject(html, css) {
+  if (typeof html !== 'string') throw new InputError('html must be a string');
+  if (typeof css !== 'string') throw new InputError('css must be a string');
+  const range = blockRange(html);
+  if (!range) throw new InputError('no brand-font-faces block');
+  const [start, end] = range;
+  if (html.slice(start, end) !== MARKER) throw new InputError('brand-font-faces block is already filled');
+  return html.slice(0, start) + (css === '' ? EMPTY_FACES : css) + html.slice(end);
+}
+
+// The filled block as local woff2 files + a CSS file pointing at /fonts/.
+function vendor(html) {
+  if (typeof html !== 'string') throw new InputError('html must be a string');
+  const range = blockRange(html);
+  if (!range) return { css: '', files: [] };
+  const content = html.slice(range[0], range[1]);
+  const byUri = new Map();
+  const parts = [];
+  for (const m of content.matchAll(FACE_RE)) {
+    const uri = m[2].match(/url\((data:font\/woff2;base64,([A-Za-z0-9+/=]+))\)/);
+    const fam = m[2].match(/font-family:\s*['"]?([^'";]+)['"]?\s*;/);
+    if (!uri || !fam) continue;
+    if (!byUri.has(uri[1])) {
+      const bytes = Buffer.from(uri[2], 'base64');
+      const hash = crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 8);
+      const slug = fam[1].trim().toLowerCase().replace(/\s+/g, '-');
+      byUri.set(uri[1], { name: `${slug}-${m[1]}-${hash}.woff2`, bytes });
+    }
+    parts.push(`/* ${m[1]} */\n${m[2].replace(uri[0], `url(/fonts/${byUri.get(uri[1]).name})`)}`);
+  }
+  if (parts.length === 0) return { css: '', files: [] };
+  return { css: parts.join('\n') + '\n', files: [...byUri.values()] };
+}
+
+// ---------- CLI ----------
+
+const USAGE = 'usage: font-embed.cjs <candidates|file-family|resolve|embed|inject|vendor> [options]';
+
+function writeFile(file, data) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, data);
+}
+
+async function main(argv) {
+  const [op, ...rest] = argv;
+  const all = (name) => rest.flatMap((v, i) => (v === name && i + 1 < rest.length ? [rest[i + 1]] : []));
+  const arg = (name) => all(name)[0];
+  const need = (...names) => {
+    for (const n of names) if (!arg(n)) throw new InputError(`${op} needs ${n}`);
+  };
+  const ops = {
+    candidates: async () => { need('--name'); return candidates(arg('--name')); },
+    'file-family': async () => { need('--url'); return familyFromFontFile(arg('--url')); },
+    resolve: async () => { need('--name'); return resolveAll(all('--name'), { fetch: globalThis.fetch }); },
+    embed: async () => {
+      need('--params', '--out');
+      const params = arg('--params').split(',').map((p) => p.trim()).filter(Boolean);
+      const r = await buildFaces(params, { fetch: globalThis.fetch });
+      writeFile(arg('--out'), r.css);
+      return { embedded: r.embedded, failed: r.failed, bytes: r.bytes };
+    },
+    inject: async () => {
+      need('--html', '--css');
+      const file = arg('--html');
+      fs.writeFileSync(file, inject(fs.readFileSync(file, 'utf8'), fs.readFileSync(arg('--css'), 'utf8')));
+      const disk = fs.readFileSync(file);
+      return { sha256: crypto.createHash('sha256').update(disk).digest('hex'), bytes: disk.length };
+    },
+    vendor: async () => {
+      need('--html', '--fonts-dir', '--css-out');
+      const v = vendor(fs.readFileSync(arg('--html'), 'utf8'));
+      for (const f of v.files) writeFile(path.join(arg('--fonts-dir'), f.name), f.bytes);
+      writeFile(arg('--css-out'), v.css);
+      return { files: v.files.map((f) => f.name), css_bytes: Buffer.byteLength(v.css) };
+    },
+  };
+  if (!Object.hasOwn(ops, op)) {
+    process.stderr.write(USAGE + '\n');
+    return 2;
+  }
+  try {
+    process.stdout.write(JSON.stringify(await ops[op](), null, 2) + '\n');
+    return 0;
+  } catch (e) {
+    process.stderr.write(`font-embed ${op}: ${String(e && e.message ? e.message : e).split('\n')[0]}\n`);
+    return 2;
+  }
+}
+
 module.exports = {
-  candidates, familyFromFontFile, resolveAll, buildFaces, InputError,
+  candidates, familyFromFontFile, resolveAll, buildFaces, inject, vendor, InputError,
   WEIGHT_WORDS, GOOGLE_CSS, WEIGHTS, UA, SUBSETS, MAX_EMBED_BYTES, MARKER, CONTROL, MAX_PROBES,
 };
+
+if (require.main === module) main(process.argv.slice(2)).then((code) => { process.exitCode = code; });
