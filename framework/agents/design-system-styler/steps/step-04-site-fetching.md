@@ -159,33 +159,21 @@ mcp__playwright__browser_evaluate({
         return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
       };
       const weights = {};
-      const hiddenUses = {};
       const addW = (c, w) => { const h = toHex(c); if (h) weights[h] = (weights[h] || 0) + w; };
-      const addHidden = (c) => { const h = toHex(c); if (h) hiddenUses[h] = (hiddenUses[h] || 0) + 1; };
-      const NO_TEXT = /^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/;
       for (const el of document.body.querySelectorAll("*")) {
         const rect = el.getBoundingClientRect();
+        if (!rect.width || !rect.height) continue;
         const cs = getComputedStyle(el);
-        const ownText = !NO_TEXT.test(el.tagName) && Array.from(el.childNodes).some(n => n.nodeType === 3 && n.textContent.trim());
-        if (!rect.width || !rect.height || cs.visibility === "hidden" || cs.display === "none" || Number(cs.opacity) === 0) {
-          // Not shown on load (closed menus, dialogs, tabs): counted, never weighted.
-          addHidden(cs.backgroundColor);
-          if (ownText) addHidden(cs.color);
-          continue;
-        }
+        if (cs.visibility === "hidden" || cs.display === "none" || Number(cs.opacity) === 0) continue;
         addW(cs.backgroundColor, Math.min(rect.width * rect.height, 200000) / 1000);
-        if (ownText) addW(cs.color, 1);
+        if (Array.from(el.childNodes).some(n => n.nodeType === 3 && n.textContent.trim())) addW(cs.color, 1);
         for (const side of ["Top", "Right", "Bottom", "Left"]) {
           if (parseFloat(cs["border" + side + "Width"]) > 0 && cs["border" + side + "Style"] !== "none") addW(cs["border" + side + "Color"], 0.2);
         }
       }
       const colourWeights = Object.entries(weights)
         .map(([hex, weight]) => ({ hex, weight: Math.round(weight * 10) / 10 }))
-        .sort((a, b) => b.weight - a.weight).slice(0, 30)
-        .concat(Object.entries(hiddenUses)
-          .filter(([hex]) => !(hex in weights))
-          .sort((a, b) => b[1] - a[1]).slice(0, 10)
-          .map(([hex]) => ({ hex, weight: 0 })));
+        .sort((a, b) => b.weight - a.weight).slice(0, 30);
 
       // The site's own other scheme — every rule inside
       // @media (prefers-color-scheme: <opposite>) plus root-level theme-variant
@@ -250,7 +238,7 @@ mcp__playwright__browser_evaluate({
 
 Store the result as `{{eval_payload}}`. **Re-run the login-page check** on its `finalHost` / `finalPath` / `title` (a script can redirect to an identity provider after Pass 1 settled); a hit fails the reference exactly as in §4.A.1, before anything from this payload is used. **Lean capture** (a URL after the lead): write `{ "colourWeights": …, "sampleElements": … }` from it to `computed-tokens-<n>.json`, set the reference's `status` to `used`, skip to §4.A.4 (close the browser), and continue with the next URL.
 
-Also store `{{colour_weights}} = {{eval_payload}}.colourWeights` (area-weighted chromatic colours: background area / 1000, area capped at 200 000 px², + 1 per text use + 0.2 per visible border; sorted descending, top 30 — then up to 10 **hidden-only** colours, with `weight: 0`, ordered by use count: colours the page carries only on elements not shown on load, such as closed menus and dialogs. Weight `0` keeps them out of the helper's "real use" test, so they can surface only as the second palette option, never as an outright pick — unless the page shows no chromatic colour at all, when every weight is `0` and the helper treats all of them as in use) and `{{alt_scheme}} = {{eval_payload}}.altScheme` (`null` when the site ships no opposite-scheme rules). Step-05 turns `{{colour_weights}}` into the `assign` candidates; step-05b §A-bis reads `{{alt_scheme}}`.
+Also store `{{colour_weights}} = {{eval_payload}}.colourWeights` (area-weighted chromatic colours: background area / 1000, area capped at 200 000 px², + 1 per text use + 0.2 per visible border; sorted descending, top 30) and `{{alt_scheme}} = {{eval_payload}}.altScheme` (`null` when the site ships no opposite-scheme rules). Step-05 turns `{{colour_weights}}` into the `assign` candidates; step-05b §A-bis reads `{{alt_scheme}}`.
 
 ### 4.A.3 CORS fallback for cross-origin stylesheets
 

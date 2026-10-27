@@ -69,17 +69,6 @@ test('test_assign_absa', () => {
   assert.ok(out.decisions.some((d) => d.includes('#FA551E')));
 });
 
-// absa.co.za re-captured 2026-10-27: the blue is only on hidden menu items, so
-// step-04 passes it as a hidden-only candidate with weight 0.
-test('test_assign_hidden_only_colour_offers_option', () => {
-  const input = ABSA();
-  input.candidates.find((c) => c.hex === '#0074A6').weight = 0;
-  const out = assign(input);
-  assert.ok(out.options);
-  assert.equal(out.options.site_colour.primary, '#0074A6');
-  assert.notEqual(out.roles.primary, '#0074A6');
-});
-
 test('test_assign_orange_cta_blue_brand', () => {
   const out = assign(ORANGE_CTA_BLUE_BRAND());
   assert.equal(out.roles.primary, '#1D4ED8');
