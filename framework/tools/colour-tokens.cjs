@@ -16,7 +16,7 @@
  * The prompt files decide *what* the site uses (picks, area weights, the
  * site's own other scheme); this file decides *how* those become tokens.
  *
- * Callers: framework/agents/design-system-styler/steps/step-05b-domain-inference.md
+ * Callers: framework/agents/design-system-styler/steps/step-05b-fill-and-derive.md
  * (assign at the start of §C; measure in §D; derive in §B.1 / §F). Policy prose:
  * framework/agents/design-system-styler/data/cross-mode-derivation-rules.md.
  * Never restate the constants below in prose — point here.

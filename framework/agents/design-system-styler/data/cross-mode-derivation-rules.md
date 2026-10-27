@@ -1,6 +1,6 @@
 # Cross-Mode Derivation — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by `framework/agents/design-system-styler/steps/step-05b-domain-inference.md` — by **§F** (whole-set derivation of the opposite mode), and by `house-defaults.md` §2 for the dark-shadow treatment (§3.5). States the **policy** for deriving one colour mode's token set from the other's, in **both** directions; `framework/tools/colour-tokens.cjs` implements the colour part of it and owns every number.
+**Role:** Pure reference knowledge consumed by `framework/agents/design-system-styler/steps/step-05b-fill-and-derive.md` — by **§F** (whole-set derivation of the opposite mode), and by `house-defaults.md` §2 for the dark-shadow treatment (§3.5). States the **policy** for deriving one colour mode's token set from the other's, in **both** directions; `framework/tools/colour-tokens.cjs` implements the colour part of it and owns every number.
 
 ---
 
@@ -80,9 +80,9 @@ Both directions use the same policy; the helper picks the far end from `source_m
 
 ## 6. Provenance of derived tokens
 
-A derived token was **not** extracted, and the system has exactly **two** provenance markers — `extracted-from-url` and `inferred-from-domain`. Do not invent a third.
+A derived token was **not** extracted, and the system has exactly **two** provenance markers — `extracted` and `system-derived`. Do not invent a third.
 
-- **Marker:** `prov: "inferred-from-domain"`.
+- **Marker:** `prov: "system-derived"`.
 - **Source string:** `derived: <target-mode> variant of <source-mode> <token> (<source-hex>)`
 
 Examples:

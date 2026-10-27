@@ -12,7 +12,7 @@ A brand family token passes through two independent questions, in this order:
 
 | # | Axis | Question | Canonical file | Outcome when it fails |
 |---|------|----------|----------------|-----------------------|
-| 1 | **Brand-ness** | Is this a deliberate brand typeface at all? | `font-rules.md` §1 | Token left **unset** → step-05b infers from the domain. **Never substituted.** |
+| 1 | **Brand-ness** | Is this a deliberate brand typeface at all? | `font-rules.md` §1 | Token left **unset** → another reference, else step-05b's interim font fallback. **Never substituted.** |
 | 2 | **Availability** | Can that brand typeface be loaded from Google Fonts? | **this file** | Brand name **kept**, a loadable substitute added behind it. **Never unset.** |
 
 **A family reaches axis 2 only after passing axis 1.** `Arial`, `Helvetica`, `Segoe UI`, `SF Pro`, `system-ui` and every other member of `font-rules.md` §1 are rejected before this file is consulted, so they never appear in §3's table. Their handling — reject, leave unset, infer — is unchanged by this file, and `font-rules.md` §4's *"Never repair a non-brand family in place"* remains in full force: it forbids substituting for a **non-brand** family, which is a different operation from substituting for an **unobtainable brand** family.
@@ -37,7 +37,7 @@ Every brand family token that survives `font-rules.md` §1 gets exactly one stat
 | `substituted` | The family is real and branded but **not** Google-hosted, on positive evidence. | `'<Brand>', '<Loadable>', <generic>` | Yes, for `<Loadable>` |
 | `unverified` | Availability could not be established either way. | `'<Brand>', <generic>` — unchanged | **No** |
 
-`status` is an **availability status, not a provenance marker.** The `prov` enum stays exactly two values — `extracted-from-url` and `inferred-from-domain` — per the locked decision in `framework/agents/design-system-styler.md`. A substituted token keeps whichever `prov` it already had; the substitution is a delivery concern, not a re-sourcing. `meta.extraction_status` is the precedent for a non-provenance status enum living in `meta`.
+`status` is an **availability status, not a provenance marker.** The `prov` enum stays exactly two values — `extracted` and `system-derived` — per the locked decision in `framework/agents/design-system-styler.md`. A substituted token keeps whichever `prov` it already had; the substitution is a delivery concern, not a re-sourcing. `meta.extraction_status` is the precedent for a non-provenance status enum living in `meta`.
 
 ### The evidence ladder
 
@@ -263,7 +263,7 @@ These are Google-hosted, so they belong in §4.1's assertion pool, but they must
 
 ## 5. Non-brand → allowed alternative
 
-The **other** axis, kept here so the pairs live in one place. These families fail `font-rules.md` §1, so their outcome is *unset + domain inference* — **not** substitution. This map exists only so step-07 §B can name a concrete alternative when a consultant asks for one of them by hand, and so the decline is helpful rather than bare.
+The **other** axis, kept here so the pairs live in one place. These families fail `font-rules.md` §1, so their outcome is *unset + interim font fallback* — **not** substitution. This map exists only so step-07 §B can name a concrete alternative when a consultant asks for one of them by hand, and so the decline is helpful rather than bare.
 
 | Consultant asked for | Name this instead |
 |---|---|

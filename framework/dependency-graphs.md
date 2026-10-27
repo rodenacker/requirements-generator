@@ -91,7 +91,7 @@ design-system-styler → steps/step-01-activate … step-07-handback,
   step-05-brand-extraction → prompt-templates/brand-extraction.md,
        data/insufficient-data-handling.md, data/color-extraction-rules.md, data/font-rules.md,
        data/font-availability-rules.md, data/typography-scale-rules.md, data/shadow-motion-rules.md
-  step-05b-domain-inference → tools/colour-tokens.cjs (assign / measure / derive via Bash),
+  step-05b-fill-and-derive → tools/colour-tokens.cjs (assign / measure / derive via Bash),
        data/contrast-validation.md, prompt-templates/domain-inference.md,
        data/cross-mode-derivation-rules.md
   step-06-artifact-generation → prompt-templates/artifact-generation.md, template-design-system.html,
@@ -103,7 +103,7 @@ preflight-mcp → refusal-registry
 
 **Notes (unique):**
 - URL-first flow: `step-02` collects only the reference URL; `step-04` fetches it once (CSS **and** `{{business_signals}}` in one session); `step-04b` then sets `{{domain}}` — suggested from the page via `domain-suggestion.md` (`AskUserQuestion` menu) when signals exist, else a free-text prose prompt. Every `step-04` exit routes through `step-04b` (except the RF-06 *Install* abort), so `step-05`'s entry guard skips all no-CSS paths.
-- Deepest tree (depth 5). `step-05b-domain-inference` derives an inferred token set per-run from the `{{domain}}` string (status colours + tokens left unset after step-05).
+- Deepest tree (depth 5). `step-05b-fill-and-derive` derives an inferred token set per-run from the `{{domain}}` string (status colours + tokens left unset after step-05).
 - **`step-05b` is interactive** — unusually for a non-`step-0x`-gate step. It classifies the extracted colour scheme, then asks the output-mode menu (`light-only` / `dark-only` / `both`) via `AskUserQuestion`. The question lives here rather than in `step-04b` because it must name the scheme actually found, which is unknown until after `step-05`. This is why the orchestrator's foreground-only justification lists four interactive surfaces, not three.
 - `data/cross-mode-derivation-rules.md` (step-05b only) holds the bidirectional light↔dark derivation rules. **The extracted scheme is the hue source; the other mode is derived from it** — so a dark-themed reference URL makes *light* the derived mode. step-05b uses this file twice: per-token during scheme-aware gap-fill (§B), and for the whole opposite-mode set (§F).
 - **`step-06` renders once per mode** in `{{files_to_write}}` (the consultant's choice ∪ the hue-source mode, so one file or two), hue-source file first and verified before the derived render begins. Output is `generated-docs/design-system/design-system-<mode>.html`; the unsuffixed path is retired. This is a loop over the same node set, not extra nodes.

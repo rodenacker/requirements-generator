@@ -70,7 +70,10 @@
   characters under any extraction status, so verbatim substitution is safe;
   pre-rendered HTML BLOCKS are produced by the styler and inserted as-is:
 
-    {{DOMAIN}}                 — consultant domain string (e.g. "retail-banking").
+    {{BRAND_LABEL}}            — short name of the first `used` reference: a
+                                 URL's host without a leading `www.` (e.g.
+                                 "absa.co.za"), or a PDF's file name without
+                                 `.pdf` (e.g. "acme-brand-guide").
     {{GENERATED_AT}}           — ISO-8601 date the artefact was rendered.
     {{MODE_LABEL}}             — "Light" or "Dark": the colour mode THIS file
                                  renders. Appears in <title> and the H1, and
@@ -83,9 +86,8 @@
                                  two fixed literal blocks — see DOC CHROME
                                  below.
     {{ATTRIBUTION_PARAGRAPH}}  — pre-rendered inner HTML of the attribution
-                                 blockquote variant per extraction_status /
-                                 reference_url state. The styler picks the
-                                 variant per prompt-template Section 4.
+                                 blockquote, built from meta.references per
+                                 prompt-template Section 4.
     {{TOKENS_JSON}}            — full token set serialised as JSON with
                                  2-space indent. See JSON SHAPE below.
     {{PALETTE_VARS}}           — one `:root { --c-*: …; --on-*: … }` block
@@ -128,13 +130,12 @@
 
     {
       "meta": {
-        "domain":             "<domain, lowercased + trimmed>",
-        "domain_provenance":  "<suggested-from-url-accepted |
-                                suggested-from-url-overridden |
-                                consultant-typed>",
-        "reference_url":      "<url-or-null>",
+        "references":         [ {"kind": "<url | pdf>",
+                                 "ref": "<url or documentation/... path>",
+                                 "status": "<used | failed — <reason> |
+                                            skipped — <reason>>"} ],
         "extraction_date":    "<ISO date>",
-        "extraction_status":  "<success | no_url | fetch_failed | no_css |
+        "extraction_status":  "<success | not_applicable | fetch_failed | no_css |
                                 css_fetch_failed | insufficient_data |
                                 workspace_read_failed | playwright_unavailable>",
         "css_source_type":    "<string-or-null>",
@@ -142,7 +143,7 @@
         "mode":               "<light | dark>",
         "mode_choice":        "<light-only | dark-only | both>",
         "hue_source":         "<extracted-light | extracted-dark |
-                                extracted-both | domain-inferred-light>",
+                                extracted-both | declared-light>",
         "primary":            "<true | false>",
         "palette_option":     "<neutral | site-colour | null>",   // the option
                                 // the consultant picked when two palettes were
@@ -159,7 +160,7 @@
         }
       },
       "colours": {
-        "primary":    {"hex": "#RRGGBB", "prov": "extracted-from-url|inferred-from-domain", "source": "<source context>"},
+        "primary":    {"hex": "#RRGGBB", "prov": "extracted|system-derived", "source": "<source context>"},
         "secondary":  { ... },
         "accent":     { ... },
         "background": { ... },
@@ -170,10 +171,10 @@
                                  // brand mark / empty-state illustration.
                                  // NEVER a button, link, badge, focus ring or
                                  // text colour. Mode-invariant; always present.
-        "success":    { ... },   // house status set, inferred-from-domain
-        "warning":    { ... },   // house status set, inferred-from-domain
-        "error":      { ... },   // house status set, inferred-from-domain
-        "info":       { ... }    // house status set, inferred-from-domain
+        "success":    { ... },   // house status set, system-derived
+        "warning":    { ... },   // house status set, system-derived
+        "error":      { ... },   // house status set, system-derived
+        "info":       { ... }    // house status set, system-derived
       },
       "typography": {
         "heading_family": {"value": "<family stack>", "prov": "...", "source": "..."},
@@ -211,7 +212,7 @@
     }
 
   meta.brand_fonts.families[].status IS NOT A PROVENANCE MARKER. `prov` has
-  exactly two values (extracted-from-url | inferred-from-domain) and that set is
+  exactly two values (extracted | system-derived) and that set is
   closed — a substituted family keeps whichever marker it already had, because
   substitution is about delivery, not about where the value came from. `status`
   answers a different question ("can this face be fetched?"), which is why it
@@ -377,8 +378,9 @@
 
   Which files are written is decided in step-05b: the mode(s) the consultant
   asked for, plus the HUE-SOURCE mode always. The hue source is the scheme
-  actually extracted from the reference URL — sites ship dark by default as
-  often as light — or domain-inferred light when no URL was given. The other
+  the brand references' background puts it in — sites ship dark by default
+  as often as light — or light when no reference declared a background
+  (declared-light). The other
   mode is DERIVED from the hue source per
   `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md`,
   and is never claimed as extracted.
@@ -396,7 +398,7 @@
   declaration plus the 15 :root custom properties that style the
   DOCUMENTATION UI (page background, body text, section cards, code chips,
   provenance badges, the contrast-card meta strip). These are NOT brand
-  tokens: they are identical for every run and every domain, so the render
+  tokens: they are identical for every run and every brand, so the render
   stays deterministic, and they are NOT subject to the four-pair token
   contrast gate (the values below are hand-checked >= 4.5:1).
   Substitute exactly one of these two literal blocks:
@@ -494,7 +496,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Design System ({{MODE_LABEL}}) — {{DOMAIN}}</title>
+  <title>Design System ({{MODE_LABEL}}) — {{BRAND_LABEL}}</title>
 {{BRAND_FONT_LINKS}}
   <style>
     :root {
@@ -704,12 +706,12 @@
       letter-spacing: 0.04em;
     }
 
-    .prov-extracted-from-url {
+    .prov-extracted {
       background: var(--prov-extracted-bg);
       color: var(--prov-extracted);
     }
 
-    .prov-inferred-from-domain {
+    .prov-system-derived {
       background: var(--prov-inferred-bg);
       color: var(--prov-inferred);
     }
@@ -1062,7 +1064,7 @@
 <main>
 
   <header class="doc-header">
-    <h1 id="top">Design System ({{MODE_LABEL}}) — {{DOMAIN}}</h1>
+    <h1 id="top">Design System ({{MODE_LABEL}}) — {{BRAND_LABEL}}</h1>
     <blockquote class="attribution">{{ATTRIBUTION_PARAGRAPH}}</blockquote>
     <p class="generated-at">Generated: {{GENERATED_AT}}</p>
 {{PALETTE_TABS}}

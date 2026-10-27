@@ -1,13 +1,13 @@
 ---
-name: step-05b-domain-inference
-description: 'Classify the extracted colour scheme, infer every unset token from the domain, validate contrast, ask which colour mode(s) to ship, and derive the opposite mode when requested. Always runs — both after a successful URL extraction (to fill gaps) and after every URL-failure path (to fill the entire token set).'
+name: step-05b-fill-and-derive
+description: 'Classify the references'' colour scheme, fill the house defaults and the interim font fallback, assign every colour through the helper, validate contrast, ask which colour mode(s) to ship, and derive the opposite mode when requested. Always runs after step-05''s reference gate passes.'
 # Variables referenced (inherited from agent):
 # data_contrast_validation: 'framework/agents/design-system-styler/data/contrast-validation.md'
 # data_cross_mode_derivation: 'framework/agents/design-system-styler/data/cross-mode-derivation-rules.md'
 # data_house_defaults: 'framework/agents/design-system-styler/data/house-defaults.md'
 ---
 
-# Step 5b: Scheme Detection, Domain-Inference Fill, Mode Selection + Cross-Mode Derivation
+# Step 5b: Scheme Detection, House-Default Fill, Mode Selection + Cross-Mode Derivation
 
 This step always runs. It completes the canonical token list defined in `framework/assets/template-design-system.html` (the JSON SHAPE comment block at the top of the template enumerates all 34 token names): sizes, line heights, shadows and motion from the fixed house defaults, unextracted fonts from the interim fallback, and every colour from the helper (`framework/tools/colour-tokens.cjs`). Nothing is inferred. It then validates contrast, asks the consultant which colour mode(s) to ship, and derives the opposite mode if one is wanted.
 
@@ -46,7 +46,7 @@ Output one short Unicorn-voice line so the consultant can see what was found bef
 
 If step-04 captured `{{alt_scheme}}` (non-null, Playwright path only) and its `scheme` is the opposite of `{{extracted_scheme}}`, apply the `color-extraction-rules.md` §0/§1/§3 pick heuristics to `{{alt_scheme}}.customProperties` and `.declarations` to pick that scheme's `background`, `surface`, `text`, `text_muted`, `primary`, `secondary`, `accent`. If **at least `background` and `text`** resolve:
 
-- `{{other_mode_extracted}} = true` and `{{hue_source}} = extracted-both`. The other mode is **extracted, not derived**: its tokens carry `prov: extracted-from-url` with the alt-scheme selector / property as Source Context.
+- `{{other_mode_extracted}} = true` and `{{hue_source}} = extracted-both`. The other mode is **extracted, not derived**: its tokens carry `prov: extracted` with the alt-scheme selector / property as Source Context.
 - Its picks go through the helper in §C (reserved zones apply in both modes), with `brand` forced to the hue-source `brand`.
 - Say so in the scheme line: *"The site also ships its own **{{other_mode}}** palette — extracting it instead of deriving."*
 
@@ -155,7 +155,7 @@ The policy is `cross-mode-derivation-rules.md` §3–§5; the numbers come from 
    Exit code ≠ 0 → halt with the stderr line. Store the output as `{{palettes}}.<palette>.<other_mode>` = `{ colours, on_colours, contrast, fills, adjustments }`. The derived set's **12 colours** are exactly the helper's — do not retune them.
 2. Derive the **3 shadows** per `cross-mode-derivation-rules.md` §3.4 / §4.4 (geometry verbatim, alpha scaled).
 3. Copy the **19 shared tokens** verbatim — all 15 typography tokens plus `transition_fast`, `transition_base`, `transition_slow`, `easing_standard`. Same values, same `prov`, same `source`. Do not re-derive or re-round them.
-4. Tag every derived colour and shadow: `prov: "inferred-from-domain"`, `source: "derived: <target-mode> variant of <source-mode> <token> (<source-hex>)"` — except `brand`, which is mode-invariant and copied with its hue-source `prov` / `source`. Two markers only — there is no third.
+4. Tag every derived colour and shadow: `prov: "system-derived"`, `source: "derived: <target-mode> variant of <source-mode> <token> (<source-hex>)"` — except `brand`, which is mode-invariant and copied with its hue-source `prov` / `source`. Two markers only — there is no third.
 5. Set the derived mode's `{{on_colours_<mode>}}`, `{{cv_adjustments_<mode>}}` (the helper's `adjustments` lines), `{{cv_pass_count_<mode>}}` (pairs ≥ 4.5) and `{{cv_adjustment_count_<mode>}}` (lines describing a moved or flipped colour) from the `default` / `neutral` palette's output. The derived set gets its **own** numbers — it never inherits the hue-source set's.
 
 Store the derived set as a separate in-memory token set. Both sets now exist and step-06 renders one file from each.

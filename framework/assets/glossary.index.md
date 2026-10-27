@@ -46,14 +46,14 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | generated-docs | Repo-root parent of every consultant-facing **document** output, one subdir per pipeline; `wireframes/`, `prototypes/` and `blueprints/` stay outside it. | `docs/architecture.md > Top-level dirs` |
 | Grounding | The act of linking a claim to a real source; ungrounded facts fail validation. | — |
 | Handback gate | Orchestrator checkpoint accepting/re-invoking a finished agent. | orchestrators |
-| hue source | The design-system mode whose palette was actually extracted (or domain-inferred light); always written, `meta.primary: true`; the other mode is derived from it (or extracted too: `extracted-both`). | `cross-mode-derivation-rules.md` |
+| hue source | The design-system mode whose palette the brand references ground (or light when no reference declared a background: `declared-light`); always written, `meta.primary: true`; the other mode is derived from it (or extracted too: `extracted-both`). | `cross-mode-derivation-rules.md` |
 | Input tier | Ingest classification (Native / Supported-via-MCP / Unsupported). | `skills/classify-input-tier.md` |
 | Logical surface (LS-NN) | Decomposition-agnostic blueprint surface, pre-screen-count. | `blueprint-architect.md` |
 | Media directory | `documentation/<full-filename>.media/` holding one input's extracted-media; enumerated, marker-gated, the one derived class the framework may reconcile. | `shared/input-safety.md` `IS-04` |
 | Merger | Third triplet agent: strips markers, validates, writes the clean final artefact. | — |
 | palette option | One of two `/design-system` palettes (neutral / site colour) offered when the brand colour is reserved; chosen in step-07, collapsed to one; `meta.palette_option`; resumable. | `design-system-styler/steps/step-07-handback.md` |
 | Methodology | A named analysis/critique method (OOUX, ADVERSARIAL, GLOSSARY …); "lens" = its alias. | registries |
-| mode (design-system) | The colour scheme a design-system artefact renders (`light`/`dark`); one file per mode, chosen at step-05b. | `step-05b-domain-inference.md` |
+| mode (design-system) | The colour scheme a design-system artefact renders (`light`/`dark`); one file per mode, chosen at step-05b. | `step-05b-fill-and-derive.md` |
 | Nav table | The generated, per-prototype list of intra-prototype destinations + their visible roles (`src/data/nav/`); the single source every app shell reads. Not the prototype registry (inter-prototype). | `prototypes/shared-component-conventions.md` §6a |
 | on-colour | The label/icon colour on a filled element (`--*-foreground`); **measured** against the actual fill per mode and across every hover/active composite — never inferred from light/dark. | `skills/extract-brand-theme.md` |
 | Orchestrator | Pipeline control-flow owner; sequences agents, owns state/gates; no content edits. | `docs/maintenance.md > Separation of concerns` |

@@ -19,9 +19,9 @@ The extraction logic is organized into focused data files. Step-05 reads them **
 | 3 | `data/color-extraction-rules.md` | CSS analysis strategy, colour extraction and normalization, colour-to-token mapping heuristics for the 7 brand tokens (Sections 1-3). Status colours are explicitly NOT extracted here — they always fall through to step-05b. |
 | 4 | `data/font-rules.md` | Font family extraction (Section 4) and font weights (Section 5). |
 | 5 | `data/font-availability-rules.md` | Whether an extracted family can be loaded (step-05 §4b). |
-| — | `data/contrast-validation.md` | WCAG AA contrast ratio validation and adjustment strategy (Section 6). **Read by step-05b, not step-05** — it validates the final token set (extracted *and* domain-inferred), so it runs after the domain-inference fill. |
+| — | `data/contrast-validation.md` | WCAG AA contrast ratio validation and adjustment strategy (Section 6). **Read by step-05b, not step-05** — it validates the final token set (extracted *and* system-derived), so it runs after the helper has assigned every colour. |
 
-**Note:** The five step-05 files are read in one batch; the application order in the table above is what's preserved. The insufficient-data gate is applied before colour extraction so it can short-circuit before any extraction reasoning when the CSS lacks sufficient data. Contrast validation (`contrast-validation.md`) is a step-05b concern, applied last so it can validate against any token (extracted *or* domain-inferred).
+**Note:** The five step-05 files are read in one batch; the application order in the table above is what's preserved. The insufficient-data gate is applied before colour extraction so it can short-circuit before any extraction reasoning when the CSS lacks sufficient data. Contrast validation (`contrast-validation.md`) is a step-05b concern, applied last so it can validate against any token (extracted *or* system-derived).
 
 ---
 
@@ -30,7 +30,7 @@ The extraction logic is organized into focused data files. Step-05 reads them **
 After completing extraction and validation, produce this structured result. Tokens left unset by extraction (i.e. not found in the CSS) are written as `null` here and filled by step-05b before artefact generation.
 
 ```yaml
-extraction_status: "success"  # or "no_url" | "fetch_failed" | "no_css" | "css_fetch_failed" | "insufficient_data"
+extraction_status: "success"  # or "not_applicable" | "fetch_failed" | "no_css" | "css_fetch_failed" | "insufficient_data"
 
 extracted_colors:
   primary:     { hex: "#RRGGBB" | null, source: "{css_selector_or_property}" | null }
@@ -41,7 +41,7 @@ extracted_colors:
   text:        { hex: "#RRGGBB" | null, source: "{source_context}" | null }
   text-muted:  { hex: "#RRGGBB" | null, source: "{source_context}" | null }
   # Status colours (success/warning/error/info) are NOT extracted here.
-  # They are always populated by step-05b via per-run domain inference.
+  # They are always the helper's house set (HOUSE_STATUS), system-derived in step-05b.
 
 extracted_typography:
   heading_family:  { value: "Font Name" | null, source: "{source_context}" | null }
@@ -65,7 +65,7 @@ contrast_validation:
 ```
 STYLER BRAND EXTRACTION
 ───────────────────────
-Colours extracted: {extracted_count}/7 brand tokens (status colours always inferred-from-domain)
+Colours extracted: {extracted_count}/7 brand tokens (status colours always system-derived)
   primary: {hex_or_null} (from: {source_or_null})
   ... (one line per token)
 Typography extracted: {extracted_typo_count}/4 tokens (families + weights; sizes and line heights are house defaults)

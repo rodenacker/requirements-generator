@@ -1,6 +1,6 @@
 # WCAG AA Contrast Validation — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by `step-05b-domain-inference.md` — by **§A-bis** (scheme detection), by **§D** (validating the hue-source token set), and by **§F** (validating the derived opposite-mode set). Contains the scheme-detection rule, contrast ratio calculation rules, and the scheme-conditional adjustment strategy for accessibility compliance. Ported from v3 b3-style-extractor; the luminance math is verbatim, the adjustment strategy gained a dark-set branch when light/dark mode support was added.
+**Role:** Pure reference knowledge consumed by `step-05b-fill-and-derive.md` — by **§A-bis** (scheme detection), by **§D** (validating the hue-source token set), and by **§F** (validating the derived opposite-mode set). Contains the scheme-detection rule, contrast ratio calculation rules, and the scheme-conditional adjustment strategy for accessibility compliance. Ported from v3 b3-style-extractor; the luminance math is verbatim, the adjustment strategy gained a dark-set branch when light/dark mode support was added.
 
 ---
 
@@ -10,7 +10,7 @@
 >
 > Checked per mode: (1) the four text pairs below at 4.5:1; (2) each brand / status **fill** against `surface` at the WCAG non-text target (a flipped neutral `secondary` is a tonal button and is reported, not enforced; extracted hue-source fills are reported, never moved); (3) each fill's **label** — whichever of a brand-tinted near-black / near-white reads better — at 4.5:1, reported when unmet, never fixed by moving the fill.
 
-After assigning all 7 brand color tokens (regardless of whether they came from the URL, from domain inference, or from cross-mode derivation), validate text/background contrast for accessibility compliance. This runs once per colour mode.
+After assigning all 7 brand color tokens (regardless of whether they came from a brand reference, from the colour helper, or from cross-mode derivation), validate text/background contrast for accessibility compliance. This runs once per colour mode.
 
 ### Required Passing Pairs
 
@@ -55,7 +55,7 @@ Compute the relative luminance `L` of the `background` token (Steps 1–2 above)
 | `L >= 0.5` | `light` |
 | `L < 0.5` | `dark` |
 
-If no URL was given, or extraction did not reach its happy path, the scheme is **`light`** — the domain-inference contract is light-anchored by construction (it anchors `background` to `#FFFFFF`), so an all-inferred token set is a light set.
+If no reference gave a `background`, the scheme is **`light`** (`meta.hue_source: declared-light`) — a default for missing evidence, not "light is authoritative": the neutrals then come from the colour helper's light neutral ladder.
 
 No new math: this reuses the luminance formula already defined above. Cite this subsection rather than restating it.
 
@@ -100,8 +100,8 @@ If any pair's ratio is below 4.5:
 
 ### Provenance Note
 
-If a token's value is changed by this validation step, retain the original provenance marker (`extracted-from-url` or `inferred-from-domain`) — adjustment is a downstream correction, not a re-source. Append the adjustment record to the Contrast Validation table's `Adjustments` line in the artefact.
+If a token's value is changed by this validation step, retain the original provenance marker (`extracted` or `system-derived`) — adjustment is a downstream correction, not a re-source. Append the adjustment record to the Contrast Validation table's `Adjustments` line in the artefact.
 
-This applies equally to a **derived** token: an adjusted cross-mode value keeps both its `inferred-from-domain` marker and its `derived: <target> variant of <source> <token> (<source-hex>)` source string. The source records where the value *came from*, not what it currently is, so adjustment never rewrites it.
+This applies equally to a **derived** token: an adjusted cross-mode value keeps both its `system-derived` marker and its `derived: <target> variant of <source> <token> (<source-hex>)` source string. The source records where the value *came from*, not what it currently is, so adjustment never rewrites it.
 
 Each set gets its **own** adjustment log. A derived set does not inherit the hue-source set's ratios, statuses, or adjustments — it is validated independently, and the artefact for each mode reports that mode's own results.

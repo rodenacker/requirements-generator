@@ -15,7 +15,7 @@ If `generated-docs/design-system/.workspace/computed-tokens.json` exists (Playwr
 
 The values arrive as full font-family chains, e.g. `"Inter", "Helvetica Neue", sans-serif`. Strip surrounding quotes from each name and pick the first family that is **not** a non-brand family per §1 below. In that example `Inter` is the brand font; `"Helvetica Neue"` is a system face serving as a fallback and is rejected, as is the `sans-serif` terminal.
 
-If **every** family in the chain is non-brand (e.g. the body resolves to `Arial, Helvetica, sans-serif`, or to `system-ui, sans-serif`), leave the token unset — another reference may supply it, else step-05b uses the interim font fallback. Tag computed-source extractions `extracted-from-url` and record the source as `sampleElements.h1` / `sampleElements.body`.
+If **every** family in the chain is non-brand (e.g. the body resolves to `Arial, Helvetica, sans-serif`, or to `system-ui, sans-serif`), leave the token unset — another reference may supply it, else step-05b uses the interim font fallback. Tag computed-source extractions `extracted` and record the source as `sampleElements.h1` / `sampleElements.body`.
 
 **If `computed-tokens.json` is absent (WebFetch fallback path):** skip this section and use the legacy text-pattern logic in §4 below against `{{primary_css_content}}` only.
 
@@ -98,8 +98,8 @@ Extract the body weight per §5.
   - The **generic terminal is required, not merely tolerated.** A bare family with no fallback lets the browser reach for its default *serif* when the face is absent — worse than the problem being solved. A generic keyword is not a named system face, so it is not a violation of §1.
   - Match the terminal to the family's classification: `sans-serif` for a sans family, `serif` for a serif family.
 - **Quoted font names:** Strip surrounding quotes from font names while scanning (e.g., `"Inter"` → `Inter`). Re-quote the selected family with single quotes in the emitted stack.
-- **Record a rejection:** when a chain is rejected because every candidate was non-brand, store the name that would have been selected under the pre-§1 rule — the first *named* family in the chain — as `{{font_rejected_heading}}` / `{{font_rejected_body}}`. Step-07 uses it to tell the consultant *why* the family is domain-inferred rather than extracted; without it the extracted-token count silently drops with no explanation.
-- **Tag provenance:** When a font family is found via this rules file, tag it `extracted-from-url` and record the source selector (e.g. `h1, h2 font-family`) in the Source Context column. When the token is left unset (and later filled by step-05b), the agent tags it `inferred-from-domain`.
+- **Record a rejection:** when a chain is rejected because every candidate was non-brand, store the name that would have been selected under the pre-§1 rule — the first *named* family in the chain — as `{{font_rejected_heading}}` / `{{font_rejected_body}}`. Step-07 uses it to tell the consultant *why* the family is not the one the page declared; without it the extracted-token count silently drops with no explanation.
+- **Tag provenance:** When a font family is found via this rules file, tag it `extracted` and record the source selector (e.g. `h1, h2 font-family`) in the Source Context column. When the token is left unset (and later filled by step-05b), the agent tags it `system-derived`.
 
 ---
 

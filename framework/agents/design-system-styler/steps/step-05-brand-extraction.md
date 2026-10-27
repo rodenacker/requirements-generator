@@ -179,4 +179,4 @@ Contrast validation runs **after** step-05b, not here — it must validate again
 
 ---
 
-**Next:** Read fully and follow `step-05b-domain-inference.md`.
+**Next:** Read fully and follow `step-05b-fill-and-derive.md`.
