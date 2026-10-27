@@ -60,7 +60,8 @@ const { pathToFileURL } = require('url');
 // Deliberately NOT matched:
 //   wireframes/<slug>/<variant>/screen-NN-*.html  (3 segments — index.html is
 //     the comparator's entry point and links to these on click)
-//   generated-docs/design-system/.workspace/**      (transient styler scratch)
+//   generated-docs/design-system/.workspace/**      (transient styler scratch —
+//     except the two palette-option review files, matched below)
 //   generated-docs/design-system/design-system.html (legacy, no longer authored)
 //   prototypes/** framework/** template/** documentation/**
 const ALLOW = [
@@ -69,6 +70,7 @@ const ALLOW = [
   /^generated-docs\/review-requirements\/[^/]+\/[^/]+\.html$/,
   /^generated-docs\/review-inputs\/[^/]+\/[^/]+\.html$/,
   /^generated-docs\/design-system\/design-system-(light|dark)\.html$/,
+  /^generated-docs\/design-system\/\.workspace\/review-(light|dark)\.html$/,
   /^wireframes\/[^/]+\/index\.html$/,
 ];
 

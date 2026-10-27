@@ -24,18 +24,34 @@ This orchestrator and its agent are isolated from the `/requirements` pipeline. 
 
 ## No progress file
 
-Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progress.json` file. The pipeline is a single-agent, one-shot foreground run; resuming an interrupted run means restarting it. If the consultant terminates mid-run, no state needs to be cleaned up beyond the transient `generated-docs/design-system/.workspace/` folder, which the agent's step-07 deletes on accept (and which a subsequent fresh run would overwrite anyway).
+Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progress.json` file. The pipeline is a single-agent, one-shot foreground run; resuming an interrupted run means restarting it.
+
+**The one exception — the palette choice.** When two palettes were offered, step-06 writes `generated-docs/design-system/.workspace/options.json` before step-07 asks which one to use. By then the consultant has seen both options, and a re-run could produce slightly different ones (fetch drift), so an interruption at that question is resumable: the startup gate below offers *Resume at palette choice*. No other step resumes. If the consultant terminates mid-run, no state needs to be cleaned up beyond the transient `generated-docs/design-system/.workspace/` folder, which the agent's step-07 deletes on accept (and which a subsequent fresh run would overwrite anyway).
 
 ## Pipeline
 
-0. **Detect prior artefact** — before invoking the agent, perform the gate described in **Startup: detect prior artefact** below. Depending on the consultant's choice, either delete the prior artefact (after a git checkpoint) or exit cleanly.
+0. **Detect a pending palette choice, then a prior artefact** — before invoking the agent, perform **Startup: resume a palette choice** and then (unless it resumed or exited) **Startup: detect prior artefact** below. Depending on the consultant's choice, either delete the prior artefact (after a git checkpoint) or exit cleanly.
 1. **Run the styler** — invoke `framework/agents/design-system-styler.md` in the foreground. Wait until the agent reports the artefact accepted (handback gate below).
 
 There is no step 2. After the handback gate is met, the orchestrator **commits the accepted design system** (best-effort, non-blocking) by invoking `framework/skills/commit-run-outputs.md` with `pipeline: "design-system"`, `files_to_write: {{files_to_write}}` — exactly the mode files the agent reported writing, never the pair unconditionally. Branch on the return: `committed` / `nothing-to-commit` → say nothing; `skipped-branch` → **one** plain-text line naming the branch; `failed` → **one** plain-text warning line. Then it emits the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) and declares done. The commit lands **before** the tip, because the tip tells the consultant to `/clear`; a non-`committed` return never suppresses the tip and never withholds the declaration of done.
 
+## Startup: resume a palette choice
+
+Run this first, at the very start of every invocation.
+
+1. Use `Read` on `generated-docs/design-system/.workspace/options.json`.
+    - **Absent** → go to *Startup: detect prior artefact*.
+    - **Present but unreadable, not valid JSON, or not `version: 1` with `palettes.neutral`, `palettes.site_colour` and `files_to_write`** → output one line: *"Found an unreadable palette-choice record — starting fresh."* — then treat it exactly as *Start fresh* below.
+    - **Present and valid** → ask with `AskUserQuestion`:
+        - Header: `Resume`
+        - Question: *"An earlier `/design-system` run for `{{reference_url}}` stopped at the palette choice. Resume there, or start fresh?"* — and when any accepted `generated-docs/design-system/design-system-*.html` exists, append: *"`{{found_paths}}` stay untouched until you pick a palette."*
+        - Options: 1. `Resume at palette choice (Recommended)` — re-opens the two review files and asks the palette question. 2. `Start fresh` — discards the pending choice and runs from the URL.
+2. **Resume** → invoke the styler in the foreground with `{{resume_palette_choice}} = true`: it activates (step-01) and goes straight to step-07 §A-0, which restores the run from `options.json`, re-opens the review files, asks the palette question, collapses, and finishes normally (verify, accept loop, workspace cleanup). The prior-artefact gate is **skipped**: the accepted files are overwritten only by the collapse, after the pick. Then continue at the handback gate.
+3. **Start fresh** → delete the pending workspace: if any accepted `design-system-*.html` exists, first run the **Reset procedure's** step 1 (git checkpoint; it stages `.workspace/` too) — otherwise no checkpoint; then `Bash rm -rf generated-docs/design-system/.workspace`. Then continue with *Startup: detect prior artefact* as usual.
+
 ## Startup: detect prior artefact
 
-Run this once, at the very start of every invocation, before step 1.
+Run this once per invocation, after *Startup: resume a palette choice* (unless that resumed the run), before step 1.
 
 1. **Inspect state.** Use `Read` to check for **any** prior design-system artefact. Check all four paths — the run is gated if *any one* of them is present:
     - `generated-docs/design-system/design-system-light.html` (current format)
@@ -104,15 +120,16 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 ## Tools
 
-- `Read` — check at startup whether any of `generated-docs/design-system/design-system-light.html`, `generated-docs/design-system/design-system-dark.html`, or the transition-window stale `generated-docs/design-system/design-system.html` / `generated-docs/design-system/design-system.md` exists. No other reads outside `generated-docs/design-system/` are permitted.
+- `Read` — check at startup for `generated-docs/design-system/.workspace/options.json` (the resumable palette choice; existence + validity only — its content belongs to the agent), and whether any of `generated-docs/design-system/design-system-light.html`, `generated-docs/design-system/design-system-dark.html`, or the transition-window stale `generated-docs/design-system/design-system.html` / `generated-docs/design-system/design-system.md` exists. No other reads outside `generated-docs/design-system/` are permitted.
 - `Bash` — git checkpoint commit + `rm -f generated-docs/design-system/design-system-light.html generated-docs/design-system/design-system-dark.html generated-docs/design-system/design-system.html generated-docs/design-system/design-system.md` (the unsuffixed `.html` and the `.md` args are the transition-window cleanup) + `rm -rf generated-docs/design-system/.workspace` during the Reset procedure; and, at the success terminal, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. No other Bash usage. Never use destructive operations beyond those explicitly named paths. Never push, amend, or skip hooks.
 - `framework/skills/commit-run-outputs.md` — the best-effort completion commit at the success terminal (`pipeline: "design-system"`).
-- `AskUserQuestion` — surface the `{ Overwrite, Keep, Cancel }` prompt at startup when a prior artefact exists.
+- `AskUserQuestion` — surface the `{ Resume at palette choice, Start fresh }` prompt when a valid `options.json` exists, and the `{ Overwrite, Keep, Cancel }` prompt at startup when a prior artefact exists.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of design-system content belongs to the invoked agent; the agent uses the tools listed in its own agent file.
 
 ## Self-validation (run before declaring done)
 
+- The palette-resume gate ran first; a valid `options.json` was offered as *Resume* / *Start fresh*, an invalid one was discarded with one line, and on *Resume* the prior-artefact gate was skipped and no accepted file changed before the pick.
 - The startup gate ran and the consultant's choice was honoured (overwrote with checkpoint, kept and exited, or cancelled cleanly).
 - If the consultant chose `Overwrite`, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and the prior artefact was deleted before the agent was invoked.
 - If the consultant chose `Keep` or `Cancel`, no `Bash` was run and the agent was not invoked.
@@ -140,5 +157,5 @@ The orchestrator's tools are limited to the operations above. Every other read o
 - Do not invoke `commit-run-outputs.md` on the `Keep` or `Cancel` branches. Nothing fresh was written there; invoking on `Keep` would find an artefact left dirty by a previously *cancelled* run and commit it under a subject claiming this run produced it.
 - Do not pass a hardcoded light/dark pair to `commit-run-outputs.md`. Pass the agent-reported `{{files_to_write}}` — the same set the handback gate checks. Staging a mode the run did not write is the staging equivalent of the hardcoded-"light file" assumption forbidden above.
 - Do not let the completion commit block. A `failed` return produces **one** plain-text warning line and the pipeline continues; it never withholds the declaration of done, never deletes an artefact, and never suppresses the context-hygiene tip. Do not restate the skill's staging set, subject string, branch guard, or pathspec form here — they are canonical in the skill.
-- Do not maintain a `.progress.json` file. This orchestrator is single-agent and one-shot; progress tracking is unnecessary and out of scope.
+- Do not maintain a `.progress.json` file. This orchestrator is single-agent and one-shot; the only resumable point is the palette choice, recorded by the agent in `.workspace/options.json`. Do not add a second one.
 - Do not read `generated-docs/requirements/`, `framework/state/`, or `framework/shared/` outside the styler's RF-06 reference reads documented in **Stand-alone constraint**. This orchestrator and its agent remain stand-alone for every other purpose.

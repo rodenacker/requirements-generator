@@ -89,9 +89,12 @@
     {{TOKENS_JSON}}            — full token set serialised as JSON with
                                  2-space indent. See JSON SHAPE below.
     {{PALETTE_VARS}}           — one `:root { --c-*: …; --on-*: … }` block
-                                 (final files), or one
-                                 `[data-palette="…"] { … }` block per palette
-                                 option (review files). See PALETTE VARS below.
+                                 (final files), or one block per palette
+                                 option plus the tab CSS (review files).
+                                 See PALETTE VARS below.
+    {{PALETTE_TABS}}           — empty string in a final file; the Option 1 /
+                                 Option 2 tab bar in a review file. See
+                                 PALETTE VARS below.
     {{COLOUR_SWATCHES}}        — pre-rendered HTML for the 12 colour rows.
                                  See COLOUR ROW SCHEMA below.
     {{TYPE_FAMILY_SPECIMENS}}  — pre-rendered HTML for heading + body family.
@@ -236,10 +239,16 @@
       --on-warning --on-error --on-info
 
   `--on-*` values are the helper's measured on-colours (never `surface`).
-  A final file emits exactly one `:root { … }` block. A review file
-  (.workspace/review-<mode>.html, two palettes offered) emits one
-  `[data-palette="neutral"] { … }` and one `[data-palette="site-colour"]
-  { … }` block, and the option tabs switch which one applies.
+  A final file emits exactly one `:root { … }` block and {{PALETTE_TABS}}
+  becomes the empty string. A review file (.workspace/review-<mode>.html, two
+  palettes offered) emits one `:root:has(#palette-neutral:checked) { … }` and
+  one `:root:has(#palette-site-colour:checked) { … }` block, and
+  {{PALETTE_TABS}} becomes two radio inputs (#palette-neutral checked by
+  default, #palette-site-colour) with their labels: CSS only, no script, works
+  via file://. Because every colour in the components and swatches is a
+  var(--c-*) / var(--on-*) reference, switching the radio re-colours the whole
+  page without a second catalogue render. Review files are never consumed by
+  /prototype (they live in .workspace/ and are deleted on accept).
 
   COLOUR ROW SCHEMA — {{COLOUR_SWATCHES}} substitutes 12 <li> blocks of:
 
@@ -1056,6 +1065,7 @@
     <h1 id="top">Design System ({{MODE_LABEL}}) — {{DOMAIN}}</h1>
     <blockquote class="attribution">{{ATTRIBUTION_PARAGRAPH}}</blockquote>
     <p class="generated-at">Generated: {{GENERATED_AT}}</p>
+{{PALETTE_TABS}}
   </header>
 
   <nav class="doc-toc" aria-label="Table of contents">

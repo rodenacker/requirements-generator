@@ -7,6 +7,23 @@ description: 'Present the artefact summary in the Unicorn voice, run the accept/
 
 # Step 7: Hand Back
 
+## A-0. Palette Choice (only when two palettes were offered)
+
+Runs **only** when step-06 did a review render — `{{palette_options}}` is non-null and `{{palette_option}}` is `null` — or when the orchestrator resumed a run at the palette choice. Skip to §A otherwise.
+
+1. **On resume only:** read `generated-docs/design-system/.workspace/options.json` and restore the run state from it (`files_to_write`, `hue_source_mode`, `hue_source`, `mode_choice`, `reference_url`, the two palettes' per-mode `tokens` / `on_colours` / `adjustments`, and `shared`). Re-open the review files: for each path in `review_files`, re-`Write` its current bytes unchanged (the preview hook opens a file on `Write`), or tell the consultant to open it via `file://` if the bytes cannot be re-read.
+2. Say, in one line, why there are two options (from `{{assign_decisions}}`): the brand colour is reserved for status, and the site's own non-reserved colour is in only marginal use — so the choice is genuinely open.
+3. Ask with `AskUserQuestion`:
+   - Header: `Palette`
+   - Question: *"Two palettes are open in your browser (Option 1 / Option 2 tabs in each review file). They differ only in primary, secondary and accent. Which one should the design system use?"*
+   - Options — **neither is marked Recommended**; the choice is genuinely open:
+     1. `Option 1 — neutral (primary {{neutral_primary_hex}})` — a brand-tinted charcoal primary; the brand colour stays visible as identity (header strip), never as an action colour.
+     2. `Option 2 — site colour (primary {{site_colour_primary_hex}})` — the site's own non-reserved colour as primary; may read less like the brand, because the site uses it sparingly.
+   - Free-text `Other` → coerce to the nearest option ("the blue one" → Option 2); if unreadable, re-ask once; still unclear → re-ask, never default.
+4. Set `{{palette_option}}` = `neutral` or `site-colour` (palette key `neutral` / `site_colour`).
+5. **Collapse.** Re-enter step-06 for a **final render** with only the chosen palette: each mode file is rendered from that palette's `tokens` (with `meta.palette_option` set), one `:root` palette block, empty `{{PALETTE_TABS}}`, written to the real path and verified as usual. The review files and `options.json` stay in `.workspace/` until §C.
+6. Continue at §A, which now also prints the palette line below.
+
 ## A. Summary in Unicorn Voice
 
 Output one short, concrete summary listing the written file(s), token counts, and provenance breakdown. No marketing language. No chatbot warmth.
@@ -25,6 +42,11 @@ Lead with the hue-source file (the grounded one), then the derived file if there
 > Ready, or want changes?"
 
 Variants — prepend whichever apply:
+
+- **Always, when a colour role was rejected or filled by the helper** — print `{{assign_decisions}}` as a short list (one line each, e.g. *"primary #FA551E rejected: reserved zone (H37 C0.210)"*). Then exactly one of:
+  - two palettes were offered → *"You picked **{{palette_option}}** (primary {{primary_hex}}); the other option was discarded."*
+  - the primary fell back to a brand-tinted neutral and no second option existed → *"No alternative palette was offered: no non-reserved site colour was in use, even marginally."*
+- If `brand` differs from `primary`: *"The brand colour {{brand_hex}} is kept as an identity colour (header / logo strip / brand mark) — never a button, link or badge colour."*
 
 - If `{{extraction_status}} != "success"`: *"URL extraction did not run (`{{extraction_status}}`) — every token comes from the `{{domain}}` defaults."*
 - If `{{reference_url}}` is null: *"No URL given — every token comes from the `{{domain}}` defaults."*
@@ -51,7 +73,7 @@ Use `AskUserQuestion`:
 ### Branches
 
 - **Accept** — proceed to §C (workspace cleanup), then declare done.
-- **Revise** — accept the consultant's revision instructions in their next message. Revisions are **mode-scoped**; establish which mode a named token belongs to before applying it (ask if genuinely ambiguous). Apply the changes:
+- **Revise** — acts on the **collapsed** (final) files only; the palette choice is made by then and is not re-asked. To switch options, the consultant picks Restart. Accept the consultant's revision instructions in their next message. Revisions are **mode-scoped**; establish which mode a named token belongs to before applying it (ask if genuinely ambiguous). Apply the changes:
    - **Revising a hue-source token** — write the new value into the hue-source set, re-run that mode's contrast validation in its own direction, **and re-derive the affected counterpart token(s) in the derived set** (per `data/cross-mode-derivation-rules.md`), then re-run the derived mode's contrast validation. Re-deriving is what preserves the invariant that the two files describe the same brand; silently leaving the derived value stale would break it. If the consultant explicitly scopes the change to one mode ("only in light"), honour that and skip the re-derivation — but say that the two files now diverge.
    - **Revising a derived token** — override that value in the derived set only. Do **not** propagate backwards into the hue-source set: the hue source is the grounded record, and a consultant tweak to a derived value is a downstream correction, not new evidence about the brand.
    - For colour overrides: re-run contrast validation against the affected pairs in the relevant mode's direction.
@@ -66,7 +88,7 @@ Use `AskUserQuestion`:
    - For provenance: a revised value retains the marker that was on it before — the consultant's edit is treated as a downstream correction, not a re-source. (Per the locked decision, there is no `consultant-specified` marker in v1.) A revised derived token also keeps its `derived: …` source string.
    - Re-render **only the affected file(s)** by re-entering step-06's per-mode procedure for those modes, including per-file sha256 + `verify-artifact-write`. When a hue-source token changed and was re-derived, both files are affected.
    - Loop back to §A and present the updated summary.
-- **Restart** — re-enter `step-02-inputs.md`. The previously-written `design-system-*.html` files are left in place; the next step-06 will overwrite them. Note that extraction runs again, so the scheme is re-detected and the step-05b §E mode question is re-asked — the mode choice is not sticky across a restart.
+- **Restart** — first delete `generated-docs/design-system/.workspace/options.json` (if present) so a later invocation cannot offer to resume a palette choice this restart abandoned; then re-enter `step-02-inputs.md`. The previously-written `design-system-*.html` files are left in place; the next step-06 will overwrite them. Note that extraction runs again, so the scheme is re-detected and the step-05b §E mode question is re-asked — the mode choice is not sticky across a restart.
 
 The accept/revise/restart loop continues until the consultant chooses Accept.
 

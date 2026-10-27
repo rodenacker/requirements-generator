@@ -181,7 +181,7 @@ Rendering the derived mode is not a different procedure; it is the same procedur
 
 ### `{{PALETTE_VARS}}`
 
-The colour custom properties the swatches and the component CSS read: `--c-<token>` for the 12 colours (`_` → `-`) and `--on-<fill>` for the measured label colour on each of the 8 fills (`primary`, `secondary`, `accent`, `brand`, `success`, `warning`, `error`, `info`), all from the helper output in `{{palettes}}`. A final file emits one `:root { … }` block; a review file emits one `[data-palette="…"] { … }` block per option (step-06 §F). Never use `surface` as a label colour on a fill.
+The colour custom properties the swatches and the component CSS read: `--c-<token>` for the 12 colours (`_` → `-`) and `--on-<fill>` for the measured label colour on each of the 8 fills (`primary`, `secondary`, `accent`, `brand`, `success`, `warning`, `error`, `info`), all from the helper output in `{{palettes}}`. A final file emits one `:root { … }` block (and `{{PALETTE_TABS}}` is empty); a review file emits one `:root:has(#palette-<option>:checked) { … }` block per option plus the tab bar (step-06 §F). Never use `surface` as a label colour on a fill.
 
 ### `{{COLOUR_SWATCHES}}` (12 rows)
 

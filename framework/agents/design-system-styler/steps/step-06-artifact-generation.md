@@ -42,6 +42,8 @@ With all five in context, apply the artifact-generation prompt's instructions in
 
 ## 0-bis. Render Loop
 
+**Review render or final render?** If `{{palette_options}}` is non-null **and** `{{palette_option}}` is still `null` (the consultant has not picked yet), this pass is a **review render**: run §A–§C once per mode with **both** palettes, as §F specifies, write each to `generated-docs/design-system/.workspace/review-<mode>.html` (never the real paths), then write `options.json` (§F.3) and advance to step-07, which asks the palette question. Otherwise (one palette, or the pick is made) this pass is a **final render**: the palette is `default`, or the picked one (`neutral` / `site_colour`), and §A–§E run exactly as below. The real output paths are written **only** by a final render, so an abandoned options run never leaves a two-palette file where `/prototype` reads and never overwrites the last accepted design system.
+
 Sections §A–§E below are a **render procedure parameterised by one mode**. Run the whole procedure once per mode in `{{files_to_write}}`, in this order:
 
 1. **`{{hue_source_mode}}` first** — using the hue-source token set.
@@ -65,7 +67,7 @@ Apply the prompt template's instructions in order:
 2. **Section 4 — Attribution paragraph.** Pick the variant per `{{extraction_status}}` and `{{reference_url}}` state. The rendered string is inserted **as inner HTML of the `<blockquote class="attribution">`** (already in the template); the styler emits raw text plus any necessary `<a>` anchors for URLs. Substitute into `{{ATTRIBUTION_PARAGRAPH}}`.
 3. **Section 5 — Provenance tagging.** Every token in the JSON gets `prov` set to one of `extracted-from-url` or `inferred-from-domain`. Every visual snippet that surfaces a token gets a matching `<span class="prov prov-{{prov-slug}}">{{prov}}</span>` element (`prov-slug` is the prov value verbatim — `extracted-from-url` or `inferred-from-domain`, used directly as a CSS class suffix).
 4. **Section 6 — Render visual snippets.** Build the four pre-rendered HTML blocks and substitute them into the template placeholders:
-    - `{{PALETTE_VARS}}` — the palette custom properties per the template's PALETTE VARS list, from this mode's `{{palettes}}.<palette>.<mode>`: `--c-<token>` = `colours.<token>` (token `_` written as `-`) for all 12 colours, and `--on-<fill>` = `on_colours.<fill>` for the 8 fills. A final render emits **one** block: `    :root { --c-primary: #…; … --on-info: #…; }`. (The two-block review form is §F.)
+    - `{{PALETTE_VARS}}` — the palette custom properties per the template's PALETTE VARS list, from this mode's `{{palettes}}.<palette>.<mode>`: `--c-<token>` = `colours.<token>` (token `_` written as `-`) for all 12 colours, and `--on-<fill>` = `on_colours.<fill>` for the 8 fills. A final render emits **one** block: `    :root { --c-primary: #…; … --on-info: #…; }`, and `{{PALETTE_TABS}}` becomes the empty string. (The two-block review form is §F.)
     - `{{COLOUR_SWATCHES}}` — 12 `<li class="swatch-row">` blocks per the COLOUR ROW SCHEMA (primary / secondary / accent / background / surface / text / text-muted / brand / success / warning / error / info). Each `<div class="swatch">` carries `style="background:var(--c-<token-slug>)"`; each row also surfaces the literal hex (in `<code>`), source-context, and provenance. The `brand` row's source-context ends with ` — identity only (header / logo strip / brand mark / empty state; never a button, link, badge, focus ring or text)`.
     - `{{BRAND_FONT_LINKS}}` — `meta.brand_fonts.links` emitted verbatim, one `<link rel="stylesheet">` per entry, into `<head>` (see `artifact-generation.md` → `{{BRAND_FONT_LINKS}}`). The list is already built and deduped by step-05b §G — do **not** rebuild it from the token stacks, and never merge two families into one request. When `links` is `[]`, substitute the single HTML comment the prompt template specifies so the placeholder is still replaced.
     - `{{TYPE_FAMILY_SPECIMENS}}` — 2 `<div class="type-specimen">` blocks (heading + body). Inline style on the sample: `font-family: {{family-stack}}; font-weight: {{paired-weight}}`. The token-value shown in the meta column is the literal family stack; a `substituted` slot also carries the brand→substitute line. **Prepend one rendering note** before the two blocks — pick the variant matching this run's `meta.brand_fonts` per `artifact-generation.md` → `{{TYPE_FAMILY_SPECIMENS}}` (all families loadable / one loadable / none). Exactly one note is emitted in every case. Use existing chrome markup for the note — no new CSS class, no template edit.
@@ -110,7 +112,7 @@ Runs **per file**, before that file's `Write`:
 - Confirm: the `<script type="application/json" id="design-tokens">` block is present, and its inner content is **valid JSON** — parse it back in memory to verify. If parsing fails, halt and do not Write.
 - Confirm: the JSON `meta`, `colours`, `typography`, `effects`, and `contrast` keys are all present, and `colours` has exactly **12** keys including `brand`.
 - Confirm: every `colours.<token>.hex` equals the value in `{{palettes}}.<palette>.<mode>.colours` for the palette being rendered — the helper is the only source of colour values. (That is what guarantees no `primary` / `secondary` / `accent` sits in the reserved zone: the helper never assigns one there.)
-- Confirm: `meta.palette_option` is one of `"neutral"`, `"site-colour"`, `null`, and is `null` exactly when `{{palette_options}}` is null.
+- Confirm: `meta.palette_option` is one of `"neutral"`, `"site-colour"`, `null`, and is `null` exactly when `{{palette_options}}` is null (`site_colour` palette → `"site-colour"`). A final file contains no `palette-site-colour` radio and exactly one `--c-primary:` declaration; a collapsed file is structurally identical to a no-options run apart from `meta.palette_option`.
 - Confirm: `{{PALETTE_VARS}}` defines every `--c-*` and `--on-*` name that the rendered component CSS and swatches use (scan the rendered string for `var(--c-` / `var(--on-` and check each name is defined), and the rendered component CSS contains no `{{colours.` reference.
 - Confirm: `meta.domain_provenance` is present and is one of `suggested-from-url-accepted | suggested-from-url-overridden | consultant-typed`.
 - Confirm: `meta.brand_fonts` is present, with `families` and `links` keys.
@@ -193,6 +195,56 @@ If the skill returns `pass`:
 - If every mode in `{{files_to_write}}` has been written and verified, advance to step-07.
 
 If the skill returns `RF-04 trigger`, halt per the refusal-registry surface — the agent does not write a `completed` event for itself, the orchestrator surfaces the refusal, and the consultant resolves the underlying filesystem issue before re-running. **Halt immediately; do not proceed to the next mode.** A verified hue-source file plus a failed derived write is a partial run, and step-07's handback gate will reject it.
+
+## F. Review Render (two palettes offered, no pick yet)
+
+Runs instead of §D/§E when §0-bis selects a review render. Render each mode in `{{files_to_write}}` (hue-source first) once, with **both** palettes, by the §A–§C procedure with these differences — everything not listed is identical to a final render, and the component catalogue is still rendered **once** per file:
+
+1. **`{{PALETTE_VARS}}`** — two blocks instead of one: `    :root:has(#palette-neutral:checked) { --c-*: …; --on-*: … }` from `{{palettes}}.neutral.<mode>`, and `    :root:has(#palette-site-colour:checked) { … }` from `{{palettes}}.site_colour.<mode>`; then this tab CSS, verbatim:
+   ```css
+       .palette-tabs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+       .palette-tabs input { position: absolute; opacity: 0; pointer-events: none; }
+       .palette-tabs label { padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 6px; cursor: pointer; }
+       .palette-tabs input:checked + label { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+       .palette-tabs input:focus-visible + label { outline: 2px solid var(--fg); outline-offset: 2px; }
+       .palette-tabs .palette-note { flex-basis: 100%; margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+       :root:has(#palette-neutral:checked) .pal-site-colour, :root:has(#palette-site-colour:checked) .pal-neutral { display: none; }
+   ```
+2. **`{{PALETTE_TABS}}`** —
+   ```html
+       <div class="palette-tabs" role="radiogroup" aria-label="Palette option">
+         <input type="radio" name="palette" id="palette-neutral" checked><label for="palette-neutral">Option 1 — neutral (primary {{neutral_primary_hex}})</label>
+         <input type="radio" name="palette" id="palette-site-colour"><label for="palette-site-colour">Option 2 — site colour (primary {{site_colour_primary_hex}})</label>
+         <p class="palette-note">Review file — the two options differ only in primary, secondary and accent. Pick one in the chat; the final file holds only the chosen palette.</p>
+       </div>
+   ```
+   with the two primary hexes substituted from `{{palettes}}.<palette>.<mode>.colours.primary`.
+3. **Swatch hex labels** for `primary`, `secondary`, `accent` (the only tokens that differ) carry both values: `<code class="swatch-hex"><span class="pal-neutral">#…</span><span class="pal-site-colour">#…</span></code>`. Every other row is unchanged. `{{CONTRAST_ADJUSTMENTS}}` likewise wraps each option's helper lines in a `pal-neutral` / `pal-site-colour` span when they differ.
+4. **JSON block** — the `neutral` palette's token set with `meta.palette_option: null`. (The JSON of a review file is never consumed; the authoritative pair is `options.json`.)
+5. **Self-check** — §C applies, except: the file contains exactly two `--c-primary:` declarations, both radio inputs, and a non-empty `{{PALETTE_TABS}}`; the mode / derived-file assertions apply unchanged.
+6. **Write + verify** — `generated-docs/design-system/.workspace/review-<mode>.html`, single atomic `Write`, then `framework/skills/verify-artifact-write.md` with that path, its own sha256, `expected_min_bytes = 14000`. `RF-04` → halt. The preview hook opens each review file (allowlisted in `framework/shared/artifact-preview.md`).
+
+### F.3 `options.json` — the resume record
+
+After every review file is written and verified, write `generated-docs/design-system/.workspace/options.json` (single `Write`, then `verify-artifact-write`, `expected_min_bytes = 512`). It holds everything a **final render** needs, so step-07 can collapse — now or after a resume — without re-extracting:
+
+```json
+{
+  "version": 1,
+  "reference_url": "…", "files_to_write": ["light", "dark"],
+  "hue_source_mode": "light", "hue_source": "extracted-light", "mode_choice": "both",
+  "palettes": {
+    "neutral":     { "<mode>": { "tokens": { <the full design-tokens object for that file, meta.palette_option = "neutral"> }, "on_colours": { … }, "adjustments": [ … ] } },
+    "site_colour": { "<mode>": { "tokens": { … meta.palette_option = "site-colour" … }, "on_colours": { … }, "adjustments": [ … ] } }
+  },
+  "shared": { "voice": "…", "assign_decisions": [ … ], "brand": "#…", "extraction_method": "…",
+              "font_rejected_heading": null, "font_rejected_body": null, "brand_fonts": { … },
+              "attribution": { "extraction_status": "…", "domain": "…" } },
+  "review_files": ["generated-docs/design-system/.workspace/review-light.html", "…"]
+}
+```
+
+`tokens` is exactly the object §B.1 serialises into `{{TOKENS_JSON}}` for that mode and palette, so a final render reads it back verbatim. `options.json` is read only by step-07 and the orchestrator's resume gate — never by any other pipeline — and is deleted with the rest of `.workspace/` on accept.
 
 ---
 

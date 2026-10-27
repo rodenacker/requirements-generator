@@ -44,6 +44,7 @@ Repo-relative, forward-slashed. **Allowlist-only** — anything unmatched is ski
 ^generated-docs/review-requirements/[^/]+/[^/]+\.html$
 ^generated-docs/review-inputs/[^/]+/[^/]+\.html$
 ^generated-docs/design-system/design-system-(light|dark)\.html$
+^generated-docs/design-system/\.workspace/review-(light|dark)\.html$
 ^wireframes/[^/]+/index\.html$
 ```
 
@@ -53,13 +54,13 @@ Repo-relative, forward-slashed. **Allowlist-only** — anything unmatched is ski
 | `/analyse-inputs` | the methodology artefact | 1 |
 | `/review-requirement` | the methodology artefact | 1 |
 | `/review-inputs` | the methodology artefact | 1 |
-| `/design-system` | each mode file in `{{files_to_write}}` | 1 or 2 — hue-source first |
+| `/design-system` | each mode file in `{{files_to_write}}`; when two palettes are offered, first each `.workspace/review-<mode>.html` (the option-tab review files), then the final files after the pick | 1 or 2 — hue-source first (up to 4 on an options run) |
 | `/wireframe` | `index.html` only | 1 |
 
 **Deliberate exclusions** — each is a decision, not an oversight:
 
 - **`wireframes/<slug>/<variant>/screen-NN-*.html`** — three path segments, so the `wireframes/` pattern cannot match. `index.html` is the comparator's intended entry point (§1 scope details, §2 side-by-side screen-link columns, §3 variant cards, §4 trade-off matrix), and each screen link opens the real wireframe in a new tab on click. Opening the screens up front would be 10–25 tabs per run and would bypass the navigation the comparator exists to provide.
-- **`generated-docs/design-system/.workspace/**`** — an extra segment; the transient styler workspace never matches.
+- **`generated-docs/design-system/.workspace/**`** — an extra segment; the transient styler workspace never matches, **except** `.workspace/review-(light|dark).html`. Those two are the palette-option review files: the consultant must see both options before answering step-07's palette question, and they are written to `.workspace/` precisely so an abandoned run never leaves a two-palette file where `/prototype` reads. Everything else in `.workspace/` (JSON scratch, `options.json`) stays excluded.
 - **`generated-docs/design-system/design-system.html`** — legacy unsuffixed artefact, no longer authored (existence-checked and deleted only). Left out rather than resurrected.
 - **`prototypes/**`** — `/prototype` produces a Next.js app served by `npm run dev`, not a `file://` artefact. Previewing it needs a dev-server-and-navigate affordance, which is out of scope here.
 - **`framework/**`, `template/**`, `documentation/**`** — templates and inputs are not run outputs.
