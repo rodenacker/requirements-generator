@@ -42,6 +42,16 @@
  */
 'use strict';
 
+const GOOGLE_CSS = 'https://fonts.googleapis.com/css2?family=';
+const WEIGHTS = ':wght@400;500;600;700&display=swap';
+// A desktop Chrome UA makes Google answer with woff2 faces split by subset.
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+const SUBSETS = ['latin', 'latin-ext'];
+const MAX_EMBED_BYTES = 600000; // raw woff2 bytes per design-system file
+const MARKER = '/* BRAND_FONT_FACES */';
+const CONTROL = 'Inter';
+const MAX_PROBES = 5; // requests per resolve call, control included
+
 // Weight words a per-weight family or file name may end in (design D3).
 const WEIGHT_WORDS = {
   thin: 100, hairline: 100,
@@ -139,7 +149,117 @@ function familyFromFontFile(url) {
   return name ? { family: name, weight } : null;
 }
 
+// ---------- Google Fonts probe (font-availability-rules §1 E3) ----------
+
+const encodeFamily = (name) => encodeURIComponent(name).replace(/%20/g, '+');
+
+async function statusOf(fetch, url, opts) {
+  try {
+    return (await fetch(url, opts)).status;
+  } catch {
+    return 'error';
+  }
+}
+
+// Per name: the first two candidates in order, stopping at the first 200;
+// then one shared control. No weight axis: a missing axis still answers 200.
+async function resolveAll(names, { fetch }) {
+  if (!Array.isArray(names) || names.length === 0) throw new InputError('names must be a non-empty array');
+  if (typeof fetch !== 'function') throw new InputError('fetch must be a function');
+  const parsed = names.map((n) => ({ name: n, ...candidates(n) }));
+  let requests = 0;
+  let control;
+  const out = [];
+  for (const p of parsed) {
+    const tried = [];
+    let family = null;
+    let cut = false;
+    for (const c of p.candidates.slice(0, 2)) {
+      if (requests >= MAX_PROBES) { cut = true; break; }
+      const status = await statusOf(fetch, GOOGLE_CSS + encodeFamily(c));
+      requests += 1;
+      tried.push({ candidate: c, status });
+      if (status === 200) { family = c; break; }
+    }
+    let verdict;
+    if (family) {
+      verdict = 'google-native';
+    } else {
+      if (control === undefined && requests < MAX_PROBES) {
+        control = await statusOf(fetch, GOOGLE_CSS + encodeFamily(CONTROL));
+        requests += 1;
+      }
+      verdict = !cut && tried.length > 0 && control === 200 ? 'unavailable' : 'unknown';
+    }
+    out.push({ name: p.name, verdict, family, weight: p.weight, tried });
+  }
+  return out;
+}
+
+// ---------- embedding ----------
+
+const FACE_RE = /\/\*\s*([a-z0-9-]+)\s*\*\/\s*(@font-face\s*\{[^}]*\})/g;
+const SRC_RE = /src:\s*url\(([^)]+)\)\s*format\(['"]woff2['"]\)\s*;/;
+
+// One family: its latin + latin-ext blocks with data-URI sources, or a reason.
+async function embedFamily(fetch, param) {
+  let res;
+  try {
+    res = await fetch(GOOGLE_CSS + param.replace(/ /g, '+') + WEIGHTS, { headers: { 'User-Agent': UA } });
+  } catch {
+    return { reason: 'network' };
+  }
+  if (res.status !== 200) return { reason: `http ${res.status}` };
+  let text;
+  try { text = await res.text(); } catch { return { reason: 'network' }; }
+  const faces = [];
+  for (const m of text.matchAll(FACE_RE)) {
+    const src = m[2].match(SRC_RE);
+    if (SUBSETS.includes(m[1]) && src) faces.push({ subset: m[1], block: m[2], url: src[1].replace(/^['"]|['"]$/g, '') });
+  }
+  if (faces.length === 0) return { reason: 'no faces' };
+  const data = new Map();
+  for (const url of new Set(faces.map((f) => f.url))) {
+    let font;
+    try {
+      font = await fetch(url, { headers: { 'User-Agent': UA } });
+    } catch {
+      return { reason: 'network' };
+    }
+    if (font.status !== 200) return { reason: `http ${font.status}` };
+    try { data.set(url, Buffer.from(await font.arrayBuffer())); } catch { return { reason: 'network' }; }
+  }
+  const css = faces
+    .map((f) => `/* ${f.subset} */\n${f.block.replace(SRC_RE, `src: url(data:font/woff2;base64,${data.get(f.url).toString('base64')}) format('woff2');`)}`)
+    .join('\n');
+  const bytes = [...data.values()].reduce((n, b) => n + b.length, 0);
+  return { css, bytes };
+}
+
+// Each distinct param embedded whole or not at all, within maxBytes.
+async function buildFaces(params, { fetch, maxBytes = MAX_EMBED_BYTES }) {
+  if (!Array.isArray(params) || !params.every((p) => typeof p === 'string' && p.trim() !== '')) {
+    throw new InputError('params must be an array of non-empty strings');
+  }
+  if (typeof fetch !== 'function') throw new InputError('fetch must be a function');
+  const embedded = [];
+  const failed = [];
+  const parts = [];
+  let bytes = 0;
+  for (const param of [...new Set(params.map((p) => p.trim()))]) {
+    const r = await embedFamily(fetch, param);
+    if (r.reason) failed.push({ param, reason: r.reason });
+    else if (bytes + r.bytes > maxBytes) failed.push({ param, reason: 'budget' });
+    else {
+      embedded.push(param);
+      parts.push(r.css);
+      bytes += r.bytes;
+    }
+  }
+  return { css: parts.join('\n'), embedded, failed, bytes };
+}
+
 module.exports = {
-  candidates, familyFromFontFile, InputError,
-  WEIGHT_WORDS,
+  candidates, familyFromFontFile, resolveAll, buildFaces, InputError,
+  WEIGHT_WORDS, GOOGLE_CSS, WEIGHTS, UA, SUBSETS, MAX_EMBED_BYTES, MARKER, CONTROL, MAX_PROBES,
 };

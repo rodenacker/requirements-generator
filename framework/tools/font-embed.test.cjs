@@ -3,8 +3,42 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
+const fs = require('node:fs');
+const path = require('node:path');
+
 const fe = require('./font-embed.cjs');
-const { candidates, familyFromFontFile } = fe;
+const { candidates, familyFromFontFile, resolveAll, buildFaces } = fe;
+
+const FIXTURES = path.join(__dirname, '__fixtures__', 'fonts');
+const INTER_CSS = fs.readFileSync(path.join(FIXTURES, 'inter.css'), 'utf8');
+const LATO_CSS = fs.readFileSync(path.join(FIXTURES, 'lato.css'), 'utf8');
+
+// routes: [[urlSubstring, response]] — first match wins. A response is
+// { status, text } | { status, bytes } | 'throw' | (url) => response.
+// Unmatched URLs answer 404. `calls` records every requested URL.
+function fakeFetch(routes) {
+  const calls = [];
+  const fn = async (url, opts) => {
+    calls.push({ url, opts });
+    const hit = routes.find(([key]) => url.includes(key));
+    let res = hit ? hit[1] : { status: 404, text: '' };
+    if (typeof res === 'function') res = res(url);
+    if (res === 'throw') throw new Error('network down');
+    return {
+      ok: res.status >= 200 && res.status < 300,
+      status: res.status,
+      text: async () => res.text ?? '',
+      arrayBuffer: async () => {
+        const b = res.bytes ?? Buffer.alloc(0);
+        return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+      },
+    };
+  };
+  fn.calls = calls;
+  return fn;
+}
+
+const blocks = (css) => (css.match(/@font-face/g) || []).length;
 
 // ---------- Task 1: names ----------
 
@@ -59,4 +93,101 @@ test('test_family_from_font_file', () => {
 test('test_candidates_rejects_bad_input', () => {
   assert.throws(() => candidates(''), TypeError);
   assert.throws(() => candidates(null), TypeError);
+});
+
+// ---------- Task 2: probe and embedding ----------
+
+test('test_resolve_first_candidate_200', async () => {
+  const fetch = fakeFetch([['family=Source+Sans+Pro', { status: 200 }], ['', { status: 400 }]]);
+  const [r] = await resolveAll(['SourceSansPro-SemiBold'], { fetch });
+  assert.equal(r.verdict, 'google-native');
+  assert.equal(r.family, 'Source Sans Pro');
+  assert.equal(r.weight, 600);
+  assert.ok(!fetch.calls.some((c) => c.url.endsWith('family=Inter')), 'no control call');
+});
+
+test('test_resolve_unavailable', async () => {
+  const fetch = fakeFetch([['family=Inter', { status: 200 }], ['', { status: 400 }]]);
+  const [r] = await resolveAll(['SiemensSans'], { fetch });
+  assert.equal(r.verdict, 'unavailable');
+  assert.equal(r.family, null);
+  assert.deepEqual(r.tried.map((t) => t.status), [400, 400]);
+});
+
+test('test_resolve_unknown_when_control_fails', async () => {
+  const fetch = fakeFetch([['', 'throw']]);
+  const [r] = await resolveAll(['SiemensSans'], { fetch });
+  assert.equal(r.verdict, 'unknown');
+  assert.equal(r.family, null);
+  assert.ok(r.tried.every((t) => t.status === 'error'));
+});
+
+test('test_resolve_request_ceiling', async () => {
+  const fetch = fakeFetch([['family=Inter', { status: 200 }], ['', { status: 400 }]]);
+  const out = await resolveAll(['SiemensSans', 'BentonSans'], { fetch });
+  assert.ok(fetch.calls.length <= 5, `${fetch.calls.length} requests`);
+  assert.equal(fetch.calls.filter((c) => c.url.endsWith('family=Inter')).length, 1);
+  assert.equal(out.length, 2);
+});
+
+const GSTATIC_1000 = ['fonts.gstatic.com', { status: 200, bytes: Buffer.alloc(1000, 7) }];
+
+test('test_build_faces_keeps_latin_subsets', async () => {
+  const fetch = fakeFetch([GSTATIC_1000, ['family=Inter', { status: 200, text: INTER_CSS }]]);
+  const r = await buildFaces(['Inter'], { fetch });
+  assert.deepEqual(r.embedded, ['Inter']);
+  assert.deepEqual(r.failed, []);
+  assert.equal(blocks(r.css), 8);
+  assert.ok(!r.css.includes('fonts.gstatic.com'));
+  const srcs = r.css.match(/src:.*/g);
+  assert.equal(srcs.length, 8);
+  assert.ok(srcs.every((s) => s.startsWith("src: url(data:font/woff2;base64,")));
+  assert.equal(fetch.calls.filter((c) => c.url.includes('fonts.gstatic.com')).length, 2);
+  assert.equal(r.bytes, 2000);
+  const cssCall = fetch.calls.find((c) => c.url.includes('family=Inter'));
+  assert.equal(cssCall.url, fe.GOOGLE_CSS + 'Inter' + fe.WEIGHTS);
+  assert.equal(cssCall.opts.headers['User-Agent'], fe.UA);
+});
+
+test('test_build_faces_static_family_partial_weights', async () => {
+  const fetch = fakeFetch([GSTATIC_1000, ['family=Lato', { status: 200, text: LATO_CSS }]]);
+  const r = await buildFaces(['Lato'], { fetch });
+  assert.equal(blocks(r.css), 4);
+  assert.deepEqual(r.failed, []);
+  assert.deepEqual(r.embedded, ['Lato']);
+});
+
+test('test_build_faces_dedupes_params', async () => {
+  const fetch = fakeFetch([GSTATIC_1000, ['family=Inter', { status: 200, text: INTER_CSS }]]);
+  const r = await buildFaces(['Inter', 'Inter'], { fetch });
+  assert.deepEqual(r.embedded, ['Inter']);
+  assert.equal(fetch.calls.filter((c) => c.url.includes('family=Inter')).length, 1);
+});
+
+test('test_build_faces_network_failure', async () => {
+  const fetch = fakeFetch([['family=Inter', 'throw']]);
+  const r = await buildFaces(['Inter'], { fetch });
+  assert.deepEqual(r.embedded, []);
+  assert.deepEqual(r.failed, [{ param: 'Inter', reason: 'network' }]);
+  assert.equal(r.css, '');
+  assert.equal(r.bytes, 0);
+});
+
+test('test_build_faces_http_error', async () => {
+  const fetch = fakeFetch([['family=Inter', { status: 400, text: '' }]]);
+  const r = await buildFaces(['Inter'], { fetch });
+  assert.deepEqual(r.failed, [{ param: 'Inter', reason: 'http 400' }]);
+});
+
+test('test_build_faces_budget', async () => {
+  const fetch = fakeFetch([
+    GSTATIC_1000,
+    ['family=Inter', { status: 200, text: INTER_CSS }],
+    ['family=Lato', { status: 200, text: LATO_CSS }],
+  ]);
+  const r = await buildFaces(['Inter', 'Lato'], { fetch, maxBytes: 3000 });
+  assert.deepEqual(r.embedded, ['Inter']);
+  assert.deepEqual(r.failed, [{ param: 'Lato', reason: 'budget' }]);
+  assert.equal(r.bytes, 2000);
+  assert.ok(!r.css.includes("'Lato'"));
 });
