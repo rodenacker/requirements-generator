@@ -154,6 +154,13 @@ test('test_assign_no_candidates', () => {
   assert.equal(out.options, null);
 });
 
+test('test_assign_error_clear_of_brand_and_warning', () => {
+  const out = assign(ABSA());
+  const e = hexToOklch(out.status.error);
+  assert.ok(hueDist(e.H, hexToOklch(out.status.warning).H) >= 15, `error H ${e.H} too close to warning`);
+  assert.ok(hueDist(e.H, hexToOklch(out.brand).H) >= 8 || Math.abs(e.L - hexToOklch(out.brand).L) >= 0.08, 'error not distinct from brand');
+});
+
 test('test_assign_house_status', () => {
   const out = assign(ORANGE_CTA_BLUE_BRAND());
   assert.deepEqual(out.status, HOUSE_STATUS);

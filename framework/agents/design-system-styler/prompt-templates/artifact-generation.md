@@ -34,7 +34,7 @@ Section order (contractual — do not reorder; matches the template):
   <script type="application/json" id="design-tokens"> ← JSON token block
   <main>
     <header class="doc-header"> ← H1, attribution blockquote, generated-at
-    <section id="colours">      ← 11 swatches
+    <section id="colours">      ← 12 swatches (incl. brand)
     <section id="typography">   ← 2 family + 8 size + 3 line-height specimens
     <section id="effects">      ← 3 shadow cards + 3 transition rows + 1 easing row
     <section id="contrast">     ← 4 text-on-bg pairs + adjustments line
@@ -74,7 +74,7 @@ The `{{TOKENS_JSON}}` placeholder receives a JSON-serialised object with five to
     "primary": {{primary}},
     "brand_fonts": {{brand_fonts}}
   },
-  "colours": { ... 11 entries ... },
+  "colours": { ... 12 entries (incl. brand) ... },
   "typography": { ... 15 entries ... },
   "effects": { ... 7 entries ... },
   "contrast": { ... 4 pairs + adjustments string ... }
@@ -89,11 +89,12 @@ The `{{TOKENS_JSON}}` placeholder receives a JSON-serialised object with five to
 - `meta.css_source_type`, `meta.css_source_url`: present on the Playwright path, `null` otherwise.
 - `meta.mode`: the colour mode **this file** renders — `light` or `dark`. Must agree with the filename suffix and with the `({{MODE_LABEL}})` text in the `<title>` and H1.
 - `meta.mode_choice`: what the consultant selected at step-05b — one of `light-only | dark-only | both`. The **same value in every written file**, so a reader of one file can tell what was asked for.
-- `meta.hue_source`: which palette is grounded, and how — one of `extracted-light` (the URL shipped a light scheme), `extracted-dark` (the URL shipped a dark scheme), or `domain-inferred-light` (no URL, or extraction did not complete; the light set came from domain inference). The **same value in every written file**.
+- `meta.hue_source`: which palette is grounded, and how — one of `extracted-light` (the URL shipped a light scheme), `extracted-dark` (the URL shipped a dark scheme), `extracted-both` (the site ships its own other scheme too, so neither file is derived), or `domain-inferred-light` (no URL, or extraction did not complete; the light set came from domain inference). The **same value in every written file**.
+- `meta.palette_option`: `"neutral"` or `"site-colour"` when two palettes were offered and the consultant picked one in step-07; `null` when only one palette existed. The **same value in every written file**.
 - `meta.primary`: a JSON **boolean** (not a string). `true` in exactly one written file — **the hue-source mode's file**, because that palette is the one grounded in the real brand; the derived mode is `false`. Derive it as `mode == hue_source_mode`. When only one file is written it is necessarily `true`.
 - `meta.brand_fonts`: the loadable-font contract assembled in step-05b §G — a `families` array of exactly two entries (`heading`, then `body`) plus a deduped `links` array. Emit `{{brand_fonts}}` as the object it already is; **do not rebuild or reorder it**. Its `status` values (`google-native | substituted | unverified`) are an *availability* enum, **not** a third `prov` marker — the `prov` set stays closed at two. Because typography is mode-invariant, this object is byte-identical in both written files. Canonical field definitions: `data/font-availability-rules.md` §6.2.
 
-Note that `meta.mode` varies per file while `mode_choice`, `hue_source` and `brand_fonts` do not; `primary` is the join between them. The five top-level keys (`meta`, `colours`, `typography`, `effects`, `contrast`) and the 11 / 15 / 7 token counts are **unchanged** — these `meta` fields are purely additive, so existing downstream parsers of the `design-tokens` block keep working.
+Note that `meta.mode` varies per file while `mode_choice`, `hue_source` and `brand_fonts` do not; `primary` is the join between them. The five top-level keys (`meta`, `colours`, `typography`, `effects`, `contrast`) are **unchanged** and the token counts are 12 / 15 / 7 (34; `brand` is the 12th colour) — these `meta` fields are purely additive, so existing downstream parsers of the `design-tokens` block keep working.
 
 Each colour / typography / effects entry has the shape `{"hex" | "value": "...", "prov": "extracted-from-url|inferred-from-domain", "source": "..."}`. The full key list is documented in the template's JSON SHAPE comment block.
 
@@ -123,7 +124,7 @@ Append one clause, chosen by whether **this file's mode is the hue-source mode**
 | --- | --- |
 | `mode == hue_source_mode` **and** a derived sibling was written | `<br><br>This is the <strong>{{mode}}</strong> variant, and it is the hue source for this run — its palette is the one grounded in the source above. The <a href="design-system-{{derived_mode}}.html">{{derived_mode}} variant</a> is derived from these same brand hues.` |
 | `mode == hue_source_mode` **and** no sibling was written | *(nothing — the base sentence already tells the whole story)* |
-| `mode != hue_source_mode` (this is the derived file) | `<br><br>This is the derived <strong>{{mode}}</strong> variant — the palette is derived from the same brand hues as the <a href="design-system-{{hue_source_mode}}.html">{{hue_source_mode}} variant</a> (<code>design-system-{{hue_source_mode}}.html</code>), <strong>not separately extracted</strong>. Only the 11 colour and 3 shadow tokens differ between the two files; typography and motion are shared verbatim.` |
+| `mode != hue_source_mode` (this is the derived file) | `<br><br>This is the derived <strong>{{mode}}</strong> variant — the palette is derived from the same brand hues as the <a href="design-system-{{hue_source_mode}}.html">{{hue_source_mode}} variant</a> (<code>design-system-{{hue_source_mode}}.html</code>), <strong>not separately extracted</strong>. Only 11 colour and 3 shadow tokens differ between the two files; the <code>brand</code> identity colour, typography and motion are shared verbatim.` |
 
 The derived file **must never** imply its colours were read from the URL. When `extraction_status = success` and this is the derived file, the base sentence's "Tokens extracted from …" is still accurate for the *run* — the mode clause is what disambiguates this file — so both parts are required. Never drop the mode clause on a derived file.
 
@@ -143,7 +144,8 @@ For every token in the doc:
 - If the token is a **cross-mode derived** colour or shadow in the derived file (step-05b §F), tag it `inferred-from-domain`. JSON `source` = `derived: <target-mode> variant of <source-mode> <token> (<source-hex>)` — e.g. `derived: light variant of dark primary (#7AA2F7)`.
 - The derived file's **19 shared tokens** (15 typography + 3 transitions + easing) keep the hue-source file's markers and source strings **verbatim** — they were not re-derived, so their provenance does not change.
 - Never leave a `prov` value empty. **Never invent a third marker** — a derived value is `inferred-from-domain`, because it was not read from the URL. There is no `derived-from-mode` marker and no `consultant-specified` marker; the `source` string carries the detail, the marker set stays at two.
-- For status colours (success/warning/error/info), `prov` is **always** `inferred-from-domain` — they are not extracted by this agent under any condition.
+- For status colours (success/warning/error/info), `prov` is **always** `inferred-from-domain` — they are the helper's fixed house set, never extracted.
+- `brand` keeps the `prov` / `source` step-05b §C gave it (`extracted-from-url`, area-weighted capture) in **both** files — it is mode-invariant, so the other-mode file copies it verbatim rather than tagging it `derived:`.
 - Every visual snippet that surfaces a token also carries a matching `<span class="prov prov-{{prov-slug}}">{{prov}}</span>` element. The prov-slug equals the prov value verbatim; it's used directly as a CSS class suffix (the template defines `.prov-extracted-from-url` and `.prov-inferred-from-domain`).
 
 Source-context examples (used in the visual snippets and in the JSON `source` field):
@@ -151,7 +153,7 @@ Source-context examples (used in the visual snippets and in the JSON `source` fi
 - `--brand-primary in :root` (CSS custom property)
 - `.btn background-color` (class declaration)
 - `body color` (element selector)
-- `derived: primary hue +120°` (extraction derivation; still tag `extracted-from-url` because the seed came from CSS)
+- `colour-tokens.cjs assign — secondary = #605150: brand-tinted neutral` (a helper fallback; tag `inferred-from-domain`)
 - `domain-inference (retail-banking)` (per-run inference)
 - `domain-inference (legal services SaaS)` (per-run inference; free-text)
 - `domain-inference (retail-banking) → dark variant` (inferred light, converted for a dark-extracted run)
@@ -170,16 +172,20 @@ Each placeholder receives a pre-rendered HTML block. Follow the row schemas docu
 
 Rendering the derived mode is not a different procedure; it is the same procedure over a different token set. Specifically:
 
-- **Same placeholders.** The derived mode's 11 colours and 3 shadows go into `{{COLOUR_SWATCHES}}`, `{{SHADOW_SPECIMENS}}`, `{{CONTRAST_PAIRS}}`, `{{COMPONENT_STYLES}}`, `{{COMPONENT_SPECIMENS}}` exactly as the hue-source mode's values do. No placeholder is added, dropped, or reordered per mode.
+- **Same placeholders.** The derived mode's colours and 3 shadows go into `{{PALETTE_VARS}}`, `{{COLOUR_SWATCHES}}`, `{{SHADOW_SPECIMENS}}`, `{{CONTRAST_PAIRS}}`, `{{COMPONENT_STYLES}}`, `{{COMPONENT_SPECIMENS}}` exactly as the hue-source mode's values do. No placeholder is added, dropped, or reordered per mode.
 - **Shared tokens are copied, not re-rendered from scratch.** The 19 typography + motion tokens are identical across modes, so `{{TYPE_FAMILY_SPECIMENS}}`, `{{TYPE_SIZE_SPECIMENS}}`, `{{TYPE_LH_SPECIMENS}}` and `{{MOTION_SPECIMENS}}` are byte-identical between the two files.
 - **`{{MODE_LABEL}}`** — `Light` or `Dark`, matching this render's mode.
 - **`{{DOC_CHROME_VARS}}`** — substitute the mode's fixed literal block from the template's DOC CHROME comment. These are documentation-chrome values, brand-neutral and identical for every run; do not derive them from brand tokens and do not run them through contrast validation. The block leads with `color-scheme: light;` / `color-scheme: dark;`, and that line must survive into `:root`: it is the only mechanism that colours the parts of a form control the **browser** draws (the `<input type="date">` picker indicator, number spinners, native checkbox/radio, `<select>` popup, scrollbars). Without it a dark render gets the UA default — a black calendar glyph on a dark surface, i.e. invisible.
 - **Catalogue neutral swap (dark renders only)** — apply the `rgba(0,0,0,` → `rgba(255,255,255,` replacement to the raw component buffers **before** token substitution, per `component-catalogue.md` → *Dark-render neutral swap*. Ordering matters: dark shadow tokens are legitimately black with raised alpha and must not be caught by the swap.
 - **Per-mode contrast values.** The contrast section renders **this mode's own** four ratios, statuses, and adjustments line. A derived set is validated independently and never inherits the hue-source set's numbers.
 
-### `{{COLOUR_SWATCHES}}` (11 rows)
+### `{{PALETTE_VARS}}`
 
-One `<li class="swatch-row">` per token (primary / secondary / accent / background / surface / text / text-muted / success / warning / error / info). Hex values in `#RRGGBB` (uppercase hash, 6-digit). Inline style on `.swatch`: `background: {{hex}}`.
+The colour custom properties the swatches and the component CSS read: `--c-<token>` for the 12 colours (`_` → `-`) and `--on-<fill>` for the measured label colour on each of the 8 fills (`primary`, `secondary`, `accent`, `brand`, `success`, `warning`, `error`, `info`), all from the helper output in `{{palettes}}`. A final file emits one `:root { … }` block; a review file emits one `[data-palette="…"] { … }` block per option (step-06 §F). Never use `surface` as a label colour on a fill.
+
+### `{{COLOUR_SWATCHES}}` (12 rows)
+
+One `<li class="swatch-row">` per token (primary / secondary / accent / background / surface / text / text-muted / brand / success / warning / error / info). Hex values in `#RRGGBB` (uppercase hash, 6-digit) in the `<code>` label. Inline style on `.swatch`: `background: var(--c-<token-slug>)`.
 
 ### `{{BRAND_FONT_LINKS}}` (0–2 links, in `<head>`)
 
@@ -263,7 +269,7 @@ The component visualisation section is sourced from `framework/agents/design-sys
 
 **Two snippets per family:** under each `## {{slug}}` heading the catalogue contains two fenced `html` blocks — `### Live demo` and `### States matrix`. Extract both, in that order. Wrap them in a `<div class="cv-family">` with an `<h3>{{Title-Case-Slug}}</h3>`, a `<p class="cv-note">Live demo</p>` lead-in for the demo, a `<p class="cv-note">States matrix</p>` lead-in for the matrix, and append the wrapper to the component-specimens buffer.
 
-**Token-reference substitution convention:** inside the catalogue's CSS block and its HTML snippets, token references take one of three forms — `{{colours.<name>.hex}}`, `{{typography.<name>.value}}`, `{{effects.<name>.value}}` — matching the JSON-shape paths defined in Section 3. The styler does plain string replacement against the in-memory token set built in step-05 / step-05b. No other substitution semantics; no expression evaluation; no fallback. A typo or a missing token leaves a literal `{{…}}` that the pre-write self-check (Section C in step-06) refuses to write.
+**Token-reference substitution convention:** inside the catalogue's CSS block and its HTML snippets, token references take one of two forms — `{{typography.<name>.value}}`, `{{effects.<name>.value}}` — matching the JSON-shape paths defined in Section 3. Colours are `var(--c-<name>)` / `var(--on-<fill>)` references resolved by `{{PALETTE_VARS}}`, never substituted. The styler does plain string replacement against the in-memory token set built in step-05 / step-05b. No other substitution semantics; no expression evaluation; no fallback. A typo or a missing token leaves a literal `{{…}}` that the pre-write self-check (Section C in step-06) refuses to write.
 
 **Structural-constant policy:** the catalogue's CSS contains hardcoded neutral constants for padding (`8px 16px` for buttons, `8px 12px` for inputs, `16px` for cards, etc.), border-radii (`4px` small, `6px` medium, `8px` large), border colours (`rgba(0,0,0,0.20)` strong, `rgba(0,0,0,0.08)` light), and focus-ring offsets. These are **not tokens** — they are pattern decisions shared across brands, not brand decisions. Adding spacing / radius / border-colour token categories is deliberately out of scope here; if a future requirement is "extract spacing from the brand site too", the constants in the catalogue become the seed values for the new tokens.
 

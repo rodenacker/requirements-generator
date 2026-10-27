@@ -12,7 +12,7 @@ Step-06 reads this file once after reading the HTML template, then:
 2. Concatenates the single **Component CSS** block (one fenced `css` block) into a substitution buffer.
 3. For each enabled component family, in render order, extracts the family's two fenced `html` blocks — **Live demo** then **States matrix** — wraps each pair in the standard `<div class="cv-family">` wrapper with the family title + note, and appends them to a specimens buffer.
 4. **On a dark-mode render only** — before step 5, applies the neutral-constant swap described under **Dark-render neutral swap** below.
-5. Token-substitutes both buffers: for every reference of the form `{{colours.<token>.hex}}`, `{{typography.<token>.value}}`, or `{{effects.<token>.value}}`, substitutes the actual value from the in-memory token set built in step-05 / step-05b. No other substitution semantics — just literal string replacement.
+5. Token-substitutes both buffers: for every reference of the form `{{typography.<token>.value}}` or `{{effects.<token>.value}}`, substitutes the actual value from the in-memory token set built in step-05 / step-05b. No other substitution semantics — just literal string replacement. **Colours are never substituted into the catalogue:** every colour is a `var(--c-<token>)` reference and every label on a fill is a `var(--on-<fill>)` reference, resolved by the template's `{{PALETTE_VARS}}` block (step-06 builds it from the helper's colours and measured on-colours). That is what lets a review file switch between two palettes without rendering the catalogue twice.
 6. Substitutes the CSS buffer into the template's `{{COMPONENT_STYLES}}` placeholder and the specimens buffer into `{{COMPONENT_SPECIMENS}}`.
 
 ## Dark-render neutral swap
@@ -39,11 +39,12 @@ Inside the CSS block and the HTML snippets below, any reference of the form `{{<
 
 | Reference pattern | Substituted value example |
 |---|---|
-| `{{colours.<name>.hex}}` | `#3b82f6` |
+| `var(--c-<name>)` — colour token, `_` written as `-` (`var(--c-text-muted)`) | resolved by `{{PALETTE_VARS}}`, not substituted |
+| `var(--on-<fill>)` — measured label colour on a fill (`primary`, `secondary`, `accent`, `brand`, `success`, `warning`, `error`, `info`) | resolved by `{{PALETTE_VARS}}`, not substituted |
 | `{{typography.<name>.value}}` | `'Manrope', sans-serif` or `600` or `16px` |
 | `{{effects.<name>.value}}` | `0 1px 2px rgba(0,0,0,0.08)` or `200ms` or `cubic-bezier(0.4,0,0.2,1)` |
 
-Token paths used in this catalogue must exist in the JSON shape defined in the template header comment. Adding a reference to a token that isn't in that shape will leave a literal `{{...}}` after substitution and trigger the step-06 self-check halt.
+Token paths used in this catalogue must exist in the JSON shape defined in the template header comment, and every `--c-*` / `--on-*` name must be one the template's PALETTE VARS list defines. **Never put `var(--c-surface)` (or any fixed colour) as the label on a fill** — labels on fills are always the measured `var(--on-<fill>)`. Adding a reference to a token that isn't in that shape will leave a literal `{{...}}` after substitution and trigger the step-06 self-check halt.
 
 ## State-forcing convention
 
@@ -83,6 +84,7 @@ Render the families listed below, in this order. Comment out a line (prefix with
 6. data-table
 7. tabs
 8. modal
+9. brand
 
 ---
 
@@ -120,7 +122,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   font-weight: {{typography.heading_weight.value}};
   font-size: 15px;
   margin: 0 0 4px 0;
-  color: {{colours.text.hex}};
+  color: var(--c-text);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -136,7 +138,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   gap: 12px;
   align-items: center;
   padding: 16px;
-  background: {{colours.background.hex}};
+  background: var(--c-background);
   border-radius: 6px;
   margin-bottom: 12px;
 }
@@ -147,7 +149,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
   gap: 12px;
   padding: 16px;
-  background: {{colours.background.hex}};
+  background: var(--c-background);
   border-radius: 6px;
 }
 .cv-state-cell {
@@ -156,7 +158,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   align-items: flex-start;
   gap: 8px;
   padding: 12px;
-  background: {{colours.surface.hex}};
+  background: var(--c-surface);
   border-radius: 4px;
   border: 1px solid rgba(0,0,0,0.08);
   min-width: 0;
@@ -172,7 +174,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: {{colours.text_muted.hex}};
+  color: var(--c-text-muted);
 }
 
 /* --- Buttons ----------------------------------------------------------- */
@@ -194,7 +196,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 }
 .cv-btn:focus-visible,
 .cv-btn.cv-force-focus {
-  outline: 2px solid {{colours.primary.hex}};
+  outline: 2px solid var(--c-primary);
   outline-offset: 2px;
 }
 .cv-btn:disabled,
@@ -203,20 +205,20 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   cursor: not-allowed;
   pointer-events: none;
 }
-.cv-btn-primary { background: {{colours.primary.hex}}; color: {{colours.surface.hex}}; }
+.cv-btn-primary { background: var(--c-primary); color: var(--on-primary); }
 .cv-btn-primary:hover, .cv-btn-primary.cv-force-hover { filter: brightness(0.92); }
 .cv-btn-primary:active, .cv-btn-primary.cv-force-active { filter: brightness(0.82); }
-.cv-btn-secondary { background: {{colours.secondary.hex}}; color: {{colours.surface.hex}}; }
+.cv-btn-secondary { background: var(--c-secondary); color: var(--on-secondary); }
 .cv-btn-secondary:hover, .cv-btn-secondary.cv-force-hover { filter: brightness(0.92); }
 .cv-btn-secondary:active, .cv-btn-secondary.cv-force-active { filter: brightness(0.82); }
 .cv-btn-ghost {
   background: transparent;
-  color: {{colours.text.hex}};
+  color: var(--c-text);
   border-color: rgba(0,0,0,0.20);
 }
 .cv-btn-ghost:hover, .cv-btn-ghost.cv-force-hover { background: rgba(0,0,0,0.04); }
 .cv-btn-ghost:active, .cv-btn-ghost.cv-force-active { background: rgba(0,0,0,0.08); }
-.cv-btn-destructive { background: {{colours.error.hex}}; color: {{colours.surface.hex}}; }
+.cv-btn-destructive { background: var(--c-error); color: var(--on-error); }
 .cv-btn-destructive:hover, .cv-btn-destructive.cv-force-hover { filter: brightness(0.92); }
 .cv-btn-destructive:active, .cv-btn-destructive.cv-force-active { filter: brightness(0.82); }
 
@@ -226,15 +228,15 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   font-family: {{typography.body_family.value}};
   font-size: 12px;
   font-weight: 600;
-  color: {{colours.text.hex}};
+  color: var(--c-text);
 }
 .cv-field-hint {
   font-size: 11px;
-  color: {{colours.text_muted.hex}};
+  color: var(--c-text-muted);
 }
 .cv-field-error {
   font-size: 11px;
-  color: {{colours.error.hex}};
+  color: var(--c-error);
 }
 .cv-input, .cv-textarea, .cv-select {
   font-family: {{typography.body_family.value}};
@@ -242,8 +244,8 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   padding: 8px 12px;
   border: 1px solid rgba(0,0,0,0.20);
   border-radius: 4px;
-  background: {{colours.surface.hex}};
-  color: {{colours.text.hex}};
+  background: var(--c-surface);
+  color: var(--c-text);
   transition: border-color {{effects.transition_base.value}} {{effects.easing_standard.value}},
               box-shadow {{effects.transition_base.value}} {{effects.easing_standard.value}};
 }
@@ -251,19 +253,19 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 .cv-textarea:focus, .cv-textarea.cv-force-focus,
 .cv-select:focus, .cv-select.cv-force-focus {
   outline: none;
-  border-color: {{colours.primary.hex}};
+  border-color: var(--c-primary);
   box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
 }
 .cv-input.cv-error, .cv-input.cv-force-error,
 .cv-textarea.cv-error, .cv-textarea.cv-force-error {
-  border-color: {{colours.error.hex}};
+  border-color: var(--c-error);
 }
 .cv-input:disabled, .cv-input.cv-force-disabled,
 .cv-textarea:disabled, .cv-textarea.cv-force-disabled,
 .cv-select:disabled, .cv-select.cv-force-disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: {{colours.background.hex}};
+  background: var(--c-background);
 }
 .cv-textarea { resize: vertical; min-height: 64px; }
 
@@ -295,14 +297,14 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 .cv-check-row input[type="checkbox"],
 .cv-check-row input[type="radio"] {
   width: 16px; height: 16px;
-  accent-color: {{colours.primary.hex}};
+  accent-color: var(--c-primary);
   cursor: pointer;
   margin: 0;
 }
 .cv-check-row span {
   font-family: {{typography.body_family.value}};
   font-size: 13px;
-  color: {{colours.text.hex}};
+  color: var(--c-text);
 }
 
 /* Toggle switch (CSS-only via :checked) */
@@ -320,15 +322,15 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   position: absolute;
   top: 2px; left: 2px;
   width: 18px; height: 18px;
-  background: {{colours.surface.hex}};
+  background: var(--c-surface);
   border-radius: 50%;
   transition: transform {{effects.transition_base.value}} {{effects.easing_standard.value}};
   box-shadow: {{effects.shadow_sm.value}};
 }
-.cv-switch input:checked + .cv-switch-track { background: {{colours.primary.hex}}; }
+.cv-switch input:checked + .cv-switch-track { background: var(--c-primary); }
 .cv-switch input:checked + .cv-switch-track::before { transform: translateX(18px); }
-.cv-switch input:focus-visible + .cv-switch-track { outline: 2px solid {{colours.primary.hex}}; outline-offset: 2px; }
-.cv-switch.cv-force-on .cv-switch-track { background: {{colours.primary.hex}}; }
+.cv-switch input:focus-visible + .cv-switch-track { outline: 2px solid var(--c-primary); outline-offset: 2px; }
+.cv-switch.cv-force-on .cv-switch-track { background: var(--c-primary); }
 .cv-switch.cv-force-on .cv-switch-track::before { transform: translateX(18px); }
 .cv-switch.cv-force-disabled { opacity: 0.5; pointer-events: none; }
 
@@ -347,14 +349,14 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   max-width: 480px;
 }
 .cv-alert strong { font-weight: 600; }
-.cv-alert-success { background: {{colours.surface.hex}}; border-left-color: {{colours.success.hex}}; color: {{colours.text.hex}}; }
-.cv-alert-success strong { color: {{colours.success.hex}}; }
-.cv-alert-warning { background: {{colours.surface.hex}}; border-left-color: {{colours.warning.hex}}; color: {{colours.text.hex}}; }
-.cv-alert-warning strong { color: {{colours.warning.hex}}; }
-.cv-alert-error { background: {{colours.surface.hex}}; border-left-color: {{colours.error.hex}}; color: {{colours.text.hex}}; }
-.cv-alert-error strong { color: {{colours.error.hex}}; }
-.cv-alert-info { background: {{colours.surface.hex}}; border-left-color: {{colours.info.hex}}; color: {{colours.text.hex}}; }
-.cv-alert-info strong { color: {{colours.info.hex}}; }
+.cv-alert-success { background: var(--c-surface); border-left-color: var(--c-success); color: var(--c-text); }
+.cv-alert-success strong { color: var(--c-success); }
+.cv-alert-warning { background: var(--c-surface); border-left-color: var(--c-warning); color: var(--c-text); }
+.cv-alert-warning strong { color: var(--c-warning); }
+.cv-alert-error { background: var(--c-surface); border-left-color: var(--c-error); color: var(--c-text); }
+.cv-alert-error strong { color: var(--c-error); }
+.cv-alert-info { background: var(--c-surface); border-left-color: var(--c-info); color: var(--c-text); }
+.cv-alert-info strong { color: var(--c-info); }
 
 /* --- Badges ------------------------------------------------------------ */
 .cv-badge {
@@ -367,15 +369,15 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   line-height: 1.6;
   letter-spacing: 0.02em;
 }
-.cv-badge-success { background: {{colours.success.hex}}; color: {{colours.surface.hex}}; }
-.cv-badge-warning { background: {{colours.warning.hex}}; color: {{colours.surface.hex}}; }
-.cv-badge-error   { background: {{colours.error.hex}};   color: {{colours.surface.hex}}; }
-.cv-badge-info    { background: {{colours.info.hex}};    color: {{colours.surface.hex}}; }
-.cv-badge-neutral { background: rgba(0,0,0,0.08); color: {{colours.text.hex}}; }
+.cv-badge-success { background: var(--c-success); color: var(--on-success); }
+.cv-badge-warning { background: var(--c-warning); color: var(--on-warning); }
+.cv-badge-error   { background: var(--c-error);   color: var(--on-error); }
+.cv-badge-info    { background: var(--c-info);    color: var(--on-info); }
+.cv-badge-neutral { background: rgba(0,0,0,0.08); color: var(--c-text); }
 
 /* --- Cards ------------------------------------------------------------- */
 .cv-card {
-  background: {{colours.surface.hex}};
+  background: var(--c-surface);
   border-radius: 8px;
   padding: 16px;
   box-shadow: {{effects.shadow_sm.value}};
@@ -385,7 +387,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   max-width: 280px;
   font-family: {{typography.body_family.value}};
   font-size: 13px;
-  color: {{colours.text.hex}};
+  color: var(--c-text);
 }
 .cv-card:hover, .cv-card.cv-force-hover {
   box-shadow: {{effects.shadow_md.value}};
@@ -396,9 +398,9 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   font-weight: {{typography.heading_weight.value}};
   font-size: {{typography.size_lg.value}};
   margin: 0 0 6px 0;
-  color: {{colours.text.hex}};
+  color: var(--c-text);
 }
-.cv-card .cv-card-body { color: {{colours.text_muted.hex}}; margin: 0 0 12px 0; }
+.cv-card .cv-card-body { color: var(--c-text-muted); margin: 0 0 12px 0; }
 .cv-card .cv-card-actions { display: flex; gap: 8px; }
 
 /* --- Data table -------------------------------------------------------- */
@@ -408,8 +410,8 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   border-spacing: 0;
   font-family: {{typography.body_family.value}};
   font-size: 13px;
-  color: {{colours.text.hex}};
-  background: {{colours.surface.hex}};
+  color: var(--c-text);
+  background: var(--c-surface);
   border-radius: 6px;
   overflow: hidden;
   box-shadow: {{effects.shadow_sm.value}};
@@ -417,8 +419,8 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 .cv-table thead th {
   text-align: left;
   padding: 10px 12px;
-  background: {{colours.background.hex}};
-  color: {{colours.text_muted.hex}};
+  background: var(--c-background);
+  color: var(--c-text-muted);
   font-weight: 600;
   font-size: 11px;
   text-transform: uppercase;
@@ -429,16 +431,16 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 }
 .cv-table thead th:hover, .cv-table thead th.cv-force-hover {
   background: rgba(0,0,0,0.04);
-  color: {{colours.text.hex}};
+  color: var(--c-text);
 }
-.cv-table thead th .cv-sort-arrow { font-size: 9px; margin-left: 4px; color: {{colours.primary.hex}}; }
+.cv-table thead th .cv-sort-arrow { font-size: 9px; margin-left: 4px; color: var(--c-primary); }
 .cv-table tbody tr { transition: background {{effects.transition_base.value}} {{effects.easing_standard.value}}; }
-.cv-table tbody tr:nth-child(even) { background: {{colours.background.hex}}; }
+.cv-table tbody tr:nth-child(even) { background: var(--c-background); }
 .cv-table tbody tr:hover, .cv-table tbody tr.cv-force-hover { background: rgba(0,0,0,0.04); }
 .cv-table tbody tr.cv-row-selected,
 .cv-table tbody tr.cv-force-selected {
-  background: color-mix(in srgb, {{colours.primary.hex}} 10%, transparent);
-  box-shadow: inset 3px 0 0 {{colours.primary.hex}};
+  background: color-mix(in srgb, var(--c-primary) 10%, transparent);
+  box-shadow: inset 3px 0 0 var(--c-primary);
 }
 .cv-table td { padding: 10px 12px; border-bottom: 1px solid rgba(0,0,0,0.04); }
 .cv-table tbody tr:last-child td { border-bottom: 0; }
@@ -460,28 +462,28 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   font-family: {{typography.body_family.value}};
   font-size: 13px;
   font-weight: 500;
-  color: {{colours.text_muted.hex}};
+  color: var(--c-text-muted);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   transition: color {{effects.transition_base.value}} {{effects.easing_standard.value}},
               border-color {{effects.transition_base.value}} {{effects.easing_standard.value}};
 }
-.cv-tabs .cv-tab-label:hover { color: {{colours.text.hex}}; }
+.cv-tabs .cv-tab-label:hover { color: var(--c-text); }
 .cv-tabs .cv-tab-panel {
   display: none;
   padding: 16px;
   font-family: {{typography.body_family.value}};
   font-size: 13px;
-  color: {{colours.text.hex}};
-  background: {{colours.surface.hex}};
+  color: var(--c-text);
+  background: var(--c-surface);
   border-radius: 0 0 6px 6px;
 }
 .cv-tabs input[id="cv-tab-1"]:checked ~ .cv-tab-strip label[for="cv-tab-1"],
 .cv-tabs input[id="cv-tab-2"]:checked ~ .cv-tab-strip label[for="cv-tab-2"],
 .cv-tabs input[id="cv-tab-3"]:checked ~ .cv-tab-strip label[for="cv-tab-3"] {
-  color: {{colours.primary.hex}};
-  border-bottom-color: {{colours.primary.hex}};
+  color: var(--c-primary);
+  border-bottom-color: var(--c-primary);
   font-weight: 600;
 }
 .cv-tabs input[id="cv-tab-1"]:checked ~ .cv-tab-panels .cv-tab-panel-1,
@@ -501,17 +503,17 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 .cv-modal .cv-modal-window {
   margin-top: 12px;
   max-width: 420px;
-  background: {{colours.surface.hex}};
+  background: var(--c-surface);
   /* Always-on edge: 1px pattern width + brand token colour. text_muted is
      guaranteed to contrast with surface (contrast-validation), so the modal
      edge stays visible even when surface == background (e.g. inside the
      surface-backed states-matrix cell). Shadow is retained as a second,
      independent separation mechanism. */
-  border: 1px solid {{colours.text_muted.hex}};
+  border: 1px solid var(--c-text-muted);
   border-radius: 8px;
   padding: 20px;
   box-shadow: {{effects.shadow_lg.value}};
-  color: {{colours.text.hex}};
+  color: var(--c-text);
 }
 .cv-modal .cv-modal-title {
   font-family: {{typography.heading_family.value}};
@@ -521,7 +523,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 }
 .cv-modal .cv-modal-body {
   font-size: 13px;
-  color: {{colours.text_muted.hex}};
+  color: var(--c-text-muted);
   margin: 0 0 16px 0;
   line-height: 1.5;
 }
@@ -540,11 +542,11 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  color: {{colours.text_muted.hex}};
+  color: var(--c-text-muted);
   padding: 4px 8px;
   border-radius: 3px;
 }
-.cv-modal-close:hover { color: {{colours.text.hex}}; background: rgba(0,0,0,0.04); }
+.cv-modal-close:hover { color: var(--c-text); background: rgba(0,0,0,0.04); }
 
 /* --- Icons (inline SVG, inherits currentColor) ------------------------- */
 .cv-icon {
@@ -577,7 +579,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 
 /* --- Form: required indicator ----------------------------------------- */
 .cv-required {
-  color: {{colours.error.hex}};
+  color: var(--c-error);
   margin-left: 2px;
   font-weight: 600;
 }
@@ -590,10 +592,10 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 /* --- Alerts: icon + dismiss ------------------------------------------ */
 .cv-alert { align-items: center; }
 .cv-alert .cv-alert-icon { flex: 0 0 auto; width: 16px; height: 16px; vertical-align: 0; }
-.cv-alert-success .cv-alert-icon { color: {{colours.success.hex}}; }
-.cv-alert-warning .cv-alert-icon { color: {{colours.warning.hex}}; }
-.cv-alert-error .cv-alert-icon { color: {{colours.error.hex}}; }
-.cv-alert-info .cv-alert-icon { color: {{colours.info.hex}}; }
+.cv-alert-success .cv-alert-icon { color: var(--c-success); }
+.cv-alert-warning .cv-alert-icon { color: var(--c-warning); }
+.cv-alert-error .cv-alert-icon { color: var(--c-error); }
+.cv-alert-info .cv-alert-icon { color: var(--c-info); }
 .cv-alert-body { flex: 1 1 auto; min-width: 0; }
 .cv-alert-dismiss {
   flex: 0 0 auto;
@@ -602,11 +604,11 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
-  color: {{colours.text_muted.hex}};
+  color: var(--c-text-muted);
   padding: 4px 8px;
   border-radius: 3px;
 }
-.cv-alert-dismiss:hover { color: {{colours.text.hex}}; background: rgba(0,0,0,0.04); }
+.cv-alert-dismiss:hover { color: var(--c-text); background: rgba(0,0,0,0.04); }
 
 /* --- Data table: numeric alignment, actions column, pagination, states */
 .cv-table th.cv-cell-num,
@@ -626,15 +628,15 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 }
 .cv-table th[aria-sort="ascending"],
 .cv-table th[aria-sort="descending"] {
-  color: {{colours.text.hex}};
+  color: var(--c-text);
 }
 .cv-table th[aria-sort="ascending"] .cv-sort-arrow,
 .cv-table th[aria-sort="descending"] .cv-sort-arrow {
-  color: {{colours.primary.hex}};
+  color: var(--c-primary);
   opacity: 1;
 }
 .cv-sort-arrow.cv-sort-inactive {
-  color: {{colours.text_muted.hex}};
+  color: var(--c-text-muted);
   opacity: 0.5;
 }
 .cv-table-footer {
@@ -644,13 +646,13 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   flex-wrap: wrap;
   gap: 10px;
   padding: 10px 12px;
-  background: {{colours.surface.hex}};
+  background: var(--c-surface);
   border: 1px solid rgba(0,0,0,0.08);
   border-top: 0;
   border-radius: 0 0 6px 6px;
   font-family: {{typography.body_family.value}};
   font-size: 12px;
-  color: {{colours.text_muted.hex}};
+  color: var(--c-text-muted);
   margin-top: -1px;
 }
 .cv-pagination {
@@ -673,23 +675,79 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   padding: 3px 6px;
   border: 1px solid rgba(0,0,0,0.20);
   border-radius: 3px;
-  background: {{colours.surface.hex}};
-  color: {{colours.text.hex}};
+  background: var(--c-surface);
+  color: var(--c-text);
 }
 .cv-table-state {
   padding: 24px 12px;
   text-align: center;
-  color: {{colours.text_muted.hex}};
+  color: var(--c-text-muted);
   font-size: 12px;
-  background: {{colours.surface.hex}};
+  background: var(--c-surface);
   border-radius: 6px;
   width: 100%;
 }
 .cv-table-state strong {
-  color: {{colours.text.hex}};
+  color: var(--c-text);
   display: block;
   margin-bottom: 4px;
   font-size: 13px;
+}
+
+/* Brand identity — `brand` is identity-only: header bar / logo strip,
+   brand mark, empty-state illustration. Never a button, link, badge,
+   focus ring or text colour. */
+.cv-brand-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--c-brand);
+  color: var(--on-brand);
+  border-radius: 6px;
+  font-family: {{typography.heading_family.value}};
+  font-weight: {{typography.heading_weight.value}};
+  font-size: 14px;
+  width: 100%;
+}
+.cv-brand-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: var(--c-brand);
+  box-shadow: inset 0 0 0 2px var(--on-brand);
+  flex: 0 0 auto;
+}
+.cv-brand-strip .cv-brand-mark { background: transparent; }
+.cv-brand-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  color: var(--c-text-muted);
+  font-family: {{typography.body_family.value}};
+  font-size: 13px;
+}
+.cv-brand-empty svg { width: 48px; height: 48px; color: var(--c-brand); }
+.cv-brand-forbidden {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px dashed rgba(0,0,0,0.4);
+  border-radius: 6px;
+  color: var(--c-text-muted);
+  font-family: {{typography.body_family.value}};
+  font-size: 12px;
+  text-decoration: line-through;
+}
+.cv-brand-forbidden::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--c-brand);
 }
 ```
 
@@ -697,7 +755,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 
 ## buttons
 
-**Tokens consumed:** `colours.primary`, `colours.secondary`, `colours.error`, `colours.surface`, `colours.text`, `typography.body_family`, `effects.transition_base`, `effects.easing_standard`.
+**Tokens consumed:** `colours.primary`, `colours.secondary`, `colours.error`, `colours.surface`, `colours.text`, the measured `--on-primary` / `--on-secondary` / `--on-error` labels, `typography.body_family`, `effects.transition_base`, `effects.easing_standard`.
 
 ### Live demo
 
@@ -1090,7 +1148,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
     <span class="cv-tab-label">Overview</span>
   </div>
   <div class="cv-state-cell"><span class="cv-state-label">Active tab</span>
-    <span class="cv-tab-label" style="color: {{colours.primary.hex}}; border-bottom: 2px solid {{colours.primary.hex}}; font-weight: 600;">Overview</span>
+    <span class="cv-tab-label" style="color: var(--c-primary); border-bottom: 2px solid var(--c-primary); font-weight: 600;">Overview</span>
   </div>
 </div>
 ```
@@ -1143,6 +1201,41 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
         <button type="button" class="cv-btn cv-btn-destructive"><svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5z"/></svg>Delete</button>
       </div>
     </div>
+  </div>
+</div>
+```
+
+---
+
+## brand
+
+**Tokens consumed:** `colours.brand`, `colours.text_muted`, `typography.heading_family`, `typography.heading_weight`, `typography.body_family`.
+
+**Note:** `brand` is the identity colour (the largest-area chromatic colour on the reference site). It may sit in the red / orange / amber zone, because it never signals an action or a state. The specimens show the **permitted** uses only; the struck-through chip shows the forbidden one.
+
+### Live demo
+
+```html
+<div class="cv-row cv-row-col">
+  <div class="cv-brand-strip"><span class="cv-brand-mark" aria-hidden="true"></span>Case Manager</div>
+</div>
+```
+
+### States matrix
+
+```html
+<div class="cv-state-grid">
+  <div class="cv-state-cell"><span class="cv-state-label">Header strip</span>
+    <div class="cv-brand-strip"><span class="cv-brand-mark" aria-hidden="true"></span>Case Manager</div>
+  </div>
+  <div class="cv-state-cell"><span class="cv-state-label">Brand mark</span>
+    <span class="cv-brand-mark" aria-hidden="true"></span>
+  </div>
+  <div class="cv-state-cell"><span class="cv-state-label">Empty-state illustration</span>
+    <div class="cv-brand-empty"><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="12" width="32" height="26" rx="3"/><path d="M8 20h32M16 28h16"/></svg>No cases yet</div>
+  </div>
+  <div class="cv-state-cell"><span class="cv-state-label">Forbidden</span>
+    <span class="cv-brand-forbidden">Not a button colour</span>
   </div>
 </div>
 ```

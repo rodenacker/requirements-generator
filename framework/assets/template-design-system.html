@@ -29,11 +29,13 @@
                             #contrast, #standards). Static markup — no
                             placeholders. Renders as flex-wrapping chips
                             so the TOC reflows on narrow viewports.
-    5. #colours           — 11 swatches (primary..info), each with hex,
-                            source-context, and provenance label.
+    5. #colours           — 12 swatches (primary..info, plus the identity-only
+                            brand), each with hex, source-context, and
+                            provenance label.
     6. #components        — Interactive component visualisations (buttons,
                             form inputs, alerts, badges, cards, data table,
-                            tabs, modal) rendered with the brand tokens.
+                            tabs, modal, brand identity) rendered with the
+                            brand tokens.
                             CSS-only interactivity (:hover / :focus / :active
                             / :checked / <details>). Each family also shows
                             a labelled side-by-side state matrix using
@@ -86,7 +88,11 @@
                                  variant per prompt-template Section 4.
     {{TOKENS_JSON}}            — full token set serialised as JSON with
                                  2-space indent. See JSON SHAPE below.
-    {{COLOUR_SWATCHES}}        — pre-rendered HTML for the 11 colour rows.
+    {{PALETTE_VARS}}           — one `:root { --c-*: …; --on-*: … }` block
+                                 (final files), or one
+                                 `[data-palette="…"] { … }` block per palette
+                                 option (review files). See PALETTE VARS below.
+    {{COLOUR_SWATCHES}}        — pre-rendered HTML for the 12 colour rows.
                                  See COLOUR ROW SCHEMA below.
     {{TYPE_FAMILY_SPECIMENS}}  — pre-rendered HTML for heading + body family.
                                  See TYPE SPECIMEN SCHEMA below.
@@ -100,9 +106,11 @@
     {{CONTRAST_ADJUSTMENTS}}   — adjustments line (or "none").
     {{COMPONENT_STYLES}}       — component-visualisation CSS sourced from
                                  the catalogue's single fenced css block,
-                                 with all {{colours.*.hex}} / {{typography.
-                                 *.value}} / {{effects.*.value}} references
-                                 token-substituted. Inserted inside the
+                                 with all {{typography.*.value}} /
+                                 {{effects.*.value}} references token-
+                                 substituted. Colours are var(--c-*) /
+                                 var(--on-*) references resolved by
+                                 {{PALETTE_VARS}}. Inserted inside the
                                  template's <style> block, immediately
                                  before </style>.
     {{COMPONENT_SPECIMENS}}    — pre-rendered HTML for the component
@@ -131,8 +139,11 @@
         "mode":               "<light | dark>",
         "mode_choice":        "<light-only | dark-only | both>",
         "hue_source":         "<extracted-light | extracted-dark |
-                                domain-inferred-light>",
+                                extracted-both | domain-inferred-light>",
         "primary":            "<true | false>",
+        "palette_option":     "<neutral | site-colour | null>",   // the option
+                                // the consultant picked when two palettes were
+                                // offered (step-07); null when only one existed
         "brand_fonts": {
           "families": [
             {"role": "heading", "brand": "<family>", "loadable": "<family-or-null>",
@@ -152,10 +163,14 @@
         "surface":    { ... },
         "text":       { ... },
         "text_muted": { ... },
-        "success":    { ... },   // always inferred-from-domain
-        "warning":    { ... },   // always inferred-from-domain
-        "error":      { ... },   // always inferred-from-domain
-        "info":       { ... }    // always inferred-from-domain
+        "brand":      { ... },   // identity-only: header bar / logo strip /
+                                 // brand mark / empty-state illustration.
+                                 // NEVER a button, link, badge, focus ring or
+                                 // text colour. Mode-invariant; always present.
+        "success":    { ... },   // house status set, inferred-from-domain
+        "warning":    { ... },   // house status set, inferred-from-domain
+        "error":      { ... },   // house status set, inferred-from-domain
+        "info":       { ... }    // house status set, inferred-from-domain
       },
       "typography": {
         "heading_family": {"value": "<family stack>", "prov": "...", "source": "..."},
@@ -205,10 +220,31 @@
   files. Canonical definition of every field, and of the ladder that sets
   `status`: framework/agents/design-system-styler/data/font-availability-rules.md.
 
-  COLOUR ROW SCHEMA — {{COLOUR_SWATCHES}} substitutes 11 <li> blocks of:
+  12 colours + 15 typography + 7 effects = 34 tokens. The colour roles are
+  assigned by framework/tools/colour-tokens.cjs: primary / secondary / accent
+  never sit in the reserved red -> orange -> amber zone; a red brand shows only
+  through `brand`.
+
+  PALETTE VARS — {{PALETTE_VARS}} defines one CSS custom property per colour
+  token and one measured label colour per fill, so the component CSS and the
+  swatches never hold a literal brand hex:
+
+      --c-primary --c-secondary --c-accent --c-background --c-surface
+      --c-text --c-text-muted --c-brand --c-success --c-warning --c-error
+      --c-info
+      --on-primary --on-secondary --on-accent --on-brand --on-success
+      --on-warning --on-error --on-info
+
+  `--on-*` values are the helper's measured on-colours (never `surface`).
+  A final file emits exactly one `:root { … }` block. A review file
+  (.workspace/review-<mode>.html, two palettes offered) emits one
+  `[data-palette="neutral"] { … }` and one `[data-palette="site-colour"]
+  { … }` block, and the option tabs switch which one applies.
+
+  COLOUR ROW SCHEMA — {{COLOUR_SWATCHES}} substitutes 12 <li> blocks of:
 
       <li class="swatch-row swatch-{{token}}">
-        <div class="swatch" style="background:{{hex}}" aria-hidden="true"></div>
+        <div class="swatch" style="background:var(--c-{{token-slug}})" aria-hidden="true"></div>
         <div class="swatch-meta">
           <strong class="swatch-token">{{token-name}}</strong>
           <code class="swatch-hex">{{hex}}</code>
@@ -284,8 +320,9 @@
   sourced from `framework/agents/design-system-styler/data/component-catalogue.md`.
   The catalogue owns the single CSS block + per-family (live demo + states
   matrix) HTML snippets. step-06 reads it after this template, token-
-  substitutes any `{{colours.*.hex}}` / `{{typography.*.value}}` /
-  `{{effects.*.value}}` references inside the catalogue, and substitutes
+  substitutes any `{{typography.*.value}}` / `{{effects.*.value}}`
+  references inside the catalogue (colours are `var(--c-*)` / `var(--on-*)`
+  references, resolved by {{PALETTE_VARS}}), and substitutes
   the resulting CSS into {{COMPONENT_STYLES}} and the resulting HTML into
   {{COMPONENT_SPECIMENS}}.
 
@@ -454,6 +491,8 @@
     :root {
 {{DOC_CHROME_VARS}}
     }
+
+{{PALETTE_VARS}}
 
     * { box-sizing: border-box; }
 

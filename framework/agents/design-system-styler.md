@@ -80,7 +80,9 @@ Every per-file check below applies to **each** written artefact.
 - Every mode in `{{files_to_write}}` has its `generated-docs/design-system/design-system-<mode>.html` on disk, and `verify-artifact-write` returned `pass` for each. `{{files_to_write}}` contains `{{hue_source_mode}}`.
 - Each artefact contains zero literal `{{...}}` placeholders (including `{{MODE_LABEL}}`, `{{DOC_CHROME_VARS}}` and `{{BRAND_FONT_LINKS}}`).
 - The embedded `<script type="application/json" id="design-tokens">` block is present in each and its inner content is valid JSON (parses without error in memory before the Write call).
-- Each JSON contains the five top-level keys `meta`, `colours`, `typography`, `effects`, `contrast` — unchanged; the mode fields are additive inside `meta`.
+- Each JSON contains the five top-level keys `meta`, `colours`, `typography`, `effects`, `contrast` — unchanged; the mode fields are additive inside `meta`. `colours` holds **12** tokens including `brand` (34 tokens in all).
+- `meta.palette_option` is one of `"neutral"`, `"site-colour"`, `null` and is identical across both files; no file contains a `data-palette` attribute or two `design-tokens` blocks (option tabs exist only in the `.workspace/` review files).
+- Every colour hex in each JSON is the helper's output for that mode and palette — so no `primary` / `secondary` / `accent` sits in the reserved zone, and every label on a fill is the measured `--on-*` colour, never `surface`.
 - Each `meta.mode` matches its filename suffix and the `(Light)`/`(Dark)` text in that file's `<title>` and H1. `meta.mode_choice` and `meta.hue_source` are valid enum values and identical across both files.
 - `meta.primary` is a boolean, equals `mode == {{hue_source_mode}}`, and is `true` in **exactly one** written file.
 - On a derived file (only when `meta.hue_source ≠ extracted-both` — a site that ships both schemes has two extracted files and no derived one): every one of the 11 per-mode colour entries (all colours except `brand`) and 3 shadow entries has a `source` beginning `derived: <mode> variant of`, and the attribution names the hue-source sibling. `brand` and the 19 shared tokens carry the hue-source file's markers verbatim.
@@ -101,7 +103,7 @@ Every per-file check below applies to **each** written artefact.
 
 ## Definition of Done
 
-- Every mode in `{{files_to_write}}` has its `generated-docs/design-system/design-system-<mode>.html` on disk, verified, and containing a complete 33-token set (in both the JSON block and the visual sections). A partial pair — hue-source file verified but a requested derived file missing — is **not** done.
+- Every mode in `{{files_to_write}}` has its `generated-docs/design-system/design-system-<mode>.html` on disk, verified, and containing a complete 34-token set (in both the JSON block and the visual sections). A partial pair — hue-source file verified but a requested derived file missing — is **not** done.
 - The consultant has accepted the artefact(s) in the step-07 accept/revise/restart loop.
 - The workspace has been cleaned.
 - Control has been handed back to the orchestrator.

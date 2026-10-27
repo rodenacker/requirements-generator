@@ -275,7 +275,8 @@ function assign(input) {
   if (isReserved(brand)) {
     const e = hexToOklch(status.error);
     if (hueDist(e.H, brandH) < 12) {
-      const H = hueDist(22, brandH) >= hueDist(40, brandH) ? 22 : 40;
+      // [22°, 32°]: still red, and >= 15° clear of the house warning (H~49).
+      const H = hueDist(22, brandH) >= hueDist(32, brandH) ? 22 : 32;
       const dir = e.L <= brandO.L ? -1 : 1;
       let L = e.L + dir * 0.08;
       let hex = oklchToHex({ L, C: e.C, H });
