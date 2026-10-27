@@ -1,6 +1,6 @@
 # Color Extraction Rules — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Contains CSS analysis strategy, color extraction rules, and color-to-token mapping heuristics. Ported from v3 b3-style-extractor with the status-color exclusion rule replaced by status-color *fallback to domain-inference* (status colours are populated by step-05b, not by this rules file).
+**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Contains CSS analysis strategy, color extraction rules, and color-to-token *pick* heuristics. Ported from v3 b3-style-extractor. Status colours are populated by step-05b from the helper's house set, not by this rules file.
 
 **Mode note:** these rules capture **whichever colour scheme the site ships** — a dark-by-default site yields a dark palette, and that is correct, not a defect. Do not lighten, invert, or "normalise" extracted values toward a light theme. The scheme is classified downstream in step-05b §A-bis (per `data/contrast-validation.md` → Scheme Detection), and the *other* mode is derived from what you extract here per `data/cross-mode-derivation-rules.md`.
 
@@ -104,39 +104,28 @@ Scan `{{primary_css_content}}` for every color value. Normalize all formats to h
 
 ## 3. Color-to-Token Mapping
 
-Map the extracted and ranked colors to **7 brand tokens** (primary, secondary, accent, background, surface, text, text-muted). Use these heuristics in order:
+Map the extracted and ranked colors to **7 brand tokens** (primary, secondary, accent, background, surface, text, text-muted). Use these heuristics in order.
+
+**These are picks, not final roles.** The `primary` / `secondary` / `accent` picks go to `framework/tools/colour-tokens.cjs assign` (step-05 writes them to `assign-in.json`; step-05b §C runs the helper). Reserved-zone handling (red / orange / amber kept out of every interactive role), the replacement cascade, the `brand` identity colour and every fallback for a missing pick are owned by that helper — never restate its constants or thresholds here or anywhere in prose. **Never invent a hue:** a missing pick stays `null`.
 
 ### Primary Token Assignment
 
 | Token | Assignment Heuristic |
 |---|---|
 | `primary` | Most frequent chromatic color appearing in action contexts (buttons, links, CTAs, nav highlights). If CSS custom properties contain `--primary` or `--brand`, use that value. |
-| `secondary` | Second most frequent chromatic color distinct from primary (different hue family). Often found in secondary buttons, badges, or alternate nav items. If not found, derive from primary by shifting hue +120 degrees and desaturating 20%. |
-| `accent` | Third chromatic color, or the most saturated/bright chromatic color not already assigned. Often used for highlights, notifications, or hover states. If not found, derive from primary by shifting hue -60 degrees. |
+| `secondary` | Second most frequent chromatic color distinct from primary (different hue family). Often found in secondary buttons, badges, or alternate nav items. If not found, leave it `null` — the helper fills it. |
+| `accent` | Third chromatic color, or the most saturated/bright chromatic color not already assigned. Often used for highlights, notifications, or hover states. If not found, leave it `null` — the helper fills it. |
 | `background` | Color assigned to `body` or `html` background. If not explicit, use the most common near-white color. If none found, default to `#ffffff`. |
 | `surface` | Color used for card, panel, or modal backgrounds. Must differ from `background`. If not found, derive: if `background` is light, darken by ~3% (e.g., `#ffffff` → `#f8f9fa`); if dark, lighten by ~5%. |
 | `text` | Color assigned to `body` or `html` `color` property. If not explicit, use the most common near-black color. If none found, default to `#1a1f2e`. |
 | `text-muted` | Lighter text color found in secondary content, labels, placeholders, or `.muted`/`.secondary` classes. If not found, derive: blend `text` 30% toward `background`. |
 
-### Hex-to-HSL Conversion (for Derivation)
-
-When deriving colors via hue shifting, convert hex to HSL first:
-
-1. Convert `#RRGGBB` to RGB (0–255), then normalize to 0.0–1.0
-2. Find `max = max(R,G,B)`, `min = min(R,G,B)`, `delta = max - min`
-3. **Lightness:** `L = (max + min) / 2`
-4. **Saturation:** If `delta == 0`: `S = 0`. Else: `S = delta / (1 - |2L - 1|)`
-5. **Hue:** If `delta == 0`: `H = 0`. Else if `max == R`: `H = 60 × ((G-B)/delta mod 6)`. If `max == G`: `H = 60 × ((B-R)/delta + 2)`. If `max == B`: `H = 60 × ((R-G)/delta + 4)`
-6. After shifting H/S/L, convert back: HSL → RGB → hex `#RRGGBB`
-
 ### Derivation Fallbacks
 
 When fewer than 7 distinct colors are available:
 
-**1-2 chromatic colors found:**
-- Assign the dominant one as `primary`
-- Derive `secondary` by shifting primary's hue +120 degrees, keeping saturation
-- Derive `accent` by shifting primary's hue -60 degrees, increasing saturation 15%
+**Fewer than three chromatic colours found:**
+- Assign the dominant one as the `primary` pick; leave the missing `secondary` / `accent` picks `null`. No hue rotation — the helper falls back to the next non-reserved extracted colour in real use, else a brand-tinted neutral.
 
 **Background/surface not found:**
 - `background`: default `#ffffff` (light theme assumed unless most colors are light-on-dark)
@@ -148,4 +137,4 @@ When fewer than 7 distinct colors are available:
 
 ### Status-Colour Exclusion (Routed to step-05b)
 
-Do NOT map any extracted colors to `success`, `warning`, `error`, or `info` tokens during this step. Even if the CSS contains green/yellow/red/blue colors that appear to be status indicators, leave the four status tokens unset here. Step-05b infers them per-run from the domain — that is the only path for status colours under the stand-alone constraint.
+Do NOT map any extracted colors to `success`, `warning`, `error`, or `info` tokens during this step. Even if the CSS contains green/yellow/red/blue colors that appear to be status indicators, leave the four status tokens unset here. Step-05b §C takes them from the helper's fixed house status set (`HOUSE_STATUS` in `framework/tools/colour-tokens.cjs`) — that is the only path for status colours.

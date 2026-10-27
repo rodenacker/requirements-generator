@@ -44,7 +44,9 @@ Output one short Unicorn-voice line so the consultant can see what was found bef
 
 ## B. Fill Loop
 
-For every token in the canonical set (11 colours + 15 typography + 7 effects = 33 tokens):
+**No `assign-in.json`** (no URL, or any non-success extraction path) → skip this loop and §B.1/§B.2 and go straight to §C, which halts. *(Interim: until references replace the domain, `/design-system` needs a URL that extracts.)*
+
+For every token in the canonical set (12 colours + 15 typography + 7 effects = 34 tokens) **except** `primary`, `secondary`, `accent`, `brand` and the four status colours — those eight are owned by the helper call in §C and are never domain-inferred:
 
 1. If the token is already set in the in-memory extraction results from step-05, leave it alone. Its provenance remains `extracted-from-url` and its Source Context records the CSS selector or property where it was found.
 2. If the token is unset (`null`), fill it by applying the inference rules from `domain-inference.md`:
@@ -77,11 +79,22 @@ An **extracted** family keeps whatever record step-05 §4b already produced, inc
 
 After this loop, every token in the in-memory state has a non-null value in `{{extracted_scheme}}`'s scheme, a non-empty Source Context, and a Provenance marker. This set is the **hue-source set**.
 
-## C. Status Colours (Always Domain-Inferred)
+## C. Brand Roles and Status Colours (house set) — via the helper
 
-The four status colours (`success`, `warning`, `error`, `info`) are always inferred from the domain — never extracted from the URL. Apply the same fill rules as in §B (per `domain-inference.md` §3.B.3), **including the §B.1 conversion when `{{extracted_scheme}} == "dark"`**; their Provenance is **always** `inferred-from-domain` regardless of the URL outcome.
+**Ordering (fixed):** step-05 wrote `generated-docs/design-system/.workspace/assign-in.json` with the candidates and picks; §B above completed the neutrals; this section runs the helper. Nothing else assigns `primary`, `secondary`, `accent`, `brand` or the status colours.
 
-On a dark set, check the status colours for the amber trap called out in the derivation rules (§3.3): a warning amber that has been darkened or over-desaturated muddies to brown. Status colours must stay legible against **both** the dark `background` and the dark `surface`.
+1. **No `assign-in.json`** (no URL / failed extraction / insufficient data) → **halt** with exactly one line: *"No extracted palette. Until references replace the domain, `/design-system` needs a URL that extracts."* End the run (no files written; clean up `.workspace/` per step-07 §C). *(Interim halt — replaced by the domain-removal plan's reference-required refusal.)*
+2. Read `assign-in.json`, set `neutrals` to the hue-source set's `background`, `surface`, `text`, `text_muted` hexes, and Write it back.
+3. Run, via Bash:
+   ```
+   node framework/tools/colour-tokens.cjs assign --in generated-docs/design-system/.workspace/assign-in.json --out generated-docs/design-system/.workspace/assign-out.json
+   ```
+   Exit code ≠ 0 → **halt** and show the helper's one-line stderr message. Never fall back to prose colour rules.
+4. Read `assign-out.json` and set:
+   - `{{brand}}` = `brand`; `{{roles}}` = `roles` (the single palette, or Option 1 when options exist); `{{palette_options}}` = `options` (or `null`); `{{assign_decisions}}` = `decisions`; and the four status colours = `status`.
+   - Provenance: `brand`, and every role whose hex is an extracted candidate or pick → `extracted-from-url` (Source Context: the pick context, or `area-weighted capture` for `brand`). A role the helper filled with a **brand-tinted neutral**, and all four status colours → `inferred-from-domain` (Source Context: `colour-tokens.cjs assign — <the matching decisions line>`, and `colour-tokens.cjs house status set` for status). Two markers only.
+
+The status colours are the helper's fixed house set (`HOUSE_STATUS` in `framework/tools/colour-tokens.cjs`) — never inferred from the domain (`domain-inference.md` §3.B.3 is not used) and never extracted from CSS. On a reserved (red / orange / amber) brand the helper moves `error` away from the brand hue, and on a dark hue-source surface it moves status lightness only as far as the fill contrast target needs. Do not restate or re-tune those numbers here.
 
 ## D. Contrast Validation (hue-source set)
 

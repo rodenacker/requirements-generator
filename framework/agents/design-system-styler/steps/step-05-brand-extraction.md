@@ -71,11 +71,23 @@ Apply `color-extraction-rules.md` (already loaded):
 
 - Section 1: CSS Analysis Strategy.
 - Section 2: Colour Extraction (collect, normalize to `#RRGGBB`, deduplicate, rank).
-- Section 3: Colour-to-Token Mapping for the 7 brand tokens (primary, secondary, accent, background, surface, text, text-muted) using heuristics and derivation fallbacks.
+- Section 3: Colour-to-Token Mapping for the 7 brand tokens (primary, secondary, accent, background, surface, text, text-muted) using heuristics and derivation fallbacks. The `primary` / `secondary` / `accent` results are **picks**, not final roles: a missing pick stays `null`, and no hue is ever rotated or invented here.
 
 Status colours (`success`, `warning`, `error`, `info`) are NOT extracted here — they are always populated by step-05b.
 
 Store: `{{extracted_colors}}` as the structure defined in `brand-extraction.md` Section 7. Tokens that could not be extracted remain `null`.
+
+**Write the assignment input.** Write `generated-docs/design-system/.workspace/assign-in.json` (plain `Write`; workspace scratch) for `framework/tools/colour-tokens.cjs assign`:
+
+```json
+{ "candidates": [ { "hex": "#RRGGBB", "weight": 0 } ],
+  "picks": { "primary": "#RRGGBB" | null, "secondary": "#RRGGBB" | null, "accent": "#RRGGBB" | null },
+  "neutrals": null }
+```
+
+- `candidates` — Playwright path: `computed-tokens.json` → `colourWeights`, verbatim. WebFetch path (no `computed-tokens.json`): every deduplicated **chromatic** colour from Section 2, each with `weight: null`.
+- `picks` — the Section 3 `primary` / `secondary` / `accent` picks.
+- `neutrals` — left `null` here. Step-05b §C fills it from the hue-source set after its §B gap-fill (the helper needs all four neutrals) and runs the helper. **Ordering:** step-05 writes the picks → step-05b §B fills gaps → step-05b §C completes `neutrals` and calls `assign`. No `status` field — the helper starts from its house status set.
 
 ### 4. Typography — Families
 

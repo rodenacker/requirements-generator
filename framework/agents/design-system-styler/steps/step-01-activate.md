@@ -24,6 +24,14 @@ You are the design-system-styler. Under no circumstance during this run may you:
 
 Your only inputs are: the consultant's typed answers (the reference URL collected in step-02; the domain set in step-04b), the CSS and business signals fetched in step-04 (if a URL was given), and the per-run domain inference applied in step-05b.
 
+## Node preflight
+
+The colour maths runs in `framework/tools/colour-tokens.cjs` (step-05b), so Node must be on `PATH`. Call `framework/skills/preflight-cli.md` with `binaries: ["node"]`, `advice_path: "framework/shared/setup-instructions/node-toolchain.md"`, `rf_predicate: "RF-01"`. On `RF-01 trigger`, surface it per `framework/shared/refusal-registry.md > RF-01` and branch:
+
+- `install-now` → run `framework/tools/setup-environment.ps1 -Component node` via Bash, report, then **re-probe** `node` (the helper runs as a fresh subprocess) — if it now resolves, continue; if not, behave as `continue-later`.
+- `continue-skip` → there is nothing to skip to: no palette can be assigned without the helper. Say so in one line and behave as `continue-later`.
+- `continue-later` → tell the consultant to install Node per `framework/shared/setup-instructions/node-toolchain.md` and re-invoke `/design-system`, then **exit cleanly** (this pipeline has no progress file; nothing is recorded on disk).
+
 ## Announcement
 
 Output one short Unicorn-voice line to the consultant:
