@@ -10,16 +10,19 @@
  *   derive — the other colour mode from the hue-source set: minimum-change
  *            OKLCH lightness for fills, the neutral flip, the neutral ladder,
  *            measured on-colours and the contrast numbers.
+ *   measure — a set in its own mode (the hue-source set, or an extracted
+ *            other mode): text-pair adjustment, on-colours, fill and pair
+ *            contrast numbers. Extracted fills are reported, never moved.
  * The prompt files decide *what* the site uses (picks, area weights, the
  * site's own other scheme); this file decides *how* those become tokens.
  *
  * Callers: framework/agents/design-system-styler/steps/step-05b-domain-inference.md
- * (assign at the start of §C; derive + onColours in §D / §F). Policy prose:
+ * (assign at the start of §C; measure in §D; derive in §B.1 / §F). Policy prose:
  * framework/agents/design-system-styler/data/cross-mode-derivation-rules.md.
  * Never restate the constants below in prose — point here.
  *
  * Contract (CLI):
- *   node framework/tools/colour-tokens.cjs <assign|derive> --in <json> --out <json>
+ *   node framework/tools/colour-tokens.cjs <assign|derive|measure> --in <json> --out <json>
  *   exit 0 → output JSON written; exit 2 → one-line stderr message (bad input).
  *   Never throws an uncaught error.
  *
@@ -374,6 +377,46 @@ function derive(input) {
   return { mode, colours, on_colours: on, contrast: pairs, fills, adjustments };
 }
 
+// ---------- measure ----------
+
+// Validate a set in its own mode (the hue-source set, or an extracted other
+// mode): text / text_muted step in lightness (H and C kept) away from the
+// background until both pairs meet TEXT_TARGET; fills are reported, not moved.
+function measure(input) {
+  if (!input || typeof input !== 'object') throw new InputError('input must be an object');
+  if (input.mode !== 'light' && input.mode !== 'dark') throw new InputError('mode must be "light" or "dark"');
+  requireHexMap(input.colours, COLOUR_KEYS, 'colours', false);
+  const colours = {};
+  for (const k of COLOUR_KEYS) colours[k] = input.colours[k].toUpperCase();
+  const far = input.mode === 'dark' ? 1 : -1;
+  const adjustments = [];
+  const passes = (h) => contrast(h, colours.background) >= TEXT_TARGET && contrast(h, colours.surface) >= TEXT_TARGET;
+  for (const k of ['text', 'text_muted']) {
+    if (passes(colours[k])) continue;
+    const o = hexToOklch(colours[k]);
+    let next = colours[k];
+    for (let L = o.L + far * STEP; L >= 0 && L <= 1; L += far * STEP) {
+      next = oklchToHex({ L, C: o.C, H: o.H });
+      if (passes(next)) break;
+    }
+    adjustments.push(`${k} adjusted from ${colours[k]} to ${next} for ${TEXT_TARGET}:1 vs background and surface`);
+    colours[k] = next;
+  }
+  const fills = {};
+  for (const k of FILL_KEYS) {
+    fills[k] = contrast(colours[k], colours.surface);
+    if (fills[k] < FILL_TARGET) adjustments.push(`${k}: fill ${fills[k].toFixed(2)}:1 vs surface (below ${FILL_TARGET}:1; extracted fills are not moved)`);
+  }
+  const on = onColours(colours, input.mode);
+  for (const k of ON_KEYS) {
+    const r = contrast(on[k], colours[k]);
+    if (r < LABEL_TARGET) adjustments.push(`${k}: best label ${on[k]} is ${r.toFixed(2)}:1 on ${colours[k]} (below ${LABEL_TARGET}:1)`);
+  }
+  const pairs = textPairs(colours);
+  for (const [k, v] of Object.entries(pairs)) if (v < TEXT_TARGET) adjustments.push(`${k}: ${v.toFixed(2)}:1 (below ${TEXT_TARGET}:1)`);
+  return { mode: input.mode, colours, on_colours: on, contrast: pairs, fills, adjustments };
+}
+
 // ---------- CLI ----------
 
 function main(argv) {
@@ -381,13 +424,14 @@ function main(argv) {
   const arg = (name) => { const i = rest.indexOf(name); return i >= 0 ? rest[i + 1] : undefined; };
   const inPath = arg('--in');
   const outPath = arg('--out');
-  if ((op !== 'assign' && op !== 'derive') || !inPath || !outPath) {
-    process.stderr.write('usage: colour-tokens.cjs <assign|derive> --in <json> --out <json>\n');
+  const ops = { assign, derive, measure };
+  if (!Object.hasOwn(ops, op) || !inPath || !outPath) {
+    process.stderr.write('usage: colour-tokens.cjs <assign|derive|measure> --in <json> --out <json>\n');
     return 2;
   }
   try {
     const input = JSON.parse(fs.readFileSync(inPath, 'utf8'));
-    const result = op === 'assign' ? assign(input) : derive(input);
+    const result = ops[op](input);
     fs.writeFileSync(outPath, JSON.stringify(result, null, 2) + '\n');
     return 0;
   } catch (e) {
@@ -397,7 +441,7 @@ function main(argv) {
 }
 
 module.exports = {
-  hexToOklch, oklchToHex, contrast, isReserved, assign, derive, onColours,
+  hexToOklch, oklchToHex, contrast, isReserved, assign, derive, measure, onColours,
   RESERVED, NEUTRAL_C, USAGE_SHARE_MIN, FILL_TARGET, LABEL_TARGET, TEXT_TARGET, HOUSE_STATUS,
 };
 

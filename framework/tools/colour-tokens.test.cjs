@@ -159,6 +159,44 @@ test('test_assign_house_status', () => {
   assert.deepEqual(out.status, HOUSE_STATUS);
 });
 
+test('test_measure_keeps_passing_text', () => {
+  const src = absaOption1Light();
+  const out = ct.measure({ mode: 'light', colours: src });
+  assert.equal(out.mode, 'light');
+  assert.deepEqual(out.colours, src);
+  assert.deepEqual(Object.keys(out.on_colours).sort(), ['accent', 'brand', 'error', 'info', 'primary', 'secondary', 'success', 'warning']);
+  for (const v of Object.values(out.contrast)) assert.ok(v >= 4.5);
+  assert.ok(out.fills.primary >= 3.0);
+});
+
+test('test_measure_adjusts_failing_text_light', () => {
+  const src = { ...absaOption1Light(), text_muted: '#A89A9A' };
+  const out = ct.measure({ mode: 'light', colours: src });
+  assert.ok(out.contrast.text_muted_background >= 4.5 && out.contrast.text_muted_surface >= 4.5);
+  const a = hexToOklch('#A89A9A'), b = hexToOklch(out.colours.text_muted);
+  assert.ok(b.L < a.L);
+  assert.ok(hueDist(a.H, b.H) <= 3);
+  assert.ok(out.adjustments.some((l) => l.startsWith('text_muted')));
+});
+
+test('test_measure_adjusts_failing_text_dark', () => {
+  const src = { ...absaOption1Light(), background: '#121212', surface: '#1E1E1E', text: '#6A6A6A', text_muted: '#5A5A5A' };
+  const out = ct.measure({ mode: 'dark', colours: src });
+  for (const v of Object.values(out.contrast)) assert.ok(v >= 4.5);
+  assert.ok(hexToOklch(out.colours.text).L > hexToOklch('#6A6A6A').L);
+  assert.equal(out.colours.background, '#121212');
+});
+
+test('test_cli_measure', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'colour-tokens-'));
+  const inPath = path.join(dir, 'in.json');
+  const outPath = path.join(dir, 'out.json');
+  fs.writeFileSync(inPath, JSON.stringify({ mode: 'light', colours: absaOption1Light() }));
+  const r = spawnSync(process.execPath, [path.join(__dirname, 'colour-tokens.cjs'), 'measure', '--in', inPath, '--out', outPath], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(JSON.parse(fs.readFileSync(outPath, 'utf8')).on_colours.primary);
+});
+
 test('test_cli_bad_input', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'colour-tokens-'));
   const inPath = path.join(dir, 'in.json');

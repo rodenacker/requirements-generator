@@ -1,6 +1,6 @@
 # Cross-Mode Derivation — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by `framework/agents/design-system-styler/steps/step-05b-domain-inference.md` — by **§B** (per-token scheme-aware gap-fill) and by **§F** (whole-set derivation of the opposite mode). Contains the rules for deriving one colour mode's token set from the other's, in **both** directions.
+**Role:** Pure reference knowledge consumed by `framework/agents/design-system-styler/steps/step-05b-domain-inference.md` — by **§B.1** (scheme-aware gap-fill) and by **§F** (whole-set derivation of the opposite mode). States the **policy** for deriving one colour mode's token set from the other's, in **both** directions; `framework/tools/colour-tokens.cjs` implements the colour part of it and owns every number.
 
 ---
 
@@ -12,9 +12,9 @@ There is no privileged direction:
 
 | Extracted scheme (hue source) | Derived mode | Rules used |
 |---|---|---|
-| `light` | `dark` | §3 Light → dark |
-| `dark` | `light` | §4 Dark → light |
-| none (no URL / failed fetch) — domain inference is light-anchored | `dark`, if requested | §3 Light → dark |
+| `light` | `dark` | §3 policy, `derive` with `source_mode: light` |
+| `dark` | `light` | §3 policy, `derive` with `source_mode: dark` |
+| both (the site ships its own other scheme) | — | nothing derived: the other mode is extracted (step-05b §A-bis.1) |
 
 **Input** = the final, contrast-validated hue-source token set. **Output** = the opposite mode's token set, derived from the *same brand hues*.
 
@@ -22,9 +22,9 @@ There is no privileged direction:
 
 ---
 
-## 2. Shared tokens (19 of the 33) — copied verbatim
+## 2. Shared tokens (19 of the 34) — copied verbatim
 
-Only **11 colours + 3 shadows** get per-mode variants. The remaining 19 tokens are copied across modes **verbatim** — same value, same `prov`, same `source`:
+Only **11 colours + 3 shadows** get per-mode variants. `brand` is a colour but **mode-invariant** — identity colours do not re-light — so it is copied verbatim too (only its on-colour is measured per mode). The remaining 19 tokens are copied across modes **verbatim** — same value, same `prov`, same `source`:
 
 - All 15 typography tokens (`heading_family`, `heading_weight`, `body_family`, `body_weight`, `size_xs`..`size_4xl`, `lh_tight`, `lh_base`, `lh_loose`).
 - `transition_fast`, `transition_base`, `transition_slow`, `easing_standard`.
@@ -33,69 +33,48 @@ Type and motion are not mode-dependent. Do not re-derive, re-round, or re-source
 
 ---
 
-## 3. Light → dark
+## 3. Colour policy — implemented by `framework/tools/colour-tokens.cjs derive`
 
-Work in HSL terms and convert back to `#RRGGBB`. Preserve brand hue throughout — this is a *re-lighting* of the same brand, not a new palette.
+The derived mode's 12 colours, its on-colours and its contrast numbers come from **one helper call** (step-05b §F). This section states the policy the helper implements so a reader knows what to expect; the numbers (lightness targets, contrast targets, step size, chroma thresholds) live only in the helper. Never restate or re-tune them here or in a step.
 
-### 3.1 Neutrals
+The helper works in **OKLCH**, not HSL, and the guiding rule is **minimum change**: a derived colour is the same brand colour, re-lit only as far as it must be.
 
-- **`background`** — near-black, tinted with the **primary's hue**: saturation ~10–15%, lightness ~8–12%. **Never `#000000`** — a pure-black background loses the brand tint and makes every shadow invisible.
-- **`surface`** — the same hue as `background`, ~6–10 lightness points **above** it. In dark palettes elevation is carried by a *lighter* surface, not by a heavier shadow.
-- **`text`** — near-white, brand-tinted (lightness ~90–95). **Never `#FFFFFF`** — pure white on near-black is harsh and drops the brand tint.
-- **`text_muted`** — lightness ~62–72. Must clear 4.5:1 against **both** the dark `background` and the dark `surface`; §5 re-validates.
+### 3.1 Brand and status fills — minimum change
 
-### 3.2 Brand colours
+- `primary`, `secondary`, `accent`, `success`, `warning`, `error`, `info` **keep their hue-source hue and chroma**. Only lightness moves, and only as far as the fill needs to meet its contrast target against the derived `surface`. A fill that already meets it is **copied unchanged** — that is correct, not a defect.
+- Gamut mapping only ever lowers chroma; hue never rotates. A derived palette that reads as a *different brand* is a failure.
 
-- **`primary`, `secondary`, `accent`** — preserve hue (**±8° maximum**), raise lightness ~+10–20, and desaturate moderately. Saturated mid-lightness fills that read well on white are usually too heavy on near-black.
+### 3.2 Neutral `primary` / `secondary` — the flip
 
-### 3.3 Status colours
+- A low-chroma (neutral) `primary` or `secondary` does **not** do minimum change: that lands in a muddy mid-grey that looks disabled. It **flips to the far end** of the derived lightness ladder — a near-white `primary` with a dark label in dark mode, a charcoal `primary` in light mode. A flipped `secondary` sits just off the `surface` as a tonal button.
 
-- **`success`, `warning`, `error`, `info`** — keep their semantic hues (green / amber / red / blue). Brighten for legibility on the dark `background` **and** the dark `surface`.
-- **Ambers are the trap:** darkening or over-desaturating a warning amber muddies it to brown. Raise lightness and hold saturation.
+### 3.3 Neutrals — the ladder
 
-### 3.4 Shadows
+- `background`, `surface`, `text`, `text_muted` are rebuilt on a fixed ladder tinted with the **brand hue**: dark → `background` < `surface` < `text_muted` < `text`; light → the reverse. Never pure black or pure white for `background` or `text`. `text_muted` is moved until it clears its target against **both** `background` and `surface`.
 
-`shadow_sm`, `shadow_md`, `shadow_lg` keep the **light mode's geometry verbatim** — same offsets, blur, and spread. Raise the black alpha by ~1.5–2×.
+### 3.4 On-colours — measured, never assumed
 
-Shadows stay **black**. Do not switch them to white: on dark surfaces the visible separation comes primarily from the lighter `surface` value (§3.1), with the shadow as a secondary cue. A raised-alpha black shadow on a dark card reads subtly by design.
+- The label colour on every fill (`primary`, `secondary`, `accent`, `brand`, the four status colours) is **measured**: whichever of a brand-tinted near-black or near-white gives the higher WCAG contrast against that fill. Fills never bend to suit a fixed label colour. A label below its target is reported as an adjustment line, never fixed by moving the fill.
+
+### 3.5 Shadows (not in the helper)
+
+- `shadow_sm`, `shadow_md`, `shadow_lg` keep the hue-source geometry verbatim — same offsets, blur, spread. Light → dark: raise the black alpha ~1.5–2×. Dark → light: lower it by the same ratio. Shadows stay **black**; on dark surfaces separation comes primarily from the lighter `surface`.
 
 ---
 
-## 4. Dark → light
+## 4. Direction
 
-The mirror of §3, and **not** merely §3's numbers reversed — one asymmetry matters (§4.2).
-
-### 4.1 Neutrals
-
-- **`background`** — near-white, optionally carrying a very slight primary-hue tint: lightness ~97–100.
-- **`surface`** — 2–5 lightness points **below** `background`; or equal to it, with separation carried by a border. (Light palettes commonly invert the dark convention: the raised surface is the *whiter* one, so a card on a tinted page background may sit at pure white.)
-- **`text`** — near-black, brand-tinted (lightness ~10–18). **Never `#000000`**.
-- **`text_muted`** — lightness ~35–45. Must clear 4.5:1 against **both** the light `background` and the light `surface`; §5 re-validates.
-
-### 4.2 Brand colours
-
-- **`primary`, `secondary`, `accent`** — preserve hue (**±8° maximum**), **lower** lightness ~10–20, and **resaturate moderately**.
-- **This is the asymmetry.** Dark-theme brand colours are frequently *desaturated and lightened* by their designers so they sit calmly on a dark background. Simply darkening such a colour yields a muddy, washed-out fill on white. Saturation must be **restored**, not merely preserved.
-
-### 4.3 Status colours
-
-- **`success`, `warning`, `error`, `info`** — keep their semantic hues; darken for legibility on the light `background` **and** the light `surface`.
-- The amber trap applies in reverse: a bright dark-mode amber darkened without holding saturation becomes brown.
-
-### 4.4 Shadows
-
-Keep the dark mode's geometry verbatim; **lower** the black alpha by the same ~1.5–2× ratio in reverse. Light-mode elevation is carried by the shadow rather than by the surface step, so the shadow does real work here.
+Both directions use the same policy; the helper picks the far end from `source_mode`. Dark → light is not "§3 reversed by hand" — the minimum-change rule already restores a calm dark-theme brand colour only as far as the light `surface` requires, so no separate resaturation rule exists.
 
 ---
 
 ## 5. Constraints that hold in both directions
 
-1. **Hue fidelity.** Every derived brand colour stays within ±8° of its seed hue. A derived palette that reads as a *different brand* is a failure, however pleasant it looks.
-2. **Lightness ladder.** The derived set keeps a consistent, monotonic ladder — dark: `background` < `surface` < `text_muted` < `text`; light: the reverse.
-3. **No pure black or pure white** for `background` or `text` in either direction.
-4. **No unshifted saturated fills.** A brand colour copied across modes without a lightness/saturation shift is the single most common derivation defect.
-5. **Contrast re-validation is mandatory.** Run `framework/agents/design-system-styler/data/contrast-validation.md` over the derived set, using the **derived** scheme's adjustment direction. The derived set gets its own four pair ratios and its own adjustment log; it does not inherit the hue-source set's results.
-6. **Fill legibility (guidance, not a gate).** `component-catalogue.md` uses `colours.surface` as the on-fill label colour for primary / secondary / destructive buttons and all four badges. Derived brand and status fills must therefore stay far enough in lightness from the derived `surface` that the label reads against them — in a dark palette that means keeping fills light enough for near-black label text. This is a derivation constraint to honour while choosing values; it is **not** added to the four-pair validation gate.
+1. **Hue fidelity.** Derived brand and status colours keep the seed hue (gamut mapping reduces chroma only).
+2. **Lightness ladder** as in §3.3.
+3. **No pure black or pure white** for `background` or `text`.
+4. **Contrast re-validation is the helper's.** The derived set gets its own four pair ratios, fill ratios and adjustment lines from the `derive` output; it never inherits the hue-source set's numbers.
+5. **Reserved zone in both modes.** `primary`, `secondary` and `accent` never sit in the red → orange → amber zone in either mode. Minimum change keeps hue, so a role that was safe in the hue source stays safe in the derived mode.
 
 ---
 
@@ -116,15 +95,13 @@ derived: dark variant of light shadow_md (0 4px 6px rgba(0,0,0,0.10))
 
 The source string preserves traceability back to the seed value, so a reader can always see which hue-source token a derived value came from. The **shared** tokens of §2 keep their original markers and source strings unchanged.
 
-If contrast validation (§5.5) subsequently adjusts a derived value, it **retains** this marker and source — adjustment is a downstream correction, not a re-source.
+If the helper subsequently adjusts a derived value, it **retains** this marker and source — adjustment is a downstream correction, not a re-source.
 
 ---
 
-## 7. Gap-fill helper contract (used by step-05b §B)
+## 7. Gap-fill contract (used by step-05b §B.1)
 
-`prompt-templates/domain-inference.md` produces **light** values by construction — it anchors `background` to `#FFFFFF`. So on a run whose extracted scheme is **dark**, filling an unset token straight from domain inference would inject a near-white neutral into a dark palette.
-
-Step-05b §B therefore calls **§3 (Light → dark) one token at a time** as a helper: the value is inferred as a light value first, then converted here before being stored. This keeps dark neutral targets defined in exactly one place — this file — rather than duplicating them into the inference contract.
+`prompt-templates/domain-inference.md` produces **light** values by construction. On a run whose extracted scheme is **dark**, step-05b §B.1 therefore converts any domain-inferred neutral with **one** `colour-tokens.cjs derive` call and keeps only the unset tokens from its output — the dark neutral ladder is defined in exactly one place, the helper.
 
 Such a token's provenance is:
 

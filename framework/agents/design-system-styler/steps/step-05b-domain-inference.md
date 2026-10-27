@@ -9,7 +9,7 @@ description: 'Classify the extracted colour scheme, infer every unset token from
 
 # Step 5b: Scheme Detection, Domain-Inference Fill, Mode Selection + Cross-Mode Derivation
 
-This step always runs. It fills every token still unset after step-05 (or the entire token set, if step-05 was skipped) by inferring values from the consultant's free-text `{{domain}}` string against the canonical token list defined in `framework/assets/template-design-system.html` (the JSON SHAPE comment block at the top of the template enumerates all 33 token names). It then validates contrast, asks the consultant which colour mode(s) to ship, and derives the opposite mode if one is wanted.
+This step always runs. It fills every token still unset after step-05 (or the entire token set, if step-05 was skipped) by inferring values from the consultant's free-text `{{domain}}` string against the canonical token list defined in `framework/assets/template-design-system.html` (the JSON SHAPE comment block at the top of the template enumerates all 34 token names). It then validates contrast, asks the consultant which colour mode(s) to ship, and derives the opposite mode if one is wanted.
 
 **The governing rule for this step:** *the extracted scheme is the hue source; the other mode is derived from it.* Nothing here assumes light — a reference URL ships a dark palette as readily as a light one, and when it does, **light** is the derived mode.
 
@@ -30,7 +30,7 @@ Set:
   - If `background` was extracted, classify it as above.
   - If `{{reference_url}}` was null, or `{{extraction_status}}` is anything other than `"success"`, or `background` is unset → `light`. The domain-inference contract is light-anchored by construction, so an all-inferred set is a light set.
 - `{{hue_source_mode}}` = `{{extracted_scheme}}`. This is the mode whose palette is grounded; it is the seed for any derivation and it will carry `meta.primary: true`.
-- `{{hue_source}}` (the JSON `meta` field) — `extracted-light` | `extracted-dark` | `domain-inferred-light`:
+- `{{hue_source}}` (the JSON `meta` field) — `extracted-light` | `extracted-dark` | `extracted-both` | `domain-inferred-light` (`extracted-both` is set by §A-bis.1 when the site ships its own other scheme):
   - `background` came from CSS and classified `light` → `extracted-light`
   - `background` came from CSS and classified `dark` → `extracted-dark`
   - no URL / non-success extraction → `domain-inferred-light`
@@ -41,6 +41,16 @@ Output one short Unicorn-voice line so the consultant can see what was found bef
 - inferred: *"No extracted palette — inferring a light set from `{{domain}}`."*
 
 **Do not "normalise" a dark extraction toward light.** A dark result here is correct, not a defect.
+
+### A-bis.1 The site's own other scheme
+
+If step-04 captured `{{alt_scheme}}` (non-null, Playwright path only) and its `scheme` is the opposite of `{{extracted_scheme}}`, apply the `color-extraction-rules.md` §0/§1/§3 pick heuristics to `{{alt_scheme}}.customProperties` and `.declarations` to pick that scheme's `background`, `surface`, `text`, `text_muted`, `primary`, `secondary`, `accent`. If **at least `background` and `text`** resolve:
+
+- `{{other_mode_extracted}} = true` and `{{hue_source}} = extracted-both`. The other mode is **extracted, not derived**: its tokens carry `prov: extracted-from-url` with the alt-scheme selector / property as Source Context.
+- Its picks go through the helper in §C (reserved zones apply in both modes), with `brand` forced to the hue-source `brand`.
+- Say so in the scheme line: *"The site also ships its own **{{other_mode}}** palette — extracting it instead of deriving."*
+
+Otherwise `{{other_mode_extracted}} = false` and the other mode, if requested, is derived in §F.
 
 ## B. Fill Loop
 
@@ -57,13 +67,13 @@ For every token in the canonical set (12 colours + 15 typography + 7 effects = 3
 
 `domain-inference.md` produces **light** values by construction — it anchors `background` to `#FFFFFF`. Filling a gap in a **dark** extracted set straight from that contract would drop a near-white neutral into a dark palette, and the result would be incoherent (and would then be dragged around by contrast validation trying to rescue it).
 
-So when `{{extracted_scheme}} == "dark"`, every value produced by step 2 above is passed through the **Light → dark** conversion in `cross-mode-derivation-rules.md` (§3) **one token at a time, before it is stored**:
+So when `{{extracted_scheme}} == "dark"` and step 2 above filled any colour (only the neutrals `surface`, `text`, `text_muted` can be unset here — `background` was extracted, since it set the scheme), convert them with **one** helper call instead of storing the light values:
 
-- Store the converted (dark) value, not the inferred light one.
-- Provenance stays `inferred-from-domain` — the token *is* domain-inferred.
-- Source Context = `domain-inference ({{domain}}) → dark variant`
+1. Write `generated-docs/design-system/.workspace/gapfill-in.json` = `{ "source_mode": "light", "colours": { <12 colour keys> } }` with the four neutrals from the inferred light values, and every other colour slot set to the top `assign-in.json` candidate hex (or `picks.primary` when there are no candidates). The helper's dark neutral ladder reads only the brand hue, so the stub slots do not leak into the neutrals.
+2. Run `node framework/tools/colour-tokens.cjs derive --in generated-docs/design-system/.workspace/gapfill-in.json --out generated-docs/design-system/.workspace/gapfill-out.json`. Exit code ≠ 0 → halt with the stderr line.
+3. Take **only the unset tokens** from `gapfill-out.json` → `colours`. Provenance stays `inferred-from-domain` (the token *is* domain-inferred); Source Context = `domain-inference ({{domain}}) → dark variant`.
 
-This keeps dark neutral targets defined in exactly one file. Do not copy dark neutral rules into the inference contract, and do not hand-pick dark values here.
+This keeps dark neutral targets defined in exactly one place — the helper. Do not copy dark neutral rules into the inference contract, and do not hand-pick dark values here. *(The domain-removal plan changes where colour gap-fills come from; this `derive` call stays as the mechanism.)*
 
 Tokens that were **extracted** are never converted — they are already in the extracted scheme.
 
@@ -94,20 +104,22 @@ After this loop, every token in the in-memory state has a non-null value in `{{e
    - `{{brand}}` = `brand`; `{{roles}}` = `roles` (the single palette, or Option 1 when options exist); `{{palette_options}}` = `options` (or `null`); `{{assign_decisions}}` = `decisions`; and the four status colours = `status`.
    - Provenance: `brand`, and every role whose hex is an extracted candidate or pick → `extracted-from-url` (Source Context: the pick context, or `area-weighted capture` for `brand`). A role the helper filled with a **brand-tinted neutral**, and all four status colours → `inferred-from-domain` (Source Context: `colour-tokens.cjs assign — <the matching decisions line>`, and `colour-tokens.cjs house status set` for status). Two markers only.
 
+5. **Other mode extracted** (`{{other_mode_extracted}}`): write `assign-in-<other_mode>.json` with the same `candidates`, the §A-bis.1 picks, that scheme's four neutrals (an unpicked `surface` / `text_muted` takes the value a `derive` of the hue-source set gives — run it once now if needed), and `"brand": "{{brand}}"`; run `assign` on it (→ `assign-out-<other_mode>.json`). Its `roles` and `status` are the other mode's; its `brand` equals `{{brand}}` by construction. When `{{palette_options}}` is non-null, the other mode's two option sets are this call's `options` if non-null; otherwise each option's other-mode roles come from that option's §F `derive`.
+
 The status colours are the helper's fixed house set (`HOUSE_STATUS` in `framework/tools/colour-tokens.cjs`) — never inferred from the domain (`domain-inference.md` §3.B.3 is not used) and never extracted from CSS. On a reserved (red / orange / amber) brand the helper moves `error` away from the brand hue, and on a dark hue-source surface it moves status lightness only as far as the fill contrast target needs. Do not restate or re-tune those numbers here.
 
 ## D. Contrast Validation (hue-source set)
 
-Read `framework/agents/design-system-styler/data/contrast-validation.md` and apply Section 6 to the hue-source token set:
+The numbers come from the helper; `framework/agents/design-system-styler/data/contrast-validation.md` states what is checked (the four text pairs, fills, labels). Do not compute ratios or adjust colours by hand.
 
-1. Compute the four required contrast ratios (text/background, text/surface, text-muted/background, text-muted/surface).
-2. If any ratio falls below 4.5:1, run the adjustment strategy from the rules file **in `{{extracted_scheme}}`'s direction**:
-   - `light` set → darken text first; if text is already very dark, lighten background/surface (never darken).
-   - `dark` set → lighten text first (clamping at 255); if text is already very light, darken background/surface (never lighten).
-3. Re-validate after every adjustment. Stop after 20 adjustment iterations per token; record any unmet pair as `Pass | Fail` accordingly.
-4. Append every adjustment to the **hue-source mode's** adjustments variable — `{{cv_adjustments_light}}` if `{{extracted_scheme}} == "light"`, else `{{cv_adjustments_dark}}` — in the format:
-    `{token} adjusted from {original_hex} to {adjusted_hex} ({pair} contrast was {original_ratio}:1)`
-5. Set that mode's `{{cv_pass_count_<mode>}}` and `{{cv_adjustment_count_<mode>}}`.
+1. For each palette — `default` when `{{palette_options}}` is null, else `neutral` and `site_colour` (the option's `primary` / `secondary` / `accent`; everything else shared) — write `generated-docs/design-system/.workspace/measure-<palette>-<hue_source_mode>-in.json` = `{ "mode": "{{hue_source_mode}}", "colours": { <12 colours incl. brand> } }` and run:
+   ```
+   node framework/tools/colour-tokens.cjs measure --in generated-docs/design-system/.workspace/measure-<palette>-<hue_source_mode>-in.json --out generated-docs/design-system/.workspace/measure-<palette>-<hue_source_mode>-out.json
+   ```
+   Exit code ≠ 0 → halt with the stderr line.
+2. Take `colours` from the output (the helper adjusts only `text` / `text_muted`, lightness only, in the scheme's direction; extracted fills are reported, never moved) and store the result as `{{palettes}}.<palette>.<hue_source_mode>` = `{ colours, on_colours, contrast, fills, adjustments }`.
+3. Set the hue-source mode's `{{on_colours_<mode>}}` (the `default` / `neutral` palette's), `{{cv_adjustments_<mode>}}` = the helper's `adjustments` lines, `{{cv_pass_count_<mode>}}` = how many of the four `contrast` pairs are ≥ 4.5, and `{{cv_adjustment_count_<mode>}}` = how many `adjustments` lines start with `text` / `text_muted` and say "adjusted".
+4. **Other mode extracted** (`{{other_mode_extracted}}`): run `measure` the same way over the other mode's extracted set (per palette) and store it under `{{palettes}}.<palette>.<other_mode>`. That set is not derived in §F.
 
 Adjusted tokens **retain their original provenance marker** — adjustment is a downstream correction, not a re-source.
 
@@ -122,7 +134,7 @@ Use `AskUserQuestion`:
 - Header: `Modes`
 - multiSelect: false
 - Question — pick the phrasing that matches the run:
-  - **Extraction produced a palette** (`{{hue_source}}` is `extracted-light` or `extracted-dark`): *"`{{reference_url}}`'s palette is **{{extracted_scheme}}**. Which colour mode(s) should the design system ship in? The {{extracted_scheme}} palette is the hue source — the other mode is derived from the same brand hues, not extracted separately."*
+  - **Extraction produced a palette** (`{{hue_source}}` is `extracted-light` or `extracted-dark`): *"`{{reference_url}}`'s palette is **{{extracted_scheme}}**. Which colour mode(s) should the design system ship in? The {{extracted_scheme}} palette is the hue source — the other mode is derived from the same brand hues, not extracted separately."* (When `{{hue_source}}` is `extracted-both`, replace that last sentence with: *"The site ships its own {{other_mode}} palette too, so that mode is extracted, not derived."*)
   - **No extracted palette** (`{{hue_source}}` is `domain-inferred-light`): *"Every token was inferred from `{{domain}}` as a light palette. Which colour mode(s) should the design system ship in? A dark palette would be derived from the same brand hues."*
 - Options — **list `Both` first and mark it Recommended**. Both is the default because a design system that ships only one mode leaves every downstream consumer (`/prototype`'s scaffold in particular) with no palette for the other mode, and the derived set costs nothing beyond §F. The single-mode options follow, extracted scheme before derived, since the extracted one is the grounded palette:
   1. `Both` *(Recommended)* — ship both files. The {{extracted_scheme}} file is primary (the palette actually extracted); the {{other_mode}} file is derived from the same brand hues.
@@ -152,15 +164,19 @@ Note for reference: step-07's **Restart** re-enters `step-02-inputs.md`, so extr
 
 ## F. Cross-Mode Derivation
 
-**Runs if and only if `{{derived_mode_requested}}`.** Skip entirely otherwise.
+**Runs if and only if `{{derived_mode_requested}}` and not `{{other_mode_extracted}}`** (an extracted other mode was already measured in §D step 4). Skip entirely otherwise.
 
-Using `cross-mode-derivation-rules.md` — §3 if deriving dark from light, §4 if deriving light from dark:
+The policy is `cross-mode-derivation-rules.md` §3–§5; the numbers come from the helper:
 
-1. Derive the derived mode's **11 colours** and **3 shadows** from the *contrast-validated* hue-source set (the output of §D, not the pre-validation values).
-2. Copy the **19 shared tokens** verbatim — all 15 typography tokens plus `transition_fast`, `transition_base`, `transition_slow`, `easing_standard`. Same values, same `prov`, same `source`. Do not re-derive or re-round them.
-3. Tag every derived colour and shadow: `prov: "inferred-from-domain"`, `source: "derived: <target-mode> variant of <source-mode> <token> (<source-hex>)"`. Two markers only — there is no third.
-4. Run contrast validation over the derived set **in the derived mode's direction** (§D's procedure, opposite branch). Write results into that mode's `{{cv_pass_count_<mode>}}` / `{{cv_adjustments_<mode>}}` / `{{cv_adjustment_count_<mode>}}`. The derived set gets its **own** four ratios — it never inherits the hue-source set's numbers.
-5. Check the derived status colours for legibility against the derived `background` **and** `surface`, and honour the **fill-legibility constraint** (rules file §5.6): brand and status fills must stay far enough in lightness from the derived `surface` that the catalogue's on-fill label text reads against them. This is derivation guidance, not an additional validation gate — the gate remains the four pairs.
+1. For each palette in `{{palettes}}` (`default`, or `neutral` and `site_colour`), write `generated-docs/design-system/.workspace/derive-<palette>-in.json` = `{ "source_mode": "{{hue_source_mode}}", "colours": <that palette's contrast-validated hue-source colours from §D> }` and run:
+   ```
+   node framework/tools/colour-tokens.cjs derive --in generated-docs/design-system/.workspace/derive-<palette>-in.json --out generated-docs/design-system/.workspace/derive-<palette>-out.json
+   ```
+   Exit code ≠ 0 → halt with the stderr line. Store the output as `{{palettes}}.<palette>.<other_mode>` = `{ colours, on_colours, contrast, fills, adjustments }`. The derived set's **12 colours** are exactly the helper's — do not retune them.
+2. Derive the **3 shadows** per `cross-mode-derivation-rules.md` §3.4 / §4.4 (geometry verbatim, alpha scaled).
+3. Copy the **19 shared tokens** verbatim — all 15 typography tokens plus `transition_fast`, `transition_base`, `transition_slow`, `easing_standard`. Same values, same `prov`, same `source`. Do not re-derive or re-round them.
+4. Tag every derived colour and shadow: `prov: "inferred-from-domain"`, `source: "derived: <target-mode> variant of <source-mode> <token> (<source-hex>)"` — except `brand`, which is mode-invariant and copied with its hue-source `prov` / `source`. Two markers only — there is no third.
+5. Set the derived mode's `{{on_colours_<mode>}}`, `{{cv_adjustments_<mode>}}` (the helper's `adjustments` lines), `{{cv_pass_count_<mode>}}` (pairs ≥ 4.5) and `{{cv_adjustment_count_<mode>}}` (lines describing a moved or flipped colour) from the `default` / `neutral` palette's output. The derived set gets its **own** numbers — it never inherits the hue-source set's.
 
 Store the derived set as a separate in-memory token set. Both sets now exist and step-06 renders one file from each.
 
@@ -171,7 +187,8 @@ Before advancing, set:
 - `{{extraction_status}}` to `"success"` if and only if step-05 reached its happy path. Otherwise preserve the prior status (`no_url` / `fetch_failed` / `no_css` / `css_fetch_failed` / `insufficient_data` / `workspace_read_failed`).
 - `{{extraction_date}}` to today's date in ISO 8601 (`YYYY-MM-DD`).
 - `{{voice}}` to the one-line Voice statement synthesised in §A. Step-07 prints it in the diagnostic summary.
-- **Mode state:** `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{hue_source}}`, `{{mode_choice}}`, `{{derived_mode_requested}}`, `{{primary_mode}}`, `{{files_to_write}}`.
+- **Mode state:** `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{hue_source}}` (`extracted-light` | `extracted-dark` | `extracted-both` | `domain-inferred-light`), `{{other_mode_extracted}}`, `{{mode_choice}}`, `{{derived_mode_requested}}`, `{{primary_mode}}`, `{{files_to_write}}`.
+- **Colour state (from the helper):** `{{brand}}`, `{{palette_options}}`, `{{assign_decisions}}`, and `{{palettes}}` — `{ <palette>: { <mode>: { colours, on_colours, contrast, fills, adjustments } } }`, palette `default` (no options) or `neutral` + `site_colour`. Step-06 renders from `{{palettes}}`.
 - **Per-mode contrast:** `{{cv_pass_count_light}}` / `{{cv_adjustments_light}}` / `{{cv_adjustment_count_light}}` and the `_dark` twins. Exactly one set is populated when a single file is written; both are populated when two are.
 - **`{{brand_fonts}}`** — assemble the `meta.brand_fonts` object in the shape `font-availability-rules.md` §6.2 specifies, from `{{font_availability_heading}}` and `{{font_availability_body}}` (set by step-05 §4b for extracted families, by §B.2 above for inferred ones):
   - `families` — exactly two entries, `role: "heading"` first then `role: "body"`, even when both resolve to the same face.
@@ -181,7 +198,7 @@ Before advancing, set:
 Confirm before advancing:
 
 - Every token in the hue-source set has a non-null value, a Source Context, and one of the two provenance markers.
-- If `{{derived_mode_requested}}`, the derived set likewise has all 33 tokens, with its 11 colours + 3 shadows carrying `derived: …` source strings and its 19 shared tokens carrying the hue-source markers.
+- If `{{derived_mode_requested}}`, the other-mode set likewise has all 34 tokens; when it was derived (not `extracted-both`), its colours other than `brand` and its 3 shadows carry `derived: …` source strings and its 19 shared tokens carrying the hue-source markers.
 - `{{files_to_write}}` contains `{{hue_source_mode}}`, and `{{primary_mode}} == {{hue_source_mode}}`.
 - `{{brand_fonts}}.families` has two entries with `status` in `google-native | substituted | unverified`; every non-null `param` is in `font-availability-rules.md` §4.1; and each `substituted` entry's token value carries `brand` then `loadable` in that order.
 

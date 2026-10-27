@@ -6,6 +6,10 @@
 
 ## 6. WCAG AA Contrast Validation
 
+> **The numbers come from `framework/tools/colour-tokens.cjs`.** Step-05b runs `measure` on the hue-source set (§D) and `derive` for a derived mode (§F); both return the four pair ratios, each fill's ratio against `surface`, the measured on-colour (label) for every fill, and the adjustment lines. This file states **what** is checked and why; the helper owns **how** (the formulae below are the ones it implements, and the adjustment it applies is lightness-only in OKLCH). Never compute ratios or adjust colours by hand in a step.
+>
+> Checked per mode: (1) the four text pairs below at 4.5:1; (2) each brand / status **fill** against `surface` at the WCAG non-text target (a flipped neutral `secondary` is a tonal button and is reported, not enforced; extracted hue-source fills are reported, never moved); (3) each fill's **label** — whichever of a brand-tinted near-black / near-white reads better — at 4.5:1, reported when unmet, never fixed by moving the fill.
+
 After assigning all 7 brand color tokens (regardless of whether they came from the URL, from domain inference, or from cross-mode derivation), validate text/background contrast for accessibility compliance. This runs once per colour mode.
 
 ### Required Passing Pairs
