@@ -40,7 +40,21 @@
 
 **Without this the brand typeface never loads.** `theme.css` sets `--font-sans: '<Family>', sans-serif`, but a font family declared in CSS is not a font *fetched* — with no `@font-face` and no stylesheet link the browser silently falls through to the generic terminal, so a prototype renders in `system-ui` while every token file says otherwise. `/design-system` spends a whole rules file (`design-system-styler/data/font-rules.md`, four enforcement points) choosing a licensable brand face; this is where that choice becomes visible.
 
-Render these as the **first children of `<head>`**, before the colour-mode script:
+**Vendored faces first (design-system brand source).** When `extract-brand-theme.md` returned a `design_system_file`, run before authoring `layout.tsx`:
+
+```
+node framework/tools/font-embed.cjs vendor --html <design_system_file> --fonts-dir prototypes/public/fonts --css-out prototypes/src/styles/brand-fonts.css
+```
+
+It decodes the faces the design-system file embedded (its `brand-font-faces` block) into `prototypes/public/fonts/*.woff2` and writes `src/styles/brand-fonts.css` with `src: url(/fonts/<file>)`. `layout.tsx` then imports it once, next to `./globals.css`:
+
+```tsx
+import '@/styles/brand-fonts.css';
+```
+
+Those families render from local files: no network at scaffold, build or view time. Record the printed `files` as `.scaffold.json` `brand_fonts.vendored`. A design-system file without the block (written before it existed) prints `files: []`; then everything below runs exactly as before. A `vendor` exit ≠ 0 is not a halt: warn in one line and link every family instead — one link per distinct `brand_fonts.families[].param`, in the §6.3 form below — with `vendored: []`.
+
+**Links only for what was not embedded.** Render these as the **first children of `<head>`**, before the colour-mode script — the `preconnect` pair only when at least one stylesheet link follows:
 
 ```tsx
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -55,17 +69,17 @@ Render these as the **first children of `<head>`**, before the colour-mode scrip
 />
 ```
 
-- **When `.scaffold.json` has a non-null `brand_fonts`, emit its `links` array verbatim — one `<link rel="stylesheet">` per entry — and derive nothing.** `/design-system` already resolved which name in each stack is actually fetchable and built one URL per family; that record exists precisely so this step does not have to guess. The example above shows the two-family shape as two separate links.
+- **When `.scaffold.json` has a non-null `brand_fonts`, emit its `links` array verbatim — one `<link rel="stylesheet">` per entry — and derive nothing.** `/design-system` already resolved which name in each stack is actually fetchable, embedded what it could, and built one URL per family it could not (`delivery: "link"`); that record exists precisely so this step does not have to guess. `links` is `[]` when every family was embedded — then emit no font link and no `preconnect`. The example above shows the two-family shape as two separate links.
   - **Do not merge them into one `?family=A&family=B` request.** Verified behaviour: Google returns **200 and silently drops** a family it does not recognise, so a combined request cannot fail visibly — a missing brand font looks exactly like a working one. One link per family keeps each face's success its own.
-  - A slot whose availability could not be confirmed is deliberately **absent** from `links`. Do not add it back: its stack still names the brand family first, so it renders if the face is installed and falls through to the generic terminal otherwise.
+  - Every slot now has a loadable face — an `unverified` slot carries a stand-in like a `substituted` one — so a family is either vendored or linked. Do not add a link for a vendored family.
   - A **two-name** stack (`'Gotham', 'Montserrat', sans-serif`) means the brand face is licensed and not on Google Fonts; `links` requests the *second* name. Never build a `family=` segment from the first name of such a stack — `?family=Gotham` returns 400, and inside a combined request it fails silently.
 - **Legacy / non-design-system fallback** — when `brand_fonts` is null (a `design-system-*.html` written before the field existed, or brand source `consultant-url` / `consultant-tokens` / `template-defaults`): build the `family=` segments from the **named** family of `--font-heading` and `--font-sans` in `theme.css` (the part before the generic terminal, URL-encoded with `+` for spaces), one link per distinct family. Emit **one** link when the two resolve to the same face — the common case, since the design-system's two families are usually identical.
 - Weights are always `400;500;600;700`. That covers `--brand-body-weight` and `--brand-heading-weight` for every value the design-system emits (`font-rules.md` constrains weights to two of these) plus the `font-medium`/`font-semibold` utilities the primitives use. Do not compute a narrower axis list — a missing weight is synthesised by the browser as a smeared faux-bold, which looks worse than the extra request.
 - `display=swap` is required: text paints immediately in the fallback and reflows once, rather than blocking first paint on a network fetch the smoke gate is timing.
-- Record what was emitted in `.scaffold.json` under `brand_fonts` — `{ families, links }` as `extract-brand-theme.md` returned it, or on the legacy fallback path `{ links }` alone — so a later run can tell what was requested without re-parsing `theme.css`.
+- Record what was emitted in `.scaffold.json` under `brand_fonts` — `{ families, links, vendored }` as `extract-brand-theme.md` returned it plus the `vendor` file names, or on the legacy fallback path `{ links, vendored: [] }` — so a later run can tell what was requested without re-parsing `theme.css`.
 - When the brand source is `template-defaults`, this still runs — the template default names `Inter`, which is a real face worth loading.
 
-**A `<link>`, not `next/font/google` — deliberate.** `next/font` resolves and self-hosts the face at **build** time, so a machine without network access turns a cosmetic concern into a hard scaffold failure (`RF-13`). A stylesheet link degrades gracefully: offline, or for a family whose availability `/design-system` could not confirm, the request simply does not happen or does not succeed, and rendering falls through to the generic terminal that `font-rules.md §4` guarantees every emitted stack carries (`'Manrope', sans-serif` — one named family, one generic; `'Gotham', 'Montserrat', sans-serif` for a substituted slot — two named families, still one generic). The prototype stays correct and buildable either way; it is only less pretty. Do not "upgrade" this to `next/font` — and note that this layout is `'use client'`, so it cannot export `metadata` and has no server-side font pipeline available to it anyway.
+**A `<link>`, not `next/font/google` — deliberate.** `next/font` resolves and self-hosts the face at **build** time, so a machine without network access turns a cosmetic concern into a hard scaffold failure (`RF-13`). A stylesheet link degrades gracefully: offline, or for a family whose availability `/design-system` could not confirm, the request simply does not happen or does not succeed, and rendering falls through to the generic terminal that `font-rules.md §4` guarantees every emitted stack carries (`'Manrope', sans-serif` — one named family, one generic; `'Gotham', 'Montserrat', sans-serif` for a substituted slot — two named families, still one generic). The prototype stays correct and buildable either way; it is only less pretty. Vendored files need no network at build time either: they are plain files under `public/`, already decoded by the helper. Do not "upgrade" this to `next/font` — and note that this layout is `'use client'`, so it cannot export `metadata` and has no server-side font pipeline available to it anyway.
 
 ## Colour-mode mechanism
 
@@ -316,7 +330,8 @@ export const PROTOTYPES: PrototypeEntry[] = [ /* regenerated additively per run 
 ## Self-validation
 - Shell + chrome authored once; not regenerated per prototype.
 - `layout.tsx` carries `suppressHydrationWarning` on `<html>` and exactly one of the three literal init blocks (or none, for `strategy: none`); the class is never set from a `useEffect`.
-- `layout.tsx` carries the two `preconnect` links and **one Google Fonts `stylesheet` link per loadable family** — each naming exactly one `family=`, at weights `400;500;600;700`, with `display=swap`. The set matches `.scaffold.json` `brand_fonts.links` exactly, which on a `design-system` brand source is the design-system's own `meta.brand_fonts.links`. No combined `family=A&family=B` href, and no `next/font` import anywhere.
+- `layout.tsx` carries **one Google Fonts `stylesheet` link per entry in `.scaffold.json` `brand_fonts.links`** — each naming exactly one `family=`, at weights `400;500;600;700`, with `display=swap` — and the two `preconnect` links only when that set is non-empty. The set matches `brand_fonts.links` exactly, which on a `design-system` brand source is the design-system's own `meta.brand_fonts.links`. No combined `family=A&family=B` href, and no `next/font` import anywhere.
+- Every name in `brand_fonts.vendored` exists under `public/fonts/`, and `layout.tsx` imports `@/styles/brand-fonts.css` exactly once when `vendored` is non-empty.
 - `ThemeToggle.tsx` exists iff `colour_mode.strategy ∈ {toggle, custom}`; `e2e/theme-modes.smoke.spec.ts` exists iff `colour_mode.sets == ["light","dark"]`. Neither appears in `PrototypeChrome`.
 - `ThemeToggle.tsx` was authored as the **literal block** above: `useSyncExternalStore` + `getServerSnapshot`, no `setState` inside any effect, `data-slot="colour-mode-toggle"` on the `Button`, and an `aria-label` matching `/colour mode/i`. `npm run lint` exits zero (the mount-effect shape does not — `react-hooks/set-state-in-effect`).
 - `theme-modes.smoke.spec.ts` imports `PROTOTYPES` from `@/data/prototype-registry` and covers, beyond the `/` mechanism tests: (a) `[data-slot="colour-mode-toggle"]` visible **plus** the `/colour mode/i` accessible name on **every** `PROTOTYPES[].route` (for `strategy ∈ {toggle, custom}`), and (b) the static `theme.css` token-pair contrast audit over both blocks at 4.5:1. No route or pair is silently skipped.
@@ -350,5 +365,5 @@ export const PROTOTYPES: PrototypeEntry[] = [ /* regenerated additively per run 
 - Do not give the token audit a browser or a `page.goto`. It is pure computation over `theme.css` and runs in milliseconds; navigating would only add flake.
 - Do not apply the colour mode in a `useEffect` in `layout.tsx`. It must be set before first paint, or every load flashes the wrong theme.
 - Do not add `next-themes`. The mechanism above is ~50 lines and avoids a dependency in an environment where npm lifecycle scripts are constrained.
-- **Do not ship a layout with no font link.** A `--font-sans` that names a family nobody fetches is the quietest defect in the whole pipeline: every token file reads correctly, the build passes, the smoke passes, and the prototype renders in `system-ui`. Declaring a family is not loading it.
+- **Do not ship a layout that neither vendors nor links a family.** A `--font-sans` that names a family nobody fetches is the quietest defect in the whole pipeline: every token file reads correctly, the build passes, the smoke passes, and the prototype renders in `system-ui`. Declaring a family is not loading it.
 - **Do not replace the font `<link>` with `next/font/google`.** It moves the fetch to build time, so an offline machine fails the scaffold (`RF-13`) over a typeface. See the rationale in *Brand webfont loading*.

@@ -79,12 +79,14 @@ Run `npm run build` (or `tsc --noEmit` + `next build`) in `prototypes/`. The emp
   "brand_logo": { "logo_src": "/brand/logo.png", "favicon_file": "src/app/icon.png", "source_app": "<AppName>" },
   "brand_fonts": {
     "families": [
-      { "role": "heading", "brand": "<family>", "loadable": "<family-or-null>",
-        "param": "<google-family-param-or-null>",
-        "status": "google-native | substituted | unverified" },
+      { "role": "heading", "brand": "<family>", "loadable": "<family>",
+        "param": "<google-family-param>",
+        "status": "google-native | substituted | unverified",
+        "delivery": "embedded | link" },
       { "role": "body", "...": "..." }
     ],
-    "links": ["<one Google Fonts stylesheet href per distinct loadable family>"]
+    "links": ["<one Google Fonts stylesheet href per distinct link-delivery family>"],
+    "vendored": ["<file>.woff2"]
   },
   "theme_contract": 2,
   "colour_mode": {
@@ -104,7 +106,9 @@ Verify via `verify-artifact-write.md`. `brand_token_sha256` lets later runs dete
 
 `brand_fonts` records what `layout.tsx` actually asks the browser to download (`app-shell-spec.md > Brand webfont loading`), so a later run can tell which families were requested without re-parsing `theme.css` — and, crucially, **without re-deriving which name in a stack is fetchable.** On a `design-system` brand source it is `meta.brand_fonts` copied verbatim from the design-system artefact, where `/design-system` already resolved availability (`font-availability-rules.md`); a `substituted` entry means the brand's own typeface is licensed and not on Google Fonts, so `theme.css` names it first and `links` requests the stand-in behind it. On the other three brand sources `families` is derived from the named families in `theme.css` and every `status` is `google-native`.
 
-`links` holds **one URL per family, never a combined `?family=A&family=B` request** — Google returns 200 and silently drops an unrecognised family, so a combined request cannot surface a missing brand font. It is `[]` only when no family's availability could be confirmed, which cannot happen on the `template-defaults` path since that names `Inter`.
+`links` holds **one URL per family, never a combined `?family=A&family=B` request** — Google returns 200 and silently drops an unrecognised family, so a combined request cannot surface a missing brand font. On a `design-system` brand source it holds only the families the design system could not embed; it is `[]` when every family was embedded, which cannot happen on the other brand sources (nothing is embedded there).
+
+`vendored` lists the woff2 files `font-embed.cjs vendor` wrote under `public/fonts/` from the design-system file's embedded faces (`app-shell-spec.md > Brand webfont loading`); `layout.tsx` imports `src/styles/brand-fonts.css`, which points at them, so those families render with no network at build or view time. `[]` when nothing was vendored (other brand sources, or a design-system file written before embedding existed).
 
 **`theme_contract`** is the version of the token contract `theme.css` was written against:
 
@@ -134,7 +138,7 @@ Like the brand, it is written once and never re-authored on a later run. A desig
 - The exclude list was honoured: no `_example-*` files under `prototypes/`; no `node_modules`/`.next`/`.git` copied.
 - The empty app builds green (step 6 passed).
 - `theme.css` token block written from the recorded `brand_source`, carrying the **full** contract-2 token set (type scale, motion tiers, elevation ladder) — not colour alone.
-- `layout.tsx` carries the brand webfont links; `.scaffold.json` records `brand_fonts` and `theme_contract: 2`.
+- `layout.tsx` vendors (imports `@/styles/brand-fonts.css`) or links every brand family; `.scaffold.json` records `brand_fonts` (with `vendored`) and `theme_contract: 2`.
 - Every authored file verified via `verify-artifact-write.md`.
 
 ## Anti-patterns
