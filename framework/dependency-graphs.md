@@ -82,7 +82,8 @@ requirements-merger → prototype-invariants.md
 orch → design-system-styler, context-hygiene, refusal-registry
 design-system-styler → steps/step-01-activate … step-07-handback,
        characters/style-extraction.md, persona-llm.md
-  step-01-activate → characters/style-extraction.md
+  step-01-activate → characters/style-extraction.md, preflight-cli, refusal-registry (RF-01),
+       setup-instructions/node-toolchain.md
   step-04-site-fetching → preflight-mcp, refusal-registry, setup-instructions/playwright.md,
        prompt-templates/site-fetching.md, prompt-templates/css-identification.md
        (also captures {{business_signals}} in the same fetch for step-04b)
@@ -90,7 +91,8 @@ design-system-styler → steps/step-01-activate … step-07-handback,
   step-05-brand-extraction → prompt-templates/brand-extraction.md,
        data/insufficient-data-handling.md, data/color-extraction-rules.md, data/font-rules.md,
        data/font-availability-rules.md, data/typography-scale-rules.md, data/shadow-motion-rules.md
-  step-05b-domain-inference → data/contrast-validation.md, prompt-templates/domain-inference.md,
+  step-05b-domain-inference → tools/colour-tokens.cjs (assign / measure / derive via Bash),
+       data/contrast-validation.md, prompt-templates/domain-inference.md,
        data/cross-mode-derivation-rules.md
   step-06-artifact-generation → prompt-templates/artifact-generation.md, template-design-system.html,
        design-system-standards.html, data/component-catalogue.md, data/font-availability-rules.md,

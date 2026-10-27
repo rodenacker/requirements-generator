@@ -131,6 +131,8 @@ A brand-token brief for a designer in one run - useful when the designer is bloc
 
 You choose light-only, dark-only, or both - asked after the fetch, so the question can tell you which scheme the site actually ships. Whichever scheme was extracted is the **hue source**: it is always written and marked `primary`, and the other mode is *derived* from the same brand hues rather than fetched again. So pointing this at a dark-themed site and asking for light gives you both files - the dark one as the grounded record, the light one derived from it.
 
+Colours are assigned by a small deterministic helper (it needs Node on your machine), not guessed. Red, orange and amber are kept for errors and warnings, so they never become a button colour: a red brand keeps its red in a header strip (the `brand` colour), and the buttons get a brand-tinted charcoal or another colour the site really uses. When there is a genuine choice between those two, both files open with **Option 1 / Option 2** tabs and you pick one in the chat. If you stop at that question, the next `/design-system` offers to resume there, and your previously accepted design system is left untouched until you pick.
+
 Choosing **both** is also what unlocks light/dark switching in `/prototype`: with two files on disk the prototype gets both token sets and asks you how users switch between them; with one, it uses that mode and asks nothing.
 
 ### 4.4 `/generate-prd`

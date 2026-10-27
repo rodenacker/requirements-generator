@@ -217,16 +217,31 @@ The brand-token brief produced by `/design-system` (`generated-docs/design-syste
 Not to be confused with: **Design** (UX), **design-spec** (prototype realization), **design philosophy** (posture).
 
 ### mode (design-system)
-The colour scheme a design-system artefact renders — `light` or `dark`. One file per mode (`generated-docs/design-system/design-system-<mode>.html`), each a complete single-mode document; there is no in-document switcher and no combined file. The consultant chooses `light-only` / `dark-only` / `both` at step-05b §E — asked *after* extraction, so the question can name the scheme actually found. The mode is marked in the filename, the `<title>`, the H1, and `meta.mode`. Only the 11 colour and 3 shadow tokens differ between modes; the other 19 (typography + motion) are shared verbatim.
+The colour scheme a design-system artefact renders — `light` or `dark`. One file per mode (`generated-docs/design-system/design-system-<mode>.html`), each a complete single-mode document; there is no in-document switcher and no combined file. The consultant chooses `light-only` / `dark-only` / `both` at step-05b §E — asked *after* extraction, so the question can name the scheme actually found. The mode is marked in the filename, the `<title>`, the H1, and `meta.mode`. Only 11 colour and 3 shadow tokens differ between modes; the other 20 (the `brand` identity colour, typography and motion) are shared verbatim.
 Canonical source: `framework/agents/design-system-styler/steps/step-05b-domain-inference.md` + `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md`.
 Not to be confused with: **hue source** (which mode is the grounded one), **Design** (UX), **design philosophy** (posture).
 
 ### hue source
-The colour mode whose palette is **grounded** — the scheme actually extracted from the reference URL, or domain-inferred light when no URL was given. Recorded as `meta.hue_source` (`extracted-light` | `extracted-dark` | `domain-inferred-light`) and carrying `meta.primary: true` in its file. The *other* mode is **derived** from it per `cross-mode-derivation-rules.md`, tagged `inferred-from-domain` with a `derived: <target> variant of <source> <token> (<hex>)` source string, and is never presented as extracted.
+The colour mode whose palette is **grounded** — the scheme actually extracted from the reference URL, or domain-inferred light when no URL was given. Recorded as `meta.hue_source` (`extracted-light` | `extracted-dark` | `extracted-both` | `domain-inferred-light`; `extracted-both` = the site ships its own other scheme, so that mode is extracted, not derived) and carrying `meta.primary: true` in its file. The *other* mode is **derived** from it per `cross-mode-derivation-rules.md`, tagged `inferred-from-domain` with a `derived: <target> variant of <source> <token> (<hex>)` source string, and is never presented as extracted.
 
 Nothing in the pipeline assumes light: a reference URL ships a dark palette as readily as a light one, and when it does, **light is the derived mode**. The hue-source file is always written — it is both the grounded record and the derivation seed — so asking for one mode against a site in the other scheme legitimately produces two files.
 Canonical source: `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md`.
 Not to be confused with: **mode (design-system)** (which scheme a *file* renders), **provenance marker** (the two-value `prov` set, which derivation does not extend).
+
+### reserved zone
+The red → orange → amber hue range (in OKLCH, above a chroma floor) that `/design-system` keeps for the `error` / `warning` status colours. `primary`, `secondary` and `accent` never sit in it, in either mode, because in a data-management app a red or orange button means a negative or destructive action. A brand colour in the zone is rejected for those roles and survives only as the **brand identity colour**. Burgundy-blacks and warm greys fall below the chroma floor and do not count.
+Canonical source: `framework/tools/colour-tokens.cjs` (`RESERVED`; the only definition of the numbers).
+Not to be confused with: **provenance marker** (where a value came from), **brand identity colour** (which may sit in the zone).
+
+### brand identity colour
+The 12th design-system colour token, `brand`: the largest-area chromatic colour on the reference site, kept whether or not it is in the **reserved zone**. Identity-only — header bar / logo strip, brand mark, empty-state illustration; never a button, link, badge, focus ring or text colour. Mode-invariant (copied verbatim to the derived file; only its on-colour is measured per mode) and always present. `/prototype` maps it to `--brand` and must show it in the app shell's header region.
+Canonical source: `framework/tools/colour-tokens.cjs` (`assign`); consumers `framework/skills/extract-brand-theme.md`, `framework/agents/prototype-generator/steps/step-05-compose-route.md`.
+Not to be confused with: **Brand** (the whole fixed visual identity of the prototypes), `primary` (the action colour), `--brand-accent` (the accent hue for callouts and charts).
+
+### palette option
+One of the two candidate palettes `/design-system` offers when the brand colour is reserved and the site also uses a non-reserved colour, but only marginally: **Option 1, neutral** (a brand-tinted charcoal `primary`) or **Option 2, site colour** (that marginal site colour as `primary`). They differ only in `primary` / `secondary` / `accent`. Shown as tabs in `.workspace/review-<mode>.html`, chosen in step-07, then collapsed so the final files hold one palette; recorded as `meta.palette_option`. The pending choice is the pipeline's one resumable point (`.workspace/options.json`).
+Canonical source: `framework/agents/design-system-styler/steps/step-07-handback.md` §A-0 (trigger: `framework/tools/colour-tokens.cjs`).
+Not to be confused with: **mode (design-system)** (light / dark files), **design philosophy** (posture).
 
 ### font substitution
 Keeping a brand typeface that **cannot be loaded from Google Fonts** in first position of a family token and adding a verified Google-hosted stand-in behind it — `'Gotham', 'Montserrat', sans-serif`. The first name is the **brand family** (what the client actually uses); the second is the **loadable family** (what the artefact and the prototypes actually fetch). The CSS cascade performs the substitution at render time, so a machine with the licensed face installed renders the real brand font unchanged.

@@ -8,6 +8,8 @@
 
 ## 1. Inference Contract
 
+> **Scope since the colour helper (2026-10-27):** step-05b §B takes from this contract only the **neutral** colours (`background`, `surface`, `text`, `text-muted`), the typography and the effects it still needs. `primary`, `secondary`, `accent`, the 12th colour `brand` and the four status colours are assigned by `framework/tools/colour-tokens.cjs` and are never taken from here — the colour values below for those tokens are ignored. (This contract is retired by the domain-removal plan.)
+
 The inference must produce **33 tokens**, by name, matching `framework/assets/template-design-system.html` (the JSON SHAPE comment block at the top of the template is the canonical list):
 
 - **11 colours:** `primary`, `secondary`, `accent`, `background`, `surface`, `text`, `text-muted`, `success`, `warning`, `error`, `info`

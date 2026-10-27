@@ -19,6 +19,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Asset | Read-only reference content under `framework/assets/`. | `docs/maintenance.md > Separation of concerns` |
 | Blueprint | Shared scope IR: logical surfaces + closed sets + allowed realizations; no patterns/realization chosen. | `blueprint-architect.md` |
 | Brand | Fixed visual identity applied uniformly across all prototypes (one `theme.css`). | `prototypes/app-shell-spec.md` |
+| brand identity colour | The 12th design-system colour, `brand`: largest-area site colour, identity-only (header / logo strip / brand mark), never an action or text colour; `/prototype` `--brand`. | `tools/colour-tokens.cjs` |
 | Build target | Manifest output-mode field, auto-set to prototype (fixtures); application = legacy value / export-time concern (`/export-application`). | `prototype-invariants.md` PI-06 |
 | Category asset (`.stadium-assets`) | Lean citation-ready `Native-text` file the Stadium extractor writes under `documentation/<AppName>.stadium-assets/`; consumed by the normal pipelines. | `skills/extract-stadium-app.md` |
 | Character | Persona file giving an agent its stance/voice; not a product persona. | `assets/characters/` |
@@ -45,11 +46,12 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | generated-docs | Repo-root parent of every consultant-facing **document** output, one subdir per pipeline; `wireframes/`, `prototypes/` and `blueprints/` stay outside it. | `docs/architecture.md > Top-level dirs` |
 | Grounding | The act of linking a claim to a real source; ungrounded facts fail validation. | — |
 | Handback gate | Orchestrator checkpoint accepting/re-invoking a finished agent. | orchestrators |
-| hue source | The design-system mode whose palette was actually extracted (or domain-inferred light); always written, `meta.primary: true`; the other mode is derived from it. | `cross-mode-derivation-rules.md` |
+| hue source | The design-system mode whose palette was actually extracted (or domain-inferred light); always written, `meta.primary: true`; the other mode is derived from it (or extracted too: `extracted-both`). | `cross-mode-derivation-rules.md` |
 | Input tier | Ingest classification (Native / Supported-via-MCP / Unsupported). | `skills/classify-input-tier.md` |
 | Logical surface (LS-NN) | Decomposition-agnostic blueprint surface, pre-screen-count. | `blueprint-architect.md` |
 | Media directory | `documentation/<full-filename>.media/` holding one input's extracted-media; enumerated, marker-gated, the one derived class the framework may reconcile. | `shared/input-safety.md` `IS-04` |
 | Merger | Third triplet agent: strips markers, validates, writes the clean final artefact. | — |
+| palette option | One of two `/design-system` palettes (neutral / site colour) offered when the brand colour is reserved; chosen in step-07, collapsed to one; `meta.palette_option`; resumable. | `design-system-styler/steps/step-07-handback.md` |
 | Methodology | A named analysis/critique method (OOUX, ADVERSARIAL, GLOSSARY …); "lens" = its alias. | registries |
 | mode (design-system) | The colour scheme a design-system artefact renders (`light`/`dark`); one file per mode, chosen at step-05b. | `step-05b-domain-inference.md` |
 | Nav table | The generated, per-prototype list of intra-prototype destinations + their visible roles (`src/data/nav/`); the single source every app shell reads. Not the prototype registry (inter-prototype). | `prototypes/shared-component-conventions.md` §6a |
@@ -68,6 +70,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Provenance markers | Closed tag set: `[AI-SUGGESTED]` `[STANDARD-RULE]` `[OUT-OF-SCOPE]` `[POSTURE-DEFAULT]`. Excludes the scope marker — different axis. | `CLAUDE.md > Markers in content` |
 | Realization (realization strategy) | Closed-enum IA choice turning a surface into screen(s): standalone/drawer/expand/wizard/modal. | `realization-strategies.md` |
 | Refusal (RF-NN) | Canonical halt predicate; pause/hard-halt with defined severity. | `shared/refusal-registry.md` |
+| reserved zone | Red → orange → amber (OKLCH, above a chroma floor), kept for `error` / `warning`; never `primary` / `secondary` / `accent`. | `tools/colour-tokens.cjs` |
 | Resolver | Second triplet agent: resolves `[AI-SUGGESTED]` markers with the consultant. | — |
 | Resumability | A `/clear` + re-invoke continues at the first incomplete agent. | `CLAUDE.md §1` |
 | Review | Output of a critique methodology (`review-*`); interrogates rather than transforms. | registries |

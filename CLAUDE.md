@@ -10,7 +10,7 @@
 
 ## 1. Project purpose & division of labour
 
-**What.** Consultant-driven Claude Code workspace. Fourteen slash commands — each a prompt-only pipeline of markdown orchestrators + agents + skills — turn loose client material into structured artefacts, wireframes, and clickable prototypes. Together these build a comprehensive, citation-grounded set of **frontend requirements** for generating internal, enterprise-level **data-management applications**. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona (exceptions: `/prototype` *generates* a real client-side Next.js app under `prototypes/`; `/ingest-stadium` runs a real Python extractor, `framework/tools/extract_stadium_app.py`, over a Stadium 6 app).
+**What.** Consultant-driven Claude Code workspace. Fourteen slash commands — each a prompt-only pipeline of markdown orchestrators + agents + skills — turn loose client material into structured artefacts, wireframes, and clickable prototypes. Together these build a comprehensive, citation-grounded set of **frontend requirements** for generating internal, enterprise-level **data-management applications**. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona (exceptions: `/prototype` *generates* a real client-side Next.js app under `prototypes/`; `/ingest-stadium` runs a real Python extractor, `framework/tools/extract_stadium_app.py`, over a Stadium 6 app; `/design-system` runs a deterministic Node colour helper, `framework/tools/colour-tokens.cjs`).
 
 **Division of labour (what vs how).** Mine **everything** relevant from the inputs — both *what* and *how*. The distinction between them is one of **authority**, not of source:
 
