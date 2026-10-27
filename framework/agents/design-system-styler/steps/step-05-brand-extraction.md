@@ -109,7 +109,7 @@ Run its §1 evidence ladder per family, canonicalising the name per §2 before a
    - The same `@font-face` blocks' `src` URLs → run `node framework/tools/font-embed.cjs file-family --url <url>` on each. A returned family that **differs** from the declared one and resolves Google-hosted (§4.1, or the E3 `resolve` call) makes the slot `substituted` with that family as `loadable`, evidence `site @font-face for <declared> serves <file>`. This outranks E2 (§1 E1).
    - On the **WebFetch fallback** path, expect E1 to resolve rarely: the content is LLM-summarised rather than raw CSS, so `@font-face` blocks and link hrefs are frequently absent. That pushes families to E2/E3, which is the correct outcome — it does **not** license a guess.
 2. **E2** — the curated tables: §4.1 → `google-native`; §3 → `substituted`.
-3. **E3** — only if E1 and E2 were both inconclusive, or to confirm an E1 file-name family not in §4.1: **one** `node framework/tools/font-embed.cjs resolve --name <raw> [--name <raw>]` call per run carrying every name still open, mapped per §1's verdict table. The helper owns the candidates, the control and the request ceiling.
+3. **E3** — only if E1 and E2 were both inconclusive, or to confirm an E1 file-name family not in §4.1: **one** `node framework/tools/font-embed.cjs resolve --name <raw> [--name <raw>]` call per run carrying every name still open — the raw declared name for an unresolved slot, the `file-family` result itself for an E1 family to confirm — mapped per §1's verdict table. The helper owns the candidates, the control and the request ceiling.
 4. **E4** — otherwise `unverified`, with §3's classification-fallback substitute as `loadable`.
 
 For each family, store the record `font-availability-rules.md` §6.2 specifies:
