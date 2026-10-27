@@ -122,6 +122,6 @@ Extract `heading_weight` and `body_weight` only.
 - Keywords to integers: `normal → 400`, `bold → 700`, `lighter → 300`, `bolder → 700`.
 - Round non-standard weights (e.g. `450`) to the nearest 100, unless the CSS uses variable-font axes: then keep the exact value.
 
-**Weight carried by the family name.** When the declared family name carries a weight word (`SourceSansPro-SemiBold`), `node framework/tools/font-embed.cjs candidates` reports that weight, and it **beats a computed `400`**: a per-weight family is drawn at its own weight while `fontWeight` still reports `400`. A computed weight other than `400` stands.
+**Weight carried by the family name.** When the declared family name carries a weight word (`SourceSansPro-SemiBold`), `node framework/tools/font-embed.cjs candidates` reports that weight, and it **beats a computed `400` or a missing weight** (e.g. no `h1` to sample): a per-weight family is drawn at its own weight while `fontWeight` still reports `400`. A computed weight other than `400` stands.
 
 A weight not found stays unset; step-05b fills it from `house-defaults.md` §4 (interim font fallback).

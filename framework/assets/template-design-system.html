@@ -727,12 +727,11 @@
     }
 
     /* --- typography ------------------------------------------------------ */
-    /* Rendering caveat above the family specimens. This artefact loads no
-       webfont (see the self-containment note at the top of this file), so a
-       specimen only renders in its named family when that face happens to be
-       installed on the reader's machine. The note says so; the token value is
-       the contract. Unscoped on purpose — the styler emits it inside
-       {{TYPE_FAMILY_SPECIMENS}}, which has no wrapper element of its own. */
+    /* Rendering note above the family specimens: says whether the brand
+       faces are embedded in this file or loaded from Google Fonts (see the
+       BRAND FONTS note at the top of this file); the token value is the
+       contract. Unscoped on purpose — the styler emits it inside the family
+       specimens placeholder, which has no wrapper element of its own. */
     .type-render-note {
       font-size: 11px;
       color: var(--muted);

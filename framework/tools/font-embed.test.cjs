@@ -289,3 +289,11 @@ test('test_build_faces_merges_variable_weights', async () => {
   assert.match(r.css, /\/\* latin \*\//);
   assert.match(r.css, /\/\* latin-ext \*\//);
 });
+
+test('test_candidates_strips_webfont_suffix', () => {
+  // Standard Bank declares a Font Squirrel build name for its heading face.
+  const r = candidates('bentonsans-extra-light-webfont');
+  assert.equal(r.candidates[0], 'Bentonsans');
+  assert.equal(r.weight, 200);
+  assert.deepEqual(familyFromFontFile('https://x.example/fonts/gotham-bold-webfont.woff2'), { family: 'Gotham', weight: 700 });
+});

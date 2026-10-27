@@ -116,6 +116,10 @@ function titleCase(words) {
 // Delimiter split, per-token camel split, weight strip, Title Case.
 function parseWords(tokens) {
   const words = tokens.flatMap(camelSplit);
+  // A Font Squirrel build suffix (`-webfont`, `WebFont`) names the build, never the family.
+  const n = words.length;
+  if (n > 1 && words[n - 1].toLowerCase() === 'webfont') words.pop();
+  else if (n > 2 && (words[n - 2] + words[n - 1]).toLowerCase() === 'webfont') words.splice(-2, 2);
   const { words: kept, weight, italic } = stripWeight(words);
   return { name: titleCase(kept), weight, italic };
 }
