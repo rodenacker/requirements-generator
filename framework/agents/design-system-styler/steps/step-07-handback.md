@@ -44,6 +44,7 @@ Lead with the hue-source file (the grounded one), then the derived file if there
 Variants — prepend whichever apply:
 
 - **Always — one line per reference**, in the order given: *"`<kind>` `<ref>`: `<status>`; contributed <token groups>."* — e.g. *"pdf `documentation/acme-brand-guide.pdf`: used; contributed brand, secondary, fonts."*, *"url `https://intranet/brand`: failed — login page."* Token groups: `brand`, `primary` / `secondary` / `accent`, `neutrals`, `fonts`, `area weights`.
+- **Always, when a fill misses its contrast target** — any `{{cv_adjustments_<mode>}}` line reading `<fill>: fill … below 3:1` or `best label … below 4.5:1`, in either written mode: *"`<fill>` `<hex>` is only `<ratio>`:1 against the `<mode>` surface — extracted fills are reported, never moved. If it reads too faint, say Revise and name a lighter / darker value."* One line per fill. **This line is not optional**: it is most likely when the fill and the surface come from different references (e.g. a PDF's navy primary on a dark site's surface), and otherwise it is visible only inside the artefact's contrast section.
 - **When any PDF had CMYK / Pantone-only colours** (step-04b `ignored`): *"Ignored (CMYK / Pantone only, not converted): <list>."*
 
 - **Always, when a colour role was rejected or filled by the helper** — print `{{assign_decisions}}` as a short list (one line each, e.g. *"primary #FA551E rejected: reserved zone (H37 C0.210)"*). Then exactly one of:

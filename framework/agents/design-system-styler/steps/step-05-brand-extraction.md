@@ -13,12 +13,15 @@ description: 'Extract colours, font families and weights from the lead URL (one 
 
 # Step 5: Brand Extraction and Reference Merge
 
-**Runs whenever any reference is `used` or `pending`.** Two parts:
+**Runs whenever any reference is `used` or `pending`.** Three parts:
 
-- **§1–§6, the lead URL** — only when step-04 captured a lead URL (`{{lead_url}}` set and `generated-docs/design-system/.workspace/css-content.txt` written). Otherwise skip straight to §7 (a PDF-only run, or every URL failed).
+- **§1–§3, §4, §5, the lead URL** — only when step-04 captured a lead URL **in this run** (`{{lead_url}}` set by this run's step-04 and `generated-docs/design-system/.workspace/css-content.txt` written by it). Otherwise, and whenever a sub-step below says "skip to §7", skip those lead-URL sub-steps.
+- **§4a + §4b, the font merge and availability** — always (on a PDF-only run, or after the lead URL failed, they run over the declared and later-URL families). A "skip to §7" from a lead-URL sub-step means: go to §4a, then §4b, then §7.
 - **§7, the merge and the reference gate** — always.
 
-No reference `used` or `pending` at all → go straight to §7's reference gate, which raises `RF-14`.
+**Only this run's `used` references count.** Every file read below (`computed-tokens.json`, `computed-tokens-<n>.json`, `css-content.txt`) is read only for a URL reference whose `status` in **this run's** `{{references}}` is `used`. A workspace file left by an earlier or restarted run, or by a reference that is now `failed` / `skipped`, is ignored.
+
+No reference `used` or `pending` at all → go straight to §7's reference gate, which raises `RF-14`. Step-02 starts every run (including a Restart) with `{{lead_url}}`, `{{declared}}`, `{{extraction_status}}` and `{{merged_sources}}` unset.
 
 (Note: `{{extraction_status}}` is not yet `"success"` at this point — step-04 deliberately defers setting it; on the happy path it is unset here and set to `"success"` after the lead URL's extraction.)
 
@@ -139,7 +142,7 @@ Runs always (§1–§6 may have been skipped).
 
 **Candidates** (`assign` `candidates`):
 
-- **Pooled area weights, plain sums.** Add up `colourWeights` across every URL workspace file — `computed-tokens.json` (the lead) and each `computed-tokens-<n>.json` — summing the `weight` of the same hex. Sort descending.
+- **Pooled area weights, plain sums.** Add up `colourWeights` across the URL workspace files of this run's `used` URL references only — `computed-tokens.json` (the lead, when its reference is still `used` after §1–§3) and each `computed-tokens-<n>.json` whose URL is `used` — summing the `weight` of the same hex. Sort descending. A lead URL that failed in §2 or the workspace read contributes nothing.
 - **WebFetch path** (no `computed-tokens.json`): every deduplicated **chromatic** colour from the lead URL's Section 2, each with `weight: null`.
 - **PDF colours:** every `{{declared}}[*].colours` hex not already present, each with `weight: null`, appended after the URL colours.
 

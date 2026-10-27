@@ -108,7 +108,7 @@ Pick one variant:
 
 | Condition | Attribution HTML |
 | --- | --- |
-| At least one reference `used` | `Brand colours and fonts extracted from {{used-references}}. Sizes, line heights, shadows, motion and the status colours are system-derived house defaults for internal data-management tools; any colour the references did not give is system-derived by the colour helper.` — `{{used-references}}` lists every `used` reference in order: a URL as `<a href="<url>"><url></a>`, a PDF as `<code><file>.pdf</code>` (brand guide), joined with commas. |
+| At least one reference `used` | `Brand colours{{and-fonts}} extracted from {{used-references}}. Sizes, line heights, shadows, motion and the status colours are system-derived house defaults for internal data-management tools; any colour the references did not give is system-derived by the colour helper.` — `{{used-references}}` lists every `used` reference in order: a URL as `<a href="<url>"><url></a>`, a PDF as `<code><file>.pdf</code>` (brand guide), joined with commas. `{{and-fonts}}` is ` and fonts` only when at least one font family is `extracted`; otherwise it is empty and the sentence gains ` Fonts are the interim fallback (Inter).` |
 
 Then, when any reference failed or was skipped, append `<br>Not used: <ref> (<status>)` for each, comma-separated.
 

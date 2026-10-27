@@ -5,6 +5,8 @@ description: 'Collect the brand references (URLs and/or PDF brand guides in docu
 
 # Step 2: Collect the Brand References
 
+**Fresh run state.** On entry (a first run or a step-07 Restart), unset `{{references}}`, `{{reference_urls}}`, `{{reference_pdfs}}`, `{{lead_url}}`, `{{declared}}`, `{{merged_sources}}` and `{{extraction_status}}`. Workspace files from an earlier run are never trusted: step-05 reads only files belonging to this run's `used` references.
+
 One input is collected here: the **brand references**. They come from the consultant directly — never from any file under `generated-docs/requirements/`, `framework/state/`, or any other agent's output. The styler reads **only** the files the consultant names: it never scans `documentation/` (it cannot tell a brand guide from a requirements PDF).
 
 Two reference kinds are accepted:

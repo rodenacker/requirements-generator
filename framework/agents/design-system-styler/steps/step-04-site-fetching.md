@@ -72,15 +72,20 @@ Reached when preflight returned `ok`. Sets `{{extraction_method}} = "playwright"
 3. Settle for late-loading styles (CSS-in-JS injection — styled-components, emotion, vanilla-extract, etc.) and return an HTML-validity flag and the login-page signals in the **same** call (no separate HTML capture — the full `outerHTML` is never consumed on the Playwright path):
    ```
    mcp__playwright__browser_evaluate({
-     function: "async () => { await document.fonts.ready; await new Promise(r => setTimeout(r, 1500)); const pw = Array.from(document.querySelectorAll('input[type=password]')).some(el => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; }); return { settled: true, isHtmlDoc: !!document.querySelector('html') || !!document.querySelector('head') || !!document.doctype, finalHost: location.host, visiblePassword: pw }; }"
+     function: "async () => { await document.fonts.ready; await new Promise(r => setTimeout(r, 1500)); const pw = Array.from(document.querySelectorAll('input[type=password]')).some(el => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; }); return { settled: true, isHtmlDoc: !!document.querySelector('html') || !!document.querySelector('head') || !!document.doctype, finalHost: location.host, finalPath: location.pathname, title: document.title, visiblePassword: pw }; }"
    })
    ```
-   Store the returned `isHtmlDoc`, `finalHost` and `visiblePassword`.
+   Store the returned `isHtmlDoc`, `finalHost`, `finalPath`, `title` and `visiblePassword`.
 
-**Login-page check (before anything is captured):** the reference is a login page when `finalHost` differs from the requested URL's host (compare lower-cased, ignoring a leading `www.`) **or** `visiblePassword` is true. Then:
+**Login-page check (before anything is captured).** Two signals, compared lower-cased:
+
+- **Moved host** — `finalHost` differs from the requested URL's host, ignoring a leading `www.`.
+- **Auth-like** — `finalHost`, `finalPath` or `title` contains one of `login`, `log-in`, `signin`, `sign-in`, `sign in`, `logon`, `sso`, `saml`, `oauth`, `openid`, `adfs`, `auth`, `idp`, `okta`.
+
+The reference is a login page when **(moved host and (auth-like or `visiblePassword`)) or (`visiblePassword` and auth-like)**. Neither signal alone decides it: a bank homepage with an inline sign-in widget (password field, own host, ordinary path) and a regional or canonical redirect (`acme.de` → `acme.com`, no auth signal) are brand pages, not login pages. Then:
 
 - Log one line: *"`{{url}}` is a login page (`<finalHost>`), not the brand. Skipping it; for a guide behind a login, add its PDF."*
-- Set this reference's `status` to `failed — login page`. Never extract an identity provider's login page as the brand.
+- Set this reference's `status` to `failed — login page`, and `{{extraction_status}} = "fetch_failed"` with `{{extraction_error}} = "login page"` (lead attempt only). Never extract an identity provider's login page as the brand.
 - Close the browser (`mcp__playwright__browser_close()`) and continue with the next URL.
 
 **Validation:** if the returned `isHtmlDoc` flag is false (the live DOM has no `<html>` / `<head>` / doctype — e.g. JSON, plain text, binary):
@@ -210,6 +215,7 @@ mcp__playwright__browser_evaluate({
       const altScheme = (Object.keys(alt.customProperties).length || alt.declarations.length) ? alt : null;
 
       return {
+        finalHost: location.host, finalPath: location.pathname, title: document.title,
         rawCss: sheetTexts.join("\n\n") + "\n\n" + inlineStyles,
         sources,
         customProperties,
@@ -230,7 +236,7 @@ mcp__playwright__browser_evaluate({
 })
 ```
 
-Store the result as `{{eval_payload}}`. **Lean capture** (a URL after the lead): write `{ "colourWeights": …, "sampleElements": … }` from it to `computed-tokens-<n>.json`, set the reference's `status` to `used`, skip to §4.A.4 (close the browser), and continue with the next URL.
+Store the result as `{{eval_payload}}`. **Re-run the login-page check** on its `finalHost` / `finalPath` / `title` (a script can redirect to an identity provider after Pass 1 settled); a hit fails the reference exactly as in §4.A.1, before anything from this payload is used. **Lean capture** (a URL after the lead): write `{ "colourWeights": …, "sampleElements": … }` from it to `computed-tokens-<n>.json`, set the reference's `status` to `used`, skip to §4.A.4 (close the browser), and continue with the next URL.
 
 Also store `{{colour_weights}} = {{eval_payload}}.colourWeights` (area-weighted chromatic colours: background area / 1000, area capped at 200 000 px², + 1 per text use + 0.2 per visible border; sorted descending, top 30) and `{{alt_scheme}} = {{eval_payload}}.altScheme` (`null` when the site ships no opposite-scheme rules). Step-05 turns `{{colour_weights}}` into the `assign` candidates; step-05b §A-bis reads `{{alt_scheme}}`.
 
