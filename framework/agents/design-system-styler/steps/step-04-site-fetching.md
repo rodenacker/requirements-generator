@@ -306,7 +306,7 @@ then:
 Concatenate the synthetic `:root` block (from §4.A.6) with `{{eval_payload}}.rawCss`, separated by `\n\n`, into `{{primary_css_content}}`. If the result exceeds approximately 100,000 characters:
 
 - Truncate to the first ~100,000 characters.
-- **`@font-face` blocks are exempt.** Before truncating, collect every `@font-face { … }` block from the **untruncated** text (regex `/@font-face\s*\{[^}]*\}/g`), and append each distinct one after the truncated content under a `/* @font-face blocks kept past truncation */` comment. They are small, and they are step-05 §4b E1's only evidence of the face a site actually serves — sites routinely declare them after 100 KB of framework CSS.
+- **`@font-face` blocks are exempt.** Before truncating, collect every `@font-face { … }` block from the **untruncated** text (regex `/@font-face\s*\{[^}]*\}/g`), and append each distinct one that is not already in the kept text after the truncated content under a `/* @font-face blocks kept past truncation */` comment. They are small, and they are step-05 §4b E1's only evidence of the face a site actually serves — sites routinely declare them after 100 KB of framework CSS.
 - Log: "CSS content truncated from {original_size} to ~100KB for context management."
 - Justification (preserved from v3): brand-defining styles are typically declared early in a stylesheet.
 

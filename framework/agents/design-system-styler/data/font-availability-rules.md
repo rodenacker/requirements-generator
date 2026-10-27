@@ -53,7 +53,7 @@ Run in order per family; stop at the first tier that resolves. A typical run res
 - An `@font-face` block in `css-content.txt` whose `font-family` is this family and whose `src: url(...)` points at the site's own origin/CDN, `use.typekit.net`, `p.typekit.net`, `fonts.net`, `fast.fonts.com`, `cloud.typography.com`, `api.fontshare.com` or `cdn.fontshare.com` ⇒ **suspect licensed/self-hosted — continue to E2.**
 
   **Self-hosting is not proof of unavailability.** Plenty of sites self-host a face that *is* on Google Fonts (`next/font` self-hosts Inter; Vercel self-hosts Geist, which is Google-hosted). E1 may only *raise suspicion* here — it must never conclude `substituted` on its own. Concluding from self-hosting alone is the single most likely way to implement this feature wrongly.
-- **The file name is evidence of the face actually shown.** For each `src` URL of this family's `@font-face` blocks, run `node framework/tools/font-embed.cjs file-family --url <url>`. When it returns a family that **differs** from the declared one, is not in §4.2, and resolves Google-hosted (§4.1, or `resolve` in E3), the slot is **`substituted`** with that family as `loadable`, evidence `site @font-face for <declared> serves <file>`. This **outranks E2**: it is the face the site itself renders (Standard Bank's `Benton-Sans-Regular` serves `LibreFranklin-Regular.ttf`). A `null` result means only "no file-name evidence".
+- **The file name is evidence of the face actually shown.** For each `src` URL of this family's `@font-face` blocks, run `node framework/tools/font-embed.cjs file-family --url <url>`. When it returns a family that **differs** from the canonicalised declared name (`candidates[0]`; `SourceSansPro-SemiBold` serving `SourceSansPro-SemiBold.woff` does not differ), is not in §4.2, and resolves Google-hosted (§4.1, or `resolve` in E3), the slot is **`substituted`** with that family as `loadable`, evidence `site @font-face for <declared> serves <file>`. This **outranks E2**: it is the face the site itself renders (Standard Bank's `Benton-Sans-Regular` serves `LibreFranklin-Regular.ttf`). A `null` result means only "no file-name evidence".
 
 **E2 — the curated table.** Canonicalise per §2, then look up §3 and §4.1.
 
@@ -75,7 +75,7 @@ The helper probes §2's first two candidates per name, one family per request an
 | `unavailable` | `substituted` — genuinely unavailable; the §3 row when one matches, else §3's classification fallback |
 | `unknown` | **`unverified`** — the network, not the font, is the problem (E4) |
 
-The result's `weight` is the weight the declared name carries (`SourceSansPro-SemiBold` → `600`); `font-rules.md` §5 says when it wins.
+The result's `weight` is the weight the declared name carries (`SourceSansPro-SemiBold` → `600`); it beats any computed weight (`font-rules.md` §5).
 
 **E4 — `unverified`.** Nothing established the answer. Keep the brand family **first**, add §3's classification-fallback substitute behind it as `loadable`, and disclose it at step-07. A machine that has the brand installed still renders it; every other machine gets a lookalike instead of the generic terminal.
 

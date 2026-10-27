@@ -106,7 +106,7 @@ Run its §1 evidence ladder per family, canonicalising the name per §2 before a
 1. **E1** — the evidence is already on disk from step-04, so read it rather than fetching anything:
    - `generated-docs/design-system/.workspace/computed-tokens.json` → `sources` — a `fonts.googleapis.com` href naming this family proves it is Google-hosted, and its `family=` segment is the canonical spelling. Prefer that spelling over §2's derived one. **Playwright path only** — this file is absent on the WebFetch fallback, in which case skip this bullet rather than treating the missing file as evidence of anything.
    - `{{primary_css_content}}` (already in memory, both paths) → an `@font-face` for this family whose `src: url(...)` points at a self-hosted or licensed-foundry origin. **Suspicion only — never a verdict.** Many Google-hosted faces are self-hosted; concluding here is the documented way to implement this wrongly.
-   - The same `@font-face` blocks' `src` URLs → run `node framework/tools/font-embed.cjs file-family --url <url>` on each. A returned family that **differs** from the declared one and resolves Google-hosted (§4.1, or the E3 `resolve` call) makes the slot `substituted` with that family as `loadable`, evidence `site @font-face for <declared> serves <file>`. This outranks E2 (§1 E1).
+   - The same `@font-face` blocks' `src` URLs → run `node framework/tools/font-embed.cjs file-family --url <url>` on each. A returned family that **differs** from the canonicalised declared name (`candidates[0]`) and resolves Google-hosted (§4.1, or the E3 `resolve` call) makes the slot `substituted` with that family as `loadable`, evidence `site @font-face for <declared> serves <file>`. This outranks E2 (§1 E1).
    - On the **WebFetch fallback** path, expect E1 to resolve rarely: the content is LLM-summarised rather than raw CSS, so `@font-face` blocks and link hrefs are frequently absent. That pushes families to E2/E3, which is the correct outcome — it does **not** license a guess.
 2. **E2** — the curated tables: §4.1 → `google-native`; §3 → `substituted`.
 3. **E3** — only if E1 and E2 were both inconclusive, or to confirm an E1 file-name family not in §4.1: **one** `node framework/tools/font-embed.cjs resolve --name <raw> [--name <raw>]` call per run carrying every name still open — the raw declared name for an unresolved slot, the `file-family` result itself for an E1 family to confirm — mapped per §1's verdict table. The helper owns the candidates, the control and the request ceiling.
@@ -115,7 +115,7 @@ Run its §1 evidence ladder per family, canonicalising the name per §2 before a
 For each family, store the record `font-availability-rules.md` §6.2 specifies:
 
 - `{{font_availability_heading}}` / `{{font_availability_body}}` — `{ brand, loadable, param, status, evidence }`, with `status` one of `google-native | substituted | unverified` and `loadable` / `param` never `null`. `brand` is the resolved family; step-05b §G adds `delivery`.
-- When `candidates` reported a `weight` for the declared name, §5 below applies `font-rules.md` §5's name-weight rule to that slot.
+- When `candidates` reported a `weight` for the declared name, §5 below applies `font-rules.md` §5's name-weight rule to that slot (the name's weight beats any computed weight).
 
 For a `substituted` or `unverified` family, rewrite that token's value to the three-name shape in §6.1 — `'<Brand>', '<Loadable>', <generic>`. **Do not change `prov`**: the family is still exactly as extracted, and availability is not a provenance question (`prov` has two values, and this is not one of them). Leave `google-native` values in the two-name shape.
 
@@ -125,7 +125,7 @@ For a `substituted` or `unverified` family, rewrite that token's value to the th
 
 ### 5. Typography — Weights
 
-Apply `font-rules.md` §5 (already loaded) to extract `heading_weight` and `body_weight` only, including its rule that a weight carried by the declared family name (§4b's `candidates` result) beats a computed `400`. A weight not found stays `null`; step-05b fills it from the interim font fallback.
+Apply `font-rules.md` §5 (already loaded) to extract `heading_weight` and `body_weight` only, including its rule that a weight carried by the declared family name (§4b's `candidates` result) beats any computed weight. A weight not found stays `null`; step-05b fills it from the interim font fallback.
 
 ### 6. Assemble In-Memory Extraction Results
 
