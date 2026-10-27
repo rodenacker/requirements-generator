@@ -127,6 +127,8 @@
   --color-error: var(--error);
   --color-info: var(--info);
   --color-brand-accent: var(--brand-accent);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
 
   /* === On-colours for filled elements ===
    * Bind labels/icons on a filled surface to these, never to text-white/text-black:
@@ -204,6 +206,13 @@
   /* Brand accent hue — for callouts/highlights/chart series.
    * NOT --accent: that var is shadcn's neutral hover/selected surface. */
   --brand-accent: #0049c1;
+
+  /* Brand identity colour — app-shell header strip / bar / brand region ONLY.
+   * Never a button, link, badge, focus ring or text colour (a red brand lives
+   * here while primary stays out of the red/orange/amber status zone).
+   * Defaults to the primary pair when no design system supplies one. */
+  --brand: #0049c1;
+  --brand-foreground: #fafafa;   /* 7.39:1 on #0049c1 */
 
   /* Elevation ladder — MODE-VARYING, hence in the token block rather than @theme.
    * Registered as Tailwind's --shadow-* in @theme above. A dark set keeps this

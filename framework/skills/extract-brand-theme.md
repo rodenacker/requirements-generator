@@ -54,6 +54,7 @@ It additionally performs a **logo + favicon capture** (see *Logo & favicon captu
 | `colours.warning.hex` | `--warning` |
 | `colours.error.hex` | `--destructive`, `--error` |
 | `colours.info.hex` | `--info`, `--chart-3` |
+| `colours.brand.hex` | `--brand` — the **identity** colour (app-shell header strip / bar / brand region only; never a button, link, badge, focus ring or text). Copied verbatim into every written set: `brand` is mode-invariant in the design system. A design-system file without `colours.brand` (written before the field existed) maps `--brand` to the same value as `--primary`. |
 | `typography.body_family.value` | `--font-sans` (in the `@theme` block) — verbatim, including a two-name substituted stack |
 | `typography.heading_family.value` | `--font-heading` (in the `@theme` block) — verbatim, including a two-name substituted stack |
 | `meta.brand_fonts` | *not a CSS var* — returned to the agent for `.scaffold.json`; consumed by `app-shell-spec.md` to build the `<head>` font links |
@@ -74,6 +75,7 @@ It additionally performs a **logo + favicon capture** (see *Logo & favicon captu
 **Brand webfont contract.** `--font-heading` and `--font-sans` declare a family; they do not fetch one. The fetch is a `<link>` in `layout.tsx`, and **which name to request is not something this skill's consumers may re-derive** — a two-name stack has two candidates and only one of them is fetchable. So:
 
 - **Source (a)** — return `meta.brand_fonts` verbatim. `links` is already built, deduped, and one-family-per-URL; `families[].status` says which slot is `google-native`, `substituted`, or `unverified` (an `unverified` slot is deliberately absent from `links` — its availability could not be confirmed, so nothing is requested for it).
+- **`--brand` on sources (b)/(c)/(d)** — no identity colour exists, so `--brand` takes the resolved `--primary` value and `--brand-foreground` the resolved `--primary-foreground` (literal values, not `var()` references, so the token-pair audit can parse them).
 - **Sources (b)/(c)/(d)** — return `brand_fonts: null`. There is no availability record to pass on, so `app-shell-spec.md` falls back to deriving one `family=` segment per named family from the stack, exactly as it did before this field existed. That path is also what a design-system file written before `meta.brand_fonts` existed takes, so older outputs keep working unchanged.
 - **Never build the link URLs here.** This skill's job ends at reporting what the design-system decided; `app-shell-spec.md` owns the `<head>` markup.
 - **Typography and motion tokens are mode-invariant** — the design-system copies all 15 typography tokens across modes verbatim, and durations/easing carry no colour — so they live in `@theme` only and are taken from the **base** set. Elevation is the one exception (below).
@@ -148,6 +150,7 @@ Threshold **4.5:1** (3:1 only for text ≥24px, or ≥18.66px bold — do not ap
 | `--success-foreground` | on-colour for `success` |
 | `--warning-foreground` | on-colour for `warning` |
 | `--info-foreground` | on-colour for `info` |
+| `--brand-foreground` | on-colour for `brand` (solid only — `brand` is identity chrome and takes no `/NN` hover state). Measured per mode like every other fill; never the mode's `text` by assumption. |
 | `--accent-foreground`, `--sidebar-accent-foreground` | that mode's `text` (the accent surface is neutral by construction — see the accent note) |
 | `--sidebar-primary-foreground` | same as `--primary-foreground` |
 | `--muted` | that mode's `surface` |
