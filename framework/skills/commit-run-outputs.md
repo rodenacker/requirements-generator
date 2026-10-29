@@ -50,7 +50,7 @@ Canonical here. The staging set is a *subset* of each orchestrator's write list 
 | `ingest-stadium` | per **freshly-extracted** app: `documentation/<AppName>.stadium-assets/` + `framework/state/stadium/<app_id>/`; plus `framework/state/.stadium-processed.json` once | `ingest-stadium: <app_id> extracted` (one app) / `ingest-stadium: <N> apps extracted` (several) |
 | `prototype` | `prototypes`, `blueprints/<scope_slug>`, `framework/state/.prototype-progress.json`, `framework/state/timing.ndjson` | `prototype: <name_slug> complete` |
 | `analyse-requirement` | `<method_dir>` | `analyse-requirement: <method_name> complete` |
-| `analyse-inputs` | `<method_dir>`, `generated-docs/requirements/source-manifest.json`, `documentation/*.converted.md` | `analyse-inputs: <method_name> complete` |
+| `analyse-inputs` | `<method_dir>`, `generated-docs/requirements/source-manifest.json`, `documentation/*.converted.md`, `documentation/<method_name>.analysis.md` | `analyse-inputs: <method_name> complete` |
 | `review-requirement` | `<method_dir>` | `review-requirement: <method_name> complete` |
 | `review-inputs` | `<method_dir>`, `generated-docs/requirements/source-manifest.json`, `documentation/*.converted.md` | `review-inputs: <method_name> complete` |
 
@@ -64,6 +64,7 @@ Notes on individual rows:
 - **The `[-N]` disambiguator** on the two dated-document rows is resolved by matching `documentation/amendments-<date>*.md` / `documentation/<stem>-<date>*.md` rather than by plumbing the exact suffix through a slot. A same-day file from an earlier run is already committed and therefore clean, so matching it is a no-op; the run's own new file is the only one that lands in the commit. Both patterns stay inside class 3 of the `documentation/` allow-list below.
 - **`<method_dir>`** is the **directory** containing the methodology's `output_path` (e.g. `generated-docs/analyse-requirements/<METHOD>/`), so the `<METHOD>.sidecar.json` written alongside is captured. The four methodology pipelines (two analyse, two review) stage **no run state** — they persist none (no `.progress.json`, no `timing.ndjson`; the analyse loops' `run_count` is in-memory only).
 - **The two `*-inputs` rows** name the manifest and the conversion siblings **unconditionally**, and the caller passes no first-iteration flag. Those paths carry a change only when the shared input-handler's at-most-once preflight wrote them in this invocation (for `/analyse-inputs`, the loop's first iteration); otherwise they are already clean and staging them is a no-op that adds nothing to the commit. Deriving the set from the `pipeline` name alone keeps the slot set closed and the behaviour deterministic.
+- **`documentation/<method_name>.analysis.md`** (`analyse-inputs` only) is the re-ingestion extract the analyser writes on `Accept & use` (`framework/skills/write-reingestion-extract.md`). It is absent after a plain `Accept` and dropped by step 2; its staged twin already rides in `<method_dir>`. Only this methodology's extract is named — never `documentation/*.analysis.md` — so the commit subject stays true.
 
 ## Self-validation
 
@@ -71,7 +72,7 @@ Notes on individual rows:
 - Every `git add` was a single explicit path from the resolved set — never `-A`, never `.`, never a bare directory the run did not produce.
 - An absent path stayed in the resolved set only when the table marks it † **and** `git status --porcelain -- <path>` reported ` D`.
 - The commit carried a `--` pathspec listing exactly the resolved paths, so its content does not depend on what the consultant had staged when the run started.
-- No path under `documentation/` outside the three allowed classes was staged (see Anti-Patterns).
+- No path under `documentation/` outside the four allowed classes was staged (see Anti-Patterns).
 - Exactly one of the four return values was produced, and the caller's branch on it matched: `committed` → silent, `nothing-to-commit` → silent, `skipped-branch` → one line, `failed` → one warning line.
 
 ## Anti-Patterns
@@ -80,10 +81,11 @@ Notes on individual rows:
 - Never `--allow-empty`. A checkpoint uses it so the marker exists in history regardless of whether anything was staged; a *completion* commit with nothing in it is pure noise. This is a deliberate divergence from the checkpoint blocks, not an oversight.
 - Never a bare `git commit` without the `--` pathspec. `git commit` commits the *index*, which in a repo where the consultant is also the framework developer routinely holds in-flight framework edits. The pathspec is what makes the commit's content equal to `paths` rather than dependent on consultant discipline — and what stops a hook-rejected commit leaving residue for the next run's `checkpoint: … --allow-empty` block to sweep into a commit labelled as a pre-destructive checkpoint.
 - Never `git add -A`, `git add .`, or a bare directory the run did not produce.
-- **Never commit a client original.** This is a **confidentiality and repo-bloat** rule governing what enters git history — *not* an input-safety rule. `IS-01`/`IS-03` (`framework/shared/input-safety.md`) govern **deletion**, and a file can be `IS-01`-protected yet obviously safe to commit. Exactly three classes under `documentation/` may be staged:
+- **Never commit a client original.** This is a **confidentiality and repo-bloat** rule governing what enters git history — *not* an input-safety rule. `IS-01`/`IS-03` (`framework/shared/input-safety.md`) govern **deletion**, and a file can be `IS-01`-protected yet obviously safe to commit. Exactly four classes under `documentation/` may be staged:
   1. `documentation/*.converted.md` — framework-generated conversion siblings;
   2. `documentation/<AppName>.stadium-assets/` — framework-generated extractor output;
-  3. framework-authored dated documents — `documentation/amendments-<date>[-N].md` and `documentation/<stem>-<date>[-N].md`.
+  3. framework-authored dated documents — `documentation/amendments-<date>[-N].md` and `documentation/<stem>-<date>[-N].md`;
+  4. re-ingestion extracts — `documentation/<method_name>.analysis.md`, written by `framework/skills/write-reingestion-extract.md`.
 
   Everything else `IS-01` enumerates is a client original and never enters history: raw dropped source files of any format, the `*.stadium` pointer, and every path under a dropped Stadium 6 application folder. Class 3 files *are* named in `IS-01`'s protected list — they are protected from **deletion**, and they are precisely the artefact `/amend-requirements` and `/resolve-review` exist to produce, so committing them is the point.
 - Never `git add documentation/` wholesale, and never a bare `documentation/<AppName>/` app folder.

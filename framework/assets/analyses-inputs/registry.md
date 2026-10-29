@@ -4,7 +4,13 @@ kind: registry
 methodologies:
   # Methodologies for /analyse-inputs. Each methodology lands in its own follow-up
   # development that authors its agent/reference/character/template and appends the row
-  # with `status: mvp`. See `plans/` for the candidate roadmap. MVP methodologies so far:
+  # with `status: mvp`. See `plans/` for the candidate roadmap.
+  # RE-INGESTION: the per-method summaries below describe feeding an artefact back
+  # to /requirements by copying the HTML into documentation/ (markitdown round-trip).
+  # That pathway is superseded: every method now re-ingests through the Markdown
+  # re-ingestion extract its analyser writes on `Accept & use`
+  # (framework/skills/write-reingestion-extract.md; overwrite guard IS-05).
+  # MVP methodologies so far:
   #   - `thematic-analysis` (Braun & Clarke 2006, six-phase reflexive thematic
   #     analysis with a deductive coverage check against a fixed 10-area concern
   #     frame; self-contained HTML with a pre-rendered inline-SVG theme-map in
@@ -387,6 +393,8 @@ methodologies:
     - Skips manifest rows with `tier == "Unsupported"` and records the reason in the artefact's diagnostics block.
     - Cites source-of-fact in the artefact body using `[SRC: <filename>]` markers (filename payload, not the requirements pipeline's `C-NNN` sidecar IDs).
     - Records a source-roster section in the artefact listing every filename consumed and every skipped filename with reason.
+    - Applies the extract-row skip in `framework/skills/write-reingestion-extract.md > Extract rows in /analyse-inputs` before tier dispatch: `*.analysis.md` rows go to the skipped roster, never read or cited.
+    - Offers `Accept & use — write the extract into documentation/ (Recommended)` as the first handback option, invoking `framework/skills/write-reingestion-extract.md` with the final in-memory model. A method whose artefact has no JSON or YAML body block defines that model under `## Re-ingestion extract model` in its reference asset.
     - Records a manifest-fingerprint field in the artefact (the manifest's sha256, or sha256 of its serialised bytes) so the artefact captures exactly which manifest version it analysed.
     - Self-validates: every manifest row with `tier != "Unsupported"` was Read or skipped-with-reason; the artefact reads no path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json`; the artefact reads no path under `framework/state/` or `framework/shared/`.
 3. Author the reference asset at `framework/assets/analyses-inputs/<method>-reference.md` (methodology rules and patterns).

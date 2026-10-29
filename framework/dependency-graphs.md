@@ -176,7 +176,7 @@ state-diagram-analyser → svg-overlap-check.md
 
 ---
 
-## 5. analyse-inputs-orch.md · 66 nodes / 83 edges / depth 4
+## 5. analyse-inputs-orch.md · 67 nodes / 95 edges / depth 4
 
 ```
 orch → analysis-selector, context-hygiene, input-handler, refusal-registry,
@@ -187,7 +187,10 @@ analysis-selector → analyses-inputs/registry.md
 input-handler ⇒ @input-handler-subtree (progress_path=null)
 
 Each analyser → analyses-inputs/<m>-reference.md, characters/<m>-inputs-analysis.md,
-                verify-artifact-write
+                verify-artifact-write, write-reingestion-extract
+write-reingestion-extract → verify-artifact-write
+   (Accept & use only: renders the accepted model to documentation/<m>.analysis.md under IS-05;
+    every analyser also applies its "Extract rows in /analyse-inputs" skip at Step 2)
 deltas:
   +template (analyses-inputs/template-<m>.html): thematic-analysis, opportunity-solution-trees,
      journey-mapping, task-analysis, jtbd,

@@ -83,7 +83,7 @@ This repository is a **template**. You don't work in the shared copy - you creat
 | `/review-inputs` → `ten-ba-questions` or `ten-ux-questions`                    | You sense the raw inputs leave key BA or UX questions unanswered                  | Ranks the ten most consequential unanswered BA or UX questions, each sourced to a file. |
 | `/review-requirement` → `adversarial`                                          | You need to defend the spec to a sceptical stakeholder                            | Strict critique with a Patch / Defer / Reject decision per finding.              |
 | `/review-requirement` → `ten-ba-questions` or `ten-ux-questions`               | You sense something is missing in the spec but can't articulate it                | Surfaces the unasked questions in the consultant's blind spot.                   |
-| `/analyse-inputs` → e.g. `thematic-analysis`, `journey-mapping`, `jtbd`        | You want to dig into the raw material before drafting                             | Pattern, journey, or motivation lens on the raw inputs. Re-feedable to `/requirements`. |
+| `/analyse-inputs` → e.g. `thematic-analysis`, `journey-mapping`, `jtbd`        | You want to dig into the raw material before drafting                             | Pattern, journey, or motivation lens on the raw inputs. **Accept & use** feeds it to `/requirements`. |
 | `/review-inputs` → `completeness-review` or `gap-analysis`                     | You sense the raw inputs are thin, ambiguous, or contradictory                    | Authority-grounded or template-aligned punch-list before drafting.               |
 | `/analyse-requirement` → `data-model`                                          | About to brief a developer on data structure                                      | Surfaces the entities, fields, and relationships the spec implies.       |
 | `/analyse-requirement` → `crud-coverage`                                       | Worried a CRUD-heavy spec has forgotten operations or ungranted rights            | Matrix flagging missing create/read/update/delete paths and lifecycle holes.     |
@@ -100,7 +100,7 @@ This repository is a **template**. You don't work in the shared copy - you creat
 Every command runs interactively inside Claude Code and keeps you in the loop. A few behaviours are shared, so they're stated once here rather than repeated per command:
 
 - **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **fold in any pending amendments, one transform → you accept or reject** - no Q&A. `/resolve-review` and `/amend-requirements` share a third shape: **pick or state the changes → resolve each with you → you accept → written to `documentation/`** - the difference is only where the changes come from, a review's findings or your own statements.)
-- **Read-only.** Analyses and reviews only *read* your inputs or spec - they never modify or delete them. Files you drop in `documentation/` are removed only by you, manually.
+- **Read-only.** Analyses and reviews only *read* your inputs or spec - they never modify or delete them. Files you drop in `documentation/` are removed only by you, manually. The one thing an analysis adds there is the re-ingestion extract you ask for with **Accept & use** (below); an extract you have edited is never replaced without asking.
 - **Re-runs are safe.** Each pipeline detects a prior run and offers to **continue**, **start fresh**, or **overwrite** - the prior work is committed to git first, so nothing is lost. Run a lens pipeline again to add another artefact alongside the first.
 - **Accepted work is committed automatically.** When you accept a run's result, its outputs are committed to git locally (never pushed). If the commit can't be made, you get a one-line warning and the run still completes.
 - **Input file types** (for the commands that read `documentation/` - `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`):
@@ -161,7 +161,7 @@ You also get told what the change affects: whether it adds or removes a data pro
 
 ### 4.7 `/analyse-inputs`
 
-Go deeper into the raw inputs *before* drafting: pick an analytical lens and the framework re-expresses your `documentation/` material through it as a stand-alone artefact. Each one is designed to be **copied back into `documentation/`** so `/requirements` consumes it on the next run. Requires a non-empty `documentation/`; shares the source manifest with `/requirements`.
+Go deeper into the raw inputs *before* drafting: pick an analytical lens and the framework re-expresses your `documentation/` material through it as a stand-alone artefact. Each one ends with an **Accept & use** option that writes a compact Markdown **re-ingestion extract** (`documentation/<METHOD>.analysis.md`), so `/requirements` and `/generate-prd` read the analysis on their next run. Requires a non-empty `documentation/`; shares the source manifest with `/requirements`.
 
 | If you want to see…                                                                                                                | Pick                          | What it's called                  |
 | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------------- |
@@ -177,7 +177,7 @@ Go deeper into the raw inputs *before* drafting: pick an analytical lens and the
 | The **actor and end-user goals** behind the request - stated and inferred - as a goal register with an AND/OR refinement tree, an actor map, and a conflicts table | `user-goal-analysis`          | _Goal-Oriented Requirements (GORE)_ |
 | The **enterprise motivation** behind the request - business problem → need → goal → problem-statement in one causal chain (the strategic *why*, not actor-level goals) | `business-context-definition` | _OMG BMM / BABOK business context_ |
 
-**You get** one artefact per run under `generated-docs/analyse-inputs/<METHOD>/`, self-contained HTML that survives a markitdown HTML→MD round-trip (the embedded JSON / YAML / Mermaid bodies are the load-bearing re-ingestion contract).
+**You get** one artefact per run under `generated-docs/analyse-inputs/<METHOD>/`, as self-contained HTML for you to read. If you choose **Accept & use**, you also get `documentation/<METHOD>.analysis.md`: the analysis content only (no styling or diagrams), with every `[SRC: <filename>]` citation kept, for `/requirements` to read as an ordinary input. Plain **Accept** keeps the analysis for reading only. If you edit the extract by hand, a later **Accept & use** asks before replacing it.
 
 ### 4.8 `/review-inputs`
 

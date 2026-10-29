@@ -21,13 +21,14 @@ Run a registry-driven, single-agent analysis pipeline whose source material is t
 
 ## Stand-alone constraint
 
-This orchestrator and its analyser agents are **isolated from the `/requirements`, `/design-system`, `/analyse-requirement`, and `/review-requirement` pipelines** for write purposes, with one documented exception inherited from the shared input-handler's contract.
+This orchestrator and its analyser agents are **isolated from the `/requirements`, `/design-system`, `/analyse-requirement`, and `/review-requirement` pipelines** for write purposes, with two documented exceptions: one inherited from the shared input-handler's contract, and the re-ingestion extract an analyser writes on the consultant's `Accept & use` choice.
 
 The per-methodology completion commit is a **git-history write, not a filesystem write** under a state directory, so it does not widen the write set below; its staging set is canonical in `framework/skills/commit-run-outputs.md`.
 
 **Writes (allowed):**
 - `generated-docs/analyse-inputs/<METHOD>/*` — the analyser's output path (per the chosen registry row's `output_path` field).
 - `generated-docs/requirements/source-manifest.json` — **only** when step 1's input-handler invocation enters its `mode = "create"` (absent) or `mode = "refresh"` (stale, consultant chose Refresh) branch. The manifest path is shared with `/requirements`, `/generate-prd`, and `/review-inputs`; the write is bounded to a single canonical file. The input-handler also writes `documentation/<basename>.converted.md` siblings as part of the same invocation. On `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write to this path occurs.
+- `documentation/<chosen.name>.analysis.md` — the **re-ingestion extract**, written by the analyser through `framework/skills/write-reingestion-extract.md` **only** when the consultant chooses `Accept & use` at the analyser's handback gate, together with its staged copy beside the artefact (inside `generated-docs/analyse-inputs/<METHOD>/`). An existing extract is replaced only under the byte-identity guard in `IS-05` (`framework/shared/input-safety.md`). Every input analyser skips extract rows when it reads the manifest, so this pipeline never consumes its own extracts.
 - `framework/state/timing.ndjson` — **not** written by this orchestrator. This pipeline does not maintain timing state; timing observability is a `/requirements`-pipeline concern.
 - `framework/state/.progress.json` — **not** written by this orchestrator. The pipeline loops back to the selector in memory only (see **Selection loop**); resumability is reconstructed from on-disk artefact presence, never from a progress file. The orchestrator passes `progress_path: null` to the input-handler at step 1 so the agent's `RF-01 continue-later` write is suppressed.
 
@@ -112,7 +113,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 ## Output
 
-- `<chosen.output_path>` — produced by the analyser at its write step. The orchestrator produces no other artefact directly. The step-1 input-handler invocation, when it fires, additionally produces `generated-docs/requirements/source-manifest.json` and `documentation/*.converted.md` siblings as documented in the stand-alone constraint exception.
+- `<chosen.output_path>` — produced by the analyser at its write step. The orchestrator produces no other artefact directly. The step-1 input-handler invocation, when it fires, additionally produces `generated-docs/requirements/source-manifest.json` and `documentation/*.converted.md` siblings as documented in the stand-alone constraint exception. On `Accept & use`, the analyser additionally writes the re-ingestion extract `documentation/<chosen.name>.analysis.md` (second exception, `IS-05`).
 
 ## Tools
 
@@ -142,7 +143,7 @@ Each input-analyser additionally records a source-roster section in its artefact
 - If the analyser was invoked, its handback gate was met (artefact exists, verify pass, consultant accepted).
 - `framework/skills/commit-run-outputs.md` was invoked **exactly once per accepted methodology**, immediately after that methodology's handback gate and before the `✓ Ran …` line — never on the `Keep` branch, never on the step-0 `cancelled` / `empty-registry` exits, and never a second time at session exit. Its return was one of `committed | nothing-to-commit | skipped-branch | failed`; a non-`committed` return produced at most one plain-text line, left the artefact on disk, did not stop the loop, and did not suppress the exit message or its context-hygiene tip.
 - Every invoked agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
-- No file was written outside `generated-docs/analyse-inputs/<chosen.name>/`, with the documented step-1 exception of `generated-docs/requirements/source-manifest.json` and `documentation/*.converted.md` siblings produced by the input-handler.
+- No file was written outside `generated-docs/analyse-inputs/<chosen.name>/`, with the documented step-1 exception of `generated-docs/requirements/source-manifest.json` and `documentation/*.converted.md` siblings produced by the input-handler, and the documented `Accept & use` exception of `documentation/<chosen.name>.analysis.md` written by `framework/skills/write-reingestion-extract.md` under `IS-05`.
 - `framework/state/.progress.json` was not written by this orchestrator on any branch. No selection-loop state (`run_count`, `preflight_done`) was persisted to disk; the loop ran in memory only.
 - `framework/state/timing.ndjson` was not written by this orchestrator on any branch.
 

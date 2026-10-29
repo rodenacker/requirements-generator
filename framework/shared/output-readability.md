@@ -46,7 +46,7 @@ Analyses are **additionally** read by a downstream consumer that differs by pipe
 
 | Artefact | Human reader | Downstream consumer |
 |---|---|---|
-| `/analyse-inputs` outputs | yes | **`/requirements`** (re-dropped into the corpus / read by the drafter) |
+| `/analyse-inputs` outputs | yes | **`/requirements`** (via the re-ingestion extract `documentation/<METHOD>.analysis.md` that **Accept & use** writes; read by the drafter) |
 | `/analyse-requirement` outputs | yes | **`/wireframe` `blueprint-architect`** — *optional*, via the per-analysis machine-readable sidecar (the `RF-09` fallback path) |
 | `/review-requirement` outputs | yes | **none** — nothing downstream parses a review |
 | `/review-inputs` outputs | yes | **none** |
