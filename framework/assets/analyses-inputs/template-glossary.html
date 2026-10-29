@@ -610,14 +610,14 @@
 
     <section id="body" class="body-wrap" aria-label="Machine-readable glossary model">
       <h2 class="section-title">Machine-readable model</h2>
-      <p class="section-caption">The full glossary model in JSON &mdash; the re-ingestion contract that survives a markitdown HTML&rarr;MD round-trip as a fenced code block.</p>
+      <p class="section-caption">The full glossary model in JSON &mdash; the same model <strong>Accept &amp; use</strong> renders into the Markdown re-ingestion extract.</p>
       <pre class="body-json"><code class="language-json" id="glossary-body">{{BODY_JSON}}</code></pre>
     </section>
 
     <details id="round-trip" class="downstream-toggle">
       <summary>For downstream use &mdash; re-ingesting this glossary into /requirements</summary>
       <div class="downstream-note">
-        <p><strong>Use this glossary as input to <code>/requirements</code>:</strong> copy this file into <code>documentation/</code> and re-invoke <code>/requirements</code>. The shared input-handler detects the new file and adds it as a source. The drafter then adopts every <strong>settled</strong> definition as the project's <strong>canonical vocabulary</strong> &mdash; using one agreed term per concept and seeding <code>&sect;2 Domain model</code> / <code>&sect;7 Data entities</code> from them &mdash; while every <code>[AI-SUGGESTED: AI-NNN | blocking]</code> proposal (definition, refinement, or canonical resolution) surfaces to the resolver as a <em>mandatory confirmation</em>, so you agree each meaning and each canonical-term choice before it anchors a requirement. The <code>[SRC: <em>&lt;filename&gt;</em>]</code> markers preserve the audit trail back to the original briefs / notes / decks.</p>
+        <p><strong>Use this glossary as input to <code>/requirements</code>:</strong> choose <strong>Accept &amp; use</strong> at the end of the run: it writes a compact <code>documentation/glossary.analysis.md</code> for <code>/requirements</code> to read. The drafter then adopts every <strong>settled</strong> definition as the project's <strong>canonical vocabulary</strong> &mdash; using one agreed term per concept and seeding <code>&sect;2 Domain model</code> / <code>&sect;7 Data entities</code> from them &mdash; while every <code>[AI-SUGGESTED: AI-NNN | blocking]</code> proposal (definition, refinement, or canonical resolution) surfaces to the resolver as a <em>mandatory confirmation</em>, so you agree each meaning and each canonical-term choice before it anchors a requirement. The <code>[SRC: <em>&lt;filename&gt;</em>]</code> markers preserve the audit trail back to the original briefs / notes / decks.</p>
       </div>
     </details>
 

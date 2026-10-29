@@ -52,7 +52,7 @@ The JTBD-X six rounds map to twelve workflow steps. The mapping is one-to-one fo
 | **Round 6 — Forces & Clusters** | Step 9 | Cluster by `(actor, main-goal)`; capture Push/Pull/Anxiety/Habit; `not-named-in-inputs` for absent forces |
 | (operational) | Step 10 — Validate + Render + SHA-256 | 7 hard gates, in-memory HTML render via template substitution, sha256 |
 | (operational) | Step 11 — Write + verify-artifact-write | Write the artefact; verify; RF-04 on mismatch |
-| (operational) | Step 12 — Handback | Accept / Revise / Restart loop; surface round-trip instruction |
+| (operational) | Step 12 — Handback | Accept & use / Accept / Revise / Restart loop; Accept & use writes the re-ingestion extract |
 
 `final_jobs` is **closed** at the end of Step 9. Step 10 must not add jobs; the validate sweep emits gate results, not new jobs.
 
@@ -69,7 +69,7 @@ This agent reads:
 
 The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md` (the requirements-doc-lensing sibling JTBD analyser is a separate run with a separate source contract), not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references are textual, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` (specifically, **not** `generated-docs/analyse-requirements/JTBD/jtbd-job-map.html` — the sibling analyser's output is a separate concern) or under `generated-docs/analyse-inputs/<OTHER-METHOD>/`.
 
-The agent's only outputs are `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html`, the inline summary it surfaces to the consultant, and — only on the Step 12 `Accept & use` choice — the re-ingestion extract `documentation/jtbd.analysis.md` plus its staged copy `generated-docs/analyse-inputs/JTBD/jtbd.analysis.md`, both written by `framework/skills/write-reingestion-extract.md` under `IS-05`.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -89,13 +89,13 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 ### Step 2 — Read manifest & per-tier file ingest
 
 - `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's meta-comment and the cursor field.
-- Parse the manifest. Iterate rows; for each row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
+- Parse the manifest. Iterate rows. First apply the extract-row skip in `framework/skills/write-reingestion-extract.md > Extract rows in /analyse-inputs`: a `*.analysis.md` row goes to `skipped_rows` unread. For every other row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already transcribes the visible text and enumerates the JTBD-relevant material it depicts (whiteboard layout, sticky-note clusters, slide structure, screenshot annotations — actors, situations, motivations are transcribed and structured). Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with the structured error: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported` or a re-ingestion extract), halt with: *"Every manifest row is skipped (Unsupported or a re-ingestion extract). Add at least one raw input to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `documentation/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading `documentation/whiteboard-photo.png.converted.md` — the frozen description), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
@@ -378,27 +378,29 @@ Variants:
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior jobs preserved verbatim; only new jobs from new manifest rows were appended this run."*
 - If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to widen coverage additively."*
 
-**B. Round-trip instruction (always emitted).**
+**B. Extract note (emitted at hand-back, after the C choice).** One line, by branch:
 
-Append, once, the consultant-facing round-trip note:
+- `Accept & use` → `written`: *"Wrote `documentation/jtbd.analysis.md` — the re-ingestion extract. The next `/requirements` or `/generate-prd` run reads it as an input; the `[SRC: <filename>]` markers in it keep the audit trail back to the original briefs / interview notes that justified each job."*
+- `Accept & use` → `kept`: *"Kept your edited `documentation/jtbd.analysis.md`; the new extract was not written."*
+- `Accept` → the stale-extract line in `framework/skills/write-reingestion-extract.md > Stale extract on plain Accept`, only when `documentation/jtbd.analysis.md` exists. Otherwise nothing.
 
-> *"To feed this map into a subsequent `/requirements` run, copy `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` into `documentation/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it as one more source. The `[SRC: <filename>]` markers inside the map preserve the audit trail back to the original briefs / interview notes that justified each job."*
-
-**C. Accept / Revise / Restart loop.**
+**C. Accept & use / Accept / Revise / Restart loop.**
 
 Use `AskUserQuestion`:
 
-- Question: *"Accept the JTBD analysis, request specific changes, or restart?"*
+- Question: *"Accept the JTBD analysis and use it as an input to /requirements, accept it only, request specific changes, or restart?"*
 - Header: `Accept?`
 - multiSelect: false
-- Options:
-  1. `Accept — hand back to orchestrator (Recommended)`
-  2. `Revise — change specific entries`
-  3. `Restart — re-run from Round 1`
+- Options, in this order:
+  1. `Accept & use — write the extract into documentation/ (Recommended)`
+  2. `Accept — hand back to orchestrator`
+  3. `Revise — change specific entries`
+  4. `Restart — re-run from Round 1`
 
 **Branches:**
 
-- **Accept** — declare done; hand back to the orchestrator.
+- **Accept & use** — invoke `framework/skills/write-reingestion-extract.md` with `method_name: "jtbd"`, `method_title: "Jobs-To-Be-Done"`, `artefact_path: "generated-docs/analyse-inputs/JTBD/jtbd-job-map.html"`, `model` = the object defined in `framework/assets/analyses-inputs/jtbd-reference.md > Re-ingestion extract model`, built from the final `final_clusters` / `final_jobs` (after every Revise), `run_count`, and `manifest_fingerprint` (Step 2). On `written` or `kept`: emit B, then hand back (D). On `self-check failed: <reason>`: surface *"Re-ingestion extract self-check failed: `<reason>`. Nothing was written to `documentation/`."* and loop back to C. On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified` — emit *"Aborting to protect your work — write verification failed for the re-ingestion extract after one retry."* and fail handback.
+- **Accept** — emit B; declare done; hand back to the orchestrator. Writes nothing to `documentation/`.
 - **Revise** — accept the consultant's revision instructions in their next message. Apply the changes:
   - **Drop a job** ("drop `J-09`"): remove the job from `final_jobs`, update the parent cluster's `job_ids`; if the cluster now has zero jobs, drop the cluster too; re-render, re-Write, re-verify; loop back to A.
   - **Rename a cluster main-goal** ("rename cluster `Procurement Manager — maintain inventory` to `Procurement Manager — keep stockouts to zero`"): update the cluster's `main_goal`, re-render, re-Write, re-verify; loop back to A.
@@ -408,7 +410,7 @@ Use `AskUserQuestion`:
   - **Add an Override note** for a previously-failed gate: append the note to the Run-history bullet for this run; re-render, re-Write, re-verify; loop back to A.
 - **Restart** — re-enter Step 4 (Round 1). The previously-written `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` is left in place; the next Step 11 will overwrite it.
 
-The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 11).
+The loop continues until the consultant chooses Accept & use or Accept (or hand-back fails on an RF-04 — Revise-introduced per Step 11, or from the extract write).
 
 **D. Hand back.**
 
@@ -424,18 +426,20 @@ Output the final handback line:
 - `framework/assets/characters/jtbd-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/jtbd-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/analyses-inputs/template-jtbd.html` — the HTML template. Read once in Step 1 (or lazily in Step 10 sub-step B).
+- `framework/skills/write-reingestion-extract.md` — the extract-row skip (Step 2), the Step 12 `Accept & use` write, and the stale-extract line.
 
 ## Output
 
 - `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior job cards + cluster headings preserved verbatim unless the consultant chose the `re-extract-everything` drift branch).
+- `documentation/jtbd.analysis.md` + its staged copy `generated-docs/analyse-inputs/JTBD/jtbd.analysis.md` — the re-ingestion extract, written only on `Accept & use`, by `framework/skills/write-reingestion-extract.md` (overwrite guard: `IS-05`).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template, the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior JTBD artefact. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts (including `generated-docs/analyse-requirements/JTBD/jtbd-job-map.html`).** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html`.
+- `Write` — write `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html`; on `Accept & use`, the two extract files via `framework/skills/write-reingestion-extract.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p generated-docs/analyse-inputs/JTBD` (or PowerShell equivalent — Step 11 setup). No other Bash usage.
-- `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta header is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-check failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
+- `Bash` — `mkdir -p generated-docs/analyse-inputs/JTBD` (or PowerShell equivalent — Step 11 setup); the extract guard's SHA-256 comparison (`Get-FileHash` / `sha256sum`) owned by `write-reingestion-extract.md`. No other Bash usage.
+- `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta header is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-check failure prompt (Revise / Override / Restart); surface the Step 12 Accept & use / Accept / Revise / Restart prompt; surface the skill's `Extract` (Keep mine / Replace) prompt.
 
 **No MCP tools.** No Agent / Task delegation. The analyser composes HTML and validates citations / counts in-thread.
 
@@ -460,6 +464,8 @@ Before handing back, verify all of the following against the written artefact an
 - The opportunity matrix renders one `<table class="opportunity-matrix">` with 5 row-headers + 5 cells per row (25 data cells); every `final_jobs` row is rendered as exactly one `<span class="job-chip">` in the cell matching its `(importance, satisfaction)` pair.
 - The Diagnostics block contains: the summary `<p>`, the provenance `<p>`, the outcomes `<p>`, the scoring `<p>`, the forces `<p>`, the Source roster — Consumed `<table class="source-roster">` (one row per `consumed_rows` entry), the Source roster — Skipped `<table>` or the *"(no skipped rows at this run)"* paragraph, the Quality gates `<ul>` (7 `<li>`), and the Run history `<ul>` with `run_count` bullets.
 - No occurrence of the literal string `[AI-SUGGESTED]` anywhere in the artefact.
+- Every `*.analysis.md` manifest row is in the Skipped roster with reason `re-ingestion extract (derived, not a raw input)`, and no `[SRC: <name>.analysis.md]` appears anywhere in the artefact.
+- On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 - No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read. The sibling artefact at `generated-docs/analyse-requirements/JTBD/jtbd-job-map.html` was not read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
@@ -469,7 +475,7 @@ Before handing back, verify all of the following against the written artefact an
 - `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` exists, has been verified, and contains a complete JTBD job map in DOM order: `plain-terms` lead (first section, non-empty), Overview, TOC (with `#plain-terms` as first entry), Diagrams (≥ 1 cluster with ≥ 1 job card), Opportunity Matrix (5×5), Diagnostics (provenance + outcomes + scoring + forces + Source roster + 7 gate results + Run history), downstream-toggle footer, and the `jtbd-meta` cursor line.
 - Either all 7 hard quality gates passed, or the consultant explicitly chose Override and the Run-history bullet for this run records every violation.
 - Additive-merge contract honoured: every prior-run job card is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract-everything` drift branch re-clustered it away with a Run-history note).
-- The consultant has accepted the artefact in the Step 12 accept/revise/restart loop. The handback message surfaced the round-trip instruction.
+- The consultant has accepted the artefact in the Step 12 loop. The handback offered Accept & use, and on that choice the re-ingestion extract was written (or the consultant's edited one kept).
 - Control has been handed back to the orchestrator.
 
 ## Anti-Patterns
@@ -485,11 +491,12 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not collapse the six rounds into a single pass.** Each round's output feeds the next; the round-by-round structure is what makes the map reviewable.
 - **Do not let Step 10's validate sweep add jobs.** `final_jobs` is closed at the end of Step 9. The validate sweep emits gate results, not new entities.
 - **Do not re-invoke `markitdown-mcp`.** Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract. Re-converting would produce drift between the analyser's reads and the manifest's recorded `sha256` field.
-- **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective JTBD map propagates fabricated jobs into requirements seeds when the artefact is dropped into `documentation/` — the worst failure mode for this analyser.
+- **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective JTBD map propagates fabricated jobs into requirements seeds once its re-ingestion extract reaches `/requirements` — the worst failure mode for this analyser.
 - **Do not loop the Step 10 fail-Restart-fail cycle more than three times.** On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
 - **Do not paste the artefact body into the conversation.** The file is on disk; the consultant opens it in a browser (`file://`).
 - **Do not use the Agent or Task tool to delegate any step.** All work happens in this thread. No MCP tools are authorised.
 - **Do not emit any `[AI-SUGGESTED]` marker.** JTBD on raw inputs is extraction, not inference. Jobs, outcomes, scores, and forces all trace to manifest rows via `[SRC: <filename>]` (or are explicitly marked absent via `(no-metric-in-inputs)` / `consultant-assigned-no-signal` / `not-named-in-inputs`); the `[AI-SUGGESTED]` namespace is reserved for the `/requirements`-drafter's inferences and must not be widened into analyser territory.
 - **Do not edit the template HTML scaffold.** The template's `<style>` block, section structure, TOC, footer legend, and round-trip paragraph are fixed. Only the `{{placeholders}}` documented in the template's comment header may be substituted.
-- **Do not omit the round-trip handback note.** Consultants may not realise the JTBD map is consumable by `/requirements`; the Step 12 message is the discoverability surface. The template's `<details class="downstream-toggle">` footer also surfaces this — do not delete it.
+- **Do not drop or reorder the Accept & use option.** It is how the analysis reaches `/requirements`; the Step 12 prompt is the discoverability surface. The template's `<details class="downstream-toggle">` footer also surfaces this — do not delete it.
+- **Do not write the extract yourself, or read a `*.analysis.md` row as an input.** The extract's render, guard and writes belong to `framework/skills/write-reingestion-extract.md`; extract rows are skipped in Step 2 so the job map never cites its own derived view.
 - **Do not add new facts, counts, or `[SRC]` citations to the `{{PLAIN_SUMMARY}}` lead.** The lead is a faithful condensation of the artefact body; it must not introduce information that is not already present in the job cards, matrix, or diagnostics block.

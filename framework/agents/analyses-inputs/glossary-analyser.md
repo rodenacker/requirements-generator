@@ -14,7 +14,7 @@ Produce `generated-docs/analyse-inputs/GLOSSARY/glossary.html` — a self-contai
 - A **Canonical glossary — domain terms** section — alphabetical `term-card`s for problem-space vocabulary. **The primary content.**
 - A **Canonical glossary — application terms** section — alphabetical `term-card`s for solution-space vocabulary.
 - Five **Open-item registers** (work toward agreement): Needs definition (L0/L1), To refine (L2), To reconcile (synonym clusters), To resolve (L4 conflicts), Ambiguous general terms.
-- A **machine-readable JSON body block** (`<pre><code class="language-json" id="glossary-body">`) — the re-ingestion contract that survives markitdown HTML→MD as a fenced code block.
+- A **machine-readable JSON body block** (`<pre><code class="language-json" id="glossary-body">`) — the complete model, and the same model Accept & use renders into the Markdown re-ingestion extract.
 - A **Round-trip footer** — static paragraph (template-scaffolded) telling the consultant how `/requirements` adopts the agreed vocabulary.
 - A **Diagnostics block** (collapsed by default) — classification split, maturity histogram, proposal audit by kind/technique, discard log, Source roster (Consumed + Skipped), 10 gate results, run history.
 
@@ -60,7 +60,7 @@ The five analytical rounds map onto twelve workflow steps (the five rounds plus 
 | (operational) | Step 9 — Prior-run merge | Additive set-union, prior-wins; preserve confirmed agreements |
 | (operational) | Step 10 — Validate + Render + SHA-256 | 10 hard gates; in-memory HTML render via template substitution; sha256 |
 | (operational) | Step 11 — Write + verify-artifact-write | Write the artefact; verify; RF-04 on mismatch |
-| (operational) | Step 12 — Handback (curation gate) | Accept / Revise / Restart loop; surface round-trip instruction |
+| (operational) | Step 12 — Handback (curation gate) | Accept & use / Accept / Revise / Restart loop; Accept & use writes the re-ingestion extract |
 
 `final_terms`, `final_synonym_clusters`, `final_conflicts`, `final_ambiguous_general`, `final_discard_log`, and `final_proposals` are **closed** at the end of Step 8. Step 10's validate sweep emits gate results, not new entries.
 
@@ -77,7 +77,7 @@ This agent reads:
 
 The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references are textual, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` or `generated-docs/analyse-inputs/<OTHER-METHOD>/` — **including, explicitly, `generated-docs/analyse-requirements/GLOSSARY/glossary.html`** (the requirements-side sibling) **and `framework/assets/glossary.md`** (the cross-agent vocabulary reference). The two GLOSSARY methods never load each other; conflating them risks circular-reasoning failures.
 
-The agent's only outputs are `generated-docs/analyse-inputs/GLOSSARY/glossary.html` and the inline summary it surfaces to the consultant. This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
+The agent's only outputs are `generated-docs/analyse-inputs/GLOSSARY/glossary.html`, the inline summary it surfaces to the consultant, and — only on the Step 12 `Accept & use` choice — the re-ingestion extract `documentation/glossary.analysis.md` plus its staged copy `generated-docs/analyse-inputs/GLOSSARY/glossary.analysis.md`, both written by `framework/skills/write-reingestion-extract.md` under `IS-05`. This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
 ## Workflow
 
@@ -95,13 +95,13 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 ### Step 2 — Read manifest & per-tier file ingest
 
 - `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's meta-comment and the cursor field.
-- Parse the manifest. Iterate rows; for each, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
+- Parse the manifest. Iterate rows. First apply the extract-row skip in `framework/skills/write-reingestion-extract.md > Extract rows in /analyse-inputs`: a `*.analysis.md` row goes to `skipped_rows` unread. For every other row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already transcribes the visible text and enumerates the glossary-relevant material it depicts (glossary slides, definition tables, org charts, screenshot annotations are transcribed verbatim and structured). Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no rows at all), halt with: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row `Unsupported` or a re-ingestion extract), halt with: *"Every manifest row is skipped (Unsupported or a re-ingestion extract). Add at least one raw input to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud, e.g.: *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 3 consumable rows: `brief.docx` (Supported-via-MCP, reading `documentation/brief.docx.converted.md`), `discovery-notes.md` (Native-text), `domain-glossary.png` (Native-multimodal). 1 skipped: `pricing.xlsx` (Unsupported, reason: `markitdown: spreadsheet not configured`)."*
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
@@ -326,20 +326,27 @@ Variants:
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior terms, confirmed agreements, and resolutions preserved verbatim; only new terms from new manifest rows were appended."*
 - If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to widen coverage additively."*
 
-**B. Round-trip instruction (always emitted).**
+**B. Extract note (emitted at hand-back, after the C choice).** One line, by branch:
 
-> *"To feed this glossary into a subsequent `/requirements` run, copy `generated-docs/analyse-inputs/GLOSSARY/glossary.html` into `documentation/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it. Settled definitions become the project's canonical vocabulary — the drafter uses one agreed term per concept and seeds `§2 Domain model` / `§7 Data entities` from them. Every `[AI-SUGGESTED: AI-NNN | blocking]` proposal surfaces to the resolver as a mandatory confirmation, so you agree each proposed meaning and each canonical-term choice before it anchors a requirement. The `[SRC: <filename>]` markers preserve the audit trail back to the original briefs / notes / decks."*
+- `Accept & use` → `written`: *"Wrote `documentation/glossary.analysis.md` — the re-ingestion extract. The next `/requirements` or `/generate-prd` run reads it as an input: settled definitions become the canonical vocabulary, and every `[AI-SUGGESTED: AI-NNN | blocking]` proposal surfaces to the resolver as a mandatory confirmation."*
+- `Accept & use` → `kept`: *"Kept your edited `documentation/glossary.analysis.md`; the new extract was not written."*
+- `Accept` → the stale-extract line in `framework/skills/write-reingestion-extract.md > Stale extract on plain Accept`, only when `documentation/glossary.analysis.md` exists. Otherwise nothing.
 
-**C. Accept / Revise / Restart loop.** Use `AskUserQuestion`:
+**C. Accept & use / Accept / Revise / Restart loop.** Use `AskUserQuestion`:
 
-- Question: *"Accept the Glossary, request specific changes, or restart?"*
+- Question: *"Accept the Glossary and use it as an input to /requirements, accept it only, request specific changes, or restart?"*
 - Header: `Accept?`
 - multiSelect: false
-- Options: `Accept — hand back to orchestrator (Recommended)`, `Revise — change specific entries`, `Restart — re-run from Round 1`.
+- Options, in this order:
+  1. `Accept & use — write the extract into documentation/ (Recommended)`
+  2. `Accept — hand back to orchestrator`
+  3. `Revise — change specific entries`
+  4. `Restart — re-run from Round 1`
 
 **Branches:**
 
-- **Accept** — declare done; hand back.
+- **Accept & use** — invoke `framework/skills/write-reingestion-extract.md` with `method_name: "glossary"`, `method_title: "Glossary"`, `artefact_path: "generated-docs/analyse-inputs/GLOSSARY/glossary.html"`, `model` = the final glossary model serialised into `{{BODY_JSON}}` (after every Revise), `run_count`, `manifest_fingerprint` (Step 2), and `omit_keys: ["source_roster", "discard_log"]` (diagnostics, not vocabulary). On `written` or `kept`: emit B, then hand back (D). On `self-check failed: <reason>`: surface *"Re-ingestion extract self-check failed: `<reason>`. Nothing was written to `documentation/`."* and loop back to C. On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified` — emit *"Aborting to protect your work — write verification failed for the re-ingestion extract after one retry."* and fail handback.
+- **Accept** — emit B; declare done; hand back. Writes nothing to `documentation/`.
 - **Revise** — accept the consultant's revision instructions in their next message. Apply, then re-render → re-Write → re-verify (Step 10 sub-B onward) → loop back to A. Supported revisions (the curation step that establishes agreement):
   - **Confirm a proposal** ("accept the proposed definition for `SKU`" / "accept canonical `Customer`"): promote the `ai_proposal` to the accepted definition — set `definition` from the proposal text (marked consultant-confirmed), clear `ai_proposal`, set `agreement = settled`, and for a canonical-resolution apply the `canonical_term`/`aliases` across the cluster. Re-validate G2/G3/G5/G7.
   - **Reject / re-propose** ("the proposed definition for `Ledger` is wrong" / "re-propose via usage-context-abstraction anchored to `ops-notes.md`"): drop or re-derive the proposal; re-validate G2.
@@ -352,7 +359,7 @@ Variants:
   - **Add an Override note** for a previously-failed gate.
 - **Restart** — re-enter Step 4 (Round 1). The previously-written artefact is left in place; the next Step 11 overwrites it.
 
-The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 11).
+The loop continues until the consultant chooses Accept & use or Accept (or hand-back fails on an RF-04 — Revise-introduced per Step 11, or from the extract write).
 
 **D. Hand back.** Output: *"Glossary accepted. Handing back to the orchestrator."*
 
@@ -364,18 +371,20 @@ The loop continues until the consultant chooses Accept (or hand-back fails on a 
 - `framework/assets/characters/glossary-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/glossary-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/analyses-inputs/template-glossary.html` — the HTML template. Read once in Step 1 (or lazily in Step 10 sub-step B).
+- `framework/skills/write-reingestion-extract.md` — the extract-row skip (Step 2), the Step 12 `Accept & use` write, and the stale-extract line.
 
 ## Output
 
 - `generated-docs/analyse-inputs/GLOSSARY/glossary.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior terms, confirmed agreements, and resolutions preserved verbatim unless the consultant chose the `re-extract-everything` drift branch).
+- `documentation/glossary.analysis.md` + its staged copy `generated-docs/analyse-inputs/GLOSSARY/glossary.analysis.md` — the re-ingestion extract, written only on `Accept & use`, by `framework/skills/write-reingestion-extract.md` (overwrite guard: `IS-05`).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template, the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior artefact. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against `framework/assets/glossary.md`; not against `generated-docs/analyse-requirements/GLOSSARY/glossary.html` or any other analysis artefact.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `generated-docs/analyse-inputs/GLOSSARY/glossary.html`.
+- `Write` — write `generated-docs/analyse-inputs/GLOSSARY/glossary.html`; on `Accept & use`, the two extract files via `framework/skills/write-reingestion-extract.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p generated-docs/analyse-inputs/GLOSSARY` (or PowerShell `New-Item -ItemType Directory -Force` — Step 11 setup). No other Bash usage.
-- `AskUserQuestion` — surface the Step 3 prior-run reconciliation / drift prompt; the Step 10 quality-gate failure prompt (Revise / Override / Restart); the Step 12 Accept / Revise / Restart prompt.
+- `Bash` — `mkdir -p generated-docs/analyse-inputs/GLOSSARY` (or PowerShell `New-Item -ItemType Directory -Force` — Step 11 setup); the extract guard's SHA-256 comparison (`Get-FileHash` / `sha256sum`) owned by `write-reingestion-extract.md`. No other Bash usage.
+- `AskUserQuestion` — surface the Step 3 prior-run reconciliation / drift prompt; the Step 10 quality-gate failure prompt (Revise / Override / Restart); the Step 12 Accept & use / Accept / Revise / Restart prompt; and the skill's `Extract` (Keep mine / Replace) prompt.
 
 **No MCP tools.** No Agent / Task delegation. The analyser composes HTML and validates citations / counts / proposal anchors / classification / maturity in-thread.
 
@@ -398,7 +407,8 @@ Before handing back, verify all of the following against the written artefact an
 - The `<pre><code id="glossary-body">` JSON parses and contains every term, every proposal (with `anchor` non-empty), every cluster, every conflict, the ambiguous-general + discard logs, and the source roster.
 - The Diagnostics block contains the summary, proposal-by-kind, and technique `<p>`s; the discard log; the Consumed + Skipped source rosters; the 10-gate `<ul>`; and the Run history `<ul>` with `run_count` bullets.
 - Empty registers are reported via honest empty-state copy and are **not** padded with invented entries.
-- Every consumed manifest row is reflected in the Consumed roster (with term counts or an `irrelevant-to-glossary` reason); every skipped row is in the Skipped roster (G9).
+- Every consumed manifest row is reflected in the Consumed roster (with term counts or an `irrelevant-to-glossary` reason); every skipped row is in the Skipped roster (G9). Every `*.analysis.md` row is in the Skipped roster with reason `re-ingestion extract (derived, not a raw input)`, and no `[SRC: <name>.analysis.md]` appears anywhere in the artefact.
+- On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 - No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files was read. No file under `framework/state/` or `framework/shared/`, not `framework/assets/glossary.md`, and not `generated-docs/analyse-requirements/GLOSSARY/glossary.html`, was read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, with Accept still required to declare done).
 
@@ -409,7 +419,7 @@ Before handing back, verify all of the following against the written artefact an
 - Every synonym cluster resolves to one canonical term; every L4 conflict carries a proposed resolution; the canonical/alias map is consistent (G7).
 - Either all 10 hard gates passed, or the consultant explicitly chose Override and the Run-history bullet records every violation.
 - Additive-merge contract honoured: every prior-run term, confirmed agreement, and resolution is present (unless explicitly dropped via Revise or rebuilt by the `re-extract-everything` drift branch with a Run-history note).
-- The consultant has accepted the artefact in the Step 12 loop; the handback surfaced the round-trip instruction.
+- The consultant has accepted the artefact in the Step 12 loop; the handback offered Accept & use, and on that choice the re-ingestion extract was written (or the consultant's edited one kept).
 - Control has been handed back to the orchestrator.
 
 ## Anti-Patterns
@@ -427,8 +437,9 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective glossary becomes the canonical vocabulary and propagates fabricated/unanchored meaning into requirements.
 - **Do not loop the Step 10 fail-Restart-fail cycle more than three times.** On the fourth fail, force Revise.
 - **Do not misuse `[AI-SUGGESTED]`.** It is for the **anchored, blocking, technique-named** convergence proposal only — never on an explicit cited definition, never anchorless, never on a settled term.
-- **Do not bundle external JS / CSS / Mermaid / fonts / CDN.** The artefact is self-contained, dependency-free HTML; the embedded JSON lives in `<pre><code class="language-json">`, never a `<script>` (markitdown strips `<script>`).
+- **Do not bundle external JS / CSS / Mermaid / fonts / CDN.** The artefact is self-contained, dependency-free HTML; the embedded JSON lives in `<pre><code class="language-json">`, never a `<script>`.
 - **Do not edit the template HTML scaffold.** Only the `{{placeholders}}` documented in the template's comment header may be substituted.
 - **Do not paste the artefact body into the conversation.** The file is on disk; the consultant opens it in a browser (`file://`).
 - **Do not use the Agent or Task tool to delegate any step.** All work happens in this thread. No MCP tools are authorised.
-- **Do not omit the round-trip handback note.** Consultants may not realise the glossary is consumable by `/requirements`; the Step 12 message is the discoverability surface.
+- **Do not drop or reorder the Accept & use option.** It is how the analysis reaches `/requirements`; the Step 12 prompt is the discoverability surface.
+- **Do not write the extract yourself, or read a `*.analysis.md` row as an input.** The extract's render, guard and writes belong to `framework/skills/write-reingestion-extract.md`; extract rows are skipped in Step 2 so the glossary never cites its own derived view.

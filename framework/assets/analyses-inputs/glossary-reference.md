@@ -268,7 +268,7 @@ Complete when: every core term carries a maturity rating and either a cited defi
 
 ## Downstream consumption — establishing the canonical vocabulary in `/requirements`
 
-When the consultant copies `glossary.html` into `documentation/` and re-invokes `/requirements`, the input-handler classifies it `Supported-via-MCP` (markitdown → `glossary.html.converted.md`, preserving the `glossary-body` JSON as a fenced code block and the `[SRC]` / `[AI-SUGGESTED]` markers as literal text). The drafter then:
+When the consultant chooses **Accept & use** at the Step 12 handback, `framework/skills/write-reingestion-extract.md` writes the **re-ingestion extract** `documentation/glossary.analysis.md` — a Markdown projection of the `glossary-body` model with every string unescaped and the `[SRC]` / `[AI-SUGGESTED]` markers kept as literal text. The next `/requirements` run reads it as an ordinary `Native-text` input. The drafter then:
 
 - adopts every **settled** (L3 or consultant-confirmed) definition as the **canonical vocabulary** — `/requirements` uses these terms consistently and seeds `§2 Domain model` / `§7 Data entities` from them;
 - treats every **`[AI-SUGGESTED: AI-NNN | blocking]`** proposal (definition, refinement, canonical-resolution) as a **mandatory resolver confirmation** — the consultant validates each proposed meaning, refinement, or canonical-term choice before it anchors a requirement;

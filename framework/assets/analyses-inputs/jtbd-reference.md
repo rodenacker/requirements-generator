@@ -37,13 +37,13 @@ JTBD on raw inputs is the **right complement** to the existing `/analyse-require
 
 1. The sibling lenses the synthesised `generated-docs/requirements/requirements.md`, which has already normalised consultant phrasing into *"the system shall …"* clauses — JTBD on that document surfaces jobs the **normaliser** preserved, not the jobs the **inputs** named.
 2. Push / Pull / Anxiety / Habit signals live in primary source material (interviews, complaints, "we've always done it this way" prose). Synthesised requirements strip those signals out. Surfacing them **before** synthesis preserves the rich motivation data JTBD depends on.
-3. The output can be **fed back** to `/requirements` as an additional source (manual copy into `documentation/`) — letting the consultant anchor the next requirements draft in extracted user motivation rather than feature wishlist.
+3. The output can be **fed back** to `/requirements` as an additional source (the **Accept & use** handback option writes its re-ingestion extract into `documentation/`) — letting the consultant anchor the next requirements draft in extracted user motivation rather than feature wishlist.
 
 ### Why this analyser uses HTML, not Markdown + Mermaid
 
 - **Visual job-card grid + opportunity matrix.** The methodology depends on a 5×5 importance × satisfaction grid with an innovation-zone highlight, and on cluster-grouped job cards with sticky-note clause boxes (WHEN amber, WANT-TO blue, SO-I-CAN green) + scoring dot rows + forces strips. None of that renders cleanly in markdown.
 - **Mirror of the sibling.** `/analyse-requirement` JTBD also uses HTML with the same job-card grid + opportunity matrix; keeping the formats aligned makes side-by-side comparison trivial when a consultant runs both.
-- **Re-ingestibility intact.** HTML still classifies as `Native-text` per `framework/skills/classify-input-tier.md` (UTF-8 passes the sniff; the `[SRC: <filename>]` markers survive as plain text). When the consultant copies the HTML into `documentation/`, the drafter reads its job-card content as candidate-requirement seeds directly. Markitdown conversion is **not** invoked for `Native-text` HTML — the drafter reads the HTML in-context.
+- **Re-ingestion goes through a Markdown extract, not the HTML.** The HTML is never fed back raw — it would be read whole (CSS and markup included), since markitdown is not applied to `Native-text` HTML. **Accept & use** writes a compact Markdown projection of the job map instead (see **Re-ingestion extract model** below).
 
 ---
 
@@ -65,7 +65,7 @@ The artefact has a fixed top-to-bottom shape (rendered by the template; placehol
    - Forces strip: Push / Pull / Anxiety / Habit lines; forces with no input mention render as `not-named-in-inputs` with the `not-named` CSS class.
 5. **Opportunity matrix** (`<section id="tables">`). 5×5 grid plotting jobs by Importance (Y) × Satisfaction (X). Top-right quadrant (Imp ≥ 4 ∧ Sat ≤ 2) highlighted as the innovation-opportunity zone.
 6. **Diagnostics** (`<details id="diagnostics">`, collapsed by default). Manifest fingerprint, source roster (Consumed table + Skipped table), gate results (1–7 pass / fail), provenance counts (jobs cited from each source), measure counts (measurable / `(no-metric-in-inputs)`), scoring marker counts (`consultant-assigned-no-signal`), force counts (named / `not-named-in-inputs`), run history.
-7. **Downstream-use footer** (`<details class="downstream-toggle">`, collapsed by default). Re-ingestion instructions (how to copy this file into `documentation/` for a subsequent `/requirements` run). Pipeline-machinery prose; visible only on expand.
+7. **Downstream-use footer** (`<details class="downstream-toggle">`, collapsed by default). Re-ingestion instructions (choose **Accept & use** to write the extract that a subsequent `/requirements` run reads). Pipeline-machinery prose; visible only on expand.
 
 ---
 
@@ -336,14 +336,48 @@ The analyser **never** reads:
 
 ## Downstream usage — `/requirements` round-trip
 
-The JTBD-inputs artefact is **re-ingestible by `/requirements`** as a fresh source. The contract:
+The JTBD-inputs analysis is **re-ingestible by `/requirements`** through its re-ingestion extract. The contract:
 
-1. Consultant copies `generated-docs/analyse-inputs/JTBD/jtbd-job-map.html` into `documentation/` (file copy; the orchestrator does not automate this).
-2. Consultant re-invokes `/requirements` (or any of `/analyse-inputs`, `/review-inputs`, `/generate-prd`).
-3. The shared `framework/agents/input-handler.md` agent detects the new file on its drift check; surfaces the manifest-refresh prompt; classifies the file via `framework/skills/classify-input-tier.md` as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff); adds it to `generated-docs/requirements/source-manifest.json` as a new row.
-4. The `/requirements` drafter reads the new row's `original_path` (no markitdown conversion needed — `Native-text` is read directly) and extracts candidate-requirement seeds from the job-card content. The `[SRC: <filename>]` markers inside the JTBD artefact reference the original briefs / interview notes; the drafter's own `[SRC: C-NNN]` claim IDs cite the JTBD artefact; the audit trail is preserved end-to-end through the dual-citation chain.
+1. At the Step 12 handback the consultant chooses **Accept & use**. `framework/skills/write-reingestion-extract.md` renders the model below to Markdown and writes `documentation/jtbd.analysis.md` (guarded overwrite: `IS-05`).
+2. Consultant re-invokes `/requirements` (or `/generate-prd`, or `/review-inputs`).
+3. The shared `framework/agents/input-handler.md` agent detects the new file on its drift check, surfaces the manifest-refresh prompt, classifies it `Native-text`, and adds it to `generated-docs/requirements/source-manifest.json` as a new row.
+4. The `/requirements` drafter reads the extract and takes candidate-requirement seeds from the jobs. The `[SRC: <filename>]` markers inside the extract name the original briefs / interview notes; the drafter's own `[SRC: C-NNN]` claims cite the extract; the audit trail is preserved end-to-end through the dual-citation chain.
 
-This pathway is **consultant-driven**, not automated. The orchestrator does not move files across pipelines; the analyser's Step 12 handback message tells the consultant about the round-trip and they decide whether to use the JTBD map as `/requirements` input or as a stand-alone discovery artefact.
+This pathway is **consultant-driven**: choosing plain **Accept** keeps the map as a stand-alone discovery artefact and writes nothing to `documentation/`. `/analyse-inputs` itself never reads the extract back (`write-reingestion-extract.md > Extract rows in /analyse-inputs`).
+
+## Re-ingestion extract model
+
+The `model` the analyser passes to `framework/skills/write-reingestion-extract.md` on **Accept & use**. JTBD has no machine-readable body block, so the model is defined here, built from the final `final_clusters` / `final_jobs` after every Revise. Field order is the render order.
+
+```
+{
+  clusters: [
+    {
+      id,           // cluster_id
+      actor,
+      main_goal,
+      push,         // "<force text> [SRC: <filename>]", or "not-named-in-inputs"
+      pull,         // same shape
+      anxiety,      // same shape
+      habit,        // same shape
+      jobs: [       // the cluster's jobs, in job_ids order
+        {
+          id,                   // job_id (J-NN)
+          statement,            // "When <situation>, I want to <motivation>, so I can <outcome>."
+          type,                 // functional | emotional | social
+          importance,           // 1–5, suffixed " (consultant-assigned-no-signal)" when unanchored
+          satisfaction,         // same
+          opportunity,          // Imp + max(0, Imp − Sat)
+          opportunity_band,     // band
+          sources               // ["[SRC: <filename>]", …] — one per source_filenames entry
+        }
+      ]
+    }
+  ]
+}
+```
+
+Strings are carried verbatim, including `(no-metric-in-inputs)` inside an outcome. Every `[SRC: <filename>]` string here must also appear in the rendered job map, or the skill's self-check fails.
 
 The `framework/skills/map-jtbd-from-inputs-to-ui.md` skill (stub on framework first-ship) sketches the broader signal-to-pattern mapping for future downstream design-spec authors.
 
