@@ -242,11 +242,17 @@ Also store `{{colour_weights}} = {{eval_payload}}.colourWeights` (area-weighted 
 
 ### 4.A.3 CORS fallback for cross-origin stylesheets
 
-For each entry in `{{eval_payload}}.sources` that is an object with a `corsBlocked` href:
+Only when `{{eval_payload}}.sources` holds at least one object with a `corsBlocked` href. The browser already loaded those sheets; take their bodies from its network log (the page's scripts cannot read them, but the log can). Run this before §4.A.4 closes the browser.
 
-1. Call `mcp__playwright__browser_network_request({ url: <corsBlocked href>, method: "GET" })`.
-2. On success, append the body text to `{{eval_payload}}.rawCss` (separated by `\n\n`). Also scan that text for `@media (prefers-color-scheme: <altScheme scheme, else the opposite of pageScheme>)` blocks and root-level theme-variant rules (same selectors as the evaluate's `variantRe`), and merge their custom properties / colour declarations into `{{alt_scheme}}` (creating it with `scheme` = the opposite of `pageScheme` if it was `null`).
-3. On per-sheet failure (network error, non-200 status), log "CORS-fallback fetch failed for {href}" and continue to the next blocked sheet. Do NOT abort the run for one failed sheet.
+1. `Bash mkdir -p generated-docs/design-system/.workspace` (the network tool writes a file but never creates its folder).
+2. List the loaded stylesheets once: `mcp__playwright__browser_network_requests({ static: true, filter: "\\.css" })` — numbered lines `<n>. [GET] <url> => [<status>] …`.
+3. For each `corsBlocked` href, in order, numbering them `k = 1, 2, …`:
+   1. Take the line whose `<url>` equals the href exactly.
+   2. Its status is 3xx (a redirect) → `mcp__playwright__browser_network_request({ index: <n>, part: "response-headers" })`, resolve its `location` header against the href, and take the first line whose `<url>` equals that, status 200.
+   3. That `<url>` was already fetched for an earlier href → skip; the sheet is in `rawCss` once.
+   4. `mcp__playwright__browser_network_request({ index: <n>, part: "response-body", filename: "generated-docs/design-system/.workspace/cors-<k>.css" })`, then Read that file.
+4. On success, append the body text to `{{eval_payload}}.rawCss` (separated by `\n\n`). Also scan that text for `@media (prefers-color-scheme: <altScheme scheme, else the opposite of pageScheme>)` blocks and root-level theme-variant rules (same selectors as the evaluate's `variantRe`), and merge their custom properties / colour declarations into `{{alt_scheme}}` (creating it with `scheme` = the opposite of `pageScheme` if it was `null`).
+5. On per-sheet failure (no matching line, a final status other than 200, an empty body, or a tool error), log "CORS-fallback fetch failed for {href}" and continue to the next blocked sheet. Do NOT abort the run for one failed sheet.
 
 ### 4.A.4 Close the browser
 

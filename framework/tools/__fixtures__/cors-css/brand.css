@@ -1,0 +1,2 @@
+:root { --fixture-brand: #12569A; }
+@media (prefers-color-scheme: dark) { :root { --fixture-bg: #101418; } }

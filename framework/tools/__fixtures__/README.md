@@ -11,4 +11,4 @@ oracle, not a mirror). These seed the Phase-2c regression harness.
 | `execpath-memberadmin-memberupdate-load.json` | MemberAdmin (`785d3104-…`) | `MemberUpdate.Load` | `Script → ExecutionPath → props["Actions"]` = the **10 ordered** root actions (linear, no branches). The Phase-1 `1a` acceptance oracle. |
 | `execpath-rmb-onboarding-btnnext-click.json` | RMB_Onboarding (`87ea91de-…`) | `btnNext.Click` | Branch shape: `Decision.Decision → ExecutionPaths → IfPath{Conditions,Actions}` + a trailing `ExecutionPath` else-branch (`ShowElse=True`). The validation-fail `Notification` lives **inside** the else branch (the flat DFS scrambles it after the happy-path navigate). |
 
-`timing-sample.ndjson` is unrelated (a pipeline timing sample).
+`timing-sample.ndjson` is unrelated (a pipeline timing sample). So is `cors-css/`: the `/design-system` step-04 CORS-fallback fixture (see its README).
