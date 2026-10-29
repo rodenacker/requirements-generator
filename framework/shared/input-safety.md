@@ -13,7 +13,8 @@ Files under `documentation/` are consultant-owned source material. No orchestrat
 - raw dropped source files of any format (`.md`, `.txt`, `.docx`, `.xlsx`, `.pptx`, `.pdf`, images, vectors, …);
 - the `*.stadium` pointer file and every path under a dropped Stadium 6 application folder (read-only to the extractor — `framework/agents/stadium-ingestor.md`);
 - `/resolve-review` outputs (`documentation/<stem>-<date>.md`, written additively — `framework/agents/resolve-review-drafter.md`);
-- any file the consultant hand-edited, including hand-edits to generated Stadium assets (`documentation/<AppName>.stadium-assets/*.md`) or to a `*.converted.md` sibling.
+- any file the consultant hand-edited, including hand-edits to generated Stadium assets (`documentation/<AppName>.stadium-assets/*.md`) or to a `*.converted.md` sibling;
+- re-ingestion extracts (`documentation/*.analysis.md`) — except the guarded replace in `IS-05`.
 
 These are deleted only by the consultant, manually. This consolidates the guarantees already stated locally at `framework/agents/input-handler.md` (Anti-Patterns), `framework/orchestrators/requirements-orch.md` (reset), and `framework/agents/resolve-review-drafter.md` (Anti-Patterns).
 
@@ -49,3 +50,12 @@ Within a marked directory, reconciliation removes exactly the paths the current 
 **Why deletion is permitted here at all.** Extracted media are enumerated as manifest rows, so a stale image is not inert — it is a *live citable source*. If a consultant ships v2 of a document with a screenshot removed and the extracted copy survives on disk, it is re-enumerated, re-described and mined, and `framework/skills/grounding-verifier.md` builds its allowlist from the manifest, so the resulting claim cites a legal source. The artefact would then carry requirements grounded in material the consultant deliberately retracted, with provenance that passes every check the system has, and no artefact anywhere would reveal it. Retention is therefore not the safe default here; **reconciliation protects citation integrity**, which is why this is the one derived-file class the framework is allowed to remove outside a full reset.
 
 Content-hash filenames are what make this safe rather than destructive: an unchanged image re-extracts to a byte-identical name, so only genuinely-removed images are ever candidates for deletion (`framework/skills/extract-ooxml-media.md > Naming`).
+
+## IS-05 — Re-ingestion extracts are overwritten only under the byte-identity guard
+
+A **re-ingestion extract** (`documentation/<method_name>.analysis.md`) is the Markdown projection of an accepted `/analyse-inputs` artefact. It is framework-generated, but it sits in consultant-owned space and a consultant may hand-edit it before the next `/requirements` run — so its replacement is fenced:
+
+1. **Sole writer.** Only `framework/skills/write-reingestion-extract.md` writes a file of this class, and only on the consultant's `Accept & use` choice at an `/analyse-inputs` handback gate. Each write also leaves a **staged copy** beside the analysis artefact (`<dirname(output_path)>/<method_name>.analysis.md`).
+2. **Byte-identity guard.** No existing extract → write. An existing extract byte-identical (SHA-256) to its staged copy → replace silently: it is still exactly what the pipeline last wrote. Anything else — a missing staged copy, or differing bytes — means the file was hand-edited or was not written by this pipeline, and is replaced only if the consultant chooses `Replace` at the skill's `Extract` prompt. `Keep mine` leaves both files untouched.
+
+This is the content-identity + consultant-gate shape of `IS-04`, applied to an overwrite instead of a deletion. The framework never **deletes** an extract: `IS-03`'s list is unchanged, and stale extracts are removed by the consultant, manually.

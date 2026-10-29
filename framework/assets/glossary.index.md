@@ -72,6 +72,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Provenance markers | Closed tag set: `[AI-SUGGESTED]` `[STANDARD-RULE]` `[OUT-OF-SCOPE]` `[POSTURE-DEFAULT]`. Excludes the scope marker — different axis. | `CLAUDE.md > Markers in content` |
 | Realization (realization strategy) | Closed-enum IA choice turning a surface into screen(s): standalone/drawer/expand/wizard/modal. | `realization-strategies.md` |
 | Refusal (RF-NN) | Canonical halt predicate; pause/hard-halt with defined severity. | `shared/refusal-registry.md` |
+| Re-ingestion extract | The Markdown projection of an accepted `/analyse-inputs` artefact, written to `documentation/<name>.analysis.md` by Accept & use so that `/requirements` and `/generate-prd` read the analysis as an ordinary input. | `skills/write-reingestion-extract.md` |
 | reserved zone | Red → orange → amber (OKLCH, above a chroma floor), kept for `error` / `warning`; never `primary` / `secondary` / `accent`. | `tools/colour-tokens.cjs` |
 | Resolver | Second triplet agent: resolves `[AI-SUGGESTED]` markers with the consultant. | — |
 | Resumability | A `/clear` + re-invoke continues at the first incomplete agent. | `CLAUDE.md §1` |
