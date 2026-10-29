@@ -67,7 +67,8 @@ Steps live under `framework/agents/design-system-styler/steps/`. Read each step 
 - `mcp__playwright__browser_resize` — set the viewport to 1440x900 before navigation in step-04, so captured tokens reflect desktop breakpoints.
 - `mcp__playwright__browser_navigate` — Pass 1 of the Playwright path in step-04 (load each URL reference in turn).
 - `mcp__playwright__browser_evaluate` — Pass 1 (settling wait + HTML-validity flag + login-page signals) and Pass 2 (stylesheet aggregation + computed-style sampling) in step-04.
-- `mcp__playwright__browser_network_request` — CORS fallback in step-04: fetch cross-origin stylesheets that `document.styleSheets` could not read.
+- `mcp__playwright__browser_network_requests` — CORS fallback in step-04 §4.A.3: list the stylesheets the page loaded, to find a blocked sheet's index.
+- `mcp__playwright__browser_network_request` — CORS fallback in step-04 §4.A.3: by that index, read a redirect's headers or save a blocked sheet's body (`filename`) into `.workspace/`.
 - `mcp__playwright__browser_close` — close the browser after each URL in step-04 (or on early exit due to a login page, `fetch_failed` / `no_css`), and once more as a backstop in step-07 §C.
 - **No Playwright call outside step-04** (the step-07 §C backstop close aside). Never navigate the browser to a written artefact to look at it: Playwright blocks `file:` URLs, and the failed navigate leaves a browser window open on the consultant's screen. The artefact opens in the consultant's own browser when `inject` fills it (`framework/shared/artifact-preview.md`).
 - `mcp__markitdown-mcp__convert_to_markdown` — read each named PDF brand guide as text in step-04b, in memory only. Absent → that PDF is `skipped — markitdown not available`.

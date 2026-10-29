@@ -245,7 +245,7 @@ Also store `{{colour_weights}} = {{eval_payload}}.colourWeights` (area-weighted 
 Only when `{{eval_payload}}.sources` holds at least one object with a `corsBlocked` href. The browser already loaded those sheets; take their bodies from its network log (the page's scripts cannot read them, but the log can). Run this before §4.A.4 closes the browser.
 
 1. `Bash mkdir -p generated-docs/design-system/.workspace` (the network tool writes a file but never creates its folder).
-2. List the loaded stylesheets once: `mcp__playwright__browser_network_requests({ static: true, filter: "\\.css" })` — numbered lines `<n>. [GET] <url> => [<status>] …`.
+2. List the requests to the blocked sheets' hosts once: `mcp__playwright__browser_network_requests({ static: true, filter: "<host1>|<host2>|…" })`, each host of a `corsBlocked` href regex-escaped (`fonts\\.googleapis\\.com`). Filter by host, not by `.css`: a sheet such as `fonts.googleapis.com/css2?family=…` has no `.css` in its URL. The result is numbered lines `<n>. [GET] <url> => [<status>] …`. A redirect (step 3.2) to a host not in that filter → list once more with the target's host.
 3. For each `corsBlocked` href, in order, numbering them `k = 1, 2, …`:
    1. Take the line whose `<url>` equals the href exactly.
    2. Its status is 3xx (a redirect) → `mcp__playwright__browser_network_request({ index: <n>, part: "response-headers" })`, resolve its `location` header against the href, and take the first line whose `<url>` equals that, status 200.

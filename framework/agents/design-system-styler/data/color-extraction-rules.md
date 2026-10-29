@@ -116,7 +116,7 @@ Map the extracted and ranked colors to **7 brand tokens** (primary, secondary, a
 |---|---|
 | `primary` | Most frequent chromatic color appearing in action contexts (buttons, links, CTAs, nav highlights). If CSS custom properties contain `--primary` or `--brand`, use that value. |
 | `secondary` | Second most frequent chromatic color distinct from primary (different hue family). Often found in secondary buttons, badges, or alternate nav items. If not found, leave it `null` — the helper fills it. |
-| `accent` | Third chromatic color, or the most saturated/bright chromatic color not already assigned. Often used for highlights, notifications, or hover states. If not found, leave it `null` — the helper fills it. |
+| `accent` | Third chromatic color, or the most saturated/bright chromatic color not already assigned. Often used for highlights, notifications, or hover states. If not found, leave it `null` — the helper fills it. **WebFetch path only:** when `computed-tokens.json` exists, §0's accent row is final — no named `accent` var means `null`. |
 | `background` | Color assigned to `body` or `html` background. If not explicit, use the most common near-white color. If none found, default to `#ffffff`. |
 | `surface` | Color used for card, panel, or modal backgrounds. Must differ from `background`. If not found, derive: if `background` is light, darken by ~3% (e.g., `#ffffff` → `#f8f9fa`); if dark, lighten by ~5%. |
 | `text` | Color assigned to `body` or `html` `color` property. If not explicit, use the most common near-black color. If none found, default to `#1a1f2e`. |
