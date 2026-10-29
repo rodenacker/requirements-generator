@@ -104,6 +104,8 @@ The reference is a login page when **(moved host and (auth-like or `visiblePassw
 
 Single `browser_evaluate` returning a JSON object:
 
+<!-- Maintainers: the `function` value below is a JS template literal, so a single backslash is dropped before the browser sees it (`\(` arrives as `(`). Write regex escapes backslash-free (`[(]`, `[.]`) or doubled (`\\s`). To test an edit, slice the block out, run it through a template literal in Node, and pass the result to browser_evaluate on a scratch page. -->
+
 ```
 mcp__playwright__browser_evaluate({
   function: `
