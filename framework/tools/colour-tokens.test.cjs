@@ -349,8 +349,8 @@ test('test_unrendered_page_picks_rejected_and_cascade_fills', () => {
   const out = assign(STANDARD_BANK());
   assert.deepEqual(out.roles, { primary: '#0062E1', secondary: '#0089FF', accent: '#00AD6C' });
   assert.equal(out.brand, '#0062E1');
-  assert.ok(out.decisions.includes('primary #007BFF rejected: not rendered on the page'), out.decisions.join('\n'));
-  assert.ok(out.decisions.includes('secondary #868E96 rejected: not rendered on the page'), out.decisions.join('\n'));
+  assert.ok(out.decisions.includes("primary #007BFF rejected: not found among the page's rendered colours"), out.decisions.join('\n'));
+  assert.ok(out.decisions.includes("secondary #868E96 rejected: not found among the page's rendered colours"), out.decisions.join('\n'));
 });
 
 test('test_pdf_origin_is_exempt', () => {
@@ -370,7 +370,7 @@ test('test_absent_pick_origins_is_exempt', () => {
 test('test_near_match_within_tolerance_counts_as_rendered', () => {
   const out = assign(withPrimary('#0062E3'));
   assert.equal(out.roles.primary, '#0062E3');
-  assert.ok(!out.decisions.some((d) => d.startsWith('primary') && d.includes('not rendered')));
+  assert.ok(!out.decisions.some((d) => d.startsWith('primary') && d.includes('not found among')));
 });
 
 test('test_rendered_pick_below_usage_share_is_kept', () => {
@@ -390,4 +390,33 @@ test('test_cli_bad_pick_origins_exits_2', () => {
   const r = spawnSync(process.execPath, [path.join(__dirname, 'colour-tokens.cjs'), 'assign', '--in', inPath, '--out', path.join(dir, 'out.json')], { encoding: 'utf8' });
   assert.equal(r.status, 2);
   assert.match(r.stderr, /pick_origins/);
+});
+
+// The rendered list is evidence the area weights cannot carry: near-greys,
+// SVG fill/stroke, gradient stops. It widens what counts as rendered only.
+test('test_rendered_near_black_page_pick_is_kept', () => {
+  const out = assign({ ...withPrimary('#1D1D1F'), rendered: ['#1D1D1F', '#FFFFFF'] });
+  assert.equal(out.roles.primary, '#1D1D1F');
+});
+
+test('test_near_black_page_pick_without_rendered_evidence_is_rejected', () => {
+  assert.equal(assign(withPrimary('#1D1D1F')).roles.primary, '#0062E1');
+});
+
+test('test_rendered_grey_secondary_is_kept', () => {
+  assert.equal(assign({ ...STANDARD_BANK(), rendered: ['#868E96'] }).roles.secondary, '#868E96');
+});
+
+test('test_rendered_list_without_the_pick_still_rejects', () => {
+  const out = assign({ ...STANDARD_BANK(), rendered: ['#0A2240', '#FFFFFF', '#5A5A5A'] });
+  assert.equal(out.roles.primary, '#0062E1');
+});
+
+test('test_cli_bad_rendered_exits_2', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'colour-tokens-'));
+  const inPath = path.join(dir, 'in.json');
+  fs.writeFileSync(inPath, JSON.stringify({ ...STANDARD_BANK(), rendered: ['blue'] }));
+  const r = spawnSync(process.execPath, [path.join(__dirname, 'colour-tokens.cjs'), 'assign', '--in', inPath, '--out', path.join(dir, 'out.json')], { encoding: 'utf8' });
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /rendered/);
 });

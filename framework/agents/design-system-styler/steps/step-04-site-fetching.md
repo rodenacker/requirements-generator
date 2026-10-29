@@ -15,7 +15,7 @@ description: 'Playwright-driven site fetching for each URL reference: resize →
 **One URL at a time, in order.** Run §4.A once per entry of `{{reference_urls}}`, in the order the consultant gave them:
 
 - **The lead URL** is the first URL whose capture succeeds. It does the **full capture** (§4.A.1–§4.A.9), unchanged: `css-content.txt`, `computed-tokens.json`, `metadata.json`. Its page sets the scheme and the neutrals, and it is the only source of `{{alt_scheme}}`. Set `{{lead_url}}` to it.
-- **Every later URL** (once a lead exists) does the **lean capture**: §4.A.1, then the §4.A.2 evaluate unchanged, keeping only its `colourWeights` and `sampleElements` (font data), written to `generated-docs/design-system/.workspace/computed-tokens-<n>.json` (`<n>` = the URL's 1-based position in `{{reference_urls}}`; plain `Write`, workspace scratch). No CORS fallback, no `:root` synthesis, no `css-content.txt`. Close the browser (§4.A.4).
+- **Every later URL** (once a lead exists) does the **lean capture**: §4.A.1, then the §4.A.2 evaluate unchanged, keeping only its `colourWeights`, `renderedColours` and `sampleElements` (font data), written to `generated-docs/design-system/.workspace/computed-tokens-<n>.json` (`<n>` = the URL's 1-based position in `{{reference_urls}}`; plain `Write`, workspace scratch). No CORS fallback, no `:root` synthesis, no `css-content.txt`. Close the browser (§4.A.4).
 - **A failed URL** sets that reference's `status` to `failed — <reason>` (one line naming it) and the loop continues with the next URL. A failure never ends the run here: step-05's reference gate decides whether anything usable is left.
 - Set the reference's `status` to `used` when its capture succeeds.
 
@@ -158,22 +158,42 @@ mcp__playwright__browser_evaluate({
         if (Math.max(r, g, b) - Math.min(r, g, b) < 24) return null;
         return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
       };
+      // Every colour the page paints, unweighted: greys, translucent colours,
+      // SVG fill / stroke and gradient stops included. Evidence for the
+      // real-use gate only (a pick the page never paints is dropped), never
+      // a candidate. Only fully transparent values are skipped.
+      const anyHex = (c) => {
+        if (!c || c === "transparent" || c === "none" || c.startsWith("url(")) return null;
+        ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = "#010203"; ctx.fillStyle = c;
+        if (ctx.fillStyle === "#010203") return null;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+        if (a === 0) return null;
+        return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
+      };
       const weights = {};
+      const rendered = new Set();
       const addW = (c, w) => { const h = toHex(c); if (h) weights[h] = (weights[h] || 0) + w; };
+      const addR = (c) => { const h = anyHex(c); if (h) rendered.add(h); };
+      const colourFn = /(?:rgba?|hsla?|oklch|oklab|lab|lch|color)[(][^()]*[)]/g;
       for (const el of document.body.querySelectorAll("*")) {
         const rect = el.getBoundingClientRect();
         if (!rect.width || !rect.height) continue;
         const cs = getComputedStyle(el);
         if (cs.visibility === "hidden" || cs.display === "none" || Number(cs.opacity) === 0) continue;
         addW(cs.backgroundColor, Math.min(rect.width * rect.height, 200000) / 1000);
-        if (Array.from(el.childNodes).some(n => n.nodeType === 3 && n.textContent.trim())) addW(cs.color, 1);
+        addR(cs.backgroundColor);
+        if (Array.from(el.childNodes).some(n => n.nodeType === 3 && n.textContent.trim())) { addW(cs.color, 1); addR(cs.color); }
         for (const side of ["Top", "Right", "Bottom", "Left"]) {
-          if (parseFloat(cs["border" + side + "Width"]) > 0 && cs["border" + side + "Style"] !== "none") addW(cs["border" + side + "Color"], 0.2);
+          if (parseFloat(cs["border" + side + "Width"]) > 0 && cs["border" + side + "Style"] !== "none") { addW(cs["border" + side + "Color"], 0.2); addR(cs["border" + side + "Color"]); }
         }
+        if (el instanceof SVGGeometryElement || el instanceof SVGTextContentElement) { addR(cs.fill); addR(cs.stroke); }
+        if (cs.backgroundImage.includes("gradient")) for (const m of cs.backgroundImage.matchAll(colourFn)) addR(m[0]);
       }
       const colourWeights = Object.entries(weights)
         .map(([hex, weight]) => ({ hex, weight: Math.round(weight * 10) / 10 }))
         .sort((a, b) => b.weight - a.weight).slice(0, 30);
+      const renderedColours = [...rendered].slice(0, 400);
 
       // The site's own other scheme — every rule inside
       // @media (prefers-color-scheme: <opposite>) plus root-level theme-variant
@@ -228,6 +248,7 @@ mcp__playwright__browser_evaluate({
           input: sample("input, textarea, select")
         },
         colourWeights,
+        renderedColours,
         pageScheme,
         altScheme
       };
@@ -236,9 +257,9 @@ mcp__playwright__browser_evaluate({
 })
 ```
 
-Store the result as `{{eval_payload}}`. **Re-run the login-page check** on its `finalHost` / `finalPath` / `title` (a script can redirect to an identity provider after Pass 1 settled); a hit fails the reference exactly as in §4.A.1, before anything from this payload is used. **Lean capture** (a URL after the lead): write `{ "colourWeights": …, "sampleElements": … }` from it to `computed-tokens-<n>.json`, set the reference's `status` to `used`, skip to §4.A.4 (close the browser), and continue with the next URL.
+Store the result as `{{eval_payload}}`. **Re-run the login-page check** on its `finalHost` / `finalPath` / `title` (a script can redirect to an identity provider after Pass 1 settled); a hit fails the reference exactly as in §4.A.1, before anything from this payload is used. **Lean capture** (a URL after the lead): write `{ "colourWeights": …, "renderedColours": …, "sampleElements": … }` from it to `computed-tokens-<n>.json`, set the reference's `status` to `used`, skip to §4.A.4 (close the browser), and continue with the next URL.
 
-Also store `{{colour_weights}} = {{eval_payload}}.colourWeights` (area-weighted chromatic colours: background area / 1000, area capped at 200 000 px², + 1 per text use + 0.2 per visible border; sorted descending, top 30) and `{{alt_scheme}} = {{eval_payload}}.altScheme` (`null` when the site ships no opposite-scheme rules). Step-05 turns `{{colour_weights}}` into the `assign` candidates; step-05b §A-bis reads `{{alt_scheme}}`.
+Also store `{{colour_weights}} = {{eval_payload}}.colourWeights` (area-weighted chromatic colours: background area / 1000, area capped at 200 000 px², + 1 per text use + 0.2 per visible border; sorted descending, top 30), `{{rendered_colours}} = {{eval_payload}}.renderedColours` (every colour the page paints, unweighted, up to 400: greys, translucent colours, SVG fill / stroke and gradient stops included — evidence for the helper's real-use gate, never a candidate) and `{{alt_scheme}} = {{eval_payload}}.altScheme` (`null` when the site ships no opposite-scheme rules). Step-05 turns `{{colour_weights}}` into the `assign` candidates and `{{rendered_colours}}` into its `rendered` evidence; step-05b §A-bis reads `{{alt_scheme}}`.
 
 ### 4.A.3 CORS fallback for cross-origin stylesheets
 
@@ -331,6 +352,7 @@ Concatenate the synthetic `:root` block (from §4.A.6) with `{{eval_payload}}.ra
      },
      "sources": [ ... ],
      "colourWeights": [ { "hex": "#RRGGBB", "weight": 0 } ],
+     "renderedColours": [ "#RRGGBB" ],
      "pageScheme": "light" | "dark",
      "altScheme": null | { "scheme": "dark" | "light", "customProperties": { ... }, "declarations": [ { "selector": "...", "prop": "...", "value": "..." } ] }
    }

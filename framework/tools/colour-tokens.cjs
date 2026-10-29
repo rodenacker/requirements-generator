@@ -30,11 +30,12 @@
  *                  candidates: [{hex, weight|null}], picks: {primary, secondary,
  *                  accent, brand?} (hex|null; a non-null brand is the brand),
  *                  pick_origins?: {primary, secondary, accent} ("page"|"pdf"|
- *                  "alt-scheme"; absent = exempt),
+ *                  "alt-scheme"; absent = exempt), rendered?: [hex] (every
+ *                  colour the page paints; gate evidence only, never a candidate),
  *                  neutrals: {background, surface, text, text_muted} (hex|null) }
- *   A "page" pick with no weighted candidate within PICK_MATCH_DE is dropped
- *   (decision "<role> <hex> rejected: not rendered on the page") and the
- *   cascade fills the role. PDF and alt-scheme picks are never rendered here.
+ *   A "page" pick with no weighted candidate or rendered colour within
+ *   PICK_MATCH_DE is dropped (decision "<role> <hex> rejected: not found among
+ *   the page's rendered colours") and the cascade fills the role. PDF and alt-scheme picks are never rendered here.
  * assign output: { brand, monochrome, roles, options, status, neutrals (all
  *                  filled), filled: [neutral names taken from the ladder],
  *                  decisions }
@@ -209,6 +210,9 @@ function validateAssign(input) {
   requireHexMap(input.picks, ['primary', 'secondary', 'accent', 'brand'], 'picks', true);
   requireHexMap(input.neutrals, NEUTRAL_KEYS, 'neutrals', true);
   if (input.brand !== undefined && input.brand !== null && !isHex(input.brand)) throw new InputError('brand must be a #RRGGBB hex');
+  if (input.rendered !== undefined && input.rendered !== null) {
+    if (!Array.isArray(input.rendered) || !input.rendered.every(isHex)) throw new InputError('rendered must be an array of #RRGGBB hex');
+  }
   if (input.pick_origins !== undefined && input.pick_origins !== null) {
     if (typeof input.pick_origins !== 'object') throw new InputError('pick_origins must be an object');
     for (const k of ['primary', 'secondary', 'accent']) {
@@ -264,14 +268,17 @@ function assign(input) {
   const byWeight = [...cands].sort((a, b) => (b.weight || 0) - (a.weight || 0) || a.i - b.i);
 
   // Real-use gate: a pick read from the page (not a PDF, not the site's other
-  // scheme) must be rendered there. Unweighted candidates carry no evidence.
+  // scheme) must be rendered there. Evidence: the weighted candidates plus
+  // `rendered` (every colour the page paints, greys, SVG and gradient stops
+  // included). Unweighted candidates carry no evidence, so no gate.
   const origins = input.pick_origins || {};
+  const evidence = [...cands.filter((c) => c.weight > 0).map((c) => c.hex), ...(input.rendered || [])];
   if (weighted) {
     for (const role of ['primary', 'secondary', 'accent']) {
       const pick = picks[role];
       if (!pick || origins[role] !== 'page') continue;
-      if (cands.some((c) => c.weight > 0 && deltaEOk(c.hex, pick) <= PICK_MATCH_DE)) continue;
-      decisions.push(`${role} ${pick} rejected: not rendered on the page`);
+      if (evidence.some((hex) => deltaEOk(hex, pick) <= PICK_MATCH_DE)) continue;
+      decisions.push(`${role} ${pick} rejected: not found among the page's rendered colours`);
       picks[role] = null;
     }
   }

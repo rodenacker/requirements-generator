@@ -145,6 +145,7 @@ Runs always (§1–§6 may have been skipped).
 **Candidates** (`assign` `candidates`):
 
 - **Pooled area weights, plain sums.** Add up `colourWeights` across the URL workspace files of this run's `used` URL references only — `computed-tokens.json` (the lead, when its reference is still `used` after §1–§3) and each `computed-tokens-<n>.json` whose URL is `used` — summing the `weight` of the same hex. Sort descending. A lead URL that failed in §2 or the workspace read contributes nothing.
+- **Rendered evidence** (`assign` `rendered`): the union of `renderedColours` across the same `used` URL workspace files, deduplicated. Evidence for the helper's real-use gate only — never added to `candidates`. Omit the field on the WebFetch path.
 - **WebFetch path** (no `computed-tokens.json`): every deduplicated **chromatic** colour from the lead URL's Section 2, each with `weight: null`.
 - **PDF colours:** every `{{declared}}[*].colours` hex not already present, each with `weight: null`, appended after the URL colours.
 
@@ -176,6 +177,7 @@ Every neutral not given is `null`; the helper fills it from its neutral ladder.
   "candidates": [ { "hex": "#RRGGBB", "weight": 0 } ],
   "picks": { "primary": "#RRGGBB" | null, "secondary": "#RRGGBB" | null, "accent": "#RRGGBB" | null, "brand": "#RRGGBB" | null },
   "pick_origins": { "primary": "page" | "pdf", "secondary": "page" | "pdf", "accent": "page" | "pdf" },
+  "rendered": [ "#RRGGBB" ],
   "neutrals": { "background": "#RRGGBB" | null, "surface": "#RRGGBB" | null, "text": "#RRGGBB" | null, "text_muted": "#RRGGBB" | null } }
 ```
 
