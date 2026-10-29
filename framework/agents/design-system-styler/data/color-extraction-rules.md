@@ -16,11 +16,13 @@ If `generated-docs/design-system/.workspace/computed-tokens.json` exists (Playwr
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `primary`     | `customProperties` key matching `primary` / `brand` (case-insensitive substring). If multiple match, pick the one most frequently referenced in the rest of the CSS.    |
 | `secondary`   | `customProperties` key matching `secondary`. Otherwise next most-frequent chromatic non-primary value across `sampleElements`.                                          |
-| `accent`      | `customProperties` key matching `accent`. Otherwise the most saturated chromatic value not already assigned.                                                            |
+| `accent`      | `customProperties` key matching `accent`. Otherwise `null` — the helper fills it by area weight.                                                                       |
 | `background`  | `sampleElements.body.backgroundColor`.                                                                                                                                  |
 | `surface`     | `customProperties` key matching `surface` / `card` / `panel`. Otherwise derive from `background` per §3.                                                                |
 | `text`        | `sampleElements.body.color`.                                                                                                                                            |
 | `text-muted`  | `customProperties` key matching `muted` / `subtle` / `secondary-text`. Otherwise derive from `text` per §3.                                                             |
+
+A `primary` / `secondary` / `accent` pick from this table is checked by `framework/tools/colour-tokens.cjs assign` against the rendered colours; one the page never renders is dropped there.
 
 Computed values arrive as `rgb(...)` / `rgba(...)` — run them through the existing rgb→hex normalization rule in §2. Custom-property values may already be hex; use as-is.
 

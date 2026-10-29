@@ -156,6 +156,8 @@ Runs always (§1–§6 may have been skipped).
 
 `picks.brand` = the first PDF's declared `brand`, else `null` (the helper then picks the largest-area colour). A declared role never overrides the reserved zones: the helper checks every pick.
 
+**Pick origins** (`assign` `pick_origins`): per non-null pick, `"pdf"` when rule 1 gave it, `"page"` when rule 2 did; omit a `null` pick. The helper drops a `"page"` pick that the page never renders (its real-use gate, `framework/tools/colour-tokens.cjs`), so a framework default such as Bootstrap 4's unthemed `--primary` cannot become a role.
+
 **Neutrals** (`assign` `neutrals`) are taken **as a set**, so a light page's text never meets a dark page's background:
 
 1. The first PDF that declares `background` → that PDF's declared `background`, `surface`, `text`, `text_muted`.
@@ -173,6 +175,7 @@ Every neutral not given is `null`; the helper fills it from its neutral ladder.
 { "mode": null,
   "candidates": [ { "hex": "#RRGGBB", "weight": 0 } ],
   "picks": { "primary": "#RRGGBB" | null, "secondary": "#RRGGBB" | null, "accent": "#RRGGBB" | null, "brand": "#RRGGBB" | null },
+  "pick_origins": { "primary": "page" | "pdf", "secondary": "page" | "pdf", "accent": "page" | "pdf" },
   "neutrals": { "background": "#RRGGBB" | null, "surface": "#RRGGBB" | null, "text": "#RRGGBB" | null, "text_muted": "#RRGGBB" | null } }
 ```
 
