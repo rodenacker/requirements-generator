@@ -95,7 +95,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 ```css
 /* === Component visualisation (cv-*) ====================================
    Brand-defining properties (colour, font, shadow, motion) reference
-   tokens via {{...}} substitution. Structural properties (padding,
+   tokens via token-reference substitution. Structural properties (padding,
    border-radius, gap, border-width, focus-ring offset) are hardcoded
    neutral constants — they are pattern decisions, not brand decisions.
 

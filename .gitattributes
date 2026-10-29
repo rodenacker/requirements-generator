@@ -1,0 +1,4 @@
+# Emitted verbatim by /design-system step-06; its checks assume LF.
+framework/assets/template-design-system.html text eol=lf
+framework/assets/design-system-standards.html text eol=lf
+framework/agents/design-system-styler/data/component-catalogue.md text eol=lf

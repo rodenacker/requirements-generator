@@ -3,7 +3,7 @@
   `framework/agents/design-system-styler/steps/step-06-artifact-generation.md`.
 
   Purpose: Self-contained HTML scaffold for the brand design-system doc.
-  `<!doctype html>` + inlined `<style>` + `<body>` — no external CSS/JS, and no
+  A doctype + inlined `<style>` + `<body>` — no external CSS/JS, and no
   CDN resource other than the brand webfont links described below.
   Viewable via `file://` in a browser; shareable with consultants without tooling.
 
@@ -986,8 +986,8 @@
     }
 
     /* --- components section base scaffold ------------------------------- */
-    /* Per-component CSS (.cv-btn, .cv-input, etc.) is injected into
-       {{COMPONENT_STYLES}} from the catalogue. Only the section-level
+    /* Per-component CSS (.cv-btn, .cv-input, etc.) is injected at the
+       COMPONENT_STYLES placeholder (end of this style block) from the catalogue. Only the section-level
        layout lives here, mirroring .shadow-grid / .contrast-grid. */
     section#components .components-intro {
       font-size: 12px;
