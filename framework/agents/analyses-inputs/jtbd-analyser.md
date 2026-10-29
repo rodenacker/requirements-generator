@@ -468,7 +468,7 @@ Before handing back, verify all of the following against the written artefact an
 - On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 - No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read. The sibling artefact at `generated-docs/analyse-requirements/JTBD/jtbd-job-map.html` was not read.
-- The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
+- The consultant has chosen Accept & use or Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
 
 ## Definition of Done
 

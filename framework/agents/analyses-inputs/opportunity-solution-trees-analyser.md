@@ -514,7 +514,7 @@ Before handing back, verify all of the following against the written artefact an
 - No occurrence of the literal string `[AI-SUGGESTED]` anywhere in the artefact.
 - No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
-- The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
+- The consultant has chosen Accept & use or Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
 - Every `*.analysis.md` manifest row is in the Skipped roster with reason `re-ingestion extract (derived, not a raw input)`, and no `[SRC: <name>.analysis.md]` appears anywhere in the artefact.
 - On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 

@@ -514,7 +514,7 @@
       <dt>Output shape</dt>
       <dd>A positive artefact — object map, theme map, task tree, journey card, state diagram, opportunity-solution tree — that another pipeline can consume as input.</dd>
       <dt>Consultant action</dt>
-      <dd>Copy the artefact into <code>documentation/</code> for re-ingestion by the next <code>/requirements</code> pass (for <code>/analyse-inputs</code>), or for <code>/analyse-requirement</code> — select it as an input to <code>/wireframe</code>.</dd>
+      <dd>Choose <strong>Accept &amp; use</strong> to write a compact re-ingestion extract into <code>documentation/</code> for the next <code>/requirements</code> pass (for <code>/analyse-inputs</code>), or for <code>/analyse-requirement</code> — select it as an input to <code>/wireframe</code>.</dd>
       <dt>Pick when</dt>
       <dd>You want to enrich the source with a structural lens (motivation, object model, process flow, sentiment journey) before drafting or designing — and you want that lens to flow forward as a positive contract.</dd>
       <dt>Examples</dt>
@@ -538,7 +538,7 @@
     </tr>
     <tr>
       <td><code>/analyse-inputs</code> · any methodology</td>
-      <td>Copy the derived artefact (theme map, task tree, OOUX object model, JTBD job map …) from <code>generated-docs/analyse-inputs/&lt;METHOD&gt;/</code> <strong>into <code>documentation/</code></strong> before running <code>/requirements</code>. Most analysers ship a re-ingestion block (YAML/JSON + Mermaid) that survives markitdown HTML → MD conversion.</td>
+      <td>At the end of each analysis choose <strong>Accept &amp; use</strong>: it writes a compact Markdown <strong>re-ingestion extract</strong> (<code>documentation/&lt;method&gt;.analysis.md</code>) that <code>/requirements</code> reads on its next run. Plain <strong>Accept</strong> keeps the analysis for reading only.</td>
     </tr>
     <tr>
       <td><code>/review-inputs</code> · any methodology</td>
@@ -701,7 +701,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs describe a goal-decomposition workflow — multi-step tasks with branches, iterations, and information requirements — and you want a numbered tree the drafter can ladder against.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html</code> — numbered goal / sub-goal / operation tree with mandatory Plans (sequence / selection / iteration / concurrent / discretionary) and per-terminal data-noun annotations. Embedded YAML structured tree.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy the HTML <strong>into <code>documentation/</code></strong>; the drafter's gap-pass treats the embedded YAML tree as a bijection target — Plans seed acceptance-criteria branches, information requirements hint at §7 Data entities.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Choose <strong>Accept &amp; use</strong> at the end of the run: it writes the re-ingestion extract into <code>documentation/</code>; the drafter's gap-pass treats the embedded YAML tree as a bijection target — Plans seed acceptance-criteria branches, information requirements hint at §7 Data entities.</div></div>
       </div>
 
       <div class="card opt">
@@ -710,7 +710,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs are heavy on qualitative material (interview notes, open-ended survey responses, stakeholder narratives) and you want to surface latent patterns before drafting.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>generated-docs/analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html</code> — codes, themes, theme-map (Mermaid), and a Candidate-Requirements bridge linking each theme to draftable scope.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; the drafter picks the candidate-requirement bridge up like any other source.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Choose <strong>Accept &amp; use</strong> at the end of the run: it writes the re-ingestion extract into <code>documentation/</code>; the drafter picks the candidate-requirement bridge up like any other source.</div></div>
       </div>
 
       <div class="card opt">
@@ -719,7 +719,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs name a desired outcome and you want to ladder it down through opportunities and solutions before the drafter commits to feature scope.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html</code> — four-layer discovery tree (Outcome → Opportunities → Solutions → Assumption-tests) with a Candidate-Requirements bridge.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; the drafter consumes the bridge section to seed scope. Use the assumption-tests to drive validation work in parallel.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Choose <strong>Accept &amp; use</strong> at the end of the run: it writes the re-ingestion extract into <code>documentation/</code>; the drafter consumes the bridge section to seed scope. Use the assumption-tests to drive validation work in parallel.</div></div>
       </div>
 
       <div class="card opt">
@@ -728,7 +728,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs describe an end-to-end user experience (one or more personas) and you need a concrete backbone for §5 task flows, §6 integration constraints, §4 NFRs, user stories, and priorities.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html</code> — one journey card per persona with phases, steps, touchpoints, channels, thoughts, emotion-curve SVG, pain-points, opportunities, moments of truth.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; HTML survives markitdown round-trip with <code>[SRC: &lt;filename&gt;]</code> citations intact so the drafter inherits the audit trail.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Choose <strong>Accept &amp; use</strong> at the end of the run: it writes the re-ingestion extract into <code>documentation/</code>; the extract keeps the <code>[SRC: &lt;filename&gt;]</code> citations, so the drafter inherits the audit trail.</div></div>
       </div>
 
       <div class="card opt">
@@ -737,7 +737,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want the requirements to anchor on user motivation rather than features — "when X, I want Y, so I can Z" — and you have raw inputs that imply jobs without naming them.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>generated-docs/analyse-inputs/JTBD/jtbd-job-map.html</code> — canonical statements, four forces (push / pull / anxiety / habit), 5×5 Ulwick opportunity matrix.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; the drafter cites jobs as positive scope and forces as design-influence context.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Choose <strong>Accept &amp; use</strong> at the end of the run: it writes the re-ingestion extract into <code>documentation/</code>; the drafter cites jobs as positive scope and forces as design-influence context.</div></div>
       </div>
 
       <div class="card opt">
@@ -746,7 +746,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>. Synonym merge across sources is the load-bearing Round 2.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs imply a domain object model (entities, relationships, CTAs) and you want it canonicalised — with conflicting names merged and provenance preserved — before the drafter commits to §7 Data.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>generated-docs/analyse-inputs/OOUX/ooux-object-map.html</code> — Mermaid <code>erDiagram</code>, OOUX sticky-note column-board, relationship matrix, and an embedded JSON object-map body block (load-bearing for drafter re-ingestion).</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; the JSON body and erDiagram both survive markitdown HTML → MD as fenced code so the drafter consumes the full object model in one shot.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Choose <strong>Accept &amp; use</strong> at the end of the run: it writes the re-ingestion extract into <code>documentation/</code>; the extract carries the full object model, so the drafter consumes it in one shot.</div></div>
       </div>
 
       <div class="card opt">
@@ -755,7 +755,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs describe multi-actor processes with handoffs (the "white space" between functional silos) and you want every lane-to-lane handoff classified — clean or one of four disconnect types.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html</code> — Mermaid <code>flowchart TD</code> per process with <code>subgraph</code> lanes, Actor inventory, Disconnect Register, embedded YAML model.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; the YAML model becomes a bijection target — processes → §5 task flows, handoffs → §6 integrations, decisions → acceptance-criteria branches, data-stores → §7 entities.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Choose <strong>Accept &amp; use</strong> at the end of the run: it writes the re-ingestion extract into <code>documentation/</code>; the YAML model becomes a bijection target — processes → §5 task flows, handoffs → §6 integrations, decisions → acceptance-criteria branches, data-stores → §7 entities.</div></div>
       </div>
 
       <div class="card opt">
@@ -764,7 +764,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs are a dense pile of atomic claims (interview snippets, sticky-notes, observations) and you want them clustered bottom-up into 4–8 super-themes without imposing a prior frame.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>generated-docs/analyse-inputs/AFFINITY-MAPPING/affinity-map.html</code> — Mermaid mindmap, cluster cards with stable/drifted confidence chips (Jaccard between two anti-anchoring passes), orphans table, optional tension flowchart, embedded JSON hierarchy.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; super-theme insight statements feed §1 vision anchors, clusters seed §5 task-flow groupings and acceptance-criteria threads, orphans feed §10 out-of-scope candidates, tensions feed trade-off-aware criteria.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Choose <strong>Accept &amp; use</strong> at the end of the run: it writes the re-ingestion extract into <code>documentation/</code>; super-theme insight statements feed §1 vision anchors, clusters seed §5 task-flow groupings and acceptance-criteria threads, orphans feed §10 out-of-scope candidates, tensions feed trade-off-aware criteria.</div></div>
       </div>
 
       <div class="card opt">

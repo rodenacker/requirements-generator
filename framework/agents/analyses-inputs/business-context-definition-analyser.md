@@ -432,7 +432,7 @@ Before handing back, verify all of the following against the written artefact an
 - Empty collections are reported via honest absence markers in Diagnostics and are **not** padded with invented items.
 - Every consumed manifest row is reflected in the Consumed roster (with candidate counts or an `irrelevant-to-business-context` reason); every skipped row is in the Skipped roster (Q7).
 - No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files was read. No file under `framework/state/` or `framework/shared/`, and no other analysis artefact (including USER-GOAL-ANALYSIS), was read.
-- The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, with Accept still required to declare done).
+- The consultant has chosen Accept & use or Accept in Step 12 (or the Step 10 Override path was taken, with Accept still required to declare done).
 - Every `*.analysis.md` manifest row is in the Skipped roster with reason `re-ingestion extract (derived, not a raw input)`, and no `[SRC: <name>.analysis.md]` appears anywhere in the artefact.
 - On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 

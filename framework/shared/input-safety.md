@@ -13,7 +13,7 @@ Files under `documentation/` are consultant-owned source material. No orchestrat
 - raw dropped source files of any format (`.md`, `.txt`, `.docx`, `.xlsx`, `.pptx`, `.pdf`, images, vectors, …);
 - the `*.stadium` pointer file and every path under a dropped Stadium 6 application folder (read-only to the extractor — `framework/agents/stadium-ingestor.md`);
 - `/resolve-review` outputs (`documentation/<stem>-<date>.md`, written additively — `framework/agents/resolve-review-drafter.md`);
-- any file the consultant hand-edited, including hand-edits to generated Stadium assets (`documentation/<AppName>.stadium-assets/*.md`) or to a `*.converted.md` sibling;
+- any file the consultant hand-edited, including hand-edits to generated Stadium assets (`documentation/<AppName>.stadium-assets/*.md`) or to a `*.converted.md` sibling (a hand-edited re-ingestion extract: see `IS-05`);
 - re-ingestion extracts (`documentation/*.analysis.md`) — except the guarded replace in `IS-05`.
 
 These are deleted only by the consultant, manually. This consolidates the guarantees already stated locally at `framework/agents/input-handler.md` (Anti-Patterns), `framework/orchestrators/requirements-orch.md` (reset), and `framework/agents/resolve-review-drafter.md` (Anti-Patterns).

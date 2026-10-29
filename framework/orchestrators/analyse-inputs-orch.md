@@ -94,7 +94,7 @@ The chosen analyser has handed control back when:
 
 - The artefact at `chosen.output_path` exists.
 - The agent's `verify-artifact-write` invocation in its write step returned `pass`.
-- The consultant has chosen `Accept` in the agent's accept/revise/restart loop.
+- The consultant has chosen `Accept & use` or `Accept` in the agent's accept/revise/restart loop.
 - Any agent-specific workspace cleanup (if defined) has been performed.
 
 If any of the above is not satisfied, do not declare done. Surface the agent's report to the consultant and let the agent continue or be re-invoked.

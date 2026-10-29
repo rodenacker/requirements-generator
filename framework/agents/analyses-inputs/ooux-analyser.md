@@ -457,7 +457,7 @@ Before handing back, verify all of the following against the written artefact an
 - No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - No file under `generated-docs/analyse-requirements/` was read (this is the inputs-side analyser; the requirements-side OOUX artefact is not an input).
-- The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
+- The consultant has chosen Accept & use or Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
 - Every `*.analysis.md` manifest row is in the Skipped roster with reason `re-ingestion extract (derived, not a raw input)`, and no `[SRC: <name>.analysis.md]` appears anywhere in the artefact.
 - On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 
