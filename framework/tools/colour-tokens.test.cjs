@@ -326,3 +326,68 @@ test('test_assign_achromatic_brand_chromatic_palette_no_invented_hue', () => {
   }
 });
 
+
+// ---------- real-use gate: a page pick the page never renders is dropped ----------
+
+// Standard Bank, 2026-10-27 run: colourWeights order is real, weights are illustrative.
+// Picks are Bootstrap 4's unthemed :root defaults, which never render on the page.
+const STANDARD_BANK = () => ({
+  candidates: [
+    { hex: '#0A2240', weight: 820 }, { hex: '#0062E1', weight: 410 },
+    { hex: '#0089FF', weight: 150 }, { hex: '#1A314D', weight: 95 },
+    { hex: '#00AD6C', weight: 60 }, { hex: '#0033A1', weight: 45 },
+  ],
+  picks: { primary: '#007BFF', secondary: '#868E96', accent: null },
+  pick_origins: { primary: 'page', secondary: 'page', accent: 'page' },
+  neutrals: { background: '#FFFFFF', surface: null, text: null, text_muted: null },
+  mode: 'light',
+});
+const withOrigins = (o) => ({ ...STANDARD_BANK(), pick_origins: { primary: o, secondary: o, accent: o } });
+const withPrimary = (hex) => ({ ...STANDARD_BANK(), picks: { ...STANDARD_BANK().picks, primary: hex } });
+
+test('test_unrendered_page_picks_rejected_and_cascade_fills', () => {
+  const out = assign(STANDARD_BANK());
+  assert.deepEqual(out.roles, { primary: '#0062E1', secondary: '#0089FF', accent: '#00AD6C' });
+  assert.equal(out.brand, '#0062E1');
+  assert.ok(out.decisions.includes('primary #007BFF rejected: not rendered on the page'), out.decisions.join('\n'));
+  assert.ok(out.decisions.includes('secondary #868E96 rejected: not rendered on the page'), out.decisions.join('\n'));
+});
+
+test('test_pdf_origin_is_exempt', () => {
+  assert.equal(assign(withOrigins('pdf')).roles.primary, '#007BFF');
+});
+
+test('test_alt_scheme_origin_is_exempt', () => {
+  assert.equal(assign(withOrigins('alt-scheme')).roles.primary, '#007BFF');
+});
+
+test('test_absent_pick_origins_is_exempt', () => {
+  const input = STANDARD_BANK();
+  delete input.pick_origins;
+  assert.equal(assign(input).roles.primary, '#007BFF');
+});
+
+test('test_near_match_within_tolerance_counts_as_rendered', () => {
+  const out = assign(withPrimary('#0062E3'));
+  assert.equal(out.roles.primary, '#0062E3');
+  assert.ok(!out.decisions.some((d) => d.startsWith('primary') && d.includes('not rendered')));
+});
+
+test('test_rendered_pick_below_usage_share_is_kept', () => {
+  assert.equal(assign(withPrimary('#0033A1')).roles.primary, '#0033A1');
+});
+
+test('test_unweighted_candidates_skip_the_gate', () => {
+  const input = STANDARD_BANK();
+  input.candidates = input.candidates.map((c) => ({ hex: c.hex, weight: null }));
+  assert.equal(assign(input).roles.primary, '#007BFF');
+});
+
+test('test_cli_bad_pick_origins_exits_2', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'colour-tokens-'));
+  const inPath = path.join(dir, 'in.json');
+  fs.writeFileSync(inPath, JSON.stringify({ ...STANDARD_BANK(), pick_origins: { primary: 'web' } }));
+  const r = spawnSync(process.execPath, [path.join(__dirname, 'colour-tokens.cjs'), 'assign', '--in', inPath, '--out', path.join(dir, 'out.json')], { encoding: 'utf8' });
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /pick_origins/);
+});

@@ -29,7 +29,12 @@
  * assign input:  { mode: "light"|"dark" (the hue-source mode, required),
  *                  candidates: [{hex, weight|null}], picks: {primary, secondary,
  *                  accent, brand?} (hex|null; a non-null brand is the brand),
+ *                  pick_origins?: {primary, secondary, accent} ("page"|"pdf"|
+ *                  "alt-scheme"; absent = exempt),
  *                  neutrals: {background, surface, text, text_muted} (hex|null) }
+ *   A "page" pick with no weighted candidate within PICK_MATCH_DE is dropped
+ *   (decision "<role> <hex> rejected: not rendered on the page") and the
+ *   cascade fills the role. PDF and alt-scheme picks are never rendered here.
  * assign output: { brand, monochrome, roles, options, status, neutrals (all
  *                  filled), filled: [neutral names taken from the ladder],
  *                  decisions }
@@ -45,6 +50,10 @@ const fs = require('node:fs');
 const RESERVED = { hueFrom: 345, hueTo: 95, minC: 0.07 };
 const NEUTRAL_C = 0.04;
 const USAGE_SHARE_MIN = 0.03;
+// A page pick counts as rendered when a weighted candidate sits within this
+// OKLab distance of it. Separates Bootstrap 4's #007BFF from a rendered #0089FF.
+const PICK_MATCH_DE = 0.02;
+const PICK_ORIGINS = ['page', 'pdf', 'alt-scheme'];
 const FILL_TARGET = 3.0;
 const LABEL_TARGET = 4.5;
 const TEXT_TARGET = 4.5;
@@ -155,6 +164,11 @@ function isReserved(hex) {
 
 const hueDist = (a, b) => { const d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; };
 const fmt = (hex) => { const o = hexToOklch(hex); return `H${Math.round(o.H)} C${o.C.toFixed(3)}`; };
+function deltaEOk(a, b) {
+  const lab = (hex) => { const { L, C, H } = hexToOklch(hex); const r = (H * Math.PI) / 180; return [L, C * Math.cos(r), C * Math.sin(r)]; };
+  const [p, q] = [lab(a), lab(b)];
+  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+}
 const same = (a, b) => typeof a === 'string' && typeof b === 'string' && a.toUpperCase() === b.toUpperCase();
 const up = (h) => (isHex(h) ? h.toUpperCase() : h);
 
@@ -195,6 +209,13 @@ function validateAssign(input) {
   requireHexMap(input.picks, ['primary', 'secondary', 'accent', 'brand'], 'picks', true);
   requireHexMap(input.neutrals, NEUTRAL_KEYS, 'neutrals', true);
   if (input.brand !== undefined && input.brand !== null && !isHex(input.brand)) throw new InputError('brand must be a #RRGGBB hex');
+  if (input.pick_origins !== undefined && input.pick_origins !== null) {
+    if (typeof input.pick_origins !== 'object') throw new InputError('pick_origins must be an object');
+    for (const k of ['primary', 'secondary', 'accent']) {
+      const o = input.pick_origins[k];
+      if (o !== undefined && o !== null && !PICK_ORIGINS.includes(o)) throw new InputError(`pick_origins.${k} must be one of ${PICK_ORIGINS.join(', ')}`);
+    }
+  }
   if (!input.picks.primary && input.candidates.length === 0) throw new InputError('need picks.primary or at least one candidate');
 }
 
@@ -241,6 +262,19 @@ function assign(input) {
   const total = cands.reduce((s, c) => s + (c.weight || 0), 0);
   const inUse = (c) => c.weight === null || total === 0 || c.weight / total >= USAGE_SHARE_MIN;
   const byWeight = [...cands].sort((a, b) => (b.weight || 0) - (a.weight || 0) || a.i - b.i);
+
+  // Real-use gate: a pick read from the page (not a PDF, not the site's other
+  // scheme) must be rendered there. Unweighted candidates carry no evidence.
+  const origins = input.pick_origins || {};
+  if (weighted) {
+    for (const role of ['primary', 'secondary', 'accent']) {
+      const pick = picks[role];
+      if (!pick || origins[role] !== 'page') continue;
+      if (cands.some((c) => c.weight > 0 && deltaEOk(c.hex, pick) <= PICK_MATCH_DE)) continue;
+      decisions.push(`${role} ${pick} rejected: not rendered on the page`);
+      picks[role] = null;
+    }
+  }
 
   // monochrome: no candidate and no pick carries colour. Every tint the helper
   // makes (neutral roles, neutral ladder, on-colour inks) is then pure grey.
@@ -496,8 +530,8 @@ function main(argv) {
 }
 
 module.exports = {
-  hexToOklch, oklchToHex, contrast, isReserved, assign, derive, measure, onColours, neutralLadder,
-  RESERVED, NEUTRAL_C, USAGE_SHARE_MIN, FILL_TARGET, LABEL_TARGET, TEXT_TARGET, HOUSE_STATUS,
+  hexToOklch, oklchToHex, contrast, isReserved, deltaEOk, assign, derive, measure, onColours, neutralLadder,
+  RESERVED, NEUTRAL_C, USAGE_SHARE_MIN, PICK_MATCH_DE, FILL_TARGET, LABEL_TARGET, TEXT_TARGET, HOUSE_STATUS,
 };
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
