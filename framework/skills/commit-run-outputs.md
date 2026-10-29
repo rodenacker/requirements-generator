@@ -17,8 +17,8 @@
 - `failed` — not a git repo, a staging error, a rejecting hook, or an unknown `pipeline`. The caller emits **one** plain-text warning line and continues.
 
 **Used by:** all thirteen orchestrators, at their success terminal only.
-- **Pattern A — single success terminal (9):** `framework/orchestrators/{requirements,generate-prd,design-system,export-application,wireframe,amend-requirements,resolve-review,ingest-stadium,prototype}-orch.md`.
-- **Pattern B — selection loop (4):** `framework/orchestrators/{analyse-requirement,analyse-inputs,review-requirement,review-inputs}-orch.md`, invoked **per accepted methodology** at the `✓ Ran {{chosen.name}}. Back to the menu.` line — not once at session exit.
+- **Pattern A — single success terminal (11):** `framework/orchestrators/{requirements,generate-prd,design-system,export-application,wireframe,amend-requirements,resolve-review,ingest-stadium,prototype,review-requirement,review-inputs}-orch.md`. (The two review pipelines end after one accepted review; they invoke the skill immediately before the review completion message.)
+- **Pattern B — selection loop (2):** `framework/orchestrators/{analyse-requirement,analyse-inputs}-orch.md`, invoked **per accepted methodology** at the `✓ Ran {{chosen.name}}. Back to the menu.` line — not once at session exit.
 
 ## Procedure
 
@@ -62,8 +62,8 @@ Notes on individual rows:
 - **† deletion-tracked** — a path whose deletion by the run is itself an output. Step 2 keeps it when `git status --porcelain` reports it as a tracked deletion (` D`); `git add <path>` then stages the removal, and the `--` pathspec commits it. Only the paths marked † get this treatment — every other absent path is still dropped.
 - **`design-system`** stages exactly the mode files the run actually wrote (`{{files_to_write}}`), never the pair unconditionally.
 - **The `[-N]` disambiguator** on the two dated-document rows is resolved by matching `documentation/amendments-<date>*.md` / `documentation/<stem>-<date>*.md` rather than by plumbing the exact suffix through a slot. A same-day file from an earlier run is already committed and therefore clean, so matching it is a no-op; the run's own new file is the only one that lands in the commit. Both patterns stay inside class 3 of the `documentation/` allow-list below.
-- **`<method_dir>`** is the **directory** containing the methodology's `output_path` (e.g. `generated-docs/analyse-requirements/<METHOD>/`), so the `<METHOD>.sidecar.json` written alongside is captured. The four loop pipelines stage **no run state** — they persist none (no `.progress.json`, no `timing.ndjson`, and `run_count` is in-memory only).
-- **The two `*-inputs` rows** name the manifest and the conversion siblings **unconditionally**, and the caller passes no first-iteration flag. Those paths carry a change only on the loop's first iteration, because the shared input-handler is once-per-session preflight; on every later iteration they are already clean and staging them is a no-op that adds nothing to the commit. Deriving the set from the `pipeline` name alone keeps the slot set closed and the behaviour deterministic.
+- **`<method_dir>`** is the **directory** containing the methodology's `output_path` (e.g. `generated-docs/analyse-requirements/<METHOD>/`), so the `<METHOD>.sidecar.json` written alongside is captured. The four methodology pipelines (two analyse, two review) stage **no run state** — they persist none (no `.progress.json`, no `timing.ndjson`; the analyse loops' `run_count` is in-memory only).
+- **The two `*-inputs` rows** name the manifest and the conversion siblings **unconditionally**, and the caller passes no first-iteration flag. Those paths carry a change only when the shared input-handler's at-most-once preflight wrote them in this invocation (for `/analyse-inputs`, the loop's first iteration); otherwise they are already clean and staging them is a no-op that adds nothing to the commit. Deriving the set from the `pipeline` name alone keeps the slot set closed and the behaviour deterministic.
 
 ## Self-validation
 
