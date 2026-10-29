@@ -65,14 +65,14 @@ The `/analyse-requirements/` pipeline ships a sibling methodology called `task-f
 1. **Different input source.** `task-flows` reads `generated-docs/requirements/requirements.md`; this analyser reads `generated-docs/requirements/source-manifest.json` + the raw `documentation/*` files it enumerates.
 2. **Different citation grammar.** `task-flows` uses `[SRC: C-NNN]` (claim IDs from the requirements pipeline's sidecar); this analyser uses `[SRC: <filename>]` (manifest row `filename` field).
 3. **Different methodological emphasis.** `task-flows` pairs HTA with a Task-Flow Diagram for visual narrative; this analyser pairs HTA with an SGT-derived information layer for downstream requirements drafting.
-4. **Different downstream contract.** `task-flows` is read by consultants and downstream design-spec authors; this analyser's primary downstream consumer is the `/requirements` drafter (after the consultant copies the HTML output into `documentation/` and re-runs `/requirements`).
+4. **Different downstream contract.** `task-flows` is read by consultants and downstream design-spec authors; this analyser's primary downstream consumer is the `/requirements` drafter (through the re-ingestion extract that **Accept & use** writes into `documentation/`).
 
 The two are complementary; consultants commonly run this one before `/requirements` and the other after.
 
 ### F. Why this analyser uses HTML + embedded YAML
 
 - **Visual hierarchy.** HTA trees beyond three levels degrade quickly in raw indented markdown; HTML's nested `<ol>` + `<details>` + Plan-type badges + colour cues are markedly easier to scan. Sibling `journey-mapping` is the input-side HTML precedent.
-- **Re-ingestible structure.** The artefact's primary downstream use is as a re-fed input to `/requirements`. The consultant copies `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` into `documentation/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts it to `documentation/task-analysis.html.converted.md`, and the drafter reads the converted markdown via the manifest. **`<pre><code class="language-yaml">` blocks survive markitdown's HTML→MD conversion as fenced code** — so the structured tree is rendered into a `<pre><code>` block (not a `<script type="application/json">` block, which markitdown strips). The visual tree is rendered separately as nested `<ol>` / `<details>`. The double render is deliberate.
+- **Re-ingestible structure.** The artefact's primary downstream use is as a re-fed input to `/requirements`. The consultant chooses **Accept & use** at the handback, and `framework/skills/write-reingestion-extract.md` writes the structured tree as a compact Markdown re-ingestion extract (`documentation/task-analysis.analysis.md`) that the drafter reads via the manifest. The HTML itself is never fed back. The tree still lives in a `<pre><code class="language-yaml">` block (never a `<script>` block), and the visual tree is rendered separately as nested `<ol>` / `<details>`. The double render is deliberate.
 - **Self-contained.** Inline `<style>`, no external CSS / JS / fonts / CDN. Network-isolated; browsable via `file://`; shareable as a single attachment.
 
 ---
@@ -373,7 +373,7 @@ The `map-task-analysis-from-inputs-to-ui.md` skill is a stub at MVP — the cano
 
 The trailing **Next steps** banner in the artefact instructs the consultant:
 
-> *"To use this artefact as additional input for `/requirements`, copy this file into `documentation/` (e.g. `documentation/task-analysis.html`) and re-run `/requirements`. The input-handler will classify it as `Supported-via-MCP`, markitdown will convert it to `documentation/task-analysis.html.converted.md` (preserving the structured YAML block as fenced code), and the drafter will consume it via the refreshed manifest. The YAML structured tree becomes a bijection target for `/requirements`'s completeness gap pass; the Plans table seeds acceptance-criteria branches; the information-requirements table hints at `§7 Data entities`; any `[AI-SUGGESTED: AI-NNN | blocking]` gaps flow into the resolver as consultant questions."*
+> *"To use this artefact as an input to `/requirements`, choose Accept & use: it writes a compact `documentation/task-analysis.analysis.md` that the drafter reads via the refreshed manifest. The YAML structured tree becomes a bijection target for `/requirements`'s completeness gap pass; the Plans table seeds acceptance-criteria branches; the information-requirements table hints at `§7 Data entities`; any `[AI-SUGGESTED: AI-NNN | blocking]` gaps flow into the resolver as consultant questions."*
 
 The analyser does **not** auto-copy. The consultant copies manually.
 

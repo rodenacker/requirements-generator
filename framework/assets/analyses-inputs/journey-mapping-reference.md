@@ -4,7 +4,7 @@
 
 > **Method:** Walk every consumable source enumerated in `generated-docs/requirements/source-manifest.json`. For each named actor surfaced in the inputs, build one current-state journey map of the as-is workflow described in the briefs / decks / interview notes / screenshots — phases (3–6), steps per phase (3–8, user-as-subject verb phrases), touchpoints, channels, thoughts (verbatim quotes only), emotions (proxy-derived, −2…+2 scale), pain points, backstage systems, opportunities, and moments of truth. Render the artefact as self-contained HTML at `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` with **diagrams-first ordering** — a compact overview, then one `<article class="diagram-block">` per persona (inline SVG emotion curve + CSS-grid swim-lane table) stacked in the `#diagrams` gallery, then narrative bridges + moments-of-truth in `#narratives`, then collapsed diagnostics. Every non-empty cell carries one `[SRC: <filename>]` or `[STANDARD-RULE: GR-NN]` marker naming a manifest row's `filename` field (basename + extension). Coverage gaps surface as `[GAP-NO-EVIDENCE]` notes inside the diagnostics block — **never** as fabricated cells. Across re-runs the artefact is **additive**: prior journey cards, swim-lane cell contents, bridges, and moments-of-truth are preserved; new manifest content extends them.
 
-**Output file:** `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — self-contained HTML (inline `<style>`, inline SVG, no external JS, no CDN, no remote font). Mirrors the precedent set by `generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. Re-ingestible into `documentation/` for `/requirements` consumption: HTML classifies as `Markitdown-text` tier and converts cleanly to Markdown while preserving the inline `[SRC: <filename>]` markers (the audit trail end-to-end is the load-bearing reason for the marker discipline).
+**Output file:** `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — self-contained HTML (inline `<style>`, inline SVG, no external JS, no CDN, no remote font). Mirrors the precedent set by `generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. Fed back to `/requirements` through its **re-ingestion extract** (see **Re-ingestion extract model** below), which keeps the inline `[SRC: <filename>]` markers (the audit trail end-to-end is the load-bearing reason for the marker discipline).
 
 **Analyser agent:** `framework/agents/analyses-inputs/journey-mapping-analyser.md`
 
@@ -49,7 +49,7 @@ Same column shape, different source material at different pipeline stages, diffe
 - **Stakeholder-presentable** as-is via `file://` — consultants and PMs can open it in a browser without a Mermaid runtime, the same way they open `generated-docs/analyse-requirements/USER-JOURNEYS/user-journeys-map.html`.
 - **Higher diagram fidelity.** Inline SVG renders the true −2…+2 emotion scale with negative-territory gridlines (Mermaid's `journey` chart is locked to 1–5 integers); CSS-grid swim-lane tables give deterministic column-per-phase × row-per-lane layout with text wrapping, accessibility, and hover states (Mermaid `flowchart LR` with `subgraph` swim-lanes can look cramped or overflow with 5+ lanes).
 - **No `mmdc` dependency at write-time** — diagrams are inline SVG and HTML, so no Mermaid validator call, no install-instruction halt, fewer failure modes.
-- **Round-trip safe.** The drafter reads HTML through markitdown, which preserves text content (including inline `[SRC: <filename>]` markers) while collapsing visual fidelity — exactly the trade-off this pipeline wants (visuals for consultants, text for `/requirements`).
+- **Round-trip safe.** The HTML is for consultants; `/requirements` reads the Markdown re-ingestion extract that **Accept & use** writes — text with the inline `[SRC: <filename>]` markers, no visual chrome. Visuals for consultants, text for `/requirements`.
 
 ---
 
@@ -417,9 +417,44 @@ The analyser does not author requirements; the downstream mapping documents how 
 | **Sentiment curve** | Prioritisation signal — low-sentiment phases get higher requirements-drafting priority |
 | **Moments of truth** | Reliability + observability requirements (P0 priority annotation; these touchpoints must not fail silently) |
 
-When the consultant re-drops `journey-mapping.html` into `documentation/`, the drafter reads it as a `Markitdown-text`-tier source. The drafter's claim-citation traces *through* the journey map to the original brief filenames via the `[SRC: <filename>]` markers preserved through markitdown conversion. The audit trail is end-to-end.
+When the consultant chooses **Accept & use**, `framework/skills/write-reingestion-extract.md` writes `documentation/journey-mapping.analysis.md` from the model below, and the next `/requirements` run reads it as a `Native-text` input. The drafter's claim-citation traces *through* the extract to the original brief filenames via its `[SRC: <filename>]` markers. The audit trail is end-to-end.
 
 `framework/skills/map-journey-mapping-from-inputs-to-ui.md` is a stub at MVP — the mapping is documented here for the analyser's character file and for future downstream design-spec authors.
+
+## Re-ingestion extract model
+
+The `model` the analyser passes to `framework/skills/write-reingestion-extract.md` on **Accept & use**. Journey mapping has no machine-readable body block, so the model is defined here, built from the final in-memory journey cards after every Revise. Field order is the render order; the lane fields mirror the swim-lane table's rows, one value per phase cell.
+
+```
+{
+  personas: [
+    {
+      id,                 // persona_id (UJ-PNN)
+      name,               // verbatim from the inputs
+      role_description,
+      scenario,           // the named workflow this journey covers
+      source_filenames,   // rendered as [SRC: <filename>] by the skill
+      phases: [
+        {
+          id,             // phase_id (UJ-PNN-Pn)
+          label,
+          steps,          // the Actions lane: one string per step, "<step text> [SRC: <filename>]"
+          touchpoints,    // each lane cell carried verbatim, inline [SRC: <filename>] markers included
+          channels,
+          backstage,
+          thoughts,
+          emotion,        // the sentiment cell, proxy and [SRC] included
+          pain_points,
+          opportunities,
+          moment_of_truth // the stake-language or sentiment-drop reason; omitted when the phase is not one
+        }
+      ]
+    }
+  ]
+}
+```
+
+Every `[SRC: <filename>]` string here must also appear in the rendered journey atlas, or the skill's self-check fails.
 
 ---
 

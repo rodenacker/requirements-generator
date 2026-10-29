@@ -10,10 +10,9 @@
 
   Self-contained: `<!doctype html>` + inlined `<style>` + `<body>`. No
   external CSS / JS dependencies; viewable by opening `file://` in a
-  browser; shareable with clients without tooling. Re-ingestible into
-  `documentation/` for the `/requirements` drafter via markitdown conversion —
-  inline [SRC: <filename>] markers are plain text inside cell content
-  and survive the round-trip cleanly.
+  browser; shareable with clients without tooling. Re-ingestion into `/requirements` goes through the Markdown re-ingestion
+  extract that Accept & use writes, not through this HTML; inline
+  [SRC: <filename>] markers are plain text inside cell content.
 
   Section order (top-to-bottom):
     0. In plain terms (id="plain-terms")    — {{PLAIN_SUMMARY}}: a short human-

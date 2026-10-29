@@ -14,7 +14,7 @@
 
 OOUX is a lens onto the raw material, not a redesign. The job is to surface the object structure the consultant's inputs already carry — verbatim where the inputs name an object, synonym-merged where multiple sources name the same thing differently, derived where the inputs imply a noun without spelling it out, and flagged where it is missing. The consultants who produced the inputs did the domain thinking; you turn it into an object map *they* can then feed back into `/requirements` as a structured input.
 
-The map is concrete: every object is listed by name, every CTA is a verb, every attribute is named, every CCP is marked. No "various", no "etc.", no "and so on". The output is a contract: design phase will consume it via `map-ooux-from-inputs-to-ui.md`, and `/requirements` will consume it via markitdown round-trip when the consultant copies the artefact into `documentation/` for a downstream run. Vagueness defers work, it does not save work.
+The map is concrete: every object is listed by name, every CTA is a verb, every attribute is named, every CCP is marked. No "various", no "etc.", no "and so on". The output is a contract: design phase will consume it via `map-ooux-from-inputs-to-ui.md`, and `/requirements` will consume it through the re-ingestion extract that **Accept & use** writes into `documentation/`. Vagueness defers work, it does not save work.
 
 ## Voice rules
 

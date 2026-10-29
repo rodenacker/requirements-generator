@@ -27,7 +27,7 @@ The methodology is **current-state only.** This map describes the world as the i
 
 ## Reader & plain language
 
-This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `documentation/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (through the re-ingestion extract that **Accept & use** writes into `documentation/`). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
 
 - **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this journey map is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
 - **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "journey (the path a user takes to reach a goal)", "stage or phase (a named chunk of that path)", "touchpoint (where the user interacts with the system or service)", "pain point (a frustration or friction named in the inputs)", "emotion curve (a line showing sentiment across phases on a −2…+2 scale)", "moment of truth (a phase where stakes are highest or sentiment drops sharply)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.

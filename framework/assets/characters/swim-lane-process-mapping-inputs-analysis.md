@@ -27,7 +27,7 @@ The methodology is **multi-actor, not single-actor.** A journey map follows one 
 
 ## Reader & plain language
 
-This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `documentation/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (through the re-ingestion extract that **Accept & use** writes into `documentation/`). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
 
 - **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
 - **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. swim lane (a row showing who does each step), actor/role (the person or system responsible for a lane), process step (an atomic action in the flow), handoff (a lane-crossing transfer of control between actors), decision point (a branching step with guard conditions), and any swim-lane-specific term. **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
@@ -182,7 +182,7 @@ The artefact's downstream consumers are **two-fold**:
 
 1. **The consultant** — directly via the visible Disconnect Register. Every non-`clean` row carries a `suggested_question` the consultant brings to the next elicitation conversation (or back to the original source author). Closing disconnects before `/requirements` runs prevents fabricated integration requirements downstream.
 
-2. **The `/requirements` drafter** — secondarily via re-ingestion. The consultant copies `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` into `documentation/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts the HTML to `documentation/swim-lane-process-mapping.html.converted.md` (the `<pre><code class="language-yaml">` structured block survives as a fenced code block; the Mermaid `<pre class="mermaid">` blocks survive as plain `<pre>` blocks with Mermaid source legible to the drafter; the tables become markdown tables), and the drafter consumes the converted markdown via the refreshed manifest.
+2. **The `/requirements` drafter** — secondarily via re-ingestion. On **Accept & use**, `framework/skills/write-reingestion-extract.md` writes the structured process model as a compact Markdown re-ingestion extract, `documentation/swim-lane-process-mapping.analysis.md`, and the drafter reads it via the refreshed manifest.
 
 The discipline:
 

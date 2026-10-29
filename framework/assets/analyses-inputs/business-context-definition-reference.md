@@ -401,10 +401,10 @@ Emitted into `<pre><code class="language-json" id="bcd-body">`. Survives markitd
 
 The Business Context Definition report is **re-ingestible by `/requirements`** as a fresh source. The contract (consultant-driven, not automated):
 
-1. Consultant copies `generated-docs/analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` into `documentation/`.
-2. Consultant re-invokes `/requirements` (or `/analyse-inputs`, `/review-inputs`, `/generate-prd`).
-3. The shared `framework/agents/input-handler.md` detects the new file, surfaces the manifest-refresh prompt, classifies it via `framework/skills/classify-input-tier.md` as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff), and adds it as a manifest row.
-4. The `/requirements` drafter reads the report:
+1. At the Step 12 handback the consultant chooses **Accept & use**. `framework/skills/write-reingestion-extract.md` renders the body model to Markdown and writes `documentation/business-context-definition.analysis.md` (guarded overwrite: `IS-05`).
+2. Consultant re-invokes `/requirements` (or `/generate-prd`, or `/review-inputs`).
+3. The shared `framework/agents/input-handler.md` detects the new file, surfaces the manifest-refresh prompt, classifies it `Native-text`, and adds it as a manifest row. `/analyse-inputs` itself never reads it back (`write-reingestion-extract.md > Extract rows in /analyse-inputs`).
+4. The `/requirements` drafter reads the extract:
    - **Explicit Goals / Objectives / Needs** (`[SRC]`) seed the **strategic framing** — the business-context / objectives front-matter that justifies *why* each requirement exists. The `causal_links` seed traceability (requirement → goal → need → problem).
    - **Problem Statements (#4)** seed the scope / solution-exploration framing.
    - **Inferred items** (`[AI-SUGGESTED: AI-NN | blocking|non-blocking]`) surface to the **resolver as `AI-NNN` questions in the existing grammar**. `blocking: true` items (inferred root causes, inferred root goals, abductive explanations) become **mandatory confirmations** the consultant accepts/rejects before they can frame a requirement; `blocking: false` items become non-blocking suggestions. This is the safety loop: **AI inference at analyse time → consultant validation at requirements time.** It reuses the existing `AI-NNN` namespace and blocking grammar — no new machinery.

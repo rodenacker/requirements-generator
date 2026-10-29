@@ -50,7 +50,7 @@ The methodology has six rounds (per the reference); the workflow has twelve step
 | **Round 6 — CCPs** | Step 9 | Per object: mark 2–5 attributes as CCPs, ordered (primary first) |
 | (operational) | Step 10 — Validate (8 hard gates) | Methodology gates 1–7 + inputs-side Gate 8 (every consumed row contributes ≥ 1 noun or is marked irrelevant-to-domain) |
 | (operational) | Step 11 — Render + write + verify | Template substitution; SHA-256; Write; verify-artifact-write |
-| (operational) | Step 12 — Handback | Accept / Revise / Restart loop |
+| (operational) | Step 12 — Handback | Accept & use / Accept / Revise / Restart loop; Accept & use writes the re-ingestion extract |
 
 The in-memory `model` (objects + relationships + CTAs + attributes + CCPs + synonym-merge-log + irrelevant-row-log) is **closed** at the end of Round 6 (Step 9). Steps 10–11 must not add objects, relationships, CTAs, attributes, CCPs, or merges; they only validate and render.
 
@@ -68,7 +68,7 @@ This agent reads:
 
 The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry and general-rule references in this file and in the reference are textual links, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` or `generated-docs/analyse-inputs/<OTHER-METHOD>/`.
 
-The agent's only outputs are `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/analyse-inputs/OOUX/ooux-object-map.html`, the inline summary it surfaces to the consultant, and — only on the Step 12 `Accept & use` choice — the re-ingestion extract `documentation/ooux.analysis.md` plus its staged copy `generated-docs/analyse-inputs/OOUX/ooux.analysis.md`, both written by `framework/skills/write-reingestion-extract.md` under `IS-05`.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -88,13 +88,13 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block, the body JSON, and the drift cursor.
 - Parse the manifest. Capture `target` field if present (`prototype` | `application`); else default to `"(not declared in manifest)"`.
-- Iterate rows; for each row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
+- Iterate rows. First apply the extract-row skip in `framework/skills/write-reingestion-extract.md > Extract rows in /analyse-inputs`: a `*.analysis.md` row goes to `skipped_rows` unread. For every other row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already contains a faithful transcription plus a structured what/how breakdown that enumerates the OOUX-relevant items: objects, their attributes, relationships and cardinality, plus actors and CTAs. Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. **Visual sources can be high-leverage for OOUX** — ERD diagrams, domain model sketches, and whiteboard photos often carry explicit entity names and relationships that prose lacks, and the frozen description surfaces them as enumerated text.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is skipped (Unsupported or a re-ingestion extract). Add at least one raw input to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_sha256 = <first 12 chars>…`, target = prototype). 4 consumable rows: `brief.docx` (Supported-via-MCP), `domain-model.png` (Native-multimodal), `interview-notes.md` (Native-text), `entities.yaml` (Native-text). 1 skipped row: `proposal.pages` (Unsupported)."*
@@ -354,7 +354,7 @@ Compose the full HTML in memory by substituting all placeholders into the templa
 - **On `pass`:** advance to Step 12.
 - **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` after one retry."* and fail handback.
 
-### Step 12 — Handback (Accept / Revise / Restart)
+### Step 12 — Handback (Accept & use / Accept / Revise / Restart)
 
 **A. Summary in Unicorn voice.**
 
@@ -370,23 +370,24 @@ Variants:
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–6 re-run from scratch on the current manifest; {n_preserved} prior canonical names preserved through re-extraction, {n_dropped} dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior objects preserved verbatim; only new content from new manifest rows was appended this run."*
 - If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to extend the object map."*
-- Always append: *"To re-ingest into `/requirements`, copy `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` into `documentation/` and re-run `/requirements` — instructions are in the Next-steps banner of the artefact."*
 
 **B. Accept / Revise / Restart loop.**
 
 Use `AskUserQuestion`:
 
-- Question: *"Accept the OOUX object map, request specific changes, or restart?"*
+- Question: *"Accept the OOUX object map and use it as an input to /requirements, accept it only, request specific changes, or restart?"*
 - Header: `Accept?`
 - multiSelect: false
-- Options:
-  1. `Accept — hand back to orchestrator (Recommended)`
-  2. `Revise — change specific entries`
-  3. `Restart — re-run from Round 1`
+- Options, in this order:
+  1. `Accept & use — write the extract into documentation/ (Recommended)`
+  2. `Accept — hand back to orchestrator`
+  3. `Revise — change specific entries`
+  4. `Restart — re-run from Round 1`
 
 **Branches:**
 
-- **Accept** — declare done; hand back to the orchestrator.
+- **Accept & use** — invoke `framework/skills/write-reingestion-extract.md` with `method_name: "ooux"`, `method_title: "OOUX Object Map"`, `artefact_path: "generated-docs/analyse-inputs/OOUX/ooux-object-map.html"`, `model` = the object serialised into the artefact's `<pre><code class="language-json">` body block (after every Revise), `run_count`, and `manifest_fingerprint` (Step 2). On `written`: emit *"Wrote `documentation/ooux.analysis.md` — the re-ingestion extract. The next `/requirements` or `/generate-prd` run reads it as an input; the `[SRC: <filename>]` markers in it keep the audit trail back to the original inputs."* On `kept`: emit *"Kept your edited `documentation/ooux.analysis.md`; the new extract was not written."* Either way, then continue as the **Accept** branch below, without its stale-extract line. On `self-check failed: <reason>`: surface *"Re-ingestion extract self-check failed: `<reason>`. Nothing was written to `documentation/`."* and loop back to the prompt. On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified` — emit *"Aborting to protect your work — write verification failed for the re-ingestion extract after one retry."* and fail handback.
+- **Accept** — if `documentation/ooux.analysis.md` exists, emit the stale-extract line in `framework/skills/write-reingestion-extract.md > Stale extract on plain Accept`; declare done; hand back to the orchestrator.
 - **Revise** — accept the consultant's revision instructions in their next message:
   - **Reject a synonym merge** ("`Client` is distinct from `Customer` — separate them"): split the merge; reassign provenance markers; re-run gates 1, 4, 6; re-render (the column-board adds a column); re-Write; re-verify; loop back to A.
   - **Confirm an inferred object** ("`Wishlist` is real — interview-notes.md line 42 says 'customers maintain a wishlist'"): flip provenance from `inferred-from-<filename>` to `from-source-<filename>`; drop from the diagnostics' inferred list; re-render; re-Write; re-verify; loop back to A.
@@ -398,7 +399,7 @@ Use `AskUserQuestion`:
   - **Add an Override note** for a previously-failed gate: append to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
 - **Restart** — re-enter Step 4 (Round 1). The previously-written `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` is left in place; the next Step 11 will overwrite it.
 
-The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 11).
+The loop continues until the consultant chooses Accept & use or Accept (or hand-back fails on an RF-04 — Revise-introduced per Step 11, or from the extract write).
 
 **C. Hand back.**
 
@@ -415,18 +416,20 @@ Output the final handback line:
 - `framework/assets/analyses-inputs/ooux-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/analyses-inputs/template-ooux.html` — the HTML scaffold. Read once at render time in Step 11.
 - `framework/skills/verify-artifact-write.md` — invoked in Step 11 sub-step D.
+- `framework/skills/write-reingestion-extract.md` — the extract-row skip (Step 2), the Step 12 `Accept & use` write, and the stale-extract line.
 
 ## Output
 
 - `generated-docs/analyse-inputs/OOUX/ooux-object-map.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior objects / relationships / CTAs / attributes / CCPs preserved verbatim unless the consultant chose the `re-extract` drift branch).
+- `documentation/ooux.analysis.md` + its staged copy `generated-docs/analyse-inputs/OOUX/ooux.analysis.md` — the re-ingestion extract, written only on `Accept & use`, by `framework/skills/write-reingestion-extract.md` (overwrite guard: `IS-05`).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file, and (if present) the prior OOUX artefact. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
-- `Write` — write `generated-docs/analyse-inputs/OOUX/ooux-object-map.html`.
+- `Write` — write `generated-docs/analyse-inputs/OOUX/ooux-object-map.html`; on `Accept & use`, the two extract files via `framework/skills/write-reingestion-extract.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not `Edit` the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p generated-docs/analyse-inputs/OOUX` (Step 11 setup). On Windows-only environments, use the PowerShell `New-Item` equivalent.
-- `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta-block is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-gate failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
+- `Bash` — `mkdir -p generated-docs/analyse-inputs/OOUX` (Step 11 setup). On Windows-only environments, use the PowerShell `New-Item` equivalent. Also the extract guard's SHA-256 comparison (`Get-FileHash` / `sha256sum`) owned by `framework/skills/write-reingestion-extract.md`.
+- `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta-block is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-gate failure prompt (Revise / Override / Restart); surface the Step 12 Accept & use / Accept / Revise / Restart prompt, and the skill's `Extract` (Keep mine / Replace) prompt.
 
 **No MCP tools.** No Agent / Task delegation. Every step runs in the foreground in this thread.
 
@@ -455,6 +458,8 @@ Before handing back, verify all of the following against the written artefact an
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - No file under `generated-docs/analyse-requirements/` was read (this is the inputs-side analyser; the requirements-side OOUX artefact is not an input).
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
+- Every `*.analysis.md` manifest row is in the Skipped roster with reason `re-ingestion extract (derived, not a raw input)`, and no `[SRC: <name>.analysis.md]` appears anywhere in the artefact.
+- On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 
 ## Definition of Done
 
@@ -465,6 +470,7 @@ Before handing back, verify all of the following against the written artefact an
 - Additive-merge contract honoured: every prior-run object is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract` drift branch).
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.
+- The handback offered Accept & use, and on that choice the re-ingestion extract was written (or the consultant's edited one kept).
 
 ## Anti-Patterns
 
@@ -483,3 +489,5 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not bundle external JS / CSS / CDN / fonts.** The artefact is self-contained — inline `<style>`, no `<script>` beyond the metadata block, no fonts, no external resources. `file://` openable, network-isolated, no console errors.
 - **Do not paste the artefact body into the conversation.** The file is on disk; the consultant opens it in a browser via `file://`.
 - **Do not use the Agent or Task tool to delegate any step.** All work runs in the foreground in this thread. No MCP tools authorised.
+- **Do not drop or reorder the Accept & use option.** It is how the analysis reaches `/requirements`; the Step 12 prompt is the discoverability surface.
+- **Do not write the extract yourself, or read a `*.analysis.md` row as an input.** The extract's render, guard and writes belong to `framework/skills/write-reingestion-extract.md`; extract rows are skipped in Step 2 so the analysis never cites its own derived view.

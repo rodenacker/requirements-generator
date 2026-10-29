@@ -587,14 +587,14 @@
 
     <section id="body" class="body-wrap" aria-label="Machine-readable goal model">
       <h2 class="section-title">Machine-readable model</h2>
-      <p class="section-caption">The full goal model in JSON — the re-ingestion contract that survives a markitdown HTML&rarr;MD round-trip as a fenced code block.</p>
+      <p class="section-caption">The full goal model in JSON — the same model <strong>Accept &amp; use</strong> renders into the Markdown re-ingestion extract.</p>
       <pre class="body-json"><code class="language-json" id="user-goal-analysis-body">{{BODY_JSON}}</code></pre>
     </section>
 
     <details class="downstream-toggle">
       <summary>For downstream use — re-ingesting this register into /requirements</summary>
       <div class="downstream-note">
-        <p><strong>Use this register as input to <code>/requirements</code>:</strong> copy this file into <code>documentation/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it as a <code>Native-text</code> row. The drafter then seeds <code>&sect;4 User goals &amp; stories</code> from the <strong>explicit</strong> goals, while the <strong>inferred</strong> goals surface to the resolver as <code>AI-NNN</code> questions — <em>blocking</em> ones as mandatory confirmations, <em>non-blocking</em> ones as suggestions — so you validate every inference before it becomes a requirement. The <code>[SRC: <em>&lt;filename&gt;</em>]</code> anchors preserve the audit trail back to the original briefs / notes / decks.</p>
+        <p><strong>Use this register as input to <code>/requirements</code>:</strong> choose <strong>Accept &amp; use</strong> at the end of the run: it writes a compact <code>documentation/user-goal-analysis.analysis.md</code> for <code>/requirements</code> to read. The drafter then seeds <code>&sect;4 User goals &amp; stories</code> from the <strong>explicit</strong> goals, while the <strong>inferred</strong> goals surface to the resolver as <code>AI-NNN</code> questions — <em>blocking</em> ones as mandatory confirmations, <em>non-blocking</em> ones as suggestions — so you validate every inference before it becomes a requirement. The <code>[SRC: <em>&lt;filename&gt;</em>]</code> anchors preserve the audit trail back to the original briefs / notes / decks.</p>
       </div>
     </details>
 

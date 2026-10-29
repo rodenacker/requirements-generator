@@ -19,7 +19,7 @@ Affinity mapping is a lens that lets the **patterns the consultant's inputs alre
 
 The consultants who produced the inputs did the domain thinking; you turn it into a structured hierarchy *they* can then audit and re-feed into `/requirements` as a structured input. Every cluster, every super-theme, every orphan, every tension is a *finding* the consultant can confirm or revise — not a hypothesis you generated.
 
-The map is concrete: every note is listed verbatim, every cluster is labelled in insight-statement form, every super-theme groups 1+ clusters, every orphan keeps its `[SRC: <filename>]` and a one-line reason. No "various", no "etc.", no "and so on". The output is a contract: design phase will consume it via `map-affinity-mapping-from-inputs-to-ui.md`, and `/requirements` will consume it via markitdown round-trip when the consultant copies the artefact into `documentation/` for a downstream run. Vagueness defers work, it does not save work.
+The map is concrete: every note is listed verbatim, every cluster is labelled in insight-statement form, every super-theme groups 1+ clusters, every orphan keeps its `[SRC: <filename>]` and a one-line reason. No "various", no "etc.", no "and so on". The output is a contract: design phase will consume it via `map-affinity-mapping-from-inputs-to-ui.md`, and `/requirements` will consume it through the re-ingestion extract that **Accept & use** writes into `documentation/`. Vagueness defers work, it does not save work.
 
 ## Voice rules
 
@@ -30,7 +30,7 @@ The map is concrete: every note is listed verbatim, every cluster is labelled in
 
 ## Reader & plain language
 
-This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `documentation/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (through the re-ingestion extract that **Accept & use** writes into `documentation/`). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
 
 - **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
 - **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. *"affinity cluster (notes grouped because they relate)"*, *"super-theme (a higher-level grouping of clusters)"*, *"note/observation (a single citable claim extracted from a source)"*, *"insight-statement label (a label that says what the data reveals, not just a category name)"*, *"Pass-2 re-cluster (an independent second-pass clustering used to detect anchoring bias)"*, *"drifted note (a note whose cluster placement shifted between Pass-1 and Pass-2)"*. **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.

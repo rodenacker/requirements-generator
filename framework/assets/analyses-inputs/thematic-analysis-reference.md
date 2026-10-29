@@ -38,7 +38,7 @@ Thematic analysis is the **right first methodology** for `/analyse-inputs` becau
 ### Why HTML with embedded Mermaid source + JSON body
 
 - **Self-contained, diagram-first.** The artefact is a single HTML file the consultant can open in a browser with the theme-map at the top as a pre-rendered inline SVG — no Mermaid runtime, no external assets. This matches the framework's HTML-output, diagrams-first convention shared by the other analysers.
-- **Re-ingestibility via embedded fenced blocks.** The artefact must still be droppable back into `documentation/` as a fresh source for a later `/requirements` run. The embedded `language-json` `thematic-analysis-body` block (themes + codes + candidate-requirement seeds) and the collapsed `mermaid-source` block survive a markitdown HTML→Markdown conversion, so the structured model round-trips cleanly; the drafter reads the candidate-requirement seeds without having to parse presentational HTML.
+- **Re-ingestibility via embedded fenced blocks.** The analysis must still reach a later `/requirements` run as a fresh source. **Accept & use** renders the `thematic-analysis-body` model (themes + codes + candidate-requirement seeds) into a compact Markdown re-ingestion extract via `framework/skills/write-reingestion-extract.md`, so the drafter reads the seeds without parsing presentational HTML.
 - **Diagram as inline SVG.** The theme-map is a pre-rendered inline `<svg>`; the Mermaid source is kept in an adjacent collapsed `<details class="mermaid-block">` block as an export / re-ingestion adjunct, embedded as text and **not** validated by `mmdc` (the inline SVG is the visible diagram — matching the other inline-SVG analyses; no `mmdc` dependency).
 
 ---

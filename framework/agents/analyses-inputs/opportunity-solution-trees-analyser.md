@@ -64,7 +64,7 @@ The Torres OST six-stage discipline (Outcome → Opportunities → Solutions →
 | **Round 6 — Bridge + diagnostics** | Step 9 | Per-Opportunity candidate-requirement seeds; coverage-diagnostics population |
 | (operational) | Step 10 — Validate + Render + SHA-256 | 6 hard gates, in-memory HTML render (template substitution + pre-rendered layered SVG tree diagram), sha256 |
 | (operational) | Step 11 — Write + verify-artifact-write | Write the artefact; verify; RF-04 on mismatch |
-| (operational) | Step 12 — Handback | Accept / Revise / Restart loop |
+| (operational) | Step 12 — Handback | Accept & use / Accept / Revise / Restart loop; Accept & use writes the re-ingestion extract |
 
 `final_tree` is **closed** at the end of Step 8. Step 9 sub-step A (Bridge) must not add nodes; Step 9 sub-step B (Diagnostics) emits flags from already-laddered state.
 
@@ -83,7 +83,7 @@ The agent reads **nothing else under `generated-docs/requirements/`** — not `g
 
 OST inputs-side populates the HTML template `framework/assets/analyses-inputs/template-opportunity-solution-trees.html` by `{{PLACEHOLDER}}` substitution; it pre-renders the layered SVG tree diagram (one `<svg class="tree-svg">`; nodes + edges in one coordinate space) in the `#diagrams` section and keeps the `graph TD` Mermaid source as an adjacent collapsed export `<details>`. No client-side Mermaid runtime, no CDN, no external CSS/JS.
 
-The agent's only outputs are `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`, the inline summary it surfaces to the consultant, and — only on the Step 12 `Accept & use` choice — the re-ingestion extract `documentation/opportunity-solution-trees.analysis.md` plus its staged copy `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-trees.analysis.md`, both written by `framework/skills/write-reingestion-extract.md` under `IS-05`.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -102,12 +102,12 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 ### Step 2 — Read manifest & per-tier file ingest
 
 - `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's header line and the cursor field.
-- Parse the manifest. Iterate rows; for each row, apply the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path`; skip `Unsupported`):
+- Parse the manifest. Iterate rows. First apply the extract-row skip in `framework/skills/write-reingestion-extract.md > Extract rows in /analyse-inputs`: a `*.analysis.md` row goes to `skipped_rows` unread. For every other row, apply the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. The description already carries a faithful transcription plus a structured what/how breakdown (objects, fields, relationships, actors, tasks, flows, states, business rules, advisory IA/layout/styling), so it supplies the outcome / opportunity / solution / assumption-test signals this analyser extracts. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with the structured error: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported` or a re-ingestion extract), halt with: *"Every manifest row is skipped (Unsupported or a re-ingestion extract). Add at least one raw input to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `documentation/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading the frozen description `documentation/whiteboard-photo.png.converted.md`), `workshop-notes.md` (Native-text), `interview-transcript.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
@@ -406,7 +406,7 @@ The SHA-256 computed at the end of Sub-step B is final — the tree diagram is a
 - **On `pass`:** advance to Step 12 (Handback).
 - **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` after one retry."* and fail handback. The orchestrator does not declare done.
 
-### Step 12 — Handback (Accept / Revise / Restart)
+### Step 12 — Handback (Accept & use / Accept / Revise / Restart)
 
 **A. Summary in Unicorn voice.**
 
@@ -430,17 +430,19 @@ Variants:
 
 Use `AskUserQuestion`:
 
-- Question: *"Accept the opportunity solution tree, request specific changes, or restart?"*
+- Question: *"Accept the opportunity solution tree and use it as an input to /requirements, accept it only, request specific changes, or restart?"*
 - Header: `Accept?`
 - multiSelect: false
-- Options:
-  1. `Accept — hand back to orchestrator (Recommended)`
-  2. `Revise — change specific entries`
-  3. `Restart — re-run from Round 1`
+- Options, in this order:
+  1. `Accept & use — write the extract into documentation/ (Recommended)`
+  2. `Accept — hand back to orchestrator`
+  3. `Revise — change specific entries`
+  4. `Restart — re-run from Round 1`
 
 **Branches:**
 
-- **Accept** — declare done; hand back to the orchestrator.
+- **Accept & use** — invoke `framework/skills/write-reingestion-extract.md` with `method_name: "opportunity-solution-trees"`, `method_title: "Opportunity Solution Tree"`, `artefact_path: "generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html"`, `model` = the object serialised into the artefact's `<pre><code class="language-json">` body block (after every Revise), `run_count`, and `manifest_fingerprint` (Step 2). On `written`: emit *"Wrote `documentation/opportunity-solution-trees.analysis.md` — the re-ingestion extract. The next `/requirements` or `/generate-prd` run reads it as an input; the `[SRC: <filename>]` markers in it keep the audit trail back to the original inputs."* On `kept`: emit *"Kept your edited `documentation/opportunity-solution-trees.analysis.md`; the new extract was not written."* Either way, then continue as the **Accept** branch below, without its stale-extract line. On `self-check failed: <reason>`: surface *"Re-ingestion extract self-check failed: `<reason>`. Nothing was written to `documentation/`."* and loop back to the prompt. On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified` — emit *"Aborting to protect your work — write verification failed for the re-ingestion extract after one retry."* and fail handback.
+- **Accept** — if `documentation/opportunity-solution-trees.analysis.md` exists, emit the stale-extract line in `framework/skills/write-reingestion-extract.md > Stale extract on plain Accept`; declare done; hand back to the orchestrator.
 - **Revise** — accept the consultant's revision instructions in their next message. Apply the changes:
   - **Re-pick primary outcome** ("promote `Out-2` to primary"): swap `Out-1` ↔ `Out-2`, re-ladder every Opportunity against the new primary's measurement clause (re-run Step 8 A only), regenerate candidate-requirements (re-run Step 9 sub-A), re-render, re-Write, re-verify; loop back to A.
   - **Drop an Opportunity** ("drop `Op-7`"): remove from `final_tree`, re-ladder its Solutions (orphan or re-attach), re-run Step 9 (bridge + diagnostics), re-render, re-Write, re-verify; loop back to A.
@@ -450,7 +452,7 @@ Use `AskUserQuestion`:
   - **Add an Override note** for a previously-failed gate: append the note to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
 - **Restart** — re-enter Step 4 (Round 1). The previously-written `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` is left in place; the next Step 11 will overwrite it.
 
-The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10 / Step 11).
+The loop continues until the consultant chooses Accept & use or Accept (or hand-back fails on an RF-04 — Revise-introduced per Step 10 / Step 11, or from the extract write).
 
 **C. Hand back.**
 
@@ -469,18 +471,20 @@ Output the final handback line:
 - `framework/skills/render-layered-tree-svg.md` — the canonical layered-tree SVG layout skill (deterministic centred rows, single `viewBox`, vertical-S cubic edges). Read on demand at Step 10B Sub-step B to compute the tree diagram. (`framework/skills/verify-artifact-write.md` is likewise read on demand at Step 11.)
 
 **Template asset.** OST inputs-side populates `framework/assets/analyses-inputs/template-opportunity-solution-trees.html` (the registry's `template_asset`) by `{{PLACEHOLDER}}` substitution; it pre-renders the layered SVG tree diagram (one `<svg class="tree-svg">`; nodes + edges in one `viewBox` coordinate space) in the `#diagrams` section and keeps the `graph TD` Mermaid source as an adjacent collapsed export `<details>`. Self-contained HTML: one inline `<style>`, no external CSS/JS, no CDN, no `<script>` behaviour, no client-side Mermaid runtime.
+- `framework/skills/write-reingestion-extract.md` — the extract-row skip (Step 2), the Step 12 `Accept & use` write, and the stale-extract line.
 
 ## Output
 
 - `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior tree nodes + the JSON body model + candidate-requirement lines preserved verbatim unless the consultant chose the `re-extract-everything` drift branch).
+- `documentation/opportunity-solution-trees.analysis.md` + its staged copy `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-trees.analysis.md` — the re-ingestion extract, written only on `Accept & use`, by `framework/skills/write-reingestion-extract.md` (overwrite guard: `IS-05`).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the HTML template scaffold (`framework/assets/analyses-inputs/template-opportunity-solution-trees.html`), the manifest, each manifest-enumerated source file (via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path`), and (if present) the prior OST artefact, plus the skills it invokes (`framework/skills/render-layered-tree-svg.md` at Step 10B and `framework/skills/verify-artifact-write.md` at Step 11). **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`.
+- `Write` — write `generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`; on `Accept & use`, the two extract files via `framework/skills/write-reingestion-extract.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` / `PowerShell` — `mkdir -p generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES` (POSIX) or `New-Item -ItemType Directory -Force generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES` (Windows) at Step 11 setup. No other shell usage; no `mmdc` invocation.
-- `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta header is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 4 multi-outcome primary picker; surface the Step 10 quality-check failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
+- `Bash` / `PowerShell` — `mkdir -p generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES` (POSIX) or `New-Item -ItemType Directory -Force generated-docs/analyse-inputs/OPPORTUNITY-SOLUTION-TREES` (Windows) at Step 11 setup. No other shell usage; no `mmdc` invocation. Also the extract guard's SHA-256 comparison (`Get-FileHash` / `sha256sum`) owned by `framework/skills/write-reingestion-extract.md`.
+- `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta header is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 4 multi-outcome primary picker; surface the Step 10 quality-check failure prompt (Revise / Override / Restart); surface the Step 12 Accept & use / Accept / Revise / Restart prompt, and the skill's `Extract` (Keep mine / Replace) prompt.
 
 The tree diagram is a pre-rendered self-contained inline SVG composed by the analyser (nodes + edges in one coordinate space); the Mermaid source is embedded as an unvalidated export adjunct. There is no `mmdc` / Mermaid-render dependency.
 
@@ -511,6 +515,8 @@ Before handing back, verify all of the following against the written artefact an
 - No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
+- Every `*.analysis.md` manifest row is in the Skipped roster with reason `re-ingestion extract (derived, not a raw input)`, and no `[SRC: <name>.analysis.md]` appears anywhere in the artefact.
+- On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 
 ## Definition of Done
 
@@ -520,6 +526,7 @@ Before handing back, verify all of the following against the written artefact an
 - Additive-merge contract honoured: every prior-run Outcome / Opportunity / Solution / Assumption Test is present in the new artefact (unless the consultant explicitly dropped it via Revise, or the `re-extract-everything` drift branch re-extracted it away with a run-history note).
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.
+- The handback offered Accept & use, and on that choice the re-ingestion extract was written (or the consultant's edited one kept).
 
 ## Anti-Patterns
 
@@ -548,3 +555,5 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not edit the CSS scaffolding in the template.** Substitute only the `{{PLACEHOLDER}}` blocks in `framework/assets/analyses-inputs/template-opportunity-solution-trees.html`; the fixed `<style>` chrome is owned by the template and must not be rewritten by the analyser.
 - **Do not render the Mermaid source in-page.** The visible diagram is the pre-rendered layered SVG tree diagram (one `<svg class="tree-svg">`); the Mermaid `graph TD` source lives only in the collapsed `details.mermaid-block` as an export / re-ingestion adjunct (no `mermaid` CSS class on a live block, no runtime to render it).
 - **Do not auto-reconcile contradictions.** When Step 8 sub-step E flags a contradiction pair, render it in the `#coverage` Contradictions column and let the consultant decide via interview / re-elicitation. The analyser does not pick a winner.
+- **Do not drop or reorder the Accept & use option.** It is how the analysis reaches `/requirements`; the Step 12 prompt is the discoverability surface.
+- **Do not write the extract yourself, or read a `*.analysis.md` row as an input.** The extract's render, guard and writes belong to `framework/skills/write-reingestion-extract.md`; extract rows are skipped in Step 2 so the analysis never cites its own derived view.

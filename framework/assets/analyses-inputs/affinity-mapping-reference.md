@@ -51,7 +51,7 @@ Affinity mapping is the right tool when the corpus is messy enough that the cons
 
 ### Why an HTML artefact with embedded JSON, not pure Markdown
 
-- **Re-ingestibility into `/requirements`.** The full hierarchy survives markitdown HTML→MD as a fenced ` ```json ` code block inside `<pre><code class="language-json">`, so the drafter consumes the complete cluster + super-theme + orphan + tension model in one shot when the consultant copies the artefact into `documentation/`.
+- **Re-ingestibility into `/requirements`.** **Accept & use** renders the full hierarchy (the `affinity-map-body` model) into a compact Markdown re-ingestion extract via `framework/skills/write-reingestion-extract.md`, so the drafter consumes the complete cluster + super-theme + orphan + tension model in one shot.
 - **Diagram-first ordering.** The pre-rendered inline-SVG mindmap lives immediately after the overview (with the `mindmap` source as a collapsed export adjunct beneath it); consultants reviewing the artefact via `file://` see the rendered hierarchical synthesis first, full notes second — no external tooling required.
 - **Conditional secondary diagram.** A second inline-SVG directed graph (with its `flowchart TD` source as a collapsed export adjunct) surfaces cross-cluster tensions only when they exist; a deterministic "no tensions" copy keeps the section header structurally present.
 

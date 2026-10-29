@@ -21,7 +21,7 @@ The rendered artefact is laid out top-to-bottom as:
 6. **Gaps and inferred nodes** (`<section id="gaps">`) — two sub-lists: blocking, non-blocking. (Disconnects already classified in §4; this section classifies inferred nodes / lanes / payloads.)
 7. **Diagnostics** (`<details id="diagnostics">`) — collapsed by default; 9 gate-result lines, source roster (Consumed + Skipped tables), per-process diagram-validity (svg-overlap) results, run history.
 8. **Next steps** (`<section class="next-steps">`) — instructions to bring open disconnects to the next consultant conversation (the primary elicitation value).
-9. **Downstream-use footer** (`<details class="downstream-toggle">`, collapsed) — copy-into-`documentation/` pathway instructions for `/requirements` re-ingestion (markitdown round-trip, YAML survival, Mermaid source survival).
+9. **Downstream-use footer** (`<details class="downstream-toggle">`, collapsed) — Accept & use pathway instructions for `/requirements` re-ingestion.
 
 Section order lives in `framework/assets/analyses-inputs/template-swim-lane-process-mapping.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
 
@@ -42,7 +42,7 @@ The methodology has eight rounds (per the reference); the workflow has twelve st
 | **Round 6 — Gap classification** | Step 9 | Every `inferred: true` node / lane / payload → blocking/non-blocking with AI-NNN ids |
 | **Round 7 — Self-validate** | Step 10 | 9 hard gates + 4 structural integrity checks; per-process diagram validity deferred to Step 11 |
 | **Round 8 — Render + write + verify** | Step 11 | Compute per-process swim-lane SVG geometry; emit `flowchart TD` Mermaid export adjuncts; template substitution; SHA-256; Write; verify-artifact-write; svg-overlap-check |
-| (operational) | Step 12 — Handback | Accept / Revise / Restart loop |
+| (operational) | Step 12 — Handback | Accept & use / Accept / Revise / Restart loop; Accept & use writes the re-ingestion extract |
 
 The in-memory `model` (every process, actor, step, handoff, disconnect, gap entry) is **closed** at the end of Round 6 (Step 9). Steps 10–11 must not add processes, steps, handoffs, or disconnects; they only validate and render.
 
@@ -61,7 +61,7 @@ This agent reads:
 
 The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry and general-rules references in this file and the reference are textual links, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` or `generated-docs/analyse-inputs/<OTHER-METHOD>/`.
 
-The agent's only outputs are `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html`, the inline summary it surfaces to the consultant, and — only on the Step 12 `Accept & use` choice — the re-ingestion extract `documentation/swim-lane-process-mapping.analysis.md` plus its staged copy `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.analysis.md`, both written by `framework/skills/write-reingestion-extract.md` under `IS-05`.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -81,13 +81,13 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block and the drift cursor.
 - Parse the manifest. Capture `target` field if present (`prototype` | `application`); else default to `"(not declared in manifest)"`.
-- Iterate rows; for each row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
+- Iterate rows. First apply the extract-row skip in `framework/skills/write-reingestion-extract.md > Extract rows in /analyse-inputs`: a `*.analysis.md` row goes to `skipped_rows` unread. For every other row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already enumerates the swim-lane-relevant material it depicts: actors / lanes, process steps, handoffs and their trigger events, decision branches, and the payloads that cross lane boundaries. Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. **Process diagrams, BPMN sketches, whiteboard photos, flowcharts are high-leverage sources for this analyser** — they often carry explicit handoff structure the prose lacks, and the frozen description surfaces it as text: numbered steps, arrow directions, role labels on lanes, branch labels on decision points, swim-lane partition boundaries, and message annotations on edges are all transcribed and structured.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is skipped (Unsupported or a re-ingestion extract). Add at least one raw input to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_sha256 = <first 12 chars>…`, target = prototype). 4 consumable rows: `brief.docx` (Supported-via-MCP), `process-whiteboard.png` (Native-multimodal — process diagram), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported)."*
@@ -408,7 +408,7 @@ Every consultant-supplied string is **HTML-escaped** before injection (`<`, `>`,
 
 **Substitutions:**
 
-- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this swim-lane process mapping analysis is (Rummler-Brache cross-functional process map + Disconnect Register), what it found (number of processes, actors, handoffs, and how many disconnects require follow-up), and what the consultant should do with it (work through the non-`clean` disconnect rows; copy into `documentation/` to feed `/requirements`). A faithful condensation of the rendered body — introduces no fact, count, or citation not already present; carries no `[SRC]` of its own. Methodology jargon glossed at first use (swim lane, actor/role, handoff, disconnect); client domain terms NOT glossed. HTML-escaped.
+- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this swim-lane process mapping analysis is (Rummler-Brache cross-functional process map + Disconnect Register), what it found (number of processes, actors, handoffs, and how many disconnects require follow-up), and what the consultant should do with it (work through the non-`clean` disconnect rows; choose Accept & use to feed `/requirements`). A faithful condensation of the rendered body — introduces no fact, count, or citation not already present; carries no `[SRC]` of its own. Methodology jargon glossed at first use (swim lane, actor/role, handoff, disconnect); client domain terms NOT glossed. HTML-escaped.
 - `{{TITLE}}` — *"Swim-Lane Process Mapping — `<domain>`"* if a domain string is available, else *"Swim-Lane Process Mapping"*.
 - `{{DOMAIN}}` — verbatim from manifest meta if present, else *"(not declared in manifest)"*.
 - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -451,7 +451,7 @@ Compose the full HTML in memory (with all substitutions applied and Mermaid vali
   - On `fail` (`total > 0`): finalise `gate_9_status: overlap-warning`; record one diagnostics layout-warning line per overlap (template *"SVG overlap — `<kind>` in process `<figure_id>`: `<a_class>` ↔ `<b_class>`"*), then re-render + re-Write + re-verify **once** so the warning lands in the artefact, and advance to Step 12. The Disconnect Register + Steps/Decisions tables + YAML model are the canonical deliverables; the swim-lane SVG is an additive visual and the Mermaid export is the clean fallback — an overlap is a recorded warning, not a halt. Do not re-run the overlap check (no reflow loop).
 - **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` after one retry."* and fail handback.
 
-### Step 12 — Handback (Accept / Revise / Restart)
+### Step 12 — Handback (Accept & use / Accept / Revise / Restart)
 
 **A. Summary in Unicorn voice.**
 
@@ -467,23 +467,25 @@ Variants:
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–7 re-run from scratch on the current manifest; {n_preserved} prior ids preserved through re-extraction, {n_dropped} dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior processes preserved verbatim; only new content from new manifest rows was appended this run."*
 - If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to extend the process map additively."*
-- Always append: *"To use this artefact for elicitation, work through the Disconnect Register's non-`clean` rows. To re-ingest into `/requirements`, copy `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` into `documentation/` and re-run `/requirements` — instructions are in the Next-steps banner."*
+- Always append: *"To use this artefact for elicitation, work through the Disconnect Register's non-`clean` rows."*
 
 **B. Accept / Revise / Restart loop.**
 
 Use `AskUserQuestion`:
 
-- Question: *"Accept the swim-lane process map, request specific changes, or restart?"*
+- Question: *"Accept the swim-lane process map and use it as an input to /requirements, accept it only, request specific changes, or restart?"*
 - Header: `Accept?`
 - multiSelect: false
-- Options:
-  1. `Accept — hand back to orchestrator (Recommended)`
-  2. `Revise — change specific entries`
-  3. `Restart — re-run from Round 1`
+- Options, in this order:
+  1. `Accept & use — write the extract into documentation/ (Recommended)`
+  2. `Accept — hand back to orchestrator`
+  3. `Revise — change specific entries`
+  4. `Restart — re-run from Round 1`
 
 **Branches:**
 
-- **Accept** — declare done; hand back to the orchestrator.
+- **Accept & use** — invoke `framework/skills/write-reingestion-extract.md` with `method_name: "swim-lane-process-mapping"`, `method_title: "Swim-Lane Process Map"`, `artefact_path: "generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html"`, `model` = the tree object serialised into the artefact's `<pre><code class="language-yaml">` block (after every Revise), `run_count`, and `manifest_fingerprint` (Step 2). On `written`: emit *"Wrote `documentation/swim-lane-process-mapping.analysis.md` — the re-ingestion extract. The next `/requirements` or `/generate-prd` run reads it as an input; the `[SRC: <filename>]` markers in it keep the audit trail back to the original inputs."* On `kept`: emit *"Kept your edited `documentation/swim-lane-process-mapping.analysis.md`; the new extract was not written."* Either way, then continue as the **Accept** branch below, without its stale-extract line. On `self-check failed: <reason>`: surface *"Re-ingestion extract self-check failed: `<reason>`. Nothing was written to `documentation/`."* and loop back to the prompt. On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified` — emit *"Aborting to protect your work — write verification failed for the re-ingestion extract after one retry."* and fail handback.
+- **Accept** — if `documentation/swim-lane-process-mapping.analysis.md` exists, emit the stale-extract line in `framework/skills/write-reingestion-extract.md > Stale extract on plain Accept`; declare done; hand back to the orchestrator.
 - **Revise** — accept the consultant's revision instructions in their next message:
   - **Drop a process** ("drop `resolve-dispute`"): remove the process + its actors / steps / handoffs / disconnects from the model; re-run gates 1, 3; re-render; re-Write; re-verify; loop back to A.
   - **Close a disconnect** ("DC-002 is clean — finance polls a status queue, that's in slack-export.md line 47"): update the disconnect's `category` to `clean`, `consultant_follow_up: no`, append the new `[SRC: <filename>]` citation; re-render; re-Write; re-verify; loop back to A.
@@ -494,7 +496,7 @@ Use `AskUserQuestion`:
   - **Add an Override note** for a previously-failed gate: append to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
 - **Restart** — re-enter Step 4 (Round 1). The previously-written `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` is left in place; the next Step 11 will overwrite it.
 
-The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 11).
+The loop continues until the consultant chooses Accept & use or Accept (or hand-back fails on an RF-04 — Revise-introduced per Step 11, or from the extract write).
 
 **C. Hand back.**
 
@@ -512,19 +514,21 @@ Output the final handback line:
 - `framework/assets/analyses-inputs/template-swim-lane-process-mapping.html` — the HTML scaffold. Read once at render time in Step 11.
 - `framework/skills/verify-artifact-write.md` — invoked once in Step 11 sub-step E.
 - `framework/skills/svg-overlap-check.md` — invoked in Step 11 sub-step E (after verify-artifact-write `pass`).
+- `framework/skills/write-reingestion-extract.md` — the extract-row skip (Step 2), the Step 12 `Accept & use` write, and the stale-extract line.
 
 ## Output
 
 - `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior processes / actors / handoffs / disconnects preserved verbatim unless the consultant chose the `re-extract` drift branch).
 - Transient: `/tmp/sw-lane-vd/svg-overlap.ndjson` (the `svg-overlap-check` report) during Step 11 sub-step E. Not part of the deliverable.
+- `documentation/swim-lane-process-mapping.analysis.md` + its staged copy `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.analysis.md` — the re-ingestion extract, written only on `Accept & use`, by `framework/skills/write-reingestion-extract.md` (overwrite guard: `IS-05`).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file, and (if present) the prior swim-lane-process-mapping artefact. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
-- `Write` — write `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html`. Also write the transient Mermaid source files under `/tmp/sw-lane-vd/`.
+- `Write` — write `generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html`; on `Accept & use`, the two extract files via `framework/skills/write-reingestion-extract.md`. Also write the transient Mermaid source files under `/tmp/sw-lane-vd/`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not `Edit` the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING /tmp/sw-lane-vd` (Step 11 setup; the scratch dir holds the `svg-overlap-check` report). On Windows-only environments, use the PowerShell `New-Item` equivalent. No `mmdc` / Mermaid-render dependency — the diagrams are pre-rendered inline SVG.
-- `AskUserQuestion` — surface the Step 4 multi-process disambiguation prompt (only if > 5 candidates); surface the Step 3 prior-run reconciliation prompt (only if the prior meta-block is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-gate failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
+- `Bash` — `mkdir -p generated-docs/analyse-inputs/SWIM-LANE-PROCESS-MAPPING /tmp/sw-lane-vd` (Step 11 setup; the scratch dir holds the `svg-overlap-check` report). On Windows-only environments, use the PowerShell `New-Item` equivalent. No `mmdc` / Mermaid-render dependency — the diagrams are pre-rendered inline SVG. Also the extract guard's SHA-256 comparison (`Get-FileHash` / `sha256sum`) owned by `framework/skills/write-reingestion-extract.md`.
+- `AskUserQuestion` — surface the Step 4 multi-process disambiguation prompt (only if > 5 candidates); surface the Step 3 prior-run reconciliation prompt (only if the prior meta-block is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-gate failure prompt (Revise / Override / Restart); surface the Step 12 Accept & use / Accept / Revise / Restart prompt, and the skill's `Extract` (Keep mine / Replace) prompt.
 
 **No MCP tools.** No Agent / Task delegation. Every step runs in the foreground in this thread. The per-process swim-lane diagrams are pre-rendered inline SVG by the analyser directly — no `mmdc`, no Mermaid runtime, no external rendering pipeline.
 
@@ -551,6 +555,8 @@ Before handing back, verify all of the following against the written artefact an
 - No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
+- Every `*.analysis.md` manifest row is in the Skipped roster with reason `re-ingestion extract (derived, not a raw input)`, and no `[SRC: <name>.analysis.md]` appears anywhere in the artefact.
+- On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 
 ## Definition of Done
 
@@ -561,6 +567,7 @@ Before handing back, verify all of the following against the written artefact an
 - Additive-merge contract honoured: every prior-run process is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract` drift branch).
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.
+- The handback offered Accept & use, and on that choice the re-ingestion extract was written (or the consultant's edited one kept).
 
 ## Anti-Patterns
 
@@ -582,3 +589,5 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not bundle external JS / CSS / CDN / fonts.** The artefact is self-contained — inline `<style>`, no `<script>` beyond the metadata block, no fonts, no external resources. `file://` openable, network-isolated, no console errors. The swim-lane diagrams are pre-rendered inline `<svg>`; the Mermaid source is embedded as copy-paste text inside `<pre>`.
 - **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective swim-lane process map propagates fabricated processes / actors / disconnects into requirements seeds — the worst failure mode for this analyser.
 - **Do not edit the HTML template scaffold.** Only the documented `{{placeholders}}` are substituted; CSS classes, layout, and colour variables are fixed.
+- **Do not drop or reorder the Accept & use option.** It is how the analysis reaches `/requirements`; the Step 12 prompt is the discoverability surface.
+- **Do not write the extract yourself, or read a `*.analysis.md` row as an input.** The extract's render, guard and writes belong to `framework/skills/write-reingestion-extract.md`; extract rows are skipped in Step 2 so the analysis never cites its own derived view.

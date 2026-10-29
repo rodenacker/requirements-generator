@@ -24,7 +24,7 @@ This is **not** an opportunity to imagine what the stakeholders "probably also w
 
 ## Reader & plain language
 
-This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `documentation/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (through the re-ingestion extract that **Accept & use** writes into `documentation/`). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
 
 - **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
 - **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "user goal (what the user is trying to achieve)", "goal level (high-level vs sub-goal)", "actor/persona (a role or person whose goals are surfaced)", "success criterion (the measure or satisficing threshold attached to a goal)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.

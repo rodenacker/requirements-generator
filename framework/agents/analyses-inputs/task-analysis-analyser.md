@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **t
 
 ## Purpose
 
-Produce `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` — a self-contained HTML5 Hierarchical Task Analysis (Annett & Duncan 1967; Stanton 2006) of the user goal(s) the raw consultant inputs evidence, augmented with a Sub-Goal Template-derived per-terminal information layer (Ormerod & Shepherd 2004) — by applying the task-analysis reference (`framework/assets/analyses-inputs/task-analysis-reference.md`) literally and exhaustively to the consumable files enumerated in `generated-docs/requirements/source-manifest.json`. The artefact has **eight sections in order**: a compact overview header, per-goal summary blocks, a visual nested `<ol>` / `<details>` tree with Plan-type badges, a `<pre><code class="language-yaml">` machine-readable structured tree (the downstream `/requirements` re-ingestion contract — markitdown preserves `<pre><code>` blocks as fenced code when the consultant copies the HTML into `documentation/`), a Plans table, an Information-requirements table, a Gaps section listing every inferred node and every silent-Plan branch with blocking/non-blocking classification, and a collapsed diagnostics block. A trailing **Next steps** banner instructs the consultant how to feed the artefact back into `/requirements`. Every node, every Plan, every information-requirement entry carries either `[SRC: <filename>]` (matching a manifest row) or `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (inferred non-terminals + inferred Plans only). **Inferred terminal operations are forbidden** (Diaper & Stanton 2004 anti-confabulation rule). **Missing-coordination branches escalate through a three-tier process and never silently default to `sequence`** (Stanton 2006 — Plans are "the most important and most often neglected component of HTA"). Every quality check in the reference is a hard gate.
+Produce `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` — a self-contained HTML5 Hierarchical Task Analysis (Annett & Duncan 1967; Stanton 2006) of the user goal(s) the raw consultant inputs evidence, augmented with a Sub-Goal Template-derived per-terminal information layer (Ormerod & Shepherd 2004) — by applying the task-analysis reference (`framework/assets/analyses-inputs/task-analysis-reference.md`) literally and exhaustively to the consumable files enumerated in `generated-docs/requirements/source-manifest.json`. The artefact has **eight sections in order**: a compact overview header, per-goal summary blocks, a visual nested `<ol>` / `<details>` tree with Plan-type badges, a `<pre><code class="language-yaml">` machine-readable structured tree (the downstream `/requirements` re-ingestion contract — Accept & use renders it into the Markdown re-ingestion extract), a Plans table, an Information-requirements table, a Gaps section listing every inferred node and every silent-Plan branch with blocking/non-blocking classification, and a collapsed diagnostics block. A trailing **Next steps** banner instructs the consultant how to feed the artefact back into `/requirements`. Every node, every Plan, every information-requirement entry carries either `[SRC: <filename>]` (matching a manifest row) or `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (inferred non-terminals + inferred Plans only). **Inferred terminal operations are forbidden** (Diaper & Stanton 2004 anti-confabulation rule). **Missing-coordination branches escalate through a three-tier process and never silently default to `sequence`** (Stanton 2006 — Plans are "the most important and most often neglected component of HTA"). Every quality check in the reference is a hard gate.
 
 ## Output section order
 
@@ -21,7 +21,7 @@ The rendered artefact is laid out top-to-bottom as:
 6. **Information requirements table** (`<section id="information-table">`) — `<table class="info-table">` listing every terminal operation's data nouns × direction × sources.
 7. **Gaps and inferred nodes** (`<section id="gaps">`) — three sub-lists: blocking, non-blocking, silent-Plan branches.
 8. **Diagnostics** (`<details id="diagnostics">`) — collapsed by default; gate results, source roster, run history.
-9. **Next steps** (`<section class="next-steps">`) — brief guidance to copy the file into `documentation/` and re-run `/requirements`.
+9. **Next steps** (`<section class="next-steps">`) — brief guidance to choose Accept & use and re-run `/requirements`.
 10. **Downstream use** (`<details class="downstream-toggle">`) — collapsed by default; full re-ingestion / markitdown mechanics for downstream `/requirements` consumption.
 
 Section order lives in `framework/assets/analyses-inputs/template-task-analysis.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
@@ -43,7 +43,7 @@ The methodology has eight rounds (per the reference); the workflow has twelve st
 | **Round 6 — Gap classification** | Step 9 | Inferred nodes + silent-Plan branches → blocking/non-blocking with AI-NNN ids |
 | **Round 7 — Self-validate** | Step 10 | 8 hard gates + 4 structural integrity checks |
 | **Round 8 — Render + write + verify** | Step 11 | Template substitution; SHA-256; Write; verify-artifact-write |
-| (operational) | Step 12 — Handback | Accept / Revise / Restart loop |
+| (operational) | Step 12 — Handback | Accept & use / Accept / Revise / Restart loop; Accept & use writes the re-ingestion extract |
 
 The in-memory `tree` (the list of every node, every Plan, every information_required entry) is **closed** at the end of Round 6 (Step 9). Steps 10–11 must not add nodes, terminals, or Plans; they only validate and render.
 
@@ -60,7 +60,7 @@ This agent reads:
 
 The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry and general-rules references in this file and the reference are textual links, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` or `generated-docs/analyse-inputs/<OTHER-METHOD>/`.
 
-The agent's only outputs are `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html`, the inline summary it surfaces to the consultant, and — only on the Step 12 `Accept & use` choice — the re-ingestion extract `documentation/task-analysis.analysis.md` plus its staged copy `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.analysis.md`, both written by `framework/skills/write-reingestion-extract.md` under `IS-05`.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -80,13 +80,13 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block and the drift cursor.
 - Parse the manifest. Capture `target` field if present (`prototype` | `application`); else default to `"(not declared in manifest)"`.
-- Iterate rows; for each row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
+- Iterate rows. First apply the extract-row skip in `framework/skills/write-reingestion-extract.md > Extract rows in /analyse-inputs`: a `*.analysis.md` row goes to `skipped_rows` unread. For every other row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already enumerates the task-analysis-relevant items: actors, the tasks they perform, ordered steps, branch/loop coordination, and states. Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Diagrams, flowcharts, and wireframes often carry coordination logic — the description's transcription surfaces numbered steps, arrow directions, branch labels, and loop notations as text.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is skipped (Unsupported or a re-ingestion extract). Add at least one raw input to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_sha256 = <first 12 chars>…`, target = prototype). 4 consumable rows: `brief.docx` (Supported-via-MCP), `whiteboard-photo.png` (Native-multimodal), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported)."*
@@ -326,7 +326,7 @@ On **Restart**: re-enter Step 4. Cap at three fail-Restart cycles; on the fourth
 
 Every consultant-supplied string is **HTML-escaped** before injection (`<`, `>`, `&`, `"`, `'`). The YAML inside `<pre><code>` is rendered as plain text within the `<pre><code>` block — do **not** double-escape inside YAML. Persona-style strings inside `<svg><text>` would be XML-escaped if any SVG was emitted (this analyser emits no SVG — the visual tree is HTML `<ol>` / `<details>`, not SVG).
 
-- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this task hierarchy (HTA — hierarchical task analysis, as defined by Annett & Duncan 1967 and Stanton 2006) is, what it found (goal count, terminal-operation count, inferred-node count if any, any blocking gaps), and what the consultant should do with it (e.g. review inferred nodes, copy into `documentation/` to feed `/requirements`). A faithful condensation of the closed `tree` — it introduces no fact, count, or citation not already present in the tree and tables, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use (e.g. "task hierarchy / HTA (hierarchical task analysis)", "plan/sequence (how sub-tasks are coordinated)"); client domain terms are NOT glossed. HTML-escaped.
+- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this task hierarchy (HTA — hierarchical task analysis, as defined by Annett & Duncan 1967 and Stanton 2006) is, what it found (goal count, terminal-operation count, inferred-node count if any, any blocking gaps), and what the consultant should do with it (e.g. review inferred nodes, choose Accept & use to feed `/requirements`). A faithful condensation of the closed `tree` — it introduces no fact, count, or citation not already present in the tree and tables, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use (e.g. "task hierarchy / HTA (hierarchical task analysis)", "plan/sequence (how sub-tasks are coordinated)"); client domain terms are NOT glossed. HTML-escaped.
 - `{{TITLE}}` — *"Task Analysis — `<domain>`"* if a domain string is available in the manifest meta or first goal's source brief, else *"Task Analysis"*.
 - `{{DOMAIN}}` — verbatim from the manifest's domain field if present, else *"(not declared in manifest)"*.
 - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -383,7 +383,7 @@ Compose the full HTML in memory. Compute SHA-256 of the in-memory bytes; store i
 - **On `pass`:** advance to Step 12.
 - **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` after one retry."* and fail handback.
 
-### Step 12 — Handback (Accept / Revise / Restart)
+### Step 12 — Handback (Accept & use / Accept / Revise / Restart)
 
 **A. Summary in Unicorn voice.**
 
@@ -398,23 +398,24 @@ Variants:
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–7 re-run from scratch on the current manifest; {n_preserved} prior node ids preserved through re-extraction, {n_dropped} dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior tree preserved verbatim; only new content from new manifest rows was appended this run."*
 - If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to widen the tree additively."*
-- Always append: *"To use this artefact as additional input for `/requirements`, copy `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` into `documentation/` and re-run `/requirements` — instructions are in the artefact's Next-steps banner."*
 
 **B. Accept / Revise / Restart loop.**
 
 Use `AskUserQuestion`:
 
-- Question: *"Accept the task analysis, request specific changes, or restart?"*
+- Question: *"Accept the task analysis and use it as an input to /requirements, accept it only, request specific changes, or restart?"*
 - Header: `Accept?`
 - multiSelect: false
-- Options:
-  1. `Accept — hand back to orchestrator (Recommended)`
-  2. `Revise — change specific entries`
-  3. `Restart — re-run from Round 1`
+- Options, in this order:
+  1. `Accept & use — write the extract into documentation/ (Recommended)`
+  2. `Accept — hand back to orchestrator`
+  3. `Revise — change specific entries`
+  4. `Restart — re-run from Round 1`
 
 **Branches:**
 
-- **Accept** — declare done; hand back to the orchestrator.
+- **Accept & use** — invoke `framework/skills/write-reingestion-extract.md` with `method_name: "task-analysis"`, `method_title: "Task Analysis (HTA)"`, `artefact_path: "generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html"`, `model` = the tree object serialised into the artefact's `<pre><code class="language-yaml">` block (after every Revise), `run_count`, and `manifest_fingerprint` (Step 2). On `written`: emit *"Wrote `documentation/task-analysis.analysis.md` — the re-ingestion extract. The next `/requirements` or `/generate-prd` run reads it as an input; the `[SRC: <filename>]` markers in it keep the audit trail back to the original inputs."* On `kept`: emit *"Kept your edited `documentation/task-analysis.analysis.md`; the new extract was not written."* Either way, then continue as the **Accept** branch below, without its stale-extract line. On `self-check failed: <reason>`: surface *"Re-ingestion extract self-check failed: `<reason>`. Nothing was written to `documentation/`."* and loop back to the prompt. On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified` — emit *"Aborting to protect your work — write verification failed for the re-ingestion extract after one retry."* and fail handback.
+- **Accept** — if `documentation/task-analysis.analysis.md` exists, emit the stale-extract line in `framework/skills/write-reingestion-extract.md > Stale extract on plain Accept`; declare done; hand back to the orchestrator.
 - **Revise** — accept the consultant's revision instructions in their next message:
   - **Drop a sub-goal** ("drop `2.5 Attach mileage detail`"): remove the node and its sub-tree from `tree`; re-run gate 1 + 5 + 7; re-render; re-Write; re-verify; loop back to A. If the dropped sub-goal was inferred, also drop its AI-NNN entry from the gap registry.
   - **Confirm an inferred node** ("confirm `2.5` — the brief at line 47 actually does mention it"): flip `inferred: false` for that node; add the new `[SRC: <filename>]` citation; drop its AI-NNN entry from the gap registry; re-render; re-Write; re-verify; loop back to A.
@@ -426,7 +427,7 @@ Use `AskUserQuestion`:
   - **Add an Override note** for a previously-failed gate: append to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
 - **Restart** — re-enter Step 4 (Round 1). The previously-written `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` is left in place; the next Step 11 will overwrite it.
 
-The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 11).
+The loop continues until the consultant chooses Accept & use or Accept (or hand-back fails on an RF-04 — Revise-introduced per Step 11, or from the extract write).
 
 **C. Hand back.**
 
@@ -442,18 +443,20 @@ Output the final handback line:
 - `framework/assets/characters/task-analysis-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/task-analysis-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/analyses-inputs/template-task-analysis.html` — the HTML scaffold. Read once at render time in Step 11.
+- `framework/skills/write-reingestion-extract.md` — the extract-row skip (Step 2), the Step 12 `Accept & use` write, and the stale-extract line.
 
 ## Output
 
 - `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior nodes / plans / information_required preserved verbatim unless the consultant chose the `re-extract` drift branch).
+- `documentation/task-analysis.analysis.md` + its staged copy `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.analysis.md` — the re-ingestion extract, written only on `Accept & use`, by `framework/skills/write-reingestion-extract.md` (overwrite guard: `IS-05`).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file, and (if present) the prior task-analysis artefact. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
-- `Write` — write `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html`.
+- `Write` — write `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html`; on `Accept & use`, the two extract files via `framework/skills/write-reingestion-extract.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not `Edit` the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p generated-docs/analyse-inputs/TASK-ANALYSIS` (Step 11 setup). No other Bash usage. On Windows-only environments, use the PowerShell `New-Item` equivalent.
-- `AskUserQuestion` — surface the Step 4 multi-goal disambiguation prompt (only if ≥ 2 viable goal frames); surface the Step 3 prior-run reconciliation prompt (only if the prior meta-block is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-gate failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
+- `Bash` — `mkdir -p generated-docs/analyse-inputs/TASK-ANALYSIS` (Step 11 setup). The extract guard's SHA-256 comparison (`Get-FileHash` / `sha256sum`) owned by `framework/skills/write-reingestion-extract.md`. No other Bash usage. On Windows-only environments, use the PowerShell `New-Item` equivalent.
+- `AskUserQuestion` — surface the Step 4 multi-goal disambiguation prompt (only if ≥ 2 viable goal frames); surface the Step 3 prior-run reconciliation prompt (only if the prior meta-block is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-gate failure prompt (Revise / Override / Restart); surface the Step 12 Accept & use / Accept / Revise / Restart prompt, and the skill's `Extract` (Keep mine / Replace) prompt.
 
 **No MCP tools.** No Agent / Task delegation. Every step runs in the foreground in this thread. There is no SVG emission, no Mermaid validation, no external rendering pipeline — the visual tree is HTML `<ol>` / `<details>`.
 
@@ -482,6 +485,8 @@ Before handing back, verify all of the following against the written artefact an
 - No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
+- Every `*.analysis.md` manifest row is in the Skipped roster with reason `re-ingestion extract (derived, not a raw input)`, and no `[SRC: <name>.analysis.md]` appears anywhere in the artefact.
+- On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 
 ## Definition of Done
 
@@ -492,6 +497,7 @@ Before handing back, verify all of the following against the written artefact an
 - Additive-merge contract honoured: every prior-run node is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract` drift branch re-extracted it away with a Run-history note).
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.
+- The handback offered Accept & use, and on that choice the re-ingestion extract was written (or the consultant's edited one kept).
 
 ## Anti-Patterns
 
@@ -513,3 +519,5 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not bundle external JS / CSS / CDN / fonts.** The artefact is self-contained — inline `<style>`, no `<script>` beyond the metadata block, no fonts, no external resources. `file://` openable, network-isolated, no console errors.
 - **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective task analysis propagates fabricated terminals and silent-Plan defaults into requirements seeds — the worst failure mode for this analyser.
 - **Do not edit the HTML template scaffold.** Only the documented `{{placeholders}}` are substituted; CSS classes, layout, and colour variables are fixed.
+- **Do not drop or reorder the Accept & use option.** It is how the analysis reaches `/requirements`; the Step 12 prompt is the discoverability surface.
+- **Do not write the extract yourself, or read a `*.analysis.md` row as an input.** The extract's render, guard and writes belong to `framework/skills/write-reingestion-extract.md`; extract rows are skipped in Step 2 so the analysis never cites its own derived view.

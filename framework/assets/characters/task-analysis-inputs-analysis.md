@@ -27,7 +27,7 @@ The methodology is **structural, not narrative.** A journey map describes how th
 
 ## Reader & plain language
 
-This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `documentation/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (through the re-ingestion extract that **Accept & use** writes into `documentation/`). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
 
 - **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
 - **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "task (a unit of work a user performs)", "subtask", "task hierarchy / HTA (hierarchical task analysis)", "goal", "plan/sequence (how sub-tasks are coordinated)", and any task-analysis-specific term introduced in the lead. **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
@@ -155,7 +155,7 @@ These guardrails are the load-bearing complement to the 8 hard gates — the gat
 
 ## Downstream-input discipline
 
-The artefact's primary downstream consumer is the **`/requirements` drafter**, not a design-spec author. The consultant copies `generated-docs/analyse-inputs/TASK-ANALYSIS/task-analysis.html` into `documentation/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts the HTML to `documentation/task-analysis.html.converted.md` (the `<pre><code class="language-yaml">` structured block survives the round-trip as a fenced code block; the visual tree becomes indented bullets; the tables become markdown tables), and the drafter consumes the converted markdown via the refreshed manifest.
+The artefact's primary downstream consumer is the **`/requirements` drafter**, not a design-spec author. On **Accept & use**, `framework/skills/write-reingestion-extract.md` writes the structured tree as a compact Markdown re-ingestion extract, `documentation/task-analysis.analysis.md`, and the drafter reads it via the refreshed manifest.
 
 The discipline:
 

@@ -76,7 +76,7 @@ The artefact has a fixed top-to-bottom shape (rendered by the template; placehol
 7. **Conflicts** (`<section id="conflicts">`). A table of goal pairs that pull against each other (e.g. a security goal vs an ease-of-access goal), each with a one-line tension note and `[SRC: <filename>]` on the evidence. Empty is a legitimate state (rendered as "no goal conflicts surfaced in the consumed inputs").
 8. **JSON body block** (`<section id="body">` → `<pre><code class="language-json" id="user-goal-analysis-body">`). The machine-readable re-ingestion contract per the JSON SCHEMA below.
 9. **Diagnostics** (`<details id="diagnostics">`, collapsed). Manifest fingerprint, source roster (Consumed + Skipped tables), 7 gate results, provenance counts (explicit / inferred per source), inference-technique breakdown, criterion counts, flagged low-confidence inferred goals, run history.
-10. **Downstream footer** (`<details class="downstream-toggle">`, collapsed). Re-ingestion instructions: how to copy the register into `documentation/` for a subsequent `/requirements` run.
+10. **Downstream footer** (`<details class="downstream-toggle">`, collapsed). Re-ingestion instructions: choose **Accept & use** to write the re-ingestion extract a subsequent `/requirements` run reads.
 
 ---
 
@@ -328,14 +328,14 @@ Emitted into `<pre><code class="language-json" id="user-goal-analysis-body">`. S
 
 The User Goal Analysis register is **re-ingestible by `/requirements`** as a fresh source. The contract:
 
-1. Consultant copies `generated-docs/analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` into `documentation/` (file copy; the orchestrator does not automate this).
-2. Consultant re-invokes `/requirements` (or `/analyse-inputs`, `/review-inputs`, `/generate-prd`).
-3. The shared `framework/agents/input-handler.md` detects the new file, surfaces the manifest-refresh prompt, classifies it via `framework/skills/classify-input-tier.md` as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff), and adds it as a manifest row.
-4. The `/requirements` drafter reads the register:
+1. At the Step 12 handback the consultant chooses **Accept & use**. `framework/skills/write-reingestion-extract.md` renders the body model to Markdown and writes `documentation/user-goal-analysis.analysis.md` (guarded overwrite: `IS-05`).
+2. Consultant re-invokes `/requirements` (or `/generate-prd`, or `/review-inputs`).
+3. The shared `framework/agents/input-handler.md` detects the new file, surfaces the manifest-refresh prompt, classifies it `Native-text`, and adds it as a manifest row. `/analyse-inputs` itself never reads it back (`write-reingestion-extract.md > Extract rows in /analyse-inputs`).
+4. The `/requirements` drafter reads the extract:
    - **Explicit goals** (`[SRC]`) seed `§4 User goals & stories` as user-story stacks — *"As a `<actor>` I want `<outcome>` so that `<higher-level goal>`"* — and the hierarchy seeds goal grouping.
    - **Inferred goals** (`[AI-SUGGESTED: AI-NN | blocking|non-blocking]`) surface to the **resolver as `AI-NNN` questions in the existing grammar**. `blocking: true` inferred goals become mandatory confirmation items (the consultant accepts or rejects each before it can seed a requirement); `blocking: false` ones become non-blocking suggestions. This is the safety loop: **AI inference at analyse time → consultant validation at requirements time.** It mirrors swim-lane's `consultant_follow_up: yes → resolver AI-NNN` pattern and reuses the existing `AI-NNN` namespace and blocking grammar — no new machinery.
 
-This pathway is **consultant-driven**, not automated. Step 12's handback message tells the consultant about the round-trip; they decide whether to use the register as `/requirements` input or as a stand-alone discovery artefact.
+This pathway is **consultant-driven**, not automated. Step 12's **Accept & use** option writes the extract; plain **Accept** keeps the register as a stand-alone discovery artefact and writes nothing to `documentation/`.
 
 The `framework/skills/map-user-goal-analysis-from-inputs-to-ui.md` skill (stub on framework first-ship) sketches the broader goal-to-pattern mapping for future downstream design-spec authors. It is **not** invoked by `/analyse-inputs` — registry metadata only.
 

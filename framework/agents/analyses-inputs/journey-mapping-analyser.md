@@ -37,7 +37,7 @@ The methodology has six rounds (per the reference); the workflow has twelve step
 | **Round 6 — Opportunities and moments of truth** | Step 9 | ≥1 opportunity per pain; flag moments where sentiment drops ≥2 or stakes language present |
 | (operational) | Step 10 — Validate + Render | 8 hard gates; render SVG + CSS-grid + template substitution; SHA-256 |
 | (operational) | Step 11 — Write + verify-artifact-write | Write the artefact; verify; RF-04 on mismatch |
-| (operational) | Step 12 — Handback | Accept / Revise / Restart loop |
+| (operational) | Step 12 — Handback | Accept & use / Accept / Revise / Restart loop; Accept & use writes the re-ingestion extract |
 
 `journeys` (the in-memory list of journey card payloads) is **closed** at the end of Step 9. Step 10 must not add personas or phases; it only validates and renders.
 
@@ -54,7 +54,7 @@ This agent reads:
 
 The agent reads **nothing else under `generated-docs/requirements/`** — not `generated-docs/requirements/requirements.md`, not `generated-docs/requirements/requirements-draft.md`, not `generated-docs/requirements/consultant-answers.md`, not `generated-docs/requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references in this file and in the reference are textual links, not file loads). It does not read other analyses' artefacts under `generated-docs/analyse-requirements/` or `generated-docs/analyse-inputs/<OTHER-METHOD>/`.
 
-The agent's only outputs are `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html`, the inline summary it surfaces to the consultant, and — only on the Step 12 `Accept & use` choice — the re-ingestion extract `documentation/journey-mapping.analysis.md` plus its staged copy `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.analysis.md`, both written by `framework/skills/write-reingestion-extract.md` under `IS-05`.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -73,12 +73,12 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 ### Step 2 — Read manifest & per-tier file ingest
 
 - `Read generated-docs/requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block.
-- Parse the manifest. Iterate rows; for each row, apply the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path`; skip `Unsupported`):
+- Parse the manifest. Iterate rows. First apply the extract-row skip in `framework/skills/write-reingestion-extract.md > Extract rows in /analyse-inputs`: a `*.analysis.md` row goes to `skipped_rows` unread. For every other row, apply the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`generated-docs/requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is skipped (Unsupported or a re-ingestion extract). Add at least one raw input to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_sha256 = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP), `whiteboard-photo.png` (Native-multimodal), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported)."*
@@ -487,7 +487,7 @@ The SHA-256 captured at the end of Sub-step B is final. Carry it into Step 11.
 - **On `pass`:** advance to Step 12.
 - **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` after one retry."* and fail handback.
 
-### Step 12 — Handback (Accept / Revise / Restart)
+### Step 12 — Handback (Accept & use / Accept / Revise / Restart)
 
 #### A. Summary in Unicorn voice
 
@@ -507,17 +507,19 @@ Variants:
 
 Use `AskUserQuestion`:
 
-- Question: *"Accept the journey mapping atlas, request specific changes, or restart?"*
+- Question: *"Accept the journey mapping atlas and use it as an input to /requirements, accept it only, request specific changes, or restart?"*
 - Header: `Accept?`
 - multiSelect: false
-- Options:
-  1. `Accept — hand back to orchestrator (Recommended)`
-  2. `Revise — change specific entries`
-  3. `Restart — re-run from Round 1`
+- Options, in this order:
+  1. `Accept & use — write the extract into documentation/ (Recommended)`
+  2. `Accept — hand back to orchestrator`
+  3. `Revise — change specific entries`
+  4. `Restart — re-run from Round 1`
 
 **Branches:**
 
-- **Accept** — declare done; hand back to the orchestrator.
+- **Accept & use** — invoke `framework/skills/write-reingestion-extract.md` with `method_name: "journey-mapping"`, `method_title: "Journey Mapping"`, `artefact_path: "generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html"`, `model` = the object defined in `framework/assets/analyses-inputs/journey-mapping-reference.md > Re-ingestion extract model`, built from the final in-memory journey cards (after every Revise), `run_count`, and `manifest_fingerprint` (Step 2). On `written`: emit *"Wrote `documentation/journey-mapping.analysis.md` — the re-ingestion extract. The next `/requirements` or `/generate-prd` run reads it as an input; the `[SRC: <filename>]` markers in it keep the audit trail back to the original inputs."* On `kept`: emit *"Kept your edited `documentation/journey-mapping.analysis.md`; the new extract was not written."* Either way, then continue as the **Accept** branch below, without its stale-extract line. On `self-check failed: <reason>`: surface *"Re-ingestion extract self-check failed: `<reason>`. Nothing was written to `documentation/`."* and loop back to the prompt. On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified` — emit *"Aborting to protect your work — write verification failed for the re-ingestion extract after one retry."* and fail handback.
+- **Accept** — if `documentation/journey-mapping.analysis.md` exists, emit the stale-extract line in `framework/skills/write-reingestion-extract.md > Stale extract on plain Accept`; declare done; hand back to the orchestrator.
 - **Revise** — accept the consultant's revision instructions in their next message:
   - **Drop a persona** ("drop `End Customer`"): remove the journey card; re-run gate 1 + 6; re-render; re-Write; re-verify; loop back to A.
   - **Rename a persona** ("rename `End Customer` to `Customer (external)`"): update the persona name + slug; regenerate all `[SRC]`-citing cells if the name appears in any quote; re-render; re-Write; re-verify; loop back to A.
@@ -528,7 +530,7 @@ Use `AskUserQuestion`:
   - **Add an Override note** for a previously-failed gate: append to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
 - **Restart** — re-enter Step 4 (Round 1). The previously-written `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` is left in place; the next Step 11 will overwrite it.
 
-The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 11).
+The loop continues until the consultant chooses Accept & use or Accept (or hand-back fails on an RF-04 — Revise-introduced per Step 11, or from the extract write).
 
 #### C. Hand back
 
@@ -544,18 +546,20 @@ Output the final handback line:
 - `framework/assets/characters/journey-mapping-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/journey-mapping-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/analyses-inputs/template-journey-mapping.html` — the HTML scaffold. Read once at render time in Step 10.
+- `framework/skills/write-reingestion-extract.md` — the extract-row skip (Step 2), the Step 12 `Accept & use` write, and the stale-extract line.
 
 ## Output
 
 - `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior journey cards preserved verbatim unless the consultant chose the `re-extract-everything` drift branch).
+- `documentation/journey-mapping.analysis.md` + its staged copy `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.analysis.md` — the re-ingestion extract, written only on `Accept & use`, by `framework/skills/write-reingestion-extract.md` (overwrite guard: `IS-05`).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file (via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path`), and (if present) the prior journey-mapping artefact. **Read is not authorised against any path under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
-- `Write` — write `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html`.
+- `Write` — write `generated-docs/analyse-inputs/JOURNEY-MAPPING/journey-mapping.html`; on `Accept & use`, the two extract files via `framework/skills/write-reingestion-extract.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p generated-docs/analyse-inputs/JOURNEY-MAPPING` (Step 11 setup). No other Bash usage. On Windows-only environments, the agent uses the PowerShell `New-Item` equivalent.
-- `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta-block is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-gate failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
+- `Bash` — `mkdir -p generated-docs/analyse-inputs/JOURNEY-MAPPING` (Step 11 setup). The extract guard's SHA-256 comparison (`Get-FileHash` / `sha256sum`) owned by `framework/skills/write-reingestion-extract.md`. No other Bash usage. On Windows-only environments, the agent uses the PowerShell `New-Item` equivalent.
+- `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta-block is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-gate failure prompt (Revise / Override / Restart); surface the Step 12 Accept & use / Accept / Revise / Restart prompt, and the skill's `Extract` (Keep mine / Replace) prompt.
 
 **No MCP tools.** No Agent / Task delegation. Every step runs in the foreground in this thread. The inline SVG and CSS-grid table are emitted by the analyser directly — no `mmdc` validator, no external rendering pipeline.
 
@@ -582,6 +586,8 @@ Before handing back, verify all of the following against the written artefact an
 - No file under `generated-docs/requirements/` other than `generated-docs/requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
+- Every `*.analysis.md` manifest row is in the Skipped roster with reason `re-ingestion extract (derived, not a raw input)`, and no `[SRC: <name>.analysis.md]` appears anywhere in the artefact.
+- On `Accept & use`, `write-reingestion-extract.md` returned `written` or `kept`; on plain `Accept`, nothing was written to `documentation/`.
 
 ## Definition of Done
 
@@ -591,6 +597,7 @@ Before handing back, verify all of the following against the written artefact an
 - Additive-merge contract honoured: every prior-run journey card heading is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract-everything` drift branch re-extracted it away with a Run-history note).
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.
+- The handback offered Accept & use, and on that choice the re-ingestion extract was written (or the consultant's edited one kept).
 
 ## Anti-Patterns
 
@@ -614,3 +621,5 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not let Step 10 cells violate the `[SRC: <filename>]` discipline.** Every non-empty cell's marker payload must equal a `consumed_rows[*].filename` exactly. Fabricating a filename to pass gate 8 is the worst failure mode.
 - **Do not let the emotion curve be flat by default.** Gate 7 catches `variation < 1` curves; a flat curve only passes when every score traces to a proxy quote. Padding all phases to 0 to avoid inference is fabrication-by-omission and is forbidden.
 - **Do not render diagrams below the narrative section.** DOM order is `overview → diagrams → narratives → diagnostics`. The diagrams-first invariant is the load-bearing reason for the HTML structure.
+- **Do not drop or reorder the Accept & use option.** It is how the analysis reaches `/requirements`; the Step 12 prompt is the discoverability surface.
+- **Do not write the extract yourself, or read a `*.analysis.md` row as an input.** The extract's render, guard and writes belong to `framework/skills/write-reingestion-extract.md`; extract rows are skipped in Step 2 so the analysis never cites its own derived view.

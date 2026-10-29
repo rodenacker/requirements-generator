@@ -24,7 +24,7 @@ The map is concrete: every situation is specific (never *"when using the app"*),
 
 ## Reader & plain language
 
-This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `documentation/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (through the re-ingestion extract that **Accept & use** writes into `documentation/`). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
 
 - **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
 - **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "job (the progress a user is trying to make)", "job map (the stages of getting a job done)", "outcome (a measurable success metric for a job)", "circumstance / context (the specific trigger situation)", "forces of progress (push / pull / anxiety / habit — the four motivational drivers for switching behaviour)", "opportunity score (importance + max(0, importance − satisfaction) — Ulwick's formula for underserved need)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
