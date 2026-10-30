@@ -7,7 +7,7 @@
 - `renderer` — the resolved CLI binary name(s) returned by `framework/skills/preflight-cli.md` (e.g. `inkscape`, `rsvg-convert`, `drawio`, `soffice`). Guaranteed present by the preflight having run first.
 
 **Outputs:**
-- `raster_path` — a temporary PNG at `framework/state/.visual-render-scratch/<flat>/<basename>.png`, where `<flat>` is the input's path relative to `documentation/` with every `/` replaced by `__`, consumed by `describe-visual-input.md` and then removed. Never written under `documentation/` (it must not be enumerated as a new input).
+- `raster_path` — a temporary PNG at `framework/state/.visual-render-scratch/<flat>/<basename>.png`, where `<flat>` is the input's path relative to `documentation/` with `%` percent-encoded as `%25` and then every `/` as `%2F` (injective, so `a__b/x.docx` and `a/b__x.docx` never share a name), consumed by `describe-visual-input.md` and then removed. Never written under `documentation/` (it must not be enumerated as a new input).
 - A status: `ok` (raster produced, non-empty) or `failed — render` (the renderer errored or produced an empty/zero-byte raster). On `failed — render` the input-handler demotes the row's `tier` to `Unsupported`.
 
 **Used by:**
