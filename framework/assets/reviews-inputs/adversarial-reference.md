@@ -228,7 +228,7 @@ ID:             ADV-NN          (sequential per run, zero-padded — ADV-01, ADV
 Dimension:      1..6            (which review dimension the finding maps to)
 Severity:       Blocker | Major | Minor
 Disposition:    Patch | Defer | Reject
-Location:       <filename>      (the manifest row's `filename` field — basename + extension)
+Location:       <filename>      (the manifest row's `filename` field — path relative to `documentation/`)
 Evidence:       direct verbatim quote from the cited source, ≤5 lines
 Problem:        one sentence — what is wrong/missing/unclear/conflicted in the source material
 Recommendation: one sentence — corpus-handling action in one of five sanctioned forms:
@@ -242,7 +242,7 @@ Recommendation: one sentence — corpus-handling action in one of five sanctione
 - **Dimension** is exactly one integer 1–6. A finding that spans dimensions must be decomposed into one finding per dimension.
 - **Severity** is exactly one of three. No "Critical" or "Trivial" or "Cosmetic".
 - **Disposition** is exactly one of three (Patch / Defer / Reject). See the rubric below.
-- **Location** is the manifest row's `filename` field — basename plus extension (e.g., `brief.docx`, `workshop-notes.md`, `whiteboard-photo.png`, `interview-transcript.md`). **No line numbers**, no section anchors. Multimodal sources have no lines; markitdown-converted siblings re-anchor on `.converted.md` (different from the original); line numbers rot. The audit unit is `<filename>` + verbatim quote ≤5 lines.
+- **Location** is the manifest row's `filename` field — path relative to `documentation/` (e.g., `brief.docx`, `workshop-notes.md`, `whiteboard-photo.png`, `interview-transcript.md`). **No line numbers**, no section anchors. Multimodal sources have no lines; markitdown-converted siblings re-anchor on `.converted.md` (different from the original); line numbers rot. The audit unit is `<filename>` + verbatim quote ≤5 lines.
 - **Evidence** is a verbatim quote from the cited source's `text_or_transcription` content as captured by the parent reviewer into the evidence bundle (Native-text content is the file's bytes; Native-multimodal content is the parent's verbatim transcription of visible text + structural observations). Do not paraphrase. If the offending text is longer than 5 lines, decompose the finding into multiple findings each citing a ≤5-line slice. For `Unsupported`-tier files cited in Dimension 1 (stakeholder mentioned only in skipped file): Evidence is the literal string `*(file skipped — tier: Unsupported; reason: <conversion-failure-reason>)*` — a sanctioned non-verbatim form because the file's content was never read.
 - **Problem** is one sentence stating the defect of the voice. *"`brief.docx` asserts the load-bearing rule 'Finance Managers require two-eyes approval' but no first-hand Finance Manager source corroborates it, so downstream would draft the rule as established fact"* — not *"stakeholder coverage gap"*. (Note: a role merely *listed* in a brief is not a finding — second-hand naming is the corpus norm; only load-bearing, draft-changing claims with no first-hand backing fire the narrow voice-authenticity lens.)
 - **Recommendation** is one sentence proposing a concrete *corpus-handling* action — what `/requirements` and downstream consumers must do given this defect of the voice. The corpus IS the voice; the reviewer does not propose new elicitation. Five sanctioned forms, exhaustive:

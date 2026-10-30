@@ -352,7 +352,7 @@ Every node, every actor, every handoff, every disconnect, and every gap carries 
 
 | Marker | Used in | Payload | Meaning |
 |---|---|---|---|
-| `[SRC: <filename>]` | YAML `sources` arrays, Mermaid node label suffixes, table source-citation cells, process header citations | basename + extension, matching a manifest row's `filename` field | The node / actor / handoff / disconnect is anchored to this manifest source. |
+| `[SRC: <filename>]` | YAML `sources` arrays, Mermaid node label suffixes, table source-citation cells, process header citations | path relative to `documentation/`, matching a manifest row's `filename` field | The node / actor / handoff / disconnect is anchored to this manifest source. |
 | `[AI-SUGGESTED: AI-NNN \| blocking\|non-blocking]` | inferred non-trigger nodes, inferred lane assignments, inferred routing steps, inferred handoff payloads (only) | sequential AI-NNN from the shared namespace; classification per Round 6 | The node / lane / step / payload was inferred from context, not directly cited. Surface to consultant via resolver. **Never used on disconnect triggers** (a fabricated trigger would propagate fabricated requirements). |
 | `[DISCONNECT: DC-NNN]` | Mermaid edge label suffixes for non-`clean` handoffs (optional; the register is the canonical surface), Disconnect Register row anchors | sequential DC-NNN per run | Diagnostics-side marker linking a Mermaid edge to its register entry. |
 

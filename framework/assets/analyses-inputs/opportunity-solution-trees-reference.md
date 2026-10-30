@@ -363,7 +363,7 @@ The analyser **never** reads:
 
 | Marker | Used in section | Payload | Meaning |
 |---|---|---|---|
-| `[SRC: <filename>]` | every layer + Candidate outcomes + Candidate requirements | manifest row's `filename` (basename with extension) | The cited outcome / opportunity / solution / assumption test / candidate-requirement is anchored to this manifest source; its extract is verbatim from the row's content |
+| `[SRC: <filename>]` | every layer + Candidate outcomes + Candidate requirements | manifest row's `filename` (path relative to `documentation/`) | The cited outcome / opportunity / solution / assumption test / candidate-requirement is anchored to this manifest source; its extract is verbatim from the row's content |
 | `[CANDIDATE-OUTCOME]` | Candidate outcomes section only | (none) | Outcome candidate that was **not** picked as the primary root by the consultant on first run; preserved for audit, not laddered |
 | `[ORPHAN-SOLUTION]` | Solutions section + Coverage diagnostics | (none) | Solution with no source-grounded parent Opportunity in the inputs; rendered under sentinel `Op-?` |
 | `[UNADDRESSED]` | Opportunities section + Candidate requirements + Coverage diagnostics | (none) | Opportunity with no source-grounded Solution children; bridge entry is a `recommend-elicit-solution` advisory |

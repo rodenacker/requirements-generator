@@ -70,7 +70,7 @@ Every actor, every step, every handoff, every disconnect carries provenance:
 
 | Shape | Meaning |
 |---|---|
-| `[SRC: <filename>]` | The actor / step / handoff / disconnect is anchored to a manifest source whose `filename` field equals the marker payload (basename + extension). |
+| `[SRC: <filename>]` | The actor / step / handoff / disconnect is anchored to a manifest source whose `filename` field equals the marker payload (path relative to `documentation/`). |
 | `[AI-SUGGESTED: AI-NNN \| blocking\|non-blocking]` | The non-trigger node OR the lane assignment OR the routing step is inferred from context, not directly cited. `AI-NNN` is allocated from the framework-wide namespace shared with `framework/shared/general-rules.md` and the resolver. **Forbidden on disconnect trigger events** — a fabricated trigger in the register would propagate a fabricated integration requirement downstream. |
 | `[DISCONNECT: DC-NNN]` | Optional marker on Mermaid edge labels for non-`clean` handoffs, linking the edge to its register entry. The register is the canonical surface; the edge marker is a navigation aid. |
 

@@ -284,7 +284,7 @@ The grounding-verifier emits one or more NDJSON lines per FAIL. Reasons and reme
 
 ## Inputs
 
-- `generated-docs/requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null — `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`; else `original_path` — `Native-text`) and skips Unsupported rows. **Pipeline-scoped skip (`IX-05`):** additionally skip any row whose `filename` matches `*.stadium.design-signals.md` — it is `/design-system`-only styling material (0 requirement claims); the row stays in the manifest for other pipelines and the file is never moved.
+- `generated-docs/requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null — `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`; else `original_path` — `Native-text`) and skips Unsupported rows. **Pipeline-scoped skip (`IX-05`):** additionally skip any row whose `filename` has a basename matching `*.stadium.design-signals.md` — it is `/design-system`-only styling material (0 requirement claims); the row stays in the manifest for other pipelines and the file is never moved.
 - The files registered in the manifest, under `documentation/`.
 - `framework/assets/template-requirements.md` — the canonical structure to populate.
 - `framework/shared/output-readability.md` — the human-audience readability standard binding `requirements.md` in its entirety (see **Reader & plain language**). Read once at step 1; referenced by path, never restated.

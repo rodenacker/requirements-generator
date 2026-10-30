@@ -324,7 +324,7 @@ Every finding has all eight fields populated, in this order:
 ID:                    AMB-NN              (sequential per run, zero-padded — AMB-01, AMB-02, …)
 Dimension(s):          1..7                (multi-tag findings from Step 11 carry a sorted list e.g. [4, 6])
 Severity:              Blocker | Major | Minor
-Location:              <filename>          (the manifest row's `filename` field — basename + extension)
+Location:              <filename>          (the manifest row's `filename` field — path relative to `documentation/`)
 Evidence:              direct verbatim quote from the cited source, ≤5 lines
 Interpretations:       list of ≥2 plausible readings, each producing a different requirement
 Problem:               one sentence — what is ambiguous and why it matters downstream
@@ -336,7 +336,7 @@ Elicitation question:  one sentence — ready-to-paste question for the stakehol
 - **ID** is unique per run and reset to `AMB-01` on every fresh invocation. Revise loops keep their IDs; only Restart resets the sequence. The pipeline is **full overwrite** per run.
 - **Dimension(s)** is a non-empty list of integers in [1, 7]. A single-dimension finding has a list of length 1; a multi-tag finding (output of Step 11 consolidation) has length ≥2. The list is sorted ascending. The **primary dimension** for sorting/ID purposes is the lowest entry.
 - **Severity** is exactly one of three. No "Critical" or "Trivial".
-- **Location** is the manifest row's `filename` field — basename plus extension (e.g., `brief.docx`, `workshop-notes.md`, `whiteboard-photo.png`). **No line numbers**, no section anchors.
+- **Location** is the manifest row's `filename` field — path relative to `documentation/` (e.g., `brief.docx`, `workshop-notes.md`, `whiteboard-photo.png`). **No line numbers**, no section anchors.
 - **Evidence** is a verbatim quote from the cited source's `text` field as captured by the parent reviewer into the corpus. Do not paraphrase. If the offending text is longer than 5 lines, decompose the finding into multiple findings each citing a ≤5-line slice.
 - **Interpretations** is a list of ≥2 entries, each being a parenthesised letter `(a)`, `(b)`, `(c)` followed by a one-sentence operational reading. The ≥2-interpretations rule is the methodology's central discipline — if you cannot produce two readings, the candidate isn't ambiguous; drop it.
 - **Problem** is one sentence stating which dimension fired and why the ambiguity matters. *"`brief.docx` uses `quickly` (vague predicate, dimension 4) on a core NFR — different readings yield latency targets between 100ms and 2s"*. Not *"this is unclear"*.

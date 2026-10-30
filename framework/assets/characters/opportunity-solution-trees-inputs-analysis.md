@@ -64,7 +64,7 @@ Every entry in the artefact carries one of these provenance shapes:
 
 | Shape | Meaning |
 |---|---|
-| `[SRC: <filename>]` | The outcome / opportunity / solution / assumption test / candidate-requirement is anchored to a manifest row whose `filename` field equals the marker payload (basename including extension). The cited extract is verbatim from the row's source content. |
+| `[SRC: <filename>]` | The outcome / opportunity / solution / assumption test / candidate-requirement is anchored to a manifest row whose `filename` field equals the marker payload (path relative to `documentation/`). The cited extract is verbatim from the row's source content. |
 | `[CANDIDATE-OUTCOME]` | Outcome candidate not picked as the primary root on first run; preserved in `## Candidate outcomes`, not laddered. |
 | `[ORPHAN-SOLUTION]` | Solution with no source-grounded parent Opportunity; rendered under sentinel `Op-?`, red-bordered in the Mermaid diagram. |
 | `[UNADDRESSED]` | Opportunity with no source-grounded Solution children; bridge entry is the `recommend-elicit-solution` advisory. |

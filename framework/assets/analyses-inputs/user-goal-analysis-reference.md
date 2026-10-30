@@ -190,7 +190,7 @@ Each inferred goal records **exactly one** technique. Adding a technique means a
 
 | Marker | Used in artefact section | Payload | Meaning |
 |---|---|---|---|
-| `[SRC: <filename>]` | Explicit goal card, actor chip source, inferred-goal **anchor**, conflict evidence, criterion source | basename incl. extension, matching a manifest row's `filename` field | The cited goal / actor / anchor / evidence is anchored to this manifest source; the phrase is verbatim or a minimally rephrased lift (or, for `Native-multimodal` / `Vector-renderable`, from the frozen textual description the input-handler prepared). |
+| `[SRC: <filename>]` | Explicit goal card, actor chip source, inferred-goal **anchor**, conflict evidence, criterion source | path relative to `documentation/`, matching a manifest row's `filename` field | The cited goal / actor / anchor / evidence is anchored to this manifest source; the phrase is verbatim or a minimally rephrased lift (or, for `Native-multimodal` / `Vector-renderable`, from the frozen textual description the input-handler prepared). |
 | `[AI-SUGGESTED: AI-NN \| blocking\|non-blocking]` | Inferred goal card | `AI-NN` local id + blocking flag | The goal was **inferred**, not stated. Always co-present with a named technique and ≥1 anchor `[SRC: <filename>]`. The blocking flag drives downstream resolver treatment. |
 | `(no-metric-in-inputs)` | Criterion line on a **hard** goal | (literal string) | The hard goal has no anchorable success measure in input prose; carries a best-effort intent phrase plus the marker. |
 | `(no-satisficing-criterion-in-inputs)` | Criterion line on a **soft** goal | (literal string) | The soft goal has no anchorable satisficing threshold in input prose. |

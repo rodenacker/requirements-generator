@@ -32,7 +32,7 @@ The header is forensic provenance: it ties every asset back to a specific app + 
 
 Inside each asset, content is split by **explicit `## Tier-A —` / `## Tier-B —` headings**:
 
-- **Tier-A** = provably present in source. Authoritative. Quotable as `[SRC: <asset-filename>]`.
+- **Tier-A** = provably present in source. Authoritative. Quotable as `[SRC: <asset-filename>]`, where the payload is the asset's manifest `filename` — its path relative to `documentation/`, e.g. `<AppName>.stadium-assets/<Stem>.stadium.overview.md`.
 - **Tier-B** = advisory design signal (layout, control-choice, inferred domain). Never authoritative.
 
 Tier-A lines carry an **inline locator** in square brackets naming the exact source within the app:
@@ -54,7 +54,7 @@ The behaviour-enrichment sub-sections (0a–0h, 1a–1e) split fact from interpr
 
 This is the contract the `/requirements` drafter must honour when ingesting these assets:
 
-1. **Tier-A lines are authoritative and `[SRC]`-citable.** Cite them as `[SRC: <Stem>.stadium.<category>.md]` (the manifest-row `filename` payload, per the `[SRC: <filename>]` convention in `CLAUDE.md` §2). **Quote verbatim, including the inline `[from …]` locator**, so the downstream consumer can trace the fact to the exact connector/page/table.
+1. **Tier-A lines are authoritative and `[SRC]`-citable.** Cite them as `[SRC: <AppName>.stadium-assets/<Stem>.stadium.<category>.md]` (the manifest-row `filename` payload — the path relative to `documentation/` — per the `[SRC: <filename>]` convention in `CLAUDE.md` §2). **Quote verbatim, including the inline `[from …]` locator**, so the downstream consumer can trace the fact to the exact connector/page/table.
 2. **Tier-B, advisory, and `[AI-SUGGESTED]` lines must NEVER be cited as `[SRC]`.** They are mined as *requirement signals* (the *how*, per `CLAUDE.md` §1) — they bias design, they do not bind it. A `how`-decision that honours one cites the *signal*; it does not promote it to an authoritative fact. Gap lines (`[AI-SUGGESTED: blocking]`) become resolver questions, not requirements.
 3. **The closed property set comes from Tier-A `data-model`.** Object properties the wireframe pipeline depends on (the `Shape.Field` closed set, `CLAUDE.md` §1) are exactly the Tier-A `data-model` **fields** — never widen them from a Tier-B inference. API/proc-derived fields enter the closed set **by name** (a field's *type* is omitted when it did not resolve concretely — never emitted as `Object`); web-service **endpoints** (method/URL/host) are handoff-only `data-sources` material, **not** §7 properties. Likewise the Cluster A **control enums (`Options`) and DataGrid column labels** in `surfaces` are *surface* facts the drafter maps onto an **existing** §7 data-model property's `ui_display`/`Enums` — they **never mint a new §7 property** (a column carries no `DataField`, and an inline enum is a control setting, not a persisted field). **Cluster C exception (`[from rendered types]` only):** rendered `types.js` fields **do** enter the closed set as Tier-A `data-model` properties — this is deliberate (it fixes web-service apps the `.sapz` left near-untyped), reconciled (not blindly added), provenance-stamped, and the `.sapz` type wins on conflict. Cluster C's other two locators add no §7 property: `[from rendered routes]` (pages/titles/routes) and `[from rendered view]` (column labels/visibility/endpoints) are surface/nav facts, exactly like the Cluster A surface facts above.
 

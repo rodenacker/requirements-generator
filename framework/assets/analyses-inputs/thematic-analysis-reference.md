@@ -274,7 +274,7 @@ The analyser **never** reads:
 
 | Marker | Used in section | Payload | Meaning |
 |---|---|---|---|
-| `[SRC: <filename>]` | Themes, Theme-to-requirement-candidates, code extracts | basename including extension, matching a manifest row's `filename` field | The cited code / theme-definition / candidate-requirement is anchored to this manifest source; its extract is verbatim from the row's content |
+| `[SRC: <filename>]` | Themes, Theme-to-requirement-candidates, code extracts | path relative to `documentation/`, matching a manifest row's `filename` field | The cited code / theme-definition / candidate-requirement is anchored to this manifest source; its extract is verbatim from the row's content |
 | `[GAP-DEDUCTIVE: <concern>]` | Coverage gaps and silent areas (gap-deductive sub-list only) | concern name from the 10-area frame | The concern has at least one lexical mention in consumed sources but no inductive theme touches it |
 
 **No third marker.** **No `[AI-SUGGESTED]` markers anywhere in the artefact** — thematic analysis is extraction, not inference.

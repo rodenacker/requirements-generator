@@ -280,13 +280,13 @@ Plus the `<head>` carries a small `<script type="application/json" id="affinity-
   "target": "prototype | application | (not declared)",
   "source_roster": {
     "consumed": [
-      { "filename": "<basename>",
+      { "filename": "<filename>",
         "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP",
         "sha256": "<first 8 chars>",
         "note_count": <int ≥ 0> }
     ],
     "skipped": [
-      { "filename": "<basename>", "reason": "<one-line reason>" }
+      { "filename": "<filename>", "reason": "<one-line reason>" }
     ]
   },
   "super_themes": [

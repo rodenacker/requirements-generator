@@ -121,14 +121,14 @@ confidence:           Confirmed | Likely | Speculative
 moscow:               Must | Should | Could | Won't       (derived from Impact × Confidence; never independently set)
 recommendation:       analyst prose, one sentence
 candidate_requirement: shall-form, behavioural, ≥1 sentence (or sentinel for Won't rows)
-evidence:             [SRC: <filename>] list (manifest-row filenames, basename) OR the sentinel
+evidence:             [SRC: <filename>] list (manifest-row filenames, relative paths) OR the sentinel
                        `(no mention in consumed corpus)` for pure Missing absences
 also_see:             [GAP-NN] list of cross-referenced gap ids (Round 5 consolidation)
 ```
 
 No field is optional. A gap missing `dimension` fails Gate 6 (Dimension fidelity). A gap whose MoSCoW value contradicts its Impact × Confidence cell fails Gate 2. A gap citing a `[SRC: ...]` filename not present in the manifest fails Gate 2's evidence-citation sub-check.
 
-**No line numbers in evidence.** Citation is `[SRC: <filename>]` only — manifest's `filename` field, basename plus extension. Multimodal sources have no lines; `.converted.md` line numbers drift between markitdown runs.
+**No line numbers in evidence.** Citation is `[SRC: <filename>]` only — manifest's `filename` field, path relative to `documentation/`. Multimodal sources have no lines; `.converted.md` line numbers drift between markitdown runs.
 
 ## Quality-gate posture
 
@@ -240,4 +240,4 @@ The artefact's `manifest_sha256` and `topics_requirements_sha256` fields enable 
 - Reading sibling reviewer artefacts (`generated-docs/review-inputs/COMPLETENESS-REVIEW/*`, `generated-docs/review-inputs/ADVERSARIAL/*`, `generated-docs/review-inputs/AMBIGUITY-REVIEW/*`). Each input-pipeline lens is independently grounded; cross-reading conflates methodologies and produces correlated noise.
 - Using `Agent` / `Task` tool. Sequential single-threaded by design.
 - Performing additive merge across runs. Full-overwrite per run; the orchestrator's prior-artefact gate has already taken the consultant's decision.
-- Citing line numbers in Evidence. Citation is `[SRC: <filename>]` only — basename plus extension, manifest's `filename` field.
+- Citing line numbers in Evidence. Citation is `[SRC: <filename>]` only — path relative to `documentation/`, manifest's `filename` field.

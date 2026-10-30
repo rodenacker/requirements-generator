@@ -262,7 +262,7 @@ Every node, every Plan, every terminal operation, every information-requirement 
 
 | Marker | Used in | Payload | Meaning |
 |---|---|---|---|
-| `[SRC: <filename>]` | YAML sources arrays, visual-tree chips, table source-citation columns, goal-summary paragraph | basename + extension, matching a manifest row's `filename` field | The node / plan / information requirement is anchored to this manifest source. |
+| `[SRC: <filename>]` | YAML sources arrays, visual-tree chips, table source-citation columns, goal-summary paragraph | path relative to `documentation/`, matching a manifest row's `filename` field | The node / plan / information requirement is anchored to this manifest source. |
 | `[AI-SUGGESTED: AI-NNN \| blocking\|non-blocking]` | inferred non-terminal nodes and inferred Plans (only) | sequential AI-NNN from the shared namespace; classification per Round 6 | The node / Plan was inferred from context, not directly cited. Surface to consultant via resolver. Never used on terminal operations. |
 | `[GAP-INFERRED]` and `[GAP-PLAN-SILENT]` | diagnostics section only (gaps registry) | none | Diagnostics-side aggregate marker for inference incidence per goal. Counts and lists tie back to the `[AI-SUGGESTED]` markers in the tree body. |
 
