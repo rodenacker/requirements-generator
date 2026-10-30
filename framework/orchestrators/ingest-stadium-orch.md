@@ -46,8 +46,8 @@ Five things about this pipeline's commit are specific to it and easy to get wron
 Run this once, at the very start of every invocation, before step 1.
 
 1. **Scan `documentation/` for Stadium units** (a lightweight detection scan — the agent re-detects authoritatively at step 1):
-    - `Glob documentation/*.stadium` — pointer files.
-    - `Glob documentation/*/administration.db` — deployed app folders (the directory containing `administration.db` is the app folder; same signature the freshness check uses in `framework/skills/check-manifest-freshness.md`).
+    - `Glob documentation/**/*.stadium` — pointer files, at any depth.
+    - `Glob documentation/**/administration.db`, `documentation/**/App_Data/Updates/*.sapz` and `documentation/**/ClientApp/` — deployed app folders, at any depth: the full three-part `IX-03` signature (`framework/shared/input-exclusions.md`). The unit is the directory that directly holds `administration.db`, holds `App_Data/`, or holds `ClientApp/`; list each unit once, and ignore any match inside another unit or under a dot-prefixed directory (`IX-01`).
     - For each detected unit, resolve `app_path` (a pointer's target, else the folder) and `app_id` = the basename of `app_path`.
 2. **Read the ledger.** `Read framework/state/.stadium-processed.json` (treat absent / unparseable as `{}`). Partition the detected units into **new** (`app_id` not a ledger key) and **already-ingested** (`app_id` is a ledger key).
 3. **Branch.**
@@ -95,7 +95,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 ## Inputs
 
 - `framework/agents/stadium-ingestor.md` — the single agent invoked by this orchestrator.
-- `documentation/*.stadium` pointers and `documentation/*/administration.db` app folders — globbed at startup (detection scan only).
+- `documentation/**/*.stadium` pointers and Stadium-signature app folders at any depth (`IX-03`) — globbed at startup (detection scan only).
 - `framework/state/.stadium-processed.json` — read at startup to partition new vs already-ingested units; on a re-ingest reset, an entry is deleted and the file re-written (the agent otherwise owns ledger writes).
 - `framework/skills/verify-artifact-write.md` — verify the ledger write on a re-ingest reset.
 - `framework/shared/refusal-registry.md` — `RF-01` (Python preflight) semantics surfaced by the agent; `RF-04` write-verify semantics on the ledger reset write.
@@ -108,7 +108,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 ## Tools
 
-- `Glob` — detect `documentation/*.stadium` pointers and `documentation/*/administration.db` app folders at startup.
+- `Glob` — detect `documentation/**/*.stadium` pointers and Stadium-signature app folders at any depth at startup.
 - `Read` — read `framework/state/.stadium-processed.json` at startup (and to remove a key on re-ingest reset). No reads outside the paths named in **Stand-alone constraint**.
 - `Bash` — git checkpoint commit + `rm -rf documentation/<AppName>.stadium-assets` + `rm -rf framework/state/stadium/<app_id>` during a re-ingest reset; and, at the success terminal, the completion-commit sequence owned by `commit-run-outputs.md` — the `git status -sb` branch-guard read, one `git add` per resolved path, the `git diff --cached --quiet` probe, and the pathspec-limited `git commit`. No other Bash usage; never destructive operations beyond those named paths; never push, amend, or skip hooks. (No new permission patterns: `Bash(git add documentation/*)` and `Bash(git add framework/state/*)` already cover this pipeline's staging set.)
 - `framework/skills/commit-run-outputs.md` — the best-effort completion commit at the success terminal (`pipeline: "ingest-stadium"`).

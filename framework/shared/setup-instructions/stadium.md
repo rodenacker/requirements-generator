@@ -27,7 +27,7 @@ The command asks you nothing on a first run, so all the preparation happens here
    - `ClientApp/`: the rendered front end.
 
    If one is missing, the command still runs but produces thinner output. With no `.sapz`, most of the content is lost. With no `administration.db`, roles and permissions are lost.
-3. **Copy the entire folder into `documentation/`.** Copy it unchanged, as a direct child: `documentation/<guid>/administration.db`. Do not rename it (the GUID is the app's identity), do not put it inside another folder, and do not copy only part of it. A typical app is a few hundred MB.
+3. **Copy the entire folder into `documentation/`.** Copy it unchanged, anywhere under `documentation/` — `documentation/<guid>/administration.db`, or inside a topic folder such as `documentation/apps/<guid>/administration.db`. Do not rename it (the GUID is the app's identity) and do not copy only part of it. An app inside a folder named `archive`, `old` or similar is offered as an old deployment and is not extracted unless you keep it. A typical app is a few hundred MB.
 4. **Add the rest of the client material** (briefs, decks, screenshots, spreadsheets) to `documentation/` as usual. `/requirements` reads it together with the Stadium output.
 5. **Make sure Python 3 is installed.** See [Setup: Python](#setup-python). If it is missing, the command tells you and offers to install it.
 
@@ -119,7 +119,7 @@ Eleven `test.stadium.*.md` files should appear in `<scratch-dir>`.
 
 ## Troubleshooting
 
-- **"No Stadium application found in `documentation/`"**: the app folder is not a direct child of `documentation/` (e.g. it sits at `documentation/apps/<guid>/`), or it has none of `administration.db`, `App_Data/Updates/*.sapz` or `ClientApp/`.
+- **"No Stadium application found in `documentation/`"**: the app folder is not under `documentation/`, it sits inside a dot-prefixed folder (e.g. `documentation/.old/<guid>/`, which is never scanned), or it has none of `administration.db`, `App_Data/Updates/*.sapz` or `ClientApp/`.
 - **`python: command not found`, but Python is installed**: the interpreter is not on `PATH`, or it is registered only as `python3`. Re-run `/setup python`, or add the install folder to `PATH`. The command tries both `python` and `python3`.
 - **`sqlite3` import error**: rare. It happens with a custom minimal Python build. Install a standard CPython distribution.
 - **The output mentions `degraded-no-sapz` / `degraded-no-admin-db`**: this is not a setup problem. The copied folder is missing its design package or admin database (see [Before you run the command](#before-you-run-the-command), step 2). Copy the complete folder and re-ingest.
