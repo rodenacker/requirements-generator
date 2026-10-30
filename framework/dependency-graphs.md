@@ -16,7 +16,7 @@ Ten transitive load/read/invoke trees, one per orchestrator. Source of truth for
 - **No cycles** in any subtree.
 - **Pipeline output artefacts are produced, not loaded** → never drawn as edges (e.g. `generated-docs/requirements/requirements.md`, `generated-docs/prd/prd.md`, manifests, draft sidecars). A pipeline's own read target (e.g. analysers/reviewers reading `generated-docs/requirements/requirements.md`) is implicit, not drawn.
 - **No `pattern-catalogue/` "see also" pointers** drawn — except graph 8, where `pattern-catalogue/_index.md` is a real direct read.
-- **Write isolation.** Each pipeline writes only its own output dir. Two documented cross-pipeline write exceptions, both inherited from shared agents: `input-handler.md` writes `generated-docs/requirements/source-manifest.json` + `documentation/*.converted.md` (create/refresh modes only); `blueprint-architect.md` writes `blueprints/<slug>/{scope.json, blueprint.md}`.
+- **Write isolation.** Each pipeline writes only its own output dir. Two documented cross-pipeline write exceptions, both inherited from shared agents: `input-handler.md` writes `generated-docs/requirements/source-manifest.json` + `documentation/**/*.converted.md` (create/refresh modes only) and `state/.input-versions.json` (Step V, only when the `Old versions` gate is answered); `blueprint-architect.md` writes `blueprints/<slug>/{scope.json, blueprint.md}`.
 - **context-hygiene.md** → emitted verbatim by each orchestrator at its successful-completion terminal (the non-blocking `/clear` tip; replaces the retired context-bloat preflight). Read-only; no writes.
 - **verify-artifact-write.md** → `refusal-registry.md`, called from every agent's write step. Shared across all orchestrators (one file on disk).
 - **commit-run-outputs.md** → invoked by each orchestrator at its successful-completion terminal (Pattern B loops: once per accepted methodology), immediately before the context-hygiene tip. Best-effort git commit of the run's own outputs + run state; no filesystem write, no `RF-NN`. Reads nothing but `git status -sb`. The 13 per-orch adjacency lists below are deliberately **not** updated for it.
@@ -26,11 +26,13 @@ Ten transitive load/read/invoke trees, one per orchestrator. Source of truth for
 ### `@input-handler-subtree` (graphs 1, 5, 6, 7 — one set of files on disk)
 
 ```
-input-handler.md → check-manifest-freshness.md, classify-input-tier.md, preflight-mcp.md, preflight-cli.md,
+input-handler.md → detect-superseded-inputs.md, check-manifest-freshness.md, classify-input-tier.md, preflight-mcp.md, preflight-cli.md,
                    convert-input-file.md, describe-visual-input.md, render-visual-to-raster.md,
                    build-source-manifest.md, verify-artifact-write.md,
                    refusal-registry.md, setup-instructions/markitdown.md, setup-instructions/visual-render.md,
                    state/.stadium-processed.json [Step S: read-only, for the un-ingested nudge]
+  detect-superseded-inputs → verify-artifact-write, assets/resolve-review/methodology-map.md [exempt stems],
+                            state/.input-versions.json [read/write: decisions]
   classify-input-tier     → convert-input-file
   preflight-mcp           → refusal-registry
   preflight-cli           → refusal-registry
@@ -43,7 +45,7 @@ input-handler.md → check-manifest-freshness.md, classify-input-tier.md, prefli
   verify-artifact-write   → refusal-registry
 ```
 
-Per-caller `progress_path`: requirements = `.progress.json`; generate-prd = `.prd-progress.json`; analyse-inputs / review-inputs = `null` (suppresses the agent's `RF-01 continue-later` write). `check-manifest-freshness` runs at step 0 (create / refresh / no-op / halt decision) whenever a manifest exists; the conversion/description skills run at steps 3–6 on create/refresh only. `preflight-mcp` runs at step 4a only when a `Supported-via-MCP` row exists; `preflight-cli` runs at step 4b only when a `Vector-renderable` row exists. `convert-input-file` handles `Supported-via-MCP`; `describe-visual-input` handles `Native-multimodal` and (after `render-visual-to-raster`) `Vector-renderable`. **Step S** (pre-enumeration) runs only when a Stadium unit (an app folder or a `*.stadium` pointer) is present: it **excludes** the app folder/pointer from both enumeration (step 1) and the freshness check (step 0), and reads `state/.stadium-processed.json` (read-only) to **nudge** the consultant to run `/ingest-stadium` when the app is not yet ledgered. It **no longer extracts** — Stadium extraction moved to the standalone `/ingest-stadium` command (graph 12). The extracted `documentation/<AppName>.stadium-assets/*.md` assets (produced by that command) are ordinary `Native-text` rows enumerated normally.
+Per-caller `progress_path`: requirements = `.progress.json`; generate-prd = `.prd-progress.json`; analyse-inputs / review-inputs = `null` (suppresses the agent's `RF-01 continue-later` write). `check-manifest-freshness` runs at step 0 (create / refresh / no-op / halt decision) whenever a manifest exists; the conversion/description skills run at steps 3–6 on create/refresh only. `preflight-mcp` runs at step 4a only when a `Supported-via-MCP` row exists; `preflight-cli` runs at step 4b only when a `Vector-renderable` row exists. `convert-input-file` handles `Supported-via-MCP`; `describe-visual-input` handles `Native-multimodal` and (after `render-visual-to-raster`) `Vector-renderable`. **Step S** (pre-enumeration) runs only when a Stadium unit (an app folder or a `*.stadium` pointer) is present: it **excludes** the app folder/pointer from both enumeration (step 1) and the freshness check (step 0), and reads `state/.stadium-processed.json` (read-only) to **nudge** the consultant to run `/ingest-stadium` when the app is not yet ledgered. It **no longer extracts** — Stadium extraction moved to the standalone `/ingest-stadium` command (graph 12). Enumeration is recursive (any depth; `IX-01`/`IX-03` directories pruned). **Step V** (after S, before S2) performs the pass's single enumeration and calls `detect-superseded-inputs` to leave out exact duplicates and consultant-confirmed old versions as `Unsupported` rows. The extracted `documentation/<AppName>.stadium-assets/*.md` assets (produced by that command) are ordinary `Native-text` rows enumerated normally.
 
 ---
 
@@ -484,7 +486,7 @@ apply-amendments-section → assets/resolve-review/template-addendum.md, verify-
 orch → stadium-ingestor, context-hygiene, refusal-registry,
        verify-artifact-write [re-ingest reset: ledger re-write],
        state/.stadium-processed.json [read: startup partition + re-ingest reset]
-stadium-ingestor → extract-stadium-app, preflight-cli, verify-artifact-write, refusal-registry,
+stadium-ingestor → detect-superseded-inputs [step 1b: old deployments], extract-stadium-app, preflight-cli, verify-artifact-write, refusal-registry,
        setup-instructions/stadium.md, state/.stadium-processed.json [read/write: ledger]
   extract-stadium-app → tools/extract_stadium_app.py, assets/stadium/* (--kb module glosses),
                         verify-artifact-write, refusal-registry
@@ -495,7 +497,7 @@ stadium-ingestor → extract-stadium-app, preflight-cli, verify-artifact-write, 
 **Notes (unique):**
 - **Standalone, single-agent, no progress file** (design-system precedent; export-application for the no-progress-file part). Resumability = the processed-ledger's process-once contract: a re-run skips already-ingested apps; an interrupted extract leaves the app un-ledgered for a clean retry.
 - **The relocated Step S.** The `stadium-ingestor` agent is the former input-handler Step-S *extraction* logic, now first-class: detect Stadium units in `documentation/`, skip already-ledgered apps, preflight `python` (`preflight-cli`, `RF-01` → `setup-instructions/stadium.md`), invoke `extract-stadium-app` (→ `tools/extract_stadium_app.py`, `assets/stadium/*` via `--kb`), and write `state/.stadium-processed.json` keyed by `app_id` (+ the forensic `state/stadium/<app-id>/model.json` via the skill). It writes **no** source manifest — the produced `documentation/<AppName>.stadium-assets/*.md` assets are enumerated as ordinary `Native-text` rows by the next input-handler run.
-- **Re-ingest gate + reset (orchestrator-owned).** At startup the orch scans `documentation/*.stadium` + `documentation/*/administration.db`, reads the ledger, and for each already-ledgered app surfaces `{ Skip, Re-ingest, Cancel }`. On `Re-ingest` it git-checkpoints then deletes the app's `documentation/<AppName>.stadium-assets/` + `state/stadium/<app-id>/` + its ledger entry (re-written via `verify-artifact-write`), so the agent re-extracts it as new — the same "delete-so-the-agent-redoes-it" reset shape as design-system's overwrite.
+- **Re-ingest gate + reset (orchestrator-owned).** At startup the orch scans `documentation/**/*.stadium` + Stadium-signature folders at any depth (`IX-03`), reads the ledger, and for each already-ledgered app surfaces `{ Skip, Re-ingest, Cancel }`. On `Re-ingest` it git-checkpoints then deletes the app's `documentation/<AppName>.stadium-assets/` + `state/stadium/<app-id>/` + its ledger entry (re-written via `verify-artifact-write`), so the agent re-extracts it as new — the same "delete-so-the-agent-redoes-it" reset shape as design-system's overwrite.
 - **Write scope:** `documentation/<AppName>.stadium-assets/**`, `state/.stadium-processed.json`, `state/stadium/**`. Never `generated-docs/requirements/`. The input-handler's Step S separately excludes the raw app folder/pointer from manifest enumeration + the freshness check and nudges when a dropped app is un-ingested (see `@input-handler-subtree`).
 
 ---
