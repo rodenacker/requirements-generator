@@ -51,7 +51,7 @@ These are never duplicates and never versions — skip them entirely (they stay 
 Among the remaining `kind: "file"` candidates, every set of two or more sharing one `sha256` is a duplicate set. **No question** — the outcome is determined. Keep one canonical copy, chosen by, in order:
 
 1. not in an archive folder (signal in **3**) over in one;
-2. the **5. Ranking** order;
+2. the **5. Ranking** order, steps 1–4 only — never `mtime`: identical bytes carry no recency signal, and a sync or re-copy that touches `mtime` must not flip which copy is canonical (that would retire a cited `filename` and raise drift with nothing changed);
 3. the shallowest path;
 4. the lexicographically first `relpath`.
 
@@ -70,14 +70,16 @@ Compute for each remaining candidate (for a `stadium-unit`, use the unit folder'
 Then:
 
 - **Version group** — candidates sharing a normalised stem, across folders and extensions. For `stadium-unit`s, units sharing an `app_id` always form one group too.
-- **Series rule.** A group whose members differ only by date tokens and/or copy counters, with no member carrying a version token, a status word or the archive signal, is a **series** (`minutes-2026-01-05.md` / `minutes-2026-01-12.md`, `Screenshot (1).png` / `Screenshot (2).png`): every member is current and the group is **not** a candidate.
-- **Low confidence.** A group whose members carry no version token, status word or archive signal, and do not differ by date token or copy counter — they differ only by folder and/or extension (`a/notes.md` / `b/notes.md`) — is a candidate flagged `low confidence`.
+- **Series rule.** A group whose members' **names** (stems, ignoring folder and extension) differ only by date tokens and/or copy counters, with no member carrying a version token, a status word or the archive signal, is a **series** (`minutes-2026-01-05.md` / `minutes-2026-01-12.md`, `Screenshot (1).png` / `Screenshot (2).png`): every member is current and the group is **not** a candidate. Differing folders or extensions do not disqualify a series (`meetings/jan/minutes-2026-01-05.md` / `meetings/feb/minutes-2026-02-02.md` is a series).
+- **Low confidence.** A group whose members carry no version token, status word or archive signal, and do not differ by date token or copy counter — they differ only by folder and/or extension (`a/notes.md` / `b/notes.md`) — is a candidate flagged `low confidence`. **Exception:** a group of `stadium-unit`s sharing an `app_id` is never `low confidence` — only one deployment of an app can be current, so the gate must name exactly one.
 - **Every other group of two or more** is a candidate.
 - **Lone archive file.** A candidate with the archive signal and no group partner is a candidate on its own.
 
 ### 4. Prior decisions
 
 A candidate whose `relpath` has a state entry with the **same** `sha256` is **decided**; any other candidate is **undecided**. A changed `sha256` makes it undecided again.
+
+A decided entry is applied whether or not its file forms a group this run: an `excluded-by-consultant` file never had a group, and a `superseded` file may have lost its partner. Every non-exempt input `candidates` path with a matching entry takes that entry's decision (**7**).
 
 - A group (or lone archive file) whose members are all decided is not re-asked: apply the recorded decisions.
 - A group with at least one undecided member is re-ranked (**5**) and re-proposed. Members already decided `superseded` or `excluded-by-consultant` keep that decision and are not listed again; a member decided `current` that no longer ranks top **is** listed, as newly superseded.
@@ -97,7 +99,7 @@ An archive-folder member is always proposed as superseded, even when it ranks to
 
 ### 6. Gate
 
-Fires **only** when at least one candidate is undecided. On a run with nothing undecided there is no question.
+Fires **only** when the proposal contains something to decide: at least one file **newly** proposed to be ignored in a normal group, or a `low confidence` group none of whose members has a state entry yet. Otherwise the outcome is determined — e.g. the consultant edited the current file of a group, which makes it undecided but proposes nothing new — so there is no question: record the re-proposed members as `current` with their new `sha256` (merged and verified as below) and continue. On a run with nothing undecided there is no question either.
 
 Build the proposal: one line per group or lone file — group name, current file, files to ignore, the deciding signal (`version token`, `in-name date`, `archive folder`, `status word`, `newer file`), and `low confidence` where it applies. Files in a normal group are **ticked** (to be ignored). Files in a `low confidence` group are **unticked** (kept) unless the consultant ticks them — a same-name pair with no other signal is too weak to drop by default.
 
@@ -107,11 +109,11 @@ Surface one `AskUserQuestion`, header `Old versions`, single-select. Question te
 2. *"Let me adjust the list"* — ask the consultant, in plain text, which files to keep and which other files to ignore; apply the changes and re-present this gate with the updated proposal. Repeat until option 1 or 3 is chosen.
 3. *"Keep everything"* — every listed file is kept.
 
-Write the state file **immediately** after the answer, before anything else in the caller runs, so the answer survives a later *Cancel*: one entry per listed file and per group's current file — `superseded` (with `superseded_by`), `current`, or `excluded-by-consultant` for a file the consultant added that the proposal did not list. `Write` the whole object, then call `framework/skills/verify-artifact-write.md` (`RF-04` hard halt on mismatch).
+Write the state file **immediately** after the answer, before anything else in the caller runs, so the answer survives a later *Cancel*. **Merge** into the existing parsed object — the file has two writers (the input-handler and `/ingest-stadium`), so every key this gate did not decide is preserved byte-for-byte: one entry per listed file and per group's current file — `superseded` (with `superseded_by`), `current`, or `excluded-by-consultant` for a file the consultant added that the proposal did not list. `Write` the whole object, then call `framework/skills/verify-artifact-write.md` (`RF-04` hard halt on mismatch).
 
 ### 7. Result
 
-Build `left_out` from the duplicates (**2**) and every candidate whose decision is now `superseded` or `excluded-by-consultant`:
+Build `left_out` from the duplicates (**2**) and every non-exempt input `candidates` path whose state entry (same `sha256`) is now `superseded` or `excluded-by-consultant` — grouped this run or not:
 
 - `superseded` with a `superseded_by` → `skipped — superseded by <superseded_by>`;
 - `superseded` with `superseded_by: null` → `skipped — superseded (archive folder)`;
@@ -124,7 +126,8 @@ When at least one old version is left out, add the advisory `Old versions: N fil
 - No exempt path appears in `left_out`.
 - Every duplicate set kept exactly one copy, and that copy is not in `left_out`.
 - No series group was a candidate.
-- The gate fired if and only if at least one candidate was undecided; when it fired, the state file was written and verified before return.
+- The gate fired if and only if the proposal had something to decide (**6**); whenever the state file was written it was merged, not replaced, and verified before return.
+- No `stadium-unit` group sharing an `app_id` was flagged `low confidence`; no series was split by folder or extension.
 - Every `left_out` value is one of the four strings above, and every `superseded by <relpath>` names a path that is not itself left out as a duplicate.
 - No file was read beyond its hash and modification time; nothing was deleted, moved or renamed.
 

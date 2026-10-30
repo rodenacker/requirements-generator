@@ -30,7 +30,8 @@ material in topic folders (`pricing/workshop-notes.md`); it is an input exactly 
   **pruned**: it is not descended into, so nothing beneath it is ever listed. Pruning is what keeps a
   nested Stadium app's `ClientApp/` tree, or a `.git/` folder, out of the walk entirely.
 - **Every other rule** below applies to each file the walk reaches, wherever it sits.
-- **Order.** Rows are ordered by path relative to `documentation_dir`, ascending, with forward slashes.
+- **Order.** Rows are ordered by path relative to `documentation_dir`, ascending (ordinal), with forward slashes.
+- **Mechanism.** The walk is performed by one deterministic tool, `node framework/tools/enumerate-inputs.cjs <documentation_dir>` (`framework/tools/enumerate-inputs.cjs`, unit-tested by `enumerate-inputs.test.cjs`). It applies this section and `IX-01`..`IX-04` mechanically and prints `{ files: [{ relpath, sha256, mtime }], stadium_units: [{ relpath, kind }] }`. Every enumeration site calls it rather than the Glob tool: Glob cannot prune and silently truncates large result sets, so two sites globbing the same tree can list different paths. The tool is the rendering; this file stays the rule — a change here is a change to the tool and its tests.
 
 A file's identity is its path relative to `documentation_dir` (the manifest `filename` — see
 `framework/skills/build-source-manifest.md > Field rules`). Which reached files are then left out as old

@@ -18,7 +18,7 @@ The orchestrator has already resolved the **re-ingest** decision for already-ing
 
 ## Workflow
 
-1. **Detect Stadium units.** Walk `documentation_dir` **at any depth** (`framework/shared/input-exclusions.md > Enumeration depth`, pruning `IX-01` dot-directories) for **Stadium application units** (`IX-03`):
+1. **Detect Stadium units.** Run `node framework/tools/enumerate-inputs.cjs <documentation_dir>` and take its `stadium_units` — **Stadium application units** (`IX-03`) at any depth, dot-directories pruned:
     - a `*.stadium` **pointer file** (a one-line text file whose content is the absolute path to a deployed Stadium app folder), or
     - a **sub-directory carrying the Stadium signature**: it directly contains `administration.db`, OR `App_Data/Updates/*.sapz`, OR a `ClientApp/` folder.
 
@@ -67,10 +67,10 @@ The orchestrator has already resolved the **re-ingest** decision for already-ing
 
 ## Tools
 
-- Glob — walk `documentation_dir` at any depth for `*.stadium` pointers and signature-bearing sub-directories (pruning each one found); probe a candidate folder for `administration.db` / `App_Data/Updates/*.sapz` / `ClientApp/`.
+- Glob — probe a detected folder's contents where needed; probe a candidate folder for `administration.db` / `App_Data/Updates/*.sapz` / `ClientApp/`.
 - Read — read a `*.stadium` pointer's contents to resolve `app_path`; read the processed-ledger.
 - Write — write the processed-ledger at `framework/state/.stadium-processed.json` after a successful extract (verified via `verify-artifact-write.md`); `framework/state/.input-versions.json` transitively via `detect-superseded-inputs.md` when its gate is answered. The per-app assets and the forensic `model.json` are written transitively by `framework/skills/extract-stadium-app.md`.
-- Bash — used transitively by `framework/skills/preflight-cli.md` (the `python` probe) and `framework/skills/extract-stadium-app.md` (runs `framework/tools/extract_stadium_app.py`); and to run `framework/tools/setup-environment.ps1 -Component python` on the `RF-01 install-now` branch. No other Bash usage is permitted.
+- Bash — run `node framework/tools/enumerate-inputs.cjs <documentation_dir>` at step 1 (detection); used transitively by `framework/skills/preflight-cli.md` (the `python` probe) and `framework/skills/extract-stadium-app.md` (runs `framework/tools/extract_stadium_app.py`); and to run `framework/tools/setup-environment.ps1 -Component python` on the `RF-01 install-now` branch. No other Bash usage is permitted.
 - AskUserQuestion — surface the `RF-01` choice set per the registry when Python is missing at preflight; the step-1b `Old versions` gate, transitively via `detect-superseded-inputs.md`.
 
 ## Self-validation (run before handback)

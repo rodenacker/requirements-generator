@@ -22,7 +22,7 @@
     - Otherwise `Read manifest_path` and JSON-parse the contents. If parse fails → return `{ verdict: "corrupt-manifest" }`.
     - Schema check: the parsed object must have root-level `schema_version`, `generated_at`, `target`, `rows`; every row in `rows` must have all seven required row-level fields per `framework/skills/build-source-manifest.md > Schema` (`filename`, `tier`, `kind`, `sha256`, `conversions_applied`, `original_path`, `converted_sibling`). `derived_from` is **optional** here — a manifest built before extracted media existed omits it entirely, and its absence reads as `null` (the same one-time additive migration the root `target` field gets). Do not fail a legacy manifest for lacking it. On any other schema failure → return `{ verdict: "corrupt-manifest" }`.
 
-2. **Enumerate disk.** Walk `documentation_dir` recursively per `framework/shared/input-exclusions.md > Enumeration depth` — any depth, pruning `IX-01` and `IX-03` directories (never descend into them) — applying **every exclusion in `framework/shared/input-exclusions.md`**:
+2. **Enumerate disk.** Run `node framework/tools/enumerate-inputs.cjs <documentation_dir>` and take its `files` relpaths (prefixed with `documentation_dir`). The tool is the mechanical rendering of `framework/shared/input-exclusions.md > Enumeration depth` — any depth, `IX-01` and `IX-03` directories pruned — and of **every exclusion in `framework/shared/input-exclusions.md`**; it is the same call the input-handler makes, which is what keeps the two enumerations identical. For reference, it applies:
     - `IX-01` — dotfiles, dot-directories and consultant scratch items (any path component below `documentation_dir` begins with `.`).
     - `IX-02` — `*.converted.md` siblings (input-handler outputs, not consultant-dropped originals).
     - `IX-03` — Stadium application units, at any depth: `*.stadium` pointer files, and every path under a directory carrying the **full** Stadium signature (it directly contains `administration.db`, **OR** `App_Data/Updates/*.sapz`, **OR** a `ClientApp/` folder). The `/ingest-stadium` command turns these into `documentation/<AppName>.stadium-assets/*.md` assets, which **are** enumerated here as ordinary files.
@@ -59,8 +59,8 @@
 ## Tools
 
 - Read — read the file at `manifest_path`.
-- Glob — enumerate `documentation_dir` recursively; check existence of `manifest_path`.
-- Bash — compute sha256 over each file in `manifest_files ∩ disk_files` (PowerShell `Get-FileHash -Algorithm SHA256`). No other Bash usage is permitted; in particular, the skill never writes to disk or modifies any file.
+- Glob — check existence of `manifest_path`.
+- Bash — run `node framework/tools/enumerate-inputs.cjs <documentation_dir>` for the disk enumeration, whose output also carries the sha256 compared in step 5 (or compute it with PowerShell `Get-FileHash -Algorithm SHA256`). No other Bash usage is permitted; in particular, the skill never writes to disk or modifies any file.
 
 ## Anti-Patterns
 

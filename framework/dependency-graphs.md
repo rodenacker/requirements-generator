@@ -26,7 +26,7 @@ Ten transitive load/read/invoke trees, one per orchestrator. Source of truth for
 ### `@input-handler-subtree` (graphs 1, 5, 6, 7 — one set of files on disk)
 
 ```
-input-handler.md → detect-superseded-inputs.md, check-manifest-freshness.md, classify-input-tier.md, preflight-mcp.md, preflight-cli.md,
+input-handler.md → tools/enumerate-inputs.cjs [Step S: the pass's one walk], detect-superseded-inputs.md, check-manifest-freshness.md, classify-input-tier.md, preflight-mcp.md, preflight-cli.md,
                    convert-input-file.md, describe-visual-input.md, render-visual-to-raster.md,
                    build-source-manifest.md, verify-artifact-write.md,
                    refusal-registry.md, setup-instructions/markitdown.md, setup-instructions/visual-render.md,
@@ -40,7 +40,7 @@ input-handler.md → detect-superseded-inputs.md, check-manifest-freshness.md, c
   render-visual-to-raster → (Bash render to scratch raster; no skill edges)
   describe-visual-input   → template-visual-description.md, verify-artifact-write, refusal-registry
   build-source-manifest   → verify-artifact-write
-  check-manifest-freshness → (Step-S exclusion: a left-in-place Stadium app folder / *.stadium pointer is
+  check-manifest-freshness → tools/enumerate-inputs.cjs [disk enumeration]; (Step-S exclusion: a left-in-place Stadium app folder / *.stadium pointer is
                             not counted as disk drift)
   verify-artifact-write   → refusal-registry
 ```
