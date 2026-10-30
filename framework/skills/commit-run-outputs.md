@@ -40,19 +40,19 @@ Canonical here. The staging set is a *subset* of each orchestrator's write list 
 
 | `pipeline` | `paths` | `subject` |
 |---|---|---|
-| `requirements` | `generated-docs/requirements/`, `documentation/*.converted.md`, `framework/state/.progress.json`, `framework/state/timing.ndjson` | `requirements: complete` |
-| `generate-prd` | `generated-docs/prd/`, `framework/state/.prd-progress.json`, `framework/state/timing.ndjson` | `prd: complete` |
+| `requirements` | `generated-docs/requirements/`, `documentation/*.converted.md`, `framework/state/.input-versions.json`, `framework/state/.progress.json`, `framework/state/timing.ndjson` | `requirements: complete` |
+| `generate-prd` | `generated-docs/prd/`, `framework/state/.input-versions.json`, `framework/state/.prd-progress.json`, `framework/state/timing.ndjson` | `prd: complete` |
 | `design-system` | each file in `{{files_to_write}}` | `design-system: complete` |
 | `export-application` | `generated-docs/export-application/requirements-application.md`, `generated-docs/export-application/fold-report.md` † | `export-application: complete` |
 | `wireframe` | `wireframes/<scope_slug>/`, `blueprints/<scope_slug>/` | `wireframe: <scope_slug> complete` |
 | `amend-requirements` | `documentation/amendments-<date>[-N].md`, `generated-docs/requirements/requirements.md` | `amend-requirements: <date> complete` |
 | `resolve-review` | `documentation/<stem>-<date>[-N].md`; plus `generated-docs/requirements/requirements.md` **only** if the orchestrator's step 9b applied the addendum | `resolve-review: <stem> complete` |
-| `ingest-stadium` | per **freshly-extracted** app: `documentation/<AppName>.stadium-assets/` + `framework/state/stadium/<app_id>/`; plus `framework/state/.stadium-processed.json` once | `ingest-stadium: <app_id> extracted` (one app) / `ingest-stadium: <N> apps extracted` (several) |
+| `ingest-stadium` | per **freshly-extracted** app: `documentation/<AppName>.stadium-assets/` + `framework/state/stadium/<app_id>/`; plus `framework/state/.stadium-processed.json` and `framework/state/.input-versions.json` once | `ingest-stadium: <app_id> extracted` (one app) / `ingest-stadium: <N> apps extracted` (several) |
 | `prototype` | `prototypes`, `blueprints/<scope_slug>`, `framework/state/.prototype-progress.json`, `framework/state/timing.ndjson` | `prototype: <name_slug> complete` |
 | `analyse-requirement` | `<method_dir>` | `analyse-requirement: <method_name> complete` |
-| `analyse-inputs` | `<method_dir>`, `generated-docs/requirements/source-manifest.json`, `documentation/*.converted.md`, `documentation/<method_name>.analysis.md` | `analyse-inputs: <method_name> complete` |
+| `analyse-inputs` | `<method_dir>`, `generated-docs/requirements/source-manifest.json`, `documentation/*.converted.md`, `documentation/<method_name>.analysis.md`, `framework/state/.input-versions.json` | `analyse-inputs: <method_name> complete` |
 | `review-requirement` | `<method_dir>` | `review-requirement: <method_name> complete` |
-| `review-inputs` | `<method_dir>`, `generated-docs/requirements/source-manifest.json`, `documentation/*.converted.md` | `review-inputs: <method_name> complete` |
+| `review-inputs` | `<method_dir>`, `generated-docs/requirements/source-manifest.json`, `documentation/*.converted.md`, `framework/state/.input-versions.json` | `review-inputs: <method_name> complete` |
 
 Notes on individual rows:
 
