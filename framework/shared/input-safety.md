@@ -34,13 +34,13 @@ Exhaustively, the framework deletes under `documentation/` in exactly three plac
 
 - **`/requirements` reset** — deletes `documentation/**/*.converted.md` conversion siblings, at any depth (`framework/orchestrators/requirements-orch.md`). Backed by the `Bash(rm -f documentation/*.converted.md)`, `Bash(rm -f documentation/*.media/*.converted.md)` and `Bash(rm -f documentation/**/*.converted.md)` allow-entries in `.claude/settings.json`. A name ending in `.converted.md` is input-handler output by definition (`IX-02`), so this deletion never reaches a client original.
 - **`/ingest-stadium` re-ingest** — deletes `documentation/<AppName>.stadium-assets/` (`framework/orchestrators/ingest-stadium-orch.md`), only on the consultant's explicit "Re-ingest" choice at the startup gate.
-- **Media-directory reconciliation** — deletes orphaned extracted media from `documentation/*.media/` (`framework/agents/input-handler.md`, Step 0 `Refresh` branch), only on the consultant's explicit "Refresh" choice at the manifest-drift gate, and only inside a directory carrying the `.extracted-by-framework` marker. Governed by `IS-04`.
+- **Media-directory reconciliation** — deletes orphaned extracted media from `documentation/**/*.media/` (`framework/agents/input-handler.md`, Step 0 `Refresh` branch), only on the consultant's explicit "Refresh" choice at the manifest-drift gate, and only inside a directory carrying the `.extracted-by-framework` marker. Governed by `IS-04`.
 
 None touches a consultant-dropped original or a consultant-authored file (IS-01). Any deletion under `documentation/` outside these three is a defect.
 
 ## IS-04 — Media-directory reconciliation is marker-gated and consultant-initiated
 
-A **media directory** (`documentation/<full-filename>.media/`) holds the images `framework/skills/extract-ooxml-media.md` unpacked from an OOXML input. Its contents are framework-generated derivatives, not consultant source material — but the directory sits inside consultant-owned space, so its reconciliation is fenced twice:
+A **media directory** (`<full-filename>.media/`, beside its parent at any depth under `documentation/`) holds the images `framework/skills/extract-ooxml-media.md` unpacked from an OOXML input. Its contents are framework-generated derivatives, not consultant source material — but the directory sits inside consultant-owned space, so its reconciliation is fenced twice:
 
 1. **Marker gate.** The framework may only remove files from a directory containing `.extracted-by-framework`, which the extractor writes into every directory it creates. A directory a consultant hand-created at that path carries no marker and is never touched.
 2. **Consultant gate.** The removal happens only in the `Refresh` branch of the input-handler's Step-0 manifest-drift prompt — the same shape as the other two `IS-03` deletions. The extractor itself **never** deletes; it reports an `orphans` list and returns.

@@ -64,7 +64,7 @@ Byte-identical files are resolved here, before versions, so an identical copy is
 Compute for each remaining candidate (for a `stadium-unit`, use the unit folder's basename or the pointer's stem as the name):
 
 - **Normalised stem.** Lowercase; drop the extension; remove date tokens (`\d{4}-\d{2}-\d{2}`, `\d{2}\.\d{2}\.\d{4}`, `\d{8}`, `\d{4}-\d{2}`) and copy counters (`\(\d+\)`); split the rest into tokens on spaces, `-`, `_` and `.`; drop version tokens (`v\d+`, `rev\d+`, `r\d+`, and `v` / `version` followed by a number token) and status words (`final`, `draft`, `old`, `latest`, `new`, `updated`, `copy`, and `of` directly after `copy`); join the remaining tokens with single spaces. If nothing remains, the normalised stem is the lowercase stem unchanged.
-- **Version token** (highest number wins), **in-name date** (latest wins), **status word** (rank `final`/`latest` > none > `draft`/`old`), each read from the name.
+- **Version token** (highest number wins), **in-name date** (latest wins), **status word** (rank `final`/`latest`/`new`/`updated` > none > `draft`/`old`/`copy`), each read from the name.
 - **Archive signal** — any folder component of `relpath` is, case-insensitively, `old`, `archive`, `archived`, `superseded`, `previous`, `deprecated` or `backup`.
 
 Then:
@@ -91,9 +91,11 @@ Inside a group the top member is **current** and the rest are proposed as supers
 1. highest version token;
 2. latest in-name date;
 3. not in an archive folder over in one;
-4. `final` / `latest` over no status word over `draft` / `old`;
+4. `final` / `latest` / `new` / `updated` over no status word over `draft` / `old` / `copy` (including `copy of` and `- Copy`) — a copy is never preferred to its original;
 5. latest `mtime`;
 6. lexicographically first `relpath` (determinism only).
+
+A member **without** a version token ranks below every member with one; likewise a member without an in-name date ranks below every member with one.
 
 An archive-folder member is always proposed as superseded, even when it ranks top: if every member is in an archive folder, each is proposed as `superseded (archive folder)`; otherwise archive members are superseded by the top non-archive member.
 

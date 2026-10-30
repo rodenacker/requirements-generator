@@ -10,7 +10,7 @@ This is the OOXML analogue of `extract-stadium-app.md`: a deterministic Python c
 
 - `ooxml_path` — repo-relative path to the `.docx` / `.pptx` / `.xlsx` input under `documentation/`. Required.
 - `media_dir` — directory to write images into, conventionally `documentation/<relpath>.media/` — beside the parent, in its own folder (append form, never extension-replace — see *Naming* below). Required.
-- `json_out` — path for the extraction report, conventionally `framework/state/ooxml-media/<flat>.json`, where `<flat>` is the parent's path relative to `documentation/` with every `/` replaced by `__` (so same-named parents in different folders never share a report; outside `documentation/`, never manifested). Required.
+- `json_out` — path for the extraction report, conventionally `framework/state/ooxml-media/<flat>.json`, where `<flat>` is the parent's path relative to `documentation/` with `%` percent-encoded as `%25` and then every `/` as `%2F` — injective, so `a__b/x.docx` and `a/b__x.docx` never share a name — (so same-named parents in different folders never share a report; outside `documentation/`, never manifested). Required.
 - Python on `PATH` — the only runtime dependency, and the same one `extract-stadium-app.md` preflights. The tool is stdlib-only.
 
 ## Outputs
