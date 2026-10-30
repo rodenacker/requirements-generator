@@ -70,7 +70,7 @@ Every node, every Plan, every information-requirement entry carries provenance:
 
 | Shape | Meaning |
 |---|---|
-| `[SRC: <filename>]` | The node / Plan / information requirement is anchored to a manifest source whose `filename` field equals the marker payload (basename + extension). |
+| `[SRC: <filename>]` | The node / Plan / information requirement is anchored to a manifest source whose `filename` field equals the marker payload (path relative to `documentation/`). |
 | `[AI-SUGGESTED: AI-NNN \| blocking\|non-blocking]` | The non-terminal node OR the Plan is inferred from context, not directly cited. `AI-NNN` is allocated from the framework-wide namespace shared with `framework/shared/general-rules.md` and the resolver. **Forbidden on terminal operations.** |
 | `[GAP-INFERRED]` / `[GAP-PLAN-SILENT]` | Diagnostics-side aggregate markers. The diagnostics section's gap registry ties counts back to individual `[AI-SUGGESTED]` markers in the tree body. |
 

@@ -75,7 +75,7 @@ ID:             ADV-NN          (zero-padded sequence per run)
 Dimension:      1..6
 Severity:       Blocker | Major | Minor
 Disposition:    Patch | Defer | Reject
-Location:       <filename>      (manifest row's `filename` field — basename + extension)
+Location:       <filename>      (manifest row's `filename` field — path relative to `documentation/`)
 Evidence:       direct verbatim quote from the cited source's bundle entry (≤5 lines),
                 OR the literal `*(file skipped — tier: Unsupported; reason: <reason>)*`
                 placeholder for Unsupported-tier findings (Dimension 1 only)

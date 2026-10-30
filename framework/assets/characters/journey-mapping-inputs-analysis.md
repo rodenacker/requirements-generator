@@ -63,7 +63,7 @@ Every non-empty cell in the artefact carries one of three provenance shapes (the
 
 | Shape | Meaning |
 |---|---|
-| `[SRC: <filename>]` | The cell's content is anchored to a manifest row whose `filename` field equals the marker payload (basename + extension). If a verbatim quote is rendered in the cell, it is from this source. If a paraphrase is rendered, it is faithful to this source. |
+| `[SRC: <filename>]` | The cell's content is anchored to a manifest row whose `filename` field equals the marker payload (path relative to `documentation/`). If a verbatim quote is rendered in the cell, it is from this source. If a paraphrase is rendered, it is faithful to this source. |
 | `[STANDARD-RULE: GR-NN]` | The cell's content is determined by a general rule in `framework/shared/general-rules.md` (rare in journey mapping; mostly used when the analyser fills a cell from a deterministic default like *"the system must allow undo on destructive actions"*). |
 | `[GAP-NO-EVIDENCE]` | (Diagnostics-only.) A cell was left empty (`—` in the table) because no proxy was found in any consumed source. Surfaces in the diagnostics section, not in the swim-lane cells themselves. |
 

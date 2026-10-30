@@ -62,7 +62,7 @@ Every entry in the artefact carries one of two provenance shapes:
 
 | Shape | Meaning |
 |---|---|
-| `[SRC: <filename>]` | The code / theme-definition / candidate-requirement is anchored to a manifest row whose `filename` field equals the marker payload (basename including extension). The cited extract is verbatim from the row's source content (the file at `converted_sibling` when non-null, else `original_path` for `Native-text` — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`). |
+| `[SRC: <filename>]` | The code / theme-definition / candidate-requirement is anchored to a manifest row whose `filename` field equals the marker payload (path relative to `documentation/`). The cited extract is verbatim from the row's source content (the file at `converted_sibling` when non-null, else `original_path` for `Native-text` — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`). |
 | `[GAP-DEDUCTIVE: <concern>]` | The named concern (one of the 10-area frame) has at least one lexical mention in the manifest's consumed sources but no inductive theme touches it. The marker lives only in the artefact's `Coverage gaps and silent areas` diagnostics section. It is **never** a substitute for a theme. |
 
 No third shape. **No entry uncited.** **No `[AI-SUGGESTED]` markers anywhere in the artefact** — thematic analysis is extraction, not inference.

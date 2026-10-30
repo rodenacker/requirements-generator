@@ -82,7 +82,7 @@ Every finding has all eight fields populated:
 ID:                    AMB-NN              (zero-padded sequence per run)
 Dimension(s):          1..7                (single integer or sorted-distinct list ≥2 entries for multi-tag findings)
 Severity:              Blocker | Major | Minor
-Location:              <filename>          (manifest row's `filename` field — basename + extension)
+Location:              <filename>          (manifest row's `filename` field — path relative to `documentation/`)
 Evidence:              direct verbatim quote from the cited source (≤5 lines)
 Interpretations:       list of ≥2 plausible readings, each producing a different requirement
 Problem:               one sentence — what's ambiguous and why it matters

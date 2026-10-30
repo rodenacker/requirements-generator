@@ -197,7 +197,7 @@ For `Standard-Rule-Applies`-disposition findings, the Authority field additional
 
 For `Out-of-Scope`-disposition findings resolved by `prototype-scope.md` domain-default (not by an explicit-exclusion quote), the Authority field additionally carries the literal token `prototype-scope.md` (so the diagnostics block can show which dimension fired the domain-default path).
 
-Per the `/analyse-inputs` and parallel `/review-inputs` conventions: findings cite source by `<filename>` in the Location field, by manifest's `filename` key (basename plus extension). The artefact carries a Source roster (Consumed + Skipped) table in Diagnostics. No inline `[SRC: <filename>]` markers in Problem, Authority, or Elicitation-question prose.
+Per the `/analyse-inputs` and parallel `/review-inputs` conventions: findings cite source by `<filename>` in the Location field, by manifest's `filename` key (path relative to `documentation/`). The artefact carries a Source roster (Consumed + Skipped) table in Diagnostics. No inline `[SRC: <filename>]` markers in Problem, Authority, or Elicitation-question prose.
 
 ## Stand-alone discipline
 

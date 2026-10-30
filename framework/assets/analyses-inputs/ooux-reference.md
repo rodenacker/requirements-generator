@@ -198,13 +198,13 @@ Colour contract for the column-board follows the canonical Prater/OOUX vocabular
   "run_count": <int ≥ 1>,
   "source_roster": {
     "consumed": [
-      { "filename": "<basename>",
+      { "filename": "<filename>",
         "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP",
         "sha256": "<first 8 chars>",
         "nouns_contributed": <int ≥ 0> }
     ],
     "skipped": [
-      { "filename": "<basename>", "reason": "<one-line reason>" }
+      { "filename": "<filename>", "reason": "<one-line reason>" }
     ]
   },
   "objects": [
@@ -239,7 +239,7 @@ Colour contract for the column-board follows the canonical Prater/OOUX vocabular
     { "id": "G1..G8", "result": "pass | fail", "note": "<flagged items if fail>" }
   ],
   "irrelevant_to_domain_rows": [
-    { "filename": "<basename>", "reason": "<one-line reason>" }
+    { "filename": "<filename>", "reason": "<one-line reason>" }
   ]
 }
 ```

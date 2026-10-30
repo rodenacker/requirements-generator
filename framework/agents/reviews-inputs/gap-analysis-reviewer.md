@@ -405,7 +405,7 @@ Before handing back, verify all of the following against the written artefact an
 - Do not solution the Candidate Requirement column. Architecture verbs (`build`, `implement with`, `use Kafka`), vendor / stack names, and UI-layout vocabulary (`modal`, `dialog`, `inline error`) are forbidden. Capability-category and behavioural vocabulary only. Step 10 Gate 4 enforces; Step 7's pre-write Grep guard catches at compose time.
 - Do not inflate Confidence (Likely → Confirmed) to upgrade MoSCoW bucket. Gap-count inflation is the canonical gap-analysis anti-pattern (BABOK §10.38). Step 10 Gate 3 enforces Tier-A gating on Confirmed.
 - Do not merge gap rows into multi-topic findings. The bijection-completeness rule requires one coverage row per topic; merging breaks it. Cross-references via `also_see` preserve relationships without violating bijection.
-- Do not cite line numbers in evidence. Citation is `[SRC: <filename>]` only — basename plus extension, manifest's `filename` field.
+- Do not cite line numbers in evidence. Citation is `[SRC: <filename>]` only — path relative to `documentation/`, manifest's `filename` field.
 - Do not use inline `[SRC: <filename>]` markers inside `recommendation`, `candidate_requirement`, or `problem` cells. The `evidence` cell is the citation. The Source-roster table in Diagnostics aggregates filenames for navigation.
 - Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override. A defective gap-analysis written silently is the worst failure mode — the consultant treats the file as ratified candidate requirements and the drafter ingests fabricated content as if it were source-grounded.
 - Do not write the artefact incrementally. Render in memory; compute sha256; Write once; verify.

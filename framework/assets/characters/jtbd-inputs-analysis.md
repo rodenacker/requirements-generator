@@ -60,7 +60,7 @@ Every entry in the artefact carries one of two provenance shapes:
 
 | Shape | Meaning |
 |---|---|
-| `[SRC: <filename>]` | The actor / situation / motivation / outcome / push / pull / anxiety / habit phrase is anchored to a manifest row whose `filename` field equals the marker payload (basename including extension). The cited phrase is verbatim or a minimally rephrased lift of input prose; for visual sources, the citation anchors to the frozen textual description sibling the analyser read at Round 1 (the `[SRC: <filename>]` still names the original visual file, never the sibling). |
+| `[SRC: <filename>]` | The actor / situation / motivation / outcome / push / pull / anxiety / habit phrase is anchored to a manifest row whose `filename` field equals the marker payload (path relative to `documentation/`). The cited phrase is verbatim or a minimally rephrased lift of input prose; for visual sources, the citation anchors to the frozen textual description sibling the analyser read at Round 1 (the `[SRC: <filename>]` still names the original visual file, never the sibling). |
 | `not-named-in-inputs` | The named force (push / pull / anxiety / habit) has no lexical mention in any consumed source. The marker lives in the `forces-strip` of the corresponding job card, rendered with the `not-named` CSS class (muted italic). It is **never** a substitute for inventing a force. |
 
 Plus a numeric-marker shape for outcomes and scores:

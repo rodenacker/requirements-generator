@@ -29,7 +29,7 @@ The per-methodology completion commit is a **git-history write, not a filesystem
 
 **Writes (allowed):**
 - `generated-docs/review-inputs/<METHOD>/*` — the reviewer's output path (per the chosen registry row's `output_path` field).
-- `generated-docs/requirements/source-manifest.json` — **only** when step 1's input-handler invocation enters its `mode = "create"` (absent) or `mode = "refresh"` (stale, consultant chose Refresh) branch. The manifest path is shared with `/requirements`, `/generate-prd`, and `/analyse-inputs`; the write is bounded to a single canonical file. The input-handler also writes `documentation/<basename>.converted.md` siblings as part of the same invocation. On `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write to this path occurs.
+- `generated-docs/requirements/source-manifest.json` — **only** when step 1's input-handler invocation enters its `mode = "create"` (absent) or `mode = "refresh"` (stale, consultant chose Refresh) branch. The manifest path is shared with `/requirements`, `/generate-prd`, and `/analyse-inputs`; the write is bounded to a single canonical file. The input-handler also writes `*.converted.md` siblings beside each original as part of the same invocation. On `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write to this path occurs.
 - `framework/state/timing.ndjson` — **not** written by this orchestrator. This pipeline does not maintain timing state; timing observability is a `/requirements`-pipeline concern.
 - `framework/state/.progress.json` — **not** written by this orchestrator. The pipeline runs one reviewer per run (see **Selector re-entry**); run-state is reconstructed from on-disk artefact presence, never from a progress file. The orchestrator passes `progress_path: null` to the input-handler at step 1 so the agent's `RF-01 continue-later` write is suppressed.
 
@@ -129,7 +129,7 @@ The orchestrator's tools are limited to the operations above. Every other read o
 
 ## Markers in content (reviewer citation namespace)
 
-Input-reviewers under this pipeline cite source-of-fact in their artefacts using `[SRC: <filename>]` markers, where `<filename>` is the manifest row's `filename` field (basename only, including extension). This matches the `/analyse-inputs` analyser convention and differs from the `/requirements`-pipeline drafter's `[SRC: C-NNN]` markers, which carry stable sidecar-claim IDs. All three forms can coexist in the workspace because:
+Input-reviewers under this pipeline cite source-of-fact in their artefacts using `[SRC: <filename>]` markers, where `<filename>` is the manifest row's `filename` field (its path relative to `documentation/`, forward slashes — equal to the basename for a top-level file; `framework/skills/build-source-manifest.md > Field rules`). This matches the `/analyse-inputs` analyser convention and differs from the `/requirements`-pipeline drafter's `[SRC: C-NNN]` markers, which carry stable sidecar-claim IDs. All three forms can coexist in the workspace because:
 
 - The `/review-inputs` pipeline writes only to `generated-docs/review-inputs/<METHOD>/`; the `/requirements` pipeline never reads under that path.
 - `framework/skills/grounding-verifier.md` consumes only the `/requirements`-pipeline draft and its sidecar; it never reads under `generated-docs/review-inputs/`.

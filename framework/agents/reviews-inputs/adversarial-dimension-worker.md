@@ -29,7 +29,7 @@ The invariant is enforced by the agent's `Tools` list — **no tools at all** ot
 - **Bundle JSON** — `{{BUNDLE_JSON}}` — the per-source evidence bundle as a JSON array. Each entry has the shape:
     ```json
     {
-      "filename": "<basename + extension>",
+      "filename": "<manifest filename: path relative to documentation/>",
       "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP",
       "original_sha256": "<hex>",
       "text_or_transcription": "<the content the worker reasons over>"

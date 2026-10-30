@@ -309,10 +309,10 @@ Embedded as `<script type="application/json" id="gap-analysis-meta">` in the pro
   ],
   "source_roster": {
     "consumed": [
-      {"filename": "<basename>", "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP", "sha256_short": "<8-hex>"}
+      {"filename": "<filename>", "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP", "sha256_short": "<8-hex>"}
     ],
     "skipped": [
-      {"filename": "<basename>", "reason": "<from manifest>"}
+      {"filename": "<filename>", "reason": "<from manifest>"}
     ]
   },
   "quality_gates": [

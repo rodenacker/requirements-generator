@@ -39,6 +39,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Divergence (divergence profile) | How variants/prototypes differ; goal-driven profile derived once into `scope.json`. | `scope-selector.md` |
 | Drafter | First triplet agent: emits the artefact with provenance markers + claims sidecar. | — |
 | Elevation ladder | Four meaning-bound shadow rungs (xs hairline / sm resting / md raised / lg overlay); rungs are never skipped. | `prototypes/visual-craft-standard.md §5` |
+| Exact-duplicate input | Byte-identical copy of another input; left out deterministically as `skipped — duplicate of <relpath>`, no question. | `skills/detect-superseded-inputs.md` |
 | Extracted-media (derived input unit) | Image unpacked from an OOXML input at Step S2 and registered as a first-class `kind: "derived"` manifest row; content-hash filename. | `skills/extract-ooxml-media.md` |
 | Fixture | Static in-memory JSON data shipped with a prototype (PI-02). | `prototype-invariants.md` |
 | colour-mode strategy | How a prototype's users switch light/dark (`toggle`/`system`/`none`/`custom`); asked once at `/prototype` Step B(4b) **only when both design-system mode files exist**, then locked in `.scaffold.json`. | `prototype-orch.md` Step B(4b) |
@@ -51,7 +52,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | hue source | The design-system mode whose palette the brand references ground (or light when no reference declared a background: `declared-light`); always written, `meta.primary: true`; the other mode is derived from it (or extracted too: `extracted-both`). | `cross-mode-derivation-rules.md` |
 | Input tier | Ingest classification (Native / Supported-via-MCP / Unsupported). | `skills/classify-input-tier.md` |
 | Logical surface (LS-NN) | Decomposition-agnostic blueprint surface, pre-screen-count. | `blueprint-architect.md` |
-| Media directory | `documentation/<full-filename>.media/` holding one input's extracted-media; enumerated, marker-gated, the one derived class the framework may reconcile. | `shared/input-safety.md` `IS-04` |
+| Media directory | `<full-filename>.media/` beside one input (any depth) holding its extracted-media; enumerated, marker-gated, the one derived class the framework may reconcile. | `shared/input-safety.md` `IS-04` |
 | Merger | Third triplet agent: strips markers, validates, writes the clean final artefact. | — |
 | palette option | One of two `/design-system` palettes (neutral / site colour) offered when the brand colour is reserved; chosen in step-07, collapsed to one; `meta.palette_option`; resumable. | `design-system-styler/steps/step-07-handback.md` |
 | Methodology | A named analysis/critique method (OOUX, ADVERSARIAL, GLOSSARY …); "lens" = its alias. | registries |
@@ -92,6 +93,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Stadium ingestion command (`/ingest-stadium`) | Standalone command that extracts a Stadium-app into its category assets; sole trigger for Stadium extraction. | `orchestrators/ingest-stadium-orch.md` |
 | Stadium ingestor | Agent owning per-app Stadium extraction for `/ingest-stadium` (detect, skip-if-ledgered, preflight, extract, write ledger). | `agents/stadium-ingestor.md` |
 | Stadium-app (input unit) | A deployed Twenty57 Stadium 6 app dropped into `documentation/`; extracted once by `/ingest-stadium`; excluded + nudged at the input-handler's Step S. | `agents/stadium-ingestor.md` |
+| Superseded input | Input confirmed as an old version at the `Old versions` gate; kept as an `Unsupported` row (`skipped — superseded by <relpath>`), never read or cited. | `skills/detect-superseded-inputs.md` |
 | Store | Client-side state container a prototype reads/writes, initialised from fixtures. | `shared-component-conventions.md` |
 | surface_plan | Per-variant JSON authoring realization + pattern picks + screens per `LS-NN`. | `blueprint-architect.md` |
 | system-derived | `/design-system` `prov` value (with `extracted`): produced by a fixed rule (house default, colour helper, derivation), not a reference. | `design-system-styler/prompt-templates/artifact-generation.md` |
