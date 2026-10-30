@@ -113,7 +113,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 ## Output
 
-- `<chosen.output_path>` — produced by the analyser at its write step. The orchestrator produces no other artefact directly. The step-1 input-handler invocation, when it fires, additionally produces `generated-docs/requirements/source-manifest.json` and `documentation/*.converted.md` siblings as documented in the stand-alone constraint exception. On `Accept & use`, the analyser additionally writes the re-ingestion extract `documentation/<chosen.name>.analysis.md` (second exception, `IS-05`).
+- `<chosen.output_path>` — produced by the analyser at its write step. The orchestrator produces no other artefact directly. The step-1 input-handler invocation, when it fires, additionally produces `generated-docs/requirements/source-manifest.json` and `documentation/**/*.converted.md` siblings as documented in the stand-alone constraint exception. On `Accept & use`, the analyser additionally writes the re-ingestion extract `documentation/<chosen.name>.analysis.md` (second exception, `IS-05`).
 
 ## Tools
 
@@ -143,7 +143,7 @@ Each input-analyser additionally records a source-roster section in its artefact
 - If the analyser was invoked, its handback gate was met (artefact exists, verify pass, consultant accepted).
 - `framework/skills/commit-run-outputs.md` was invoked **exactly once per accepted methodology**, immediately after that methodology's handback gate and before the `✓ Ran …` line — never on the `Keep` branch, never on the step-0 `cancelled` / `empty-registry` exits, and never a second time at session exit. Its return was one of `committed | nothing-to-commit | skipped-branch | failed`; a non-`committed` return produced at most one plain-text line, left the artefact on disk, did not stop the loop, and did not suppress the exit message or its context-hygiene tip.
 - Every invoked agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
-- No file was written outside `generated-docs/analyse-inputs/<chosen.name>/`, with the documented step-1 exception of `generated-docs/requirements/source-manifest.json` and `documentation/*.converted.md` siblings produced by the input-handler, and the documented `Accept & use` exception of `documentation/<chosen.name>.analysis.md` written by `framework/skills/write-reingestion-extract.md` under `IS-05`.
+- No file was written outside `generated-docs/analyse-inputs/<chosen.name>/`, with the documented step-1 exception of `generated-docs/requirements/source-manifest.json` and `documentation/**/*.converted.md` siblings produced by the input-handler, and the documented `Accept & use` exception of `documentation/<chosen.name>.analysis.md` written by `framework/skills/write-reingestion-extract.md` under `IS-05`.
 - `framework/state/.progress.json` was not written by this orchestrator on any branch. No selection-loop state (`run_count`, `preflight_done`) was persisted to disk; the loop ran in memory only.
 - `framework/state/timing.ndjson` was not written by this orchestrator on any branch.
 

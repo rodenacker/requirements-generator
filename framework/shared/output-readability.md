@@ -31,7 +31,7 @@ It is referenced (not restated) by each producing agent's or character's *Reader
 **Exempt** (LLM-only — no human reads them, so none of the rules below apply):
 
 - `documentation/<App>.stadium-assets/**`
-- `documentation/*.converted.md` visual-input descriptions
+- `documentation/**/*.converted.md` visual-input descriptions (any depth)
 - `blueprints/<scope-slug>/{blueprint.md, scope.json}`
 - `prototypes/.specs/<name-slug>/design-spec.md`
 - every `.ndjson` sidecar (`draft-claims`, `resolver-answers`, `timing`, per-analysis machine sidecars, …)
