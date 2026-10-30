@@ -6,7 +6,7 @@ The primary render path remains preferred (geometry is read by vision, not guess
 
 **Inputs:**
 - `vector_path` — the `.drawio` file under `documentation/` to decode.
-- `sibling_path` — the description sibling to write: `documentation/<filename-with-ext>.converted.md` (append-extension form, e.g. `flow.drawio.converted.md`), matching the render path's sibling exactly so downstream Read-path resolution is identical.
+- `sibling_path` — the description sibling to write: `documentation/<relpath>.converted.md`, beside the original in its own folder (append-extension form, e.g. `flow.drawio.converted.md`), matching the render path's sibling exactly so downstream Read-path resolution is identical.
 
 **Outputs:** exactly one of:
 - `ok` — the sibling at `sibling_path` was written (template fully populated, marker discipline applied) and verified via `framework/skills/verify-artifact-write.md`. The input-handler retains the row's `tier: "Vector-renderable"` and records `conversions_applied: "drawio-xml-fallback[; multi-page-source-first-page-only]"`.
@@ -28,7 +28,7 @@ The primary render path remains preferred (geometry is read by vision, not guess
 2. **Read the structure from the XML, not from geometry.** mxGraph stores each shape as an `<mxCell vertex="1" value="<label>" style="…">` with an `<mxGeometry x y width height>`; each connector as `<mxCell edge="1" source="<id>" target="<id>" value="<label>" style="…">`. Extract: vertex labels (entity/field/node names), edge source→target pairs and edge labels, and edge-style tokens that carry meaning (e.g. `startArrow=ERmany` / `endArrow=ERone` for ERD cardinality; `edgeStyle`/arrow direction for flow direction).
 3. **Populate `framework/assets/template-visual-description.md` top-to-bottom**, exactly as the render path's `describe-visual-input.md` does — same sections, same closed marker set — so the sibling is indistinguishable in shape to downstream consumers. Set the `Rendered from vector?` row to `no — decoded from .drawio XML (geometry inferred)`.
 4. **Apply the fidelity guardrail** (the rule that protects the citation guarantee):
-   - **Explicit XML content is authoritative → `[SRC: <filename>]`:** vertex `value` labels (entity / field / node names), edge `source`/`target` connectivity, edge labels, and cardinality/direction read from explicit edge-style tokens. These are *read*, not guessed.
+   - **Explicit XML content is authoritative → `[SRC: <filename>]`** (the manifest `filename`, i.e. the path relative to `documentation/`): vertex `value` labels (entity / field / node names), edge `source`/`target` connectivity, edge labels, and cardinality/direction read from explicit edge-style tokens. These are *read*, not guessed.
    - **Spatially-inferred structure is not reliable from XML → `[AI-SUGGESTED: AI-NNN | blocking]`:** swim-lane / group membership, containment, or any relationship deduced from x/y position rather than an explicit parent/edge. Numbered per-description from `AI-001`; `blocking` when it would materially change a downstream requirement (e.g. which actor owns a step). Itemise each in the template's "Ambiguities" section as a resolver-ready question.
    - Never assert a property as real data unless an explicit `value` label shows it. The closed-property-set discipline is unchanged.
 5. **Write** the populated template to `sibling_path` and verify via `framework/skills/verify-artifact-write.md`. On verify failure, return `failed — render`; otherwise return `ok`.

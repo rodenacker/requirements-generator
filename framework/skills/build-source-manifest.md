@@ -35,7 +35,7 @@
       "sha256": "<hex of original_path file bytes>",
       "conversions_applied": "none | markitdown-mcp[; sub-tag...] | vision-described[; sub-tag...] | drawio-xml-fallback[; sub-tag...] | failed — <reason> | skipped — <reason>",
       "original_path": "documentation/<relpath>",
-      "converted_sibling": "documentation/<relpath-dir>/<basename>.converted.md | documentation/<relpath>.converted.md | null"
+      "converted_sibling": "documentation/<relpath-dir>/<stem>.converted.md | documentation/<relpath>.converted.md | null"
     }
   ]
 }
@@ -87,7 +87,7 @@ For each classified row from `classify-input-tier.md`, in input-order:
     - `Vector-renderable` and render+description succeeded — `tier: "Vector-renderable"`, `conversions_applied: "vision-described; rendered-from-vector; render-tool=<name>"`, `converted_sibling: "documentation/<filename-with-ext>.converted.md"`.
     - `Vector-renderable` `.drawio` read via XML-decode fallback (renderer absent or render failed, but `decode-drawio-xml.md` returned `ok`) — `tier: "Vector-renderable"`, `conversions_applied: "drawio-xml-fallback[; multi-page-source-first-page-only]"`, `converted_sibling: "documentation/<filename-with-ext>.converted.md"`.
     - `Native-multimodal` description failed or `Vector-renderable` render/description failed (for `.drawio`, the XML fallback also failed) — `tier: "Unsupported"`, `conversions_applied: "failed — vision"` or `"failed — render"`, `converted_sibling: null`.
-    - `Supported-via-MCP` and conversion succeeded — `tier: "Supported-via-MCP"`, `conversions_applied: "markitdown-mcp[; sub-tag...]"`, `converted_sibling: "documentation/<relpath-dir>/<basename>.converted.md"` (the sibling path `convert-input-file.md` returned, in the original's folder).
+    - `Supported-via-MCP` and conversion succeeded — `tier: "Supported-via-MCP"`, `conversions_applied: "markitdown-mcp[; sub-tag...]"`, `converted_sibling: "documentation/<relpath-dir>/<stem>.converted.md"` (the sibling path `convert-input-file.md` returned, in the original's folder).
     - `Supported-via-MCP` and conversion failed — `tier: "Unsupported"`, `conversions_applied: "failed — <reason>"`, `converted_sibling: null`.
     - `Unsupported` (originally) — `tier: "Unsupported"`, `conversions_applied: "none"`, `converted_sibling: null`.
     - **Left-out input** (the input-handler passes its Step-V `left_out` entries, and the derived rows that inherit a parent's status) — `tier: "Unsupported"`, `conversions_applied:` the `skipped — …` string supplied, `converted_sibling: null`. The tier the file would otherwise have had is irrelevant; it is never converted.

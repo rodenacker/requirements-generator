@@ -14,7 +14,7 @@ The skill is the **bounded interpretation** the input-handler delegates (see `fr
 - No external/MCP tool is required — Claude's vision is native via `Read`.
 
 **Outputs:**
-- A sibling file at `documentation/<filename-with-ext>.converted.md` (e.g. `documentation/wireframe-login.png.converted.md`, `documentation/erd.svg.converted.md`) containing the populated description.
+- A sibling file at `documentation/<relpath>.converted.md` — beside the original, in its own folder (e.g. `documentation/wireframe-login.png.converted.md`, `documentation/erd.svg.converted.md`) containing the populated description.
 - A `conversions_applied` string for the manifest row: `"vision-described"` plus optional sub-tags separated by `; ` — for example `"vision-described; ui-mockup"`, `"vision-described; erd; rendered-from-vector; render-tool=inkscape"`, or the failure form `"failed — vision"`.
 
 **Used by:**
@@ -22,10 +22,10 @@ The skill is the **bounded interpretation** the input-handler delegates (see `fr
 
 ## Procedure
 
-1. Determine the sibling path: append `.converted.md` to the **full original filename** (extension included). For `documentation/wireframe.png` the sibling is `documentation/wireframe.png.converted.md`; for `documentation/erd.svg` it is `documentation/erd.svg.converted.md`. The append-extension form (not extension-replace) prevents a visual from colliding with a same-stem Office file's sibling (`chart.png.converted.md` vs `chart.converted.md`). If a file already exists at the sibling path, the **input-handler's step-5 idempotency guard** decides whether this skill is even invoked — this skill always (over)writes when invoked.
+1. Determine the sibling path: append `.converted.md` to the **full original filename** (extension included). For `documentation/wireframe.png` the sibling is `documentation/wireframe.png.converted.md`; for `documentation/shots/login.png` it is `documentation/shots/login.png.converted.md`; for `documentation/erd.svg` it is `documentation/erd.svg.converted.md`. The append-extension form (not extension-replace) prevents a visual from colliding with a same-stem Office file's sibling (`chart.png.converted.md` vs `chart.converted.md`). If a file already exists at the sibling path, the **input-handler's step-5 idempotency guard** decides whether this skill is even invoked — this skill always (over)writes when invoked.
 2. `Read` `image_path` to surface the image as multimodal vision input. When `document_context` is present, hold it alongside the image while describing — it disambiguates what the image *is* (a screenshot of a real screen, a proposed mockup, a diagram of a process) in a way the pixels alone often cannot.
 3. `Read` `framework/assets/template-visual-description.md` and populate it **top-to-bottom in one pass**, classifying the diagram type and filling every section. Apply the marker discipline exactly:
-   - Cite every Tier-A (*what*) item with `[SRC: <original-filename>]` — the original's filename, not the temp raster's.
+   - Cite every Tier-A (*what*) item with `[SRC: <original-filename>]` — the original's manifest `filename` (its path relative to `documentation/`, e.g. `shots/login.png`; `framework/skills/build-source-manifest.md > Field rules`), not the temp raster's.
    - Mark inferred or low-confidence items with `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]`. **Every extracted data property/field that may be placeholder rather than real data carries `[AI-SUGGESTED: AI-NNN | blocking]`** — see the template's property section.
    - Use no marker outside the canonical set (`[SRC]`, `[AI-SUGGESTED]`). Do **not** invent a `[CONFIDENCE]` marker.
    - Leave no `{{placeholder}}` unfilled and no section blank (use the template's empty-section sentinel where a section genuinely does not apply to this diagram type).
@@ -63,7 +63,7 @@ The `conversions_applied` string is consultant-facing and forensic; the input-ha
 
 ## Self-validation
 
-- The sibling exists at `documentation/<filename-with-ext>.converted.md` after a successful description. Its byte size is ≥ 256.
+- The sibling exists at `documentation/<relpath>.converted.md` after a successful description. Its byte size is ≥ 256.
 - The sha256 returned to the caller matches the bytes on disk (verified via `verify-artifact-write.md`).
 - Every `{{placeholder}}` in the template was replaced; no section was left blank (empty sections carry the template's explicit sentinel).
 - Every Tier-A (*what*) item carries a `[SRC: <original-filename>]` citation naming the **original** file (not the temporary raster). No marker outside `[SRC]` / `[AI-SUGGESTED]` appears.

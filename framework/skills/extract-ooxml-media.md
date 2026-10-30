@@ -9,8 +9,8 @@ This is the OOXML analogue of `extract-stadium-app.md`: a deterministic Python c
 ## Inputs
 
 - `ooxml_path` — repo-relative path to the `.docx` / `.pptx` / `.xlsx` input under `documentation/`. Required.
-- `media_dir` — directory to write images into, conventionally `documentation/<full-filename>.media/` (append form, never extension-replace — see *Naming* below). Required.
-- `json_out` — path for the extraction report, conventionally `framework/state/ooxml-media/<full-filename>.json` (outside `documentation/`, never manifested). Required.
+- `media_dir` — directory to write images into, conventionally `documentation/<relpath>.media/` — beside the parent, in its own folder (append form, never extension-replace — see *Naming* below). Required.
+- `json_out` — path for the extraction report, conventionally `framework/state/ooxml-media/<flat>.json`, where `<flat>` is the parent's path relative to `documentation/` with every `/` replaced by `__` (so same-named parents in different folders never share a report; outside `documentation/`, never manifested). Required.
 - Python on `PATH` — the only runtime dependency, and the same one `extract-stadium-app.md` preflights. The tool is stdlib-only.
 
 ## Outputs
@@ -40,7 +40,7 @@ On disk, inside `media_dir`:
 
 ## Naming
 
-The media directory **appends** to the full filename, extension included: `documentation/spec.docx` → `documentation/spec.docx.media/`. Extension-replace would collide `spec.docx` and `spec.pptx` onto one directory — the same collision `describe-visual-input.md` avoids by appending.
+The media directory **appends** to the full filename, extension included: `documentation/spec.docx` → `documentation/spec.docx.media/`; `documentation/decks/review.docx` → `documentation/decks/review.docx.media/`. Extension-replace would collide `spec.docx` and `spec.pptx` onto one directory — the same collision `describe-visual-input.md` avoids by appending.
 
 Image filenames are the **content hash**, not a sequential index. This is load-bearing, not cosmetic: an unchanged image re-extracts to a byte-identical filename, so its frozen description still binds and the input-handler's Step-5 idempotency guard reuses the consultant's hand-edits. Sequential naming would shift every index when one image is removed from the source document, silently rebinding descriptions to the wrong images — a worse failure than losing them.
 
@@ -75,6 +75,6 @@ This is what makes the vision call worth making. A screenshot described blind yi
 - Do not delete anything in a media directory from this skill. Reconciliation is gated on the `.extracted-by-framework` marker **and** on the consultant's Refresh choice at the drift gate (`IS-04`). An automatic delete here would be a defect under `IS-03`.
 - Do not treat `extracted: 0` as a failure or surface it as a warning. Most documents contain no requirement-bearing images.
 - Do not let a media-extraction failure block the parent's text conversion. The document's prose is the primary content; losing its images is a degradation, not a halt.
-- Do not write the media directory anywhere but beside its parent under `documentation/`. Downstream enumeration, freshness diffing, and the read-path rule all assume co-location.
+- Do not write the media directory anywhere but beside its parent, in the parent's own folder under `documentation/`. Downstream enumeration, freshness diffing, and the read-path rule all assume co-location.
 - Do not re-interpret an extracted image's pixels downstream. Once described, the frozen `*.converted.md` sibling is the only consumer-facing surface — the interpret-once contract applies to extracted media exactly as it does to a consultant-dropped `.png` (`framework/skills/build-source-manifest.md > Read-path resolution`).
 - Do not mine requirements from `document_context`. It locates the image; the parent document's own `.converted.md` is where its prose is cited from.

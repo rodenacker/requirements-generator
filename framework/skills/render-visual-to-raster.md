@@ -7,7 +7,7 @@
 - `renderer` — the resolved CLI binary name(s) returned by `framework/skills/preflight-cli.md` (e.g. `inkscape`, `rsvg-convert`, `drawio`, `soffice`). Guaranteed present by the preflight having run first.
 
 **Outputs:**
-- `raster_path` — a temporary PNG at `framework/state/.visual-render-scratch/<filename-with-ext>.png`, consumed by `describe-visual-input.md` and then removed. Never written under `documentation/` (it must not be enumerated as a new input).
+- `raster_path` — a temporary PNG at `framework/state/.visual-render-scratch/<flat>/<basename>.png`, where `<flat>` is the input's path relative to `documentation/` with every `/` replaced by `__`, consumed by `describe-visual-input.md` and then removed. Never written under `documentation/` (it must not be enumerated as a new input).
 - A status: `ok` (raster produced, non-empty) or `failed — render` (the renderer errored or produced an empty/zero-byte raster). On `failed — render` the input-handler demotes the row's `tier` to `Unsupported`.
 
 **Used by:**
@@ -16,7 +16,7 @@
 ## Procedure
 
 1. Choose the renderer command by the vector file's extension and the available `renderer` binary, per the table below. Prefer the first available binary in the table row.
-2. Ensure the scratch dir `framework/state/.visual-render-scratch/` exists (create lazily). Build the output path `framework/state/.visual-render-scratch/<filename-with-ext>.png`.
+2. Ensure the scratch dir `framework/state/.visual-render-scratch/` exists (create lazily). Create the per-row subdir `framework/state/.visual-render-scratch/<flat>/` (`<flat>` as in **Outputs**) and build the output path `<that subdir>/<basename>.png`. The per-row subdir is what stops two same-named vectors in different folders — and `soffice --outdir`, which names its output after the input's basename — from colliding.
 3. Shell out (PowerShell on Windows; the call operator `&` for binaries with spaced paths) to render to the output PNG at a legible resolution (target ≥ 1500 px on the long edge so small labels remain readable to vision; e.g. Inkscape `--export-width=1600`).
 4. Confirm the output PNG exists and is non-zero bytes. If so, return `ok` with `raster_path`. Otherwise return `failed — render`.
 5. (Caller responsibility) after `describe-visual-input.md` has read the raster, the input-handler removes the scratch PNG. The scratch dir is also swept by the `/requirements` orchestrator's Reset procedure.
