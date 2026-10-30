@@ -158,7 +158,7 @@ Perform the steps in this order. If any step fails, stop and surface the failure
 
 5. **Do not delete shared inputs or other-pipeline state.** Specifically, do **not** delete:
    - `generated-docs/requirements/source-manifest.json` — shared input manifest used by `/requirements`, `/analyse-inputs`, `/review-inputs`, and this pipeline. Deleting it would corrupt sibling pipelines.
-   - `documentation/*.converted.md` siblings — produced by the input-handler from `Supported-via-MCP` originals; shared across all pipelines that invoke the input-handler. The `/requirements` orchestrator owns deletion of these on its own reset.
+   - `documentation/**/*.converted.md` siblings (any depth) — produced by the input-handler from `Supported-via-MCP` originals; shared across all pipelines that invoke the input-handler. The `/requirements` orchestrator owns deletion of these on its own reset.
    - `generated-docs/requirements/requirements.md`, `generated-docs/requirements/requirements-draft.md`, `generated-docs/requirements/draft-claims.ndjson`, `generated-docs/requirements/draft-claims-verification.ndjson`, `generated-docs/requirements/consultant-answers.md` — belong to `/requirements`.
 
 After the reset completes, the pipeline starts cleanly at Step 1.
@@ -246,7 +246,7 @@ The orchestrator's tools are limited to the operations above.
 - Do not skip Step 1 (input-handler) on any path that proceeds past Step 0a. Step 1 runs on every invocation regardless of prior `completed` events — the input-handler's own step-0 freshness check is what catches input-folder drift on a `continue` rerun. Skipping based on a prior `completed` event re-introduces silent stale-blindness.
 - Do not branch Step 1 on whether `generated-docs/requirements/source-manifest.json` exists, parses, is fresh, or is stale. The orchestrator calls the input-handler uniformly; the agent owns the create / refresh / no-op / halt decision at its step 0. Re-introducing per-orchestrator branching here duplicates instructions the input-handler already owns.
 - Do not run the reset procedure when no prior progress was detected, and do not run it when the consultant chose `continue`.
-- Do not delete `generated-docs/requirements/source-manifest.json`, `documentation/*.converted.md`, or anything under `generated-docs/requirements/` during a reset. Those belong to other pipelines.
+- Do not delete `generated-docs/requirements/source-manifest.json`, `documentation/**/*.converted.md` (any depth), or anything under `generated-docs/requirements/` during a reset. Those belong to other pipelines.
 - Do not delete anything in `framework/state/` other than the three named PRD resolver sidecars and the progress file overwrite. In particular, `framework/state/timing.ndjson`, `framework/state/.progress.json`, and `framework/state/resolver-*` are off-limits during a PRD reset.
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the reset checkpoint commit.
 - Do not write a `completed` event before the corresponding handback gate is met.

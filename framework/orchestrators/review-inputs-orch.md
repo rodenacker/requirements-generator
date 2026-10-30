@@ -116,7 +116,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 ## Output
 
-- `<chosen.output_path>` — produced by the reviewer at its write step. The orchestrator produces no other artefact directly. The step-1 input-handler invocation, when it fires, additionally produces `generated-docs/requirements/source-manifest.json` and `documentation/*.converted.md` siblings as documented in the stand-alone constraint exception.
+- `<chosen.output_path>` — produced by the reviewer at its write step. The orchestrator produces no other artefact directly. The step-1 input-handler invocation, when it fires, additionally produces `generated-docs/requirements/source-manifest.json` and `documentation/**/*.converted.md` siblings as documented in the stand-alone constraint exception.
 
 ## Tools
 
@@ -147,7 +147,7 @@ Each input-reviewer additionally records a source-roster section in its artefact
 - If the reviewer was invoked, its handback gate was met (artefact exists, verify pass, consultant accepted).
 - The reviewer agent and the shared input-handler agent were each run in the foreground, never via the Agent / Task / fork / sub-agent mechanism. The reviewer's own internal per-dimension workers (dispatched at its Step 4) are the sanctioned exception per the **Execution model** carve-out — read-only (in fact tool-less), non-interactive, owning no handback; they are not orchestrator-invoked agents.
 - `framework/skills/commit-run-outputs.md` was invoked **exactly once** when a review was accepted, immediately after the handback gate and before the review completion message — never on the `Keep` branch, never on the step-0 `cancelled` / `empty-registry` exits, and never on a step-1 input-handler exit. Its return was one of `committed | nothing-to-commit | skipped-branch | failed`; a non-`committed` return produced at most one plain-text line, left the artefact on disk, and did not suppress the review completion message.
-- No file was written outside `generated-docs/review-inputs/<chosen.name>/`, with the documented step-1 exception of `generated-docs/requirements/source-manifest.json` and `documentation/*.converted.md` siblings produced by the input-handler. (The per-methodology completion commit is a git-history write, not a filesystem write.)
+- No file was written outside `generated-docs/review-inputs/<chosen.name>/`, with the documented step-1 exception of `generated-docs/requirements/source-manifest.json` and `documentation/**/*.converted.md` siblings produced by the input-handler. (The per-methodology completion commit is a git-history write, not a filesystem write.)
 - `framework/state/.progress.json` was not written by this orchestrator on any branch. `preflight_done` was not persisted to disk.
 - `framework/state/timing.ndjson` was not written by this orchestrator on any branch.
 

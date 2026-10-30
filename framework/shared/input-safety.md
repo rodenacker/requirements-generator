@@ -32,7 +32,7 @@ A review or analysis records the left-out file in its diagnostics / skipped rost
 
 Exhaustively, the framework deletes under `documentation/` in exactly three places, all consultant-initiated, all git-checkpointed first, and all removing **only files the framework itself generated**:
 
-- **`/requirements` reset** — deletes `documentation/*.converted.md` conversion siblings (`framework/orchestrators/requirements-orch.md`). Backed by the `Bash(rm -f documentation/*.converted.md)` allow-entry in `.claude/settings.json`.
+- **`/requirements` reset** — deletes `documentation/**/*.converted.md` conversion siblings, at any depth (`framework/orchestrators/requirements-orch.md`). Backed by the `Bash(rm -f documentation/*.converted.md)` and `Bash(rm -f documentation/*.media/*.converted.md)` allow-entries in `.claude/settings.json`; a sibling in a deeper folder asks for permission. A name ending in `.converted.md` is input-handler output by definition (`IX-02`), so this deletion never reaches a client original.
 - **`/ingest-stadium` re-ingest** — deletes `documentation/<AppName>.stadium-assets/` (`framework/orchestrators/ingest-stadium-orch.md`), only on the consultant's explicit "Re-ingest" choice at the startup gate.
 - **Media-directory reconciliation** — deletes orphaned extracted media from `documentation/*.media/` (`framework/agents/input-handler.md`, Step 0 `Refresh` branch), only on the consultant's explicit "Refresh" choice at the manifest-drift gate, and only inside a directory carrying the `.extracted-by-framework` marker. Governed by `IS-04`.
 
