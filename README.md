@@ -60,7 +60,7 @@ This repository is a **template**. You don't work in the shared copy - you creat
 
 **Do the work**
 
-4. **Add the client material** to the `documentation/` folder - briefs, decks, screenshots, spreadsheets, PDFs.
+4. **Add the client material** to the `documentation/` folder - briefs, decks, screenshots, spreadsheets, PDFs. Subfolders are fine, at any depth. If the drop contains what look like old versions (`spec-v1` next to `spec-v2`, an `archive/` folder), the command asks you which to ignore; exact copies are ignored automatically. Nothing is ever deleted.
 5. **Open Claude Code** in the VS Code side panel and run a command. Start with **`/start`** to pick from a menu, or run one directly. What each command does and when to reach for it is in [§3](#3-when-to-use-which-command) and [§4](#4-commands).
 6. **Stay in the loop.** The commands are interactive - they draft, ask you to accept, and resolve anything they couldn't confidently fill in. Your answers shape the final artefacts.
 

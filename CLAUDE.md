@@ -54,7 +54,7 @@
 | Design system — `generated-docs/design-system/design-system-{light,dark}.html` | Human & LLM |
 | Application export — `generated-docs/export-application/requirements-application.md` | Human & LLM |
 | Stadium assets — `documentation/<App>.stadium-assets/**` (`/ingest-stadium`) | LLM |
-| Visual-input descriptions — `documentation/*.converted.md` | LLM |
+| Visual-input descriptions — `documentation/**/*.converted.md` | LLM |
 | Re-ingestion extract — `documentation/*.analysis.md` (`/analyse-inputs` **Accept & use**) | LLM |
 | Blueprint — `blueprints/<scope-slug>/{blueprint.md, scope.json}` | LLM |
 | Prototype design spec — `prototypes/.specs/<name-slug>/design-spec.md` | LLM |
